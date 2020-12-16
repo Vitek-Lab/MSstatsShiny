@@ -1,0 +1,10 @@
+name: shinymsstats
+title:
+username:
+account: dhavalm
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3373316
+bundleId: 3961033
+url: https://dhavalm.shinyapps.io/shinymsstats/
+when: 1607447708.93477

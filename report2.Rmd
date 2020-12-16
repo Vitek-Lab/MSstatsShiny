@@ -1,0 +1,72 @@
+---
+title: "Report2"
+output: html_document
+---
+
+# Introduction
+
+This is the report of the analysis performed with the R package MSstats on the web application MSstats-Shiny (https://cristinapasi.shinyapps.io/Shiny-MSstats/).
+The analysis was performed with the following packages:
+
+```{r}
+sessionInfo()
+```
+
+The original data was collected using a `r params$p1` acquisition.  
+The summary of the analysed data is:
+
+```{r echo=F}
+print(str(get_data()))
+print(summary(get_data()))
+```
+
+# Quality control
+
+The data was preprocessed with the following parameters:
+
+* Log transformation: log`r params$p2`
+* Normalization method: `r params$p3`
+* Global standards: `r params$p4` `r params$p5`
+* Summarization method: TMP
+* Removed runs with over 50% missing: `r params$p6`
+* Censoring assumptions: `r params$p7`
+* Cutoff value for censoring: `r params$p8`
+* Max quantile for censored: `r params$p9`
+* Model based imputation: `r params$p10`
+* All features used: `r params$p11`
+* Number of top features used: `r params$p12`
+
+The summary of the preprocessed data is:
+
+```{r echo=F}
+str(preprocess_data())
+```
+
+Preprocessed data and summarised data can be downloaded from the Quality Control window (preprocessing tab).
+
+Plots of preprocessed data can be downloaded in the Quality Control window (plot tab).
+
+# Statistical model 
+
+The comparisons have been defined as follows:
+
+```{r}
+comp_list$dList
+
+```
+
+Which result in the comparison matrix:
+
+```{r}
+matrix_build()
+```
+
+The total number of proteins that are differentially expressed in the comparisons at `r input$signif` significance is: `r nrow(SignificantProteins())`.
+
+```{r}
+head(SignificantProteins(),20)
+```
+
+Plots of results can be downloaded from the Statistical Model window, Data Comparison tab.
+
+Model assumptions can be verified with QQ Plots and ResidualPlots, which can be downloaded from the Statistical Model window, Model Assumptions tab.
