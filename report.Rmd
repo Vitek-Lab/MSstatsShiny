@@ -1,0 +1,124 @@
+---
+title: "Report"
+output: pdf_document
+---
+
+```{r wrap-hook, echo=F}
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+```
+
+# Introduction
+
+This is the report of the analysis performed with the R package MSstats on the web application MSstats-Shiny.
+The analysis was performed with the following packages:
+
+```{r, linewidth=100}
+sessionInfo()
+```
+
+The original data was collected using a `r params$p1` acquisition.  
+The summary of the analysed data is:
+
+```{r echo=F, linewidth=100}
+tryCatch({
+  print(str(get_data()))
+  print(summary(get_data()))
+},error =  function(e){
+  knit_exit()
+})
+
+tryCatch({
+  preprocess_data()
+},error =  function(e){
+  knit_exit()
+})
+
+```
+
+# Quality control
+
+The data was preprocessed with the following parameters:
+
+* Log transformation: log`r params$p2`
+* Normalization method: `r params$p3`
+* Global standards: `r params$p4` `r params$p5`
+* Summarization method: TMP
+* Removed runs with over 50% missing: `r params$p6`
+* Censoring assumptions: `r params$p7`
+* Cutoff value for censoring: `r params$p8`
+* Max quantile for censored: `r params$p9`
+* Model based imputation: `r params$p10`
+* All features used: `r params$p11`
+* Number of top features used: `r params$p12`
+
+The summary of the preprocessed data is:
+
+```{r echo=F, linewidth=100}
+tryCatch({
+  str(preprocess_data())
+}, error = function(e){
+  knit_exit()
+})
+
+
+```
+
+Preprocessed data and summarised data can be downloaded from the Quality Control window (preprocessing tab).
+
+Plots of preprocessed data can be downloaded in the Quality Control window (plot tab).
+
+# Statistical model 
+
+The comparisons have been defined as follows:
+
+```{r, linewidth=100}
+tryCatch({
+  comp_list$dList
+}, error = function(e){
+  knit_exit()
+})
+
+```
+
+Which result in the comparison matrix:
+
+```{r, linewidth=100}
+tryCatch({
+  matrix_build()
+}, error = function(e){
+  knit_exit()
+})
+
+```
+
+The total number of proteins that are differentially expressed in the comparisons at `r input$signif` significance is: `r nrow(SignificantProteins())`.
+
+```{r, linewidth=100}
+tryCatch({
+  
+  req(SignificantProteins())
+  head(SignificantProteins(),20)
+  
+}, error = function(e){
+  knit_exit()
+}
+)
+
+```
+
+Plots of results can be downloaded from the Statistical Model window, Data Comparison tab.
+
+Model assumptions can be verified with QQ Plots and ResidualPlots, which can be downloaded from the Statistical Model window, Model Assumptions tab.
+
+
+
