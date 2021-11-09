@@ -23,7 +23,25 @@ xy_str <- function(e) {
   paste0("x=", round(e$x, 1), " y=", round(e$y, 1), "\n")
 }
 
-
+radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hover", options = NULL){
+  
+  options = shinyBS:::buildTooltipOrPopoverOptionsList(title, placement, trigger, options)
+  options = paste0("{'", paste(names(options), options, sep = "': '", collapse = "', '"), "'}")
+  bsTag <- shiny::tags$script(shiny::HTML(paste0("
+                                                 $(document).ready(function() {
+                                                 setTimeout(function() {
+                                                 $('input', $('#", id, "')).each(function(){
+                                                 if(this.getAttribute('value') == '", choice, "') {
+                                                 opts = $.extend(", options, ", {html: true});
+                                                 $(this.parentElement).tooltip('destroy');
+                                                 $(this.parentElement).tooltip(opts);
+                                                 }
+                                                 })
+                                                 }, 500)
+                                                 });
+                                                 ")))
+  htmltools::attachDependencies(bsTag, shinyBS:::shinyBSDep)
+}
 
 #####################################################
 
@@ -37,11 +55,35 @@ shinyServer(function(input, output, session) {
                 selector = "#tablist li a[data-value='Data processing']")
   })
   # load data
-  source("panels/loadpage-server.R", local = T)
+  source("panels/utils.R", local = T)
+  source("panels/home-ui.R", local = T)
+  source("panels/pipeline-ui.R", local = T)
+  source("panels/expdes-ui.R", local = T)
+  source("panels/help-ui.R", local = T)
+  # protein quantification
+  source("panels/pq-server.R", local = T)
+  # statistical model
+  source("panels/statmodel-server.R", local = T)
+  # functional analysis
+  #  source("panels/analysis-server.R", local = T)
+  # clustering/classification
+  #  source("panels/clust-server.R", local = T)
+  # future experiment
+  source("panels/expdes-server.R", local = T)
+  # report
+  source("panels/report-server.R", local = T)
 #  source("panels/home-server.R", local = T)
   
-  observeEvent(input$proceed, {
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
+  observeEvent(input$StartPipeline, {
+    updateTabsetPanel(session = session, inputId = "tablist", selected = "StartPipeline")
+  })
+  
+  observeEvent(input$Design, {
+    updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
+  })
+  
+  observeEvent(input$Help, {
+    updateTabsetPanel(session = session, inputId = "tablist", selected = "Help")
   })
   
   onclick("reset1", {
@@ -49,25 +91,9 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$proceed1, {
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
+    updateTabsetPanel(session = session, inputId = "tablist", selected = "StartPipeline")
   })
   
-  
-  source("panels/utils.R", local = T)
-  # data preprocessing
-  source("panels/qc-server.R", local = T)
-  # protein quantification
-  source("panels/pq-server.R", local = T)
-  # statistical model
-  source("panels/statmodel-server.R", local = T)
-  # functional analysis
-#  source("panels/analysis-server.R", local = T)
-  # clustering/classification
-#  source("panels/clust-server.R", local = T)
-  # future experiment
-  source("panels/expdes-server.R", local = T)
-  # report
-  source("panels/report-server.R", local = T)
   
   # statmodel<- reactiveFileReader(1000, session, "panels/statmodel-ui.R", source)
   # output$statmodel <- renderUI(statmodel())
