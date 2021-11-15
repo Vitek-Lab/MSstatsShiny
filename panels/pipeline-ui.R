@@ -8,11 +8,14 @@ source("panels/report-ui.R", local = T)
 
 pipeline <- fluidPage(
   
-  tabPanel("1. Upload Data",value = "Uploaddata", icon = icon("send"), loadpage),
-  tabPanel("2. Data processing",value = "DataProcessing", icon = icon("gears"), qc),
-  tabPanel("3. Protein quantification", value = "PQ",icon = icon("calculator"), pq),
-  tabPanel("4. Statistical model", value = "StatsModel", icon = icon("magic"), statmodel),
-  tabPanel("Download logfile", icon = icon("download"), report),
+  navbarPage(title = "tabs",
+             id = 'tabsset',
+             tabPanel("1. Upload Data", icon = icon("send"), loadpage),
+             tabPanel("2. Data processing",value = "DataProcessing", icon = icon("gears"), qc),
+             tabPanel("3. Protein quantification", value = "PQ",icon = icon("calculator"), pq),
+             tabPanel("4. Statistical model", value = "StatsModel", icon = icon("magic"), statmodel),
+             tabPanel("Download logfile", value = "Download", icon = icon("download"), report)
+  ),
   
   headerPanel("MSstats Pipeline"),
   
@@ -32,5 +35,7 @@ pipeline <- fluidPage(
           you need to go back to an old tab, simply click the subtab you want to go \
           back to.")
     )
-  )
+  ),
+  
+  
 )

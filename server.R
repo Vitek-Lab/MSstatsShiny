@@ -56,10 +56,8 @@ shinyServer(function(input, output, session) {
   })
   # load data
   source("panels/utils.R", local = T)
-  source("panels/home-ui.R", local = T)
-  source("panels/pipeline-ui.R", local = T)
-  source("panels/expdes-ui.R", local = T)
-  source("panels/help-ui.R", local = T)
+  # data preprocessing
+  source("panels/qc-server.R", local = T)
   # protein quantification
   source("panels/pq-server.R", local = T)
   # statistical model
@@ -72,11 +70,6 @@ shinyServer(function(input, output, session) {
   source("panels/expdes-server.R", local = T)
   # report
   source("panels/report-server.R", local = T)
-#  source("panels/home-server.R", local = T)
-  
-  observeEvent(input$StartPipeline, {
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "StartPipeline")
-  })
   
   observeEvent(input$Design, {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
@@ -86,21 +79,48 @@ shinyServer(function(input, output, session) {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Help")
   })
   
+  observeEvent(input$StartPipeline, {
+    updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
+  })
+  # 
+  # observeEvent(input$DataProcessing, {
+  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "DataProcessing")
+  # })
+  # 
+  # observeEvent(input$PQ, {
+  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "PQ")
+  # })
+  # 
+  # observeEvent(input$StatsModel, {
+  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
+  # })
+  # 
+  # observeEvent(input$Download, {
+  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "Download")
+  # })
+  
+  
+  observeEvent(input$Future, {
+    updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
+  })
+  
+  
+  
   onclick("reset1", {
     shinyjs::runjs("location.reload()")
   })
   
-  observeEvent(input$proceed1, {
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "StartPipeline")
-  })
+  # observeEvent(input$proceed1, {
+  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "StartPipeline")
+  # })
   
   
   # statmodel<- reactiveFileReader(1000, session, "panels/statmodel-ui.R", source)
   # output$statmodel <- renderUI(statmodel())
  
   observe({
-    #currentTab <<- input$tablist
-    #updateTabsetPanel(session = session, inputId = "tablist", selected = currentTab)
+    # currentTab <- input$tablist
+    # updateTabsetPanel(session = session, inputId = "tablist", selected = currentTab)
     
     if(input$DDA_DIA=="TMT"){
       hideTab(inputId = "tablist", target = "PQ")
