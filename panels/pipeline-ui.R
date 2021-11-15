@@ -1,6 +1,6 @@
 
 ## Load tabs
-source("panels/uploaddata-ui.R", local = T)
+source("panels/loadpage-ui.R", local = T)
 source("panels/qc-ui.R", local = T)
 source("panels/pq-ui.R", local = T)
 source("panels/statmodel-ui.R", local = T)
