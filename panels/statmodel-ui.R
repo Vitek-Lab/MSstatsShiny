@@ -11,6 +11,7 @@ statmodel = fluidPage(
     tags$style(HTML('#submit{background-color:orange}')),
     tags$style(HTML('#clear{background-color:orange}'))
   ),
+  use_busy_spinner(spin = "fading-circle"),
   headerPanel("Statistical model"),
   p("In this tab a statistical model is built in three steps:"),
   p("(i) Create a contrast matrix with the correct Group comparisons,"), 
@@ -22,7 +23,16 @@ statmodel = fluidPage(
     
     sidebarPanel(
                fluidRow(
-                        radioButtons("def_comp", label=h4("1. Define comparisons - contrast matrix", tipify(icon("question-circle"), title="Choose pairwise comparisons to find significantly expressed proteins")), c("All possible pairwise comparisons" = "all_pair", "Compare all against one" = "all_one", "Create custom comparisons" = "custom"), selected = character(0)),
+                        radioButtons("def_comp", label=h4("1. Define comparisons\
+                                                          - contrast matrix", 
+                                      tipify(icon("question-circle"), 
+                                             title="Choose pairwise comparisons\ 
+                                             to find significantly expressed\
+                                             proteins")), 
+                                     c("All possible pairwise comparisons" = "all_pair", 
+                                       "Compare all against one" = "all_one", 
+                                       "Create custom comparisons" = "custom"), 
+                                     selected = character(0)),
                         tags$br(),
                         conditionalPanel(condition = "input.def_comp == 'custom'",
                                          uiOutput('choice1'),

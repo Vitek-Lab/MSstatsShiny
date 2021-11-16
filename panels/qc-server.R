@@ -118,6 +118,7 @@ output$Which <- renderUI({
 # preprocess data
   
 preprocess_data = eventReactive(input$run, {
+  show_modal_spinner() # show the modal window
   validate(need(get_data(), 
                 message = "PLEASE UPLOAD DATASET OR SELECT SAMPLE"))
   if(input$DDA_DIA == "TMT"){
@@ -134,7 +135,7 @@ preprocess_data = eventReactive(input$run, {
   }
   else{
     preprocessed <- dataProcess(raw=get_data(),
-                                logTrans=input$log,
+                                logTrans=as.numeric(input$log),
                                 normalization=input$norm,
                                 nameStandards=input$names,
                                 #                              betweenRunInterferenceScore=input$interf, 
@@ -145,19 +146,24 @@ preprocess_data = eventReactive(input$run, {
                                 summaryMethod="TMP",
                                 #                              equalFeatureVar=input$equal,
                                 censoredInt=input$censInt,
-                                cutoffCensored=input$cutoff,
+                                #cutoffCensored=input$cutoff,
                                 MBimpute=input$MBi,
                                 maxQuantileforCensored=quantile(),
-                                remove50missing=input$remove50
+                                remove50missing=input$remove50,
+                                use_log_file = FALSE,
+                                verbose = FALSE
                                 #                             skylineReport=input$report
     )
     
   }
-  
+  remove_modal_spinner() # remove it when done
   return(preprocessed)
   })
 
 # plot data
+# onclick("run", {
+#   preprocess_data()
+# })
 
 plotresult <- function(saveFile, protein, summary, original) {
   if (input$which != "") {
@@ -240,7 +246,7 @@ plotresult <- function(saveFile, protein, summary, original) {
 # statistics (for ConditionPlot)
 
 statistics <- reactive({
-  sub <- preprocess_data()$RunlevelData[which(preprocess_data()$RunlevelData$Protein == input$which),]
+  sub <- preprocess_data()$ProteinLevelData[which(preprocess_data()$ProteinLevelData$Protein == input$which),]
   len <- aggregate(sub$LogIntensities~sub$GROUP_ORIGINAL, length, data = sub)
   colnames(len)[colnames(len)=="sub$LogIntensities"] <- "Number_of_Measurements"
   sd <- aggregate(sub$LogIntensities~sub$GROUP_ORIGINAL, sd, data = sub)
@@ -258,9 +264,18 @@ statistics <- reactive({
 })
 
 
-######## output #######
+cap <- eventReactive(input$run, {
+  text_output <- "Data has been processed, use the tabs below to download and plot the results."
+})
+
+observeEvent(input$run, {output$submit.button <- renderUI(actionButton(inputId = "proceed6", label = "Next step"))})
+
+output$caption <- renderText({
+  cap()
+})
 
 observeEvent(input$run,{
+  
   if(input$DDA_DIA=="TMT"){
     shinyjs::enable("prepr_csv")
   } else {
@@ -301,7 +316,7 @@ output$prepr_csv <- downloadHandler(
     }
     else{
       
-      write.csv(preprocess_data()$ProcessedData, file, row.names = F)
+      write.csv(preprocess_data()$FeatureLevelData, file, row.names = F)
     }
     
   }
@@ -312,7 +327,7 @@ output$summ_csv <- downloadHandler(
     paste("Summarized_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
-    write.csv(preprocess_data()$RunlevelData, file, row.names = F)
+    write.csv(preprocess_data()$ProteinLevelData, file, row.names = F)
   }
 )
 
@@ -358,7 +373,9 @@ output$showplot <- renderUI({
     tags$br(),
     conditionalPanel(condition = "input.which != ''",
                      actionButton("saveone", "Save this plot"),
-                     bsTooltip(id = "saveone", title = "Open plot as pdf.  Popups must be enabled", placement = "bottom", trigger = "hover")#,
+                     bsTooltip(id = "saveone", title = "Open plot as pdf. \
+                               Popups must be enabled", placement = "bottom", 
+                               trigger = "hover")#,
                      #actionButton("saveall", "Save all plots"),
                      #bsTooltip(id = "saveall", title = "Open pdf of all plots.  Popups must be enabled", placement = "bottom", trigger = "hover")
                      )
@@ -379,15 +396,45 @@ output$theplot <- renderPlot(theplot())
 
 output$stats <- renderTable(statistics())
 
-onclick("proceed6", {
-  if(input$DDA_DIA=="TMT"){
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
-  }
-  else{
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "PQ")
-  }
-  
+shinyjs::enable("proceed6")
+observeEvent(preprocess_data(),{
+  shinyjs::enable("proceed6")
 })
 
+onclick("proceed6", {
+  updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
+})
 
+# quantification
+
+abundance <- reactive({
+  validate(need(preprocess_data(),
+                message = "PLEASE COMPLETE DATA PROCESSING STEP"))
+  quantification(preprocess_data(),
+                 type = input$typequant,
+                 format = input$format)
+})
+
+# downloads
+
+output$download_summary <- downloadHandler(
+  filename = function() {
+    paste("abundance-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(abundance(), file)
+  }
+)
+
+output$abundance <- renderDataTable(abundance())
+
+observeEvent(input$proceed4, {
+  updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
+})
+
+## Loading popup
+# observeEvent(input$run, {
+#   # Show a modal when the button is pressed
+#   shinyalert("Processing Data", "Data is now processing", type = "info")
+# })
 

@@ -322,6 +322,7 @@ get_data <- reactive({
   return(mydata)
 })
 
+
 ### outputs ###
 
 get_summary <- reactive({
@@ -368,7 +369,7 @@ output$summary1 <-  renderTable(
     nf <- ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
     df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
                             "Number of Biological Replicates" = n_distinct(BioReplicate),
-                            "Number_of_Fraction" = nf,
+                            "Number of Fractions" = nf,
                             "Number of MS runs" = n_distinct(Run)
     )
     df2 <- df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
@@ -381,7 +382,7 @@ output$summary1 <-  renderTable(
     df3 <- head(df3,1)
     
     df <- cbind(df1,df2,df3) %>%
-      mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*Number_of_Fraction) ) %>%
+      mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
       select(-Condition_Run,-BioReplicate_Run)
     df <- df[,c(1,2,5,3,4)]
     
@@ -410,13 +411,13 @@ output$summary2 <-  renderTable(
     
     
     
-    df1 <- df %>% summarise("Number of Protiens" = n_distinct(ProteinName), 
+    df1 <- df %>% summarise("Number of Proteins" = n_distinct(ProteinName), 
                             "Number of Peptides" = n_distinct(PeptideSequence),
                             "Number of Features" = n_distinct(FEATURES),
                             "Min_Intensity" = ifelse(!is.finite(min(Intensity, na.rm=T)),0,round(min(Intensity, na.rm=T),0)),
                             "Max_Intensity" = ifelse(!is.finite(max(Intensity, na.rm=T)),0,
                                                      round(max(Intensity, na.rm=T),0))) %>%
-      unite("Intensity", Min_Intensity:Max_Intensity, sep = " - ")
+      unite("Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
     
     Peptides_Proteins <- df %>% group_by(ProteinName)  %>%
       summarise(npep = n_distinct(PeptideSequence)) %>% summarize(Peptides_Proteins_min=min(npep),
@@ -448,10 +449,9 @@ output$summary2 <-  renderTable(
 )
 
 shinyjs::enable("proceed1")
-shinyjs::enable("reset1")
-# observeEvent(get_data(),{
-#   shinyjs::enable("proceed1")
-# })
+observeEvent(get_data(),{
+  shinyjs::enable("proceed1")
+})
 # 
 # observeEvent(get_data(),{
 #   shinyjs::enable("reset1")

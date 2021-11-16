@@ -2,6 +2,7 @@ options(shiny.maxRequestSize=2000*1024^2)
 library(shiny)
 library(MSstats)
 library(shinyBS)
+library(shinybusy)
 library(uuid)
 library(shinyjs)
 library(biomaRt)
@@ -48,23 +49,6 @@ shinyServer(function(input, output, session) {
   observeEvent(input$StartPipeline, {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
   })
-  # 
-  # observeEvent(input$DataProcessing, {
-  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "DataProcessing")
-  # })
-  # 
-  # observeEvent(input$PQ, {
-  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "PQ")
-  # })
-  # 
-  # observeEvent(input$StatsModel, {
-  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
-  # })
-  # 
-  # observeEvent(input$Download, {
-  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "Download")
-  # })
-  
   
   source("panels/loadpage-server.R", local = T)
 
@@ -72,34 +56,24 @@ shinyServer(function(input, output, session) {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
   })
 
-  onclick("reset1", {
-    shinyjs::runjs("location.reload()")
-  })
-
-  observeEvent(input$proceed1, {
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
-  })
-  
   
   # load data
   source("panels/utils.R", local = T)
   # data preprocessing
   source("panels/qc-server.R", local = T)
-  # protein quantification
-  source("panels/pq-server.R", local = T)
   # statistical model
   source("panels/statmodel-server.R", local = T)
-  # functional analysis
-  #  source("panels/analysis-server.R", local = T)
-  # clustering/classification
-  #  source("panels/clust-server.R", local = T)
+  # # functional analysis
+  # #  source("panels/analysis-server.R", local = T)
+  # # clustering/classification
+  # #  source("panels/clust-server.R", local = T)
   # future experiment
   source("panels/expdes-server.R", local = T)
-  # report
-  source("panels/report-server.R", local = T)
+  # # report
+  # source("panels/report-server.R", local = T)
   
-  # statmodel<- reactiveFileReader(1000, session, "panels/statmodel-ui.R", source)
-  # output$statmodel <- renderUI(statmodel())
+  statmodel<- reactiveFileReader(1000, session, "panels/statmodel-ui.R", source)
+  output$statmodel <- renderUI(statmodel())
  
   observe({
     # currentTab <- input$tablist

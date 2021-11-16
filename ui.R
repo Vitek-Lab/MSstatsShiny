@@ -61,15 +61,14 @@ radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hov
 
 source("panels/home-ui.R", local = T)
 source("panels/loadpage-ui.R", local = T)
-source("panels/pipeline-ui.R", local = T)
+# source("panels/pipeline-ui.R", local = T)
 source("panels/qc-ui.R", local = T)
-source("panels/pq-ui.R", local = T)
 source("panels/statmodel-ui.R", local = T)
-
+# 
 source("panels/expdes-ui.R", local = T)
-#source("panels/analysis-ui.R", local = T)
-#source("panels/clust-ui.R", local = T)
-source("panels/report-ui.R", local = T)
+# #source("panels/analysis-ui.R", local = T)
+# #source("panels/clust-ui.R", local = T)
+# source("panels/report-ui.R", local = T)
 source("panels/help-ui.R", local = T)
 
 #########################################################################
@@ -129,11 +128,10 @@ ui <- navbarPage(
   tabPanel("Homepage", icon = icon("home"), home),
   # tabPanel("Run Pipeline", icon = icon("running"), pipeline),
   tabPanel("1. Upload data",value = "Uploaddata", icon = icon("send"), loadpage),
-  tabPanel("2. Data processing",value = "DataProcessing", icon = icon("gears"), qc),
-  tabPanel("3. Protein quantification", value = "PQ",icon = icon("calculator"), pq),
-  tabPanel("4. Statistical model", value = "StatsModel", icon = icon("magic"), statmodel),
-  tabPanel("Future experiments", value = "Future", icon = icon("flask"), expdes),
-  tabPanel("Download logfile", icon = icon("download"), report),
+  tabPanel("2. Data Summarization", value = "DataProcessing", icon = icon("gears"), qc),
+  tabPanel("3. Statistical model", value = "StatsModel", icon = icon("magic"), statmodel),
+  tabPanel("4. Future experiments", value = "Future", icon = icon("flask"), expdes),
+  # tabPanel("Download logfile", icon = icon("download"), report),
   tabPanel("Help", icon = icon("ambulance"), help),
   inverse = T,
   collapsible = T,

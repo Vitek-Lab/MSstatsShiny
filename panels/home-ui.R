@@ -22,9 +22,8 @@ home = fluidPage(
         data."),
       br(),
       h2("Please select from the following options to get started"),
-      h4("1.", actionButton(inputId = "StartPipeline", label = "Run Pipeline")),
-      h4("2.", actionButton(inputId = "Design", label = "Experimental Design")),
-      h4("3.", actionButton(inputId = "Help", label = "Help!")),
+      h4("1.", actionButton(inputId = "StartPipeline", label = "Run MSstats Pipeline")),
+      h4("2.", actionButton(inputId = "Help", label = "Help!")),
       br(),
       h2("Features"),
       p("- Analyze data from many different acquisition methods, including \
@@ -36,7 +35,7 @@ home = fluidPage(
       h2("Notes"),
       p("Please note that some calculations may take some time to compute."),
       p("The code for this UI can be accessed online via github ", a("here", 
-                                                                     href="https://github.com/Vitek-Lab/MSstats-shiny")),
+              href="https://github.com/Vitek-Lab/MSstats-shiny")),
 #      p("There are "),
 #      verbatimTextOutput("count"),
 #      p("people currently using Shiny-MSstats")

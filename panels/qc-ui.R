@@ -2,6 +2,8 @@
 
 sbp_params = sidebarPanel(
   
+  div(style="display:inline-block; float:right",actionButton("run", "Run preprocessing")),
+  
   # transformation
   
   conditionalPanel(condition = "input.DDA_DIA == 'TMT'",
@@ -114,8 +116,6 @@ sbp_params = sidebarPanel(
   
   tags$hr(),
   # run 
-  
-  actionButton("run", "Run preprocessing"),
   width = 3
 )
 
@@ -124,24 +124,34 @@ sbp_params = sidebarPanel(
   
 main = mainPanel(
   
+  h3("Please run preprocessing in the side panel."),
+  h3(textOutput("caption", container = span)),
   
   tabsetPanel(
-    tabPanel("Preprocessed data", 
-             #verbatimTextOutput('effect'),
-             conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-                              tags$br(),
-                              tags$br(),
-                              tags$h4("Calculation in progress...")),
-             #tags$div(id='download_buttons')
-             tags$br(),
-             disabled(downloadButton("prepr_csv","Download .csv of preprocessed data")),
-             conditionalPanel(condition = "input.DDA_DIA !== 'TMT'",
-                              disabled(downloadButton("summ_csv","Download .csv of summarised data"))
-             )
-             ),
-    tabPanel("Plot", 
+    tabPanel("Summarized Results", 
              wellPanel(
-               p("Please preprocess data to view quality control plots"),
+               fluidRow(
+                 h4("Download summary of protein abundance", 
+                    tipify(icon("question-circle"), 
+                           title="Model-based quantification for each \
+                                    condition or for each biological samples \
+                                    per protein.")),
+                 radioButtons("typequant", 
+                              label = h4("Type of summarisation"), 
+                              c("Sample-level summarisation" = "Sample", 
+                                "Group-level summarisation" = "Group")),
+                 radioButtons("format", "Save as", c("Wide format" = "matrix", 
+                                                     "Long format" = "long")),
+                 downloadButton("download_summary", "Download")
+               )),
+               #column(7,
+                      h4("Table of abundance"),
+                      dataTableOutput("abundance")
+               #)
+             #)
+    ),
+    tabPanel("Quality Control Plots", 
+             wellPanel(
                conditionalPanel(condition = "input.DDA_DIA==='TMT'",
                                 selectInput("type1",
                                             label = h5("Select plot type", tipify(icon("question-circle"), title = "Use Profile Plots to view technical/biological variability and missing values; use Condition Plots to view differences in intensity between conditions; use QC Plots to view differences between runs and to check the effects of normalization")), c("Show QC plots"="QCPlot", "Show profile plots"="ProfilePlot"))),
@@ -167,7 +177,20 @@ main = mainPanel(
                               tags$br(),
                               tags$h4("Calculation in progress...")),
              uiOutput("showplot")
+             ),
+    tabPanel("Download Data", 
+             #verbatimTextOutput('effect'),
+             conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+                              tags$br(),
+                              tags$br(),
+                              tags$h4("Calculation in progress...")),
+             #tags$div(id='download_buttons')
+             tags$br(),
+             disabled(downloadButton("prepr_csv","Download .csv of preprocessed data")),
+             conditionalPanel(condition = "input.DDA_DIA !== 'TMT'",
+                              disabled(downloadButton("summ_csv","Download .csv of summarised data"))
              )
+    )
     )
 )
   
@@ -177,18 +200,45 @@ main = mainPanel(
 ########################################################################################
 
 qc = fluidPage(
+  # useShinyalert(),
+  use_busy_spinner(spin = "fading-circle"),
   tags$style(HTML('#proceed6{background-color:orange}')),
   headerPanel("Data processing"),
-  p("Preprocessing of the data is performed through: (i) Log transformation, (ii) Normalisation, (iii) Feature selection, (iv) Imputation for censored missing values, (v) Run-level summarisation.  Please choose preprocessing parameters and hit Run.  More information on the preprocessing step can be found ", 
+  p("Preprocessing of the data is performed through: (i) Log transformation, \
+    (ii) Normalization, (iii) Feature selection, (iv) Imputation for censored \
+    missing values, (v) Run-level summarisation.  Please choose the preprocessing \
+    parameters in the side panel and then Run. More information on the preprocessing step can be found ", 
     a("here", href="https://rdrr.io/bioc/MSstats/man/dataProcess.html", target="_blank")),
   p("Quality of data and preprocessing can be assessed in the plot tab of the main panel."),
-  p("Preprocessed data will be used for protein quantification and to build a statistical model to evaluate the changes in protein expression."),
-  p("PLEASE UPLOAD DATASET OR SELECT SAMPLE DATASET TO COMPLETE THIS STEP"),
+  p("Preprocessed data will be used for protein quantification and to build a \
+    statistical model to evaluate the changes in protein expression."),
+  p("You must upload your data in the `Upload data` tab before completing \
+    this step"),
   tags$br(),
   sbp_params,
   column(width = 8,
-  main,
-  actionButton(inputId = "proceed6", label = "Next step")
- ),
- 
+         main,
+         uiOutput('submit.button'),
+  #        tags$head(tags$style(type="text/css", "
+  #          #loadmessage {
+  #            position: bottomright;
+  #            top: 0px;
+  #            left: 0px;
+  #            width: 300px;
+  #            padding: 50px;
+  #            margin: 20px;
+  #            border: 15px solid navy;
+  #            text-align: center;
+  #            font-weight: bold;
+  #            font-size: 200%;
+  #            color: #000000;
+  #            background-color: lightgrey;
+  #            z-index: 105;
+  #          }
+  # ")),
+  #        shinyalert(conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+  #                         tags$div("Summarizing Data...",id="loadmessage")
+  #        )),
+ )
+        
 )

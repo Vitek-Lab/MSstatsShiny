@@ -85,8 +85,7 @@ sbp_load = sidebarPanel(
                                     conditionalPanel(condition = "input.m_score",
                                                      numericInput("m_cutoff", "M-score cutoff", 0.01, 0, 1, 0.01)))
   ),
-  disabled(actionButton(inputId = "proceed1", label = "Next")),
-  disabled(actionButton(inputId = "reset1", label = "Restart"))
+  disabled(actionButton(inputId = "proceed1", label = "Upload Data"))
 )
 
 ##########################################
@@ -94,9 +93,13 @@ loadpage = fluidPage(
   
   useShinyjs(),
   headerPanel(list("Upload data")),
-  p("To explore this application for 'Type of File' upload two types of datasets:"),
-  p("(1) Quantification report from data processing tool."), 
-  p("(2) Annotation including experimental design."),
+  p("To run the MSstats Pipeline, please upload your dataset. The required files\
+    depend on the spectral processing tool used. Generally the raw data and an \
+    annotation file are needed. The output of this step is your experimental \
+    data processed in MSstats format."),
+  p("Additionally, you can format the data on your own, and select the `MSstats required format`\
+     option under `Type of File`. For an example of what MSstats format is \
+    please select the `Example dataset` option."),
   p("For more information on the type of dataset accepted by Shiny-MSstats please check the ",
     a("documentation.", href="https://bioconductor.org/packages/devel/bioc/vignettes/MSstats/inst/doc/MSstats.html", target="_blank")),
   tags$br(),
