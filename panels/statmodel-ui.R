@@ -52,10 +52,17 @@ statmodel = fluidPage(
                                          actionButton("clear2", "Clear matrix")
                                          ),
                         sliderInput("signif", 
-                                    label = h5("Significance level", tipify(icon("question-circle"), title="Probability of rejecting the null hypothesis given that it is true (probability of type I error)")) , 0, 1, 0.05),
+                                    label = h5("Significance level", 
+                                               tipify(icon("question-circle"),
+                                                      title="Probability of \
+                                                      rejecting the null \
+                                                      hypothesis given that it \
+                                                      is true (probability of \
+                                                      type I error)")) , 0, 1, 0.05),
                         tags$hr(),
                         h4("2. Group comparison"),
-                        actionButton("calculate", "Start"),
+                        p("Please add a comparison matrix before modeling."),
+                        disabled(actionButton("calculate", "Start")),
                         tags$hr(),
                         ),
 # table of significant proteins 
@@ -65,38 +72,75 @@ statmodel = fluidPage(
                  column(12,
                           fluidRow(
                                    selectInput("typeplot", 
-                                               label = h4("3. Visualization - select plot type"), c("Volcano Plot" = "VolcanoPlot", "Heatmap"="Heatmap", "Comparison Plot"="ComparisonPlot")),
+                                               label = h4("3. Visualization - \
+                                                          select plot type"), 
+                                               c("Volcano Plot" = "VolcanoPlot", 
+                                                 "Heatmap"="Heatmap", 
+                                                 "Comparison Plot"="ComparisonPlot")),
                                    conditionalPanel(condition = "input.typeplot == 'VolcanoPlot'",
                                                     uiOutput("WhichComp")),
-                                   conditionalPanel(condition = "input.typeplot == 'VolcanoPlot' && input.DDA_DIA!=='TMT'",
-                                                    checkboxInput("pname", 
-                                                                  label = p("display protein name"))),
-                                   conditionalPanel(condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
-                                                    selectInput("logp", 
-                                                                label = h5("Log transformation of adjusted p-value"),
-                                                                c("base 2" = "2", "base 10" = "10"), selected = "10")
+                                   conditionalPanel(
+                                     condition = "input.typeplot == 'VolcanoPlot' && input.DDA_DIA!=='TMT'",
+                                     checkboxInput("pname", label = p("display protein name"))),
+                                   conditionalPanel(
+                                     condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
+                                     selectInput("logp", 
+                                                 label = h5("Log transformation of adjusted p-value"),
+                                                 c("base 2" = "2", "base 10" = "10"), selected = "10")
                                                     ),
                                    sliderInput("sig", 
-                                               label = h5("Significance level", tipify(icon("question-circle"), title="Probability of rejecting the null hypothesis given that it is true (probability of type I error)")) , 0, 1, 0.05),
-                                    conditionalPanel(condition = "input.typeplot == 'ComparisonPlot'",
-                                                     uiOutput("WhichProt")),
-                                   conditionalPanel(condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
-                                                    checkboxInput("FC1", 
-                                                                  label = p("Apply specific fold change cutoff for significance")),
-                                                    conditionalPanel(condition = "input.FC1 == true",
-                                                                     numericInput("FC", "cutoff", 1, 0, 100, 0.1))),
+                                               label = h5("Significance level", 
+                                                          tipify(icon("question-circle"), 
+                                                      title="Probability of \
+                                                      rejecting the null hypothesis \
+                                                      given that it is true \
+                                                      (probability of type I error)")),
+                                               0, 1, 0.05),
+                                    conditionalPanel(
+                                      condition = "input.typeplot == 'ComparisonPlot'",
+                                      uiOutput("WhichProt")),
+                                   conditionalPanel(
+                                     condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
+                                     checkboxInput("FC1", 
+                                                   label = p("Apply specific \
+                                                             fold change cutoff \
+                                                             for significance")),
+                                                    conditionalPanel(
+                                                      condition = "input.FC1 == true",
+                                                      numericInput("FC", "cutoff", 
+                                                                   1, 0, 100, 
+                                                                   0.1))),
                                    tags$br(),
-                                   conditionalPanel(condition = "input.typeplot == 'Heatmap'",
-                                                    numericInput("nump", "Number of proteins in heatmap", 100, 1, 180, 1),
-                                                    selectInput("cluster",
-                                                                label = h5("Cluster analysis", tipify(icon("question-circle"), 
-                                                                                                      title= "How to order proteins and comparisons: compute protein dendrogram and reorder based on protein means; compute comparison dendrogram and reorder based on comparison means; or both", 
-                                                                                                      placement = "top")), 
-                                                                c("protein dendogram" = "protein", "comparison dendogram" = "comparison", "protein and comparison dendograms" = "both"))),
+                                   conditionalPanel(
+                                     condition = "input.typeplot == 'Heatmap'",
+                                     numericInput("nump", "Number of proteins \
+                                                  in heatmap", 100, 1, 180, 1),
+                                     selectInput("cluster", 
+                                                 label = h5("Cluster analysis", 
+                                                            tipify(
+                                                              icon("question-circle"), 
+                                                              title= "How to order \
+                                                              proteins and \
+                                                              comparisons: compute \
+                                                              protein dendrogram and \
+                                                              reorder based on protein \
+                                                              means; compute comparison \
+                                                              dendrogram and reorder \
+                                                              based on comparison means; \
+                                                              or both", 
+                                                              placement = "top")), 
+                                                 c("protein dendogram" = "protein", 
+                                                   "comparison dendogram" = "comparison", 
+                                                   "protein and comparison dendograms" = "both"))),
                                    conditionalPanel(condition = "input.typeplot == 'ComparisonPlot'",
                                                     uiOutput("WhichComp1"))
                                    ),
-                        actionButton("viewresults", "View plot in browser (only for one comparison/protein)"),
+                        p("Please note if you want to plot more than one \
+                          Volcano Plot comparison, you must save the results \
+                          as a pdf."),
+                        actionButton("viewresults", 
+                                     "View plot in browser (only for one \
+                                     comparison/protein)"),
                         actionButton("plotresults", "Save plot results as pdf")
                         
                  )
@@ -105,6 +149,7 @@ statmodel = fluidPage(
 
 fluidRow(
   column(7,
+         disabled(actionButton(inputId = "Design", label = "Next Step")),
          uiOutput("matrix"),
          conditionalPanel(condition="$('html').hasClass('shiny-busy')",
                           tags$br(),

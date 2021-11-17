@@ -33,8 +33,9 @@ home = fluidPage(
       p("- Design future experiments using the sample size and power analysis \
         UI"),
       h2("Notes"),
-      p("Please note that some calculations may take some time to compute."),
-      p("The code for this UI can be accessed online via github ", a("here", 
+      p("- Sample Size and Power calucaltions are currently not available for TMT experiments."),
+      p("- Please note that some calculations may take some time to compute."),
+      p("- The code for this UI can be accessed online via github ", a("here", 
               href="https://github.com/Vitek-Lab/MSstats-shiny")),
 #      p("There are "),
 #      verbatimTextOutput("count"),

@@ -181,8 +181,7 @@ plotresult <- function(saveFile, protein, summary, original) {
     
     if(input$DDA_DIA == "TMT"){
       
-      dataProcessPlotsTMT(get_data(),
-                          preprocess_data(),
+      dataProcessPlotsTMT(preprocess_data(),
                           type=input$type1,
                           ylimUp = FALSE,
                           ylimDown = FALSE,
@@ -409,10 +408,22 @@ onclick("proceed6", {
 
 abundance <- reactive({
   validate(need(preprocess_data(),
-                message = "PLEASE COMPLETE DATA PROCESSING STEP"))
-  quantification(preprocess_data(),
-                 type = input$typequant,
-                 format = input$format)
+                message = "PLEASE COMPLETE DATA PROCESSING"))
+  
+  if (input$DDA_DIA == "TMT"){
+    temp <- copy(preprocess_data())
+    setnames(temp$ProteinLevelData, 
+             c("Abundance", "Condition", "BioReplicate"), 
+             c("LogIntensities", "GROUP", "SUBJECT"))
+    quantification(temp,
+                   type = input$typequant,
+                   format = input$format)
+  }
+  else{
+    quantification(preprocess_data(),
+                   type = input$typequant,
+                   format = input$format)
+  }
 })
 
 # downloads

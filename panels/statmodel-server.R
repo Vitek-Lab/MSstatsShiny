@@ -135,7 +135,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
       }
     }
   }
-  
+  shinyjs::enable("calculate")
   return(contrast$matrix)
 })
 
@@ -173,7 +173,7 @@ round_df <- function(df) {
 SignificantProteins <- reactive({
   if(input$DDA_DIA=="TMT"){
     data_comp <- data_comparison()
-    with(data_comp,round_df(data_comp[data_comp$adj.pvalue < input$signif, ]))
+    data_comp$ComparisonResult[data_comp$ComparisonResult$adj.pvalue < input$signif, ]
     
   } else {
     with(data_comparison(),round_df(ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ]))
@@ -219,7 +219,7 @@ group_comparison <- function(saveFile1, pdf) {
   
   if(input$DDA_DIA=="TMT"){
     
-    plot1 <- groupComparisonPlots2(data=data_comparison(),
+    plot1 <- groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                    type=input$typeplot,
                                    sig=input$sig,
                                    FCcutoff=input$FC,
@@ -394,7 +394,7 @@ observe ({output$comp_plots <- renderPlot({
 plotset <- reactive({
   
   if(input$DDA_DIA=="TMT"){
-    data_comp <- data_comparison()
+    data_comp <- data_comparison()$ComparisonResult
     v1 <- data_comp[,1]
     v2 <- round(data_comp[,3], 10)
     v3 <- round(data_comp[,8], 10)
@@ -474,11 +474,7 @@ output$download_compar <- downloadHandler(
     paste("data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
-    if(input$DDA_DIA=="TMT") {
-      write.csv(data_comparison(), file)
-    } else {
-      write.csv(data_comparison()$ComparisonResult, file)
-    }
+    write.csv(data_comparison()$ComparisonResult, file)
     
   }
 )
@@ -513,4 +509,11 @@ observeEvent(input$plotresults, {
 })
 
 
+observeEvent(input$calculate,{
+  shinyjs::enable("Design")
+})
+
+# observeEvent(input$power_next, {
+#   updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
+# })
 

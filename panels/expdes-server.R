@@ -21,7 +21,7 @@ observe({
   FDR_x <- input$FDR
   FCR_x <- input$desirFC
   future_exp <- function(){
-    exp <- designSampleSize(data=data_comparison()$fittedmodel,
+    exp <- designSampleSize(data=data_comparison()$FittedModel,
                             desiredFC = input$desirFC,
                             FDR = FDR_x,
                             numSample = sample_x,
