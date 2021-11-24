@@ -6,7 +6,7 @@ home = fluidPage(
                     #Design{background-color:orange}
                     #Help{background-color:orange}'))
   ),
-  headerPanel(div(img(src = "MSstatsLogo.png", height = 165, width = 132), "Welcome to MSstats-Shiny")),
+  headerPanel(div(img(src = "MSstatsLogo.PNG", height = 165, width = 132), "Welcome to MSstats-Shiny")),
   tags$br(),
   mainPanel(
     div(tagList(

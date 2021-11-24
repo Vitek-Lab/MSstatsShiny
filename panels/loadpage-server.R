@@ -52,7 +52,7 @@ observe({
 
 ### functions ###
 
-get_annot = reactive({
+get_annot <- reactive({
   annot <- input$annot
   if(is.null(annot)) {
     return(NULL)
@@ -61,7 +61,7 @@ get_annot = reactive({
   return(annot_file)
 })
 
-get_annot1 = reactive({
+get_annot1 <- reactive({
   annot1 <- input$annot1
   if(is.null(input$annot1)) {
     return(NULL)
@@ -72,7 +72,7 @@ get_annot1 = reactive({
   
 })
 
-get_annot2 = reactive({
+get_annot2 <- reactive({
   annot1 <- input$annot2
   if(is.null(input$annot2)) {
     return(NULL)
@@ -83,7 +83,7 @@ get_annot2 = reactive({
   
 })
 
-get_evidence = reactive({
+get_evidence <- reactive({
   evidence <- input$evidence
   if(is.null(input$evidence)) {
     return(NULL)
@@ -94,7 +94,7 @@ get_evidence = reactive({
   
 })
 
-get_proteinGroups = reactive({
+get_proteinGroups <- reactive({
   pGroup <- input$pGroup
   if(is.null(input$pGroup)) {
     return(NULL)
@@ -104,7 +104,7 @@ get_proteinGroups = reactive({
   return(pGroup)
 })
 
-get_FragSummary = reactive({
+get_FragSummary <- reactive({
   fragSummary <- input$fragSummary
   if(is.null(input$fragSummary)) {
     return(NULL)
@@ -114,7 +114,7 @@ get_FragSummary = reactive({
   
 })
 
-get_peptideSummary = reactive({
+get_peptideSummary <- reactive({
   peptideSummary <- input$peptideSummary
   if(is.null(input$peptideSummary)) {
     return(NULL)
@@ -124,7 +124,7 @@ get_peptideSummary = reactive({
   
 })
 
-get_protSummary = reactive({
+get_protSummary <- reactive({
   protSummary <- input$protSummary
   if(is.null(input$protSummary)) {
     return(NULL)
@@ -136,7 +136,7 @@ get_protSummary = reactive({
 
 
 get_data <- reactive({
-  
+  show_modal_spinner()
   ev_maxq <- get_evidence()
   pg_maxq <- get_proteinGroups()
   an_maxq <- get_annot1()
@@ -319,168 +319,169 @@ get_data <- reactive({
     }
   }
   mydata <- unique(data.frame(mydata))
+  remove_modal_spinner()
   return(mydata)
 })
 
-
-### outputs ###
-
-get_summary <- reactive({
-  if(is.null(get_data())) {
-    return(NULL)
-  }
-  data1 <- get_data()
-  data_summary <- Hmisc::describe(data1)
-})
-
-output$template <- downloadHandler(
-  filename <- function() {
-    paste("templateannotation", "csv", sep=".")
-  },
-  
-  content <- function(file) {
-    file.copy("templateannotation.csv", file)
-  },
-  contentType = "csv"
-)
-
-output$template1 <- downloadHandler(
-  filename <- function() {
-    paste("templateevidence", "txt", sep = ".")
-  },
-  
-  content <- function(file) {
-    file.copy("templateevidence.txt", file)
-  },
-  contentType = "txt"
-)
-
-output$summary <- renderTable(
-  {
-    req(get_data())
-    head(get_data())
-  }, bordered = T
-)
-
-output$summary1 <-  renderTable(
-  {
-    req(get_data())
-    df <- get_data()
-    nf <- ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
-    df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
-                            "Number of Biological Replicates" = n_distinct(BioReplicate),
-                            "Number of Fractions" = nf,
-                            "Number of MS runs" = n_distinct(Run)
-    )
-    df2 <- df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
-      select("Condition_Run")
-    df3 <- df %>% group_by(Run, BioReplicate) %>% summarise("BioReplicate_Run" = n()) %>% ungroup() %>%
-      select("BioReplicate_Run")
-    
-    df1 <- head(df1,1)
-    df2 <- head(df2,1)
-    df3 <- head(df3,1)
-    
-    df <- cbind(df1,df2,df3) %>%
-      mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
-      select(-Condition_Run,-BioReplicate_Run)
-    df <- df[,c(1,2,5,3,4)]
-    
-    
-    t_df <- as.data.frame(t(df))
-    rownames(t_df) <- colnames(df)
-    t_df <- cbind(rownames(t_df), t_df)
-    colnames(t_df) <- c("", "value")
-    t_df$value <- sub("\\.\\d+$", "", t_df$value)
-    colnames(t_df) <- c("", "")
-    t_df
-  }, colnames = FALSE, bordered = T
-)
-
-output$summary2 <-  renderTable(
-  {
-    req(get_data())
-    df <- get_data()
-    if(input$DDA_DIA=="TMT"){
-      df <- df %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence, Charge, sep = '_'))
-    }
-    else{
-      df <- df %>% mutate("FEATURES" = paste(PeptideSequence, PrecursorCharge, FragmentIon, ProductCharge, sep = '_'))
-      
-    }
-    
-    
-    
-    df1 <- df %>% summarise("Number of Proteins" = n_distinct(ProteinName), 
-                            "Number of Peptides" = n_distinct(PeptideSequence),
-                            "Number of Features" = n_distinct(FEATURES),
-                            "Min_Intensity" = ifelse(!is.finite(min(Intensity, na.rm=T)),0,round(min(Intensity, na.rm=T),0)),
-                            "Max_Intensity" = ifelse(!is.finite(max(Intensity, na.rm=T)),0,
-                                                     round(max(Intensity, na.rm=T),0))) %>%
-      unite("Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
-    
-    Peptides_Proteins <- df %>% group_by(ProteinName)  %>%
-      summarise(npep = n_distinct(PeptideSequence)) %>% summarize(Peptides_Proteins_min=min(npep),
-                                                                  Peptides_Proteins_max=max(npep))
-    
-    Features_Peptides <- df %>% group_by(PeptideSequence)  %>%
-      summarise(nfea = n_distinct(FEATURES)) %>% summarize(Features_Peptides_min=min(nfea),
-                                                           Features_Peptides_max=max(nfea))
-    
-    df1 <- cbind(df1,Features_Peptides,Peptides_Proteins) %>%
-      unite("Number of Features/Peptide",Features_Peptides_min:Features_Peptides_max,sep = " - ") %>%
-      unite("Number of Peptides/Protein",Peptides_Proteins_min:Peptides_Proteins_max, sep = " - ")
-    
-    df1 <- df1[,c(1,2,3,6,5,4)]
-    
-    t_df <- as.data.frame(t(df1))
-    rownames(t_df) <- colnames(df1)
-    t_df <- cbind(rownames(t_df), t_df)
-    
-    colnames(t_df) <- c("", "value")
-    t_df$value <- sub("\\.\\d+$", "", t_df$value)
-    
-    colnames(t_df) <- c("", "")
-    
-    #t_df <- get_summary2()
-    t_df
-    
-  }, colnames = FALSE, bordered = T, align='lr'
-)
-
-shinyjs::enable("proceed1")
-observeEvent(get_data(),{
-  shinyjs::enable("proceed1")
-})
-# 
-# observeEvent(get_data(),{
-#   shinyjs::enable("reset1")
-# })
-
-onclick("proceed2", {
-  updateTabsetPanel(session = session, inputId = "tablist", selected = "DataProcessing")
-})
-
-
-output$summary_tables <- renderUI({
-  
-  tagList(conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-                           tags$br(),
-                           tags$h4("Calculation in progress...")),
-          tags$head(
-            tags$style(HTML('#proceed2{background-color:orange}'))
-          ),
-          actionButton(inputId = "proceed2", label = "Next step"),
-          h4("Summary of experimental design"),
-          column(width=12, tableOutput('summary1'), style = "height:200px; overflow-y: scroll;overflow-x: scroll;"),
-          tags$br(),
-          h4("Summary of dataset"),
-          column(width=12, tableOutput("summary2"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"),
-          h4("Top 6 rows of the dataset"),
-          column(width=12, tableOutput("summary"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"))
-  
-})
-
 onclick("proceed1", {
+  get_data()
   shinyjs::show("summary_tables")
+
+  ### outputs ###
+  
+  get_summary <- reactive({
+    if(is.null(get_data())) {
+      return(NULL)
+    }
+    data1 <- get_data()
+    data_summary <- Hmisc::describe(data1)
+  })
+  
+  output$template <- downloadHandler(
+    filename <- function() {
+      paste("templateannotation", "csv", sep=".")
+    },
+    
+    content <- function(file) {
+      file.copy("templateannotation.csv", file)
+    },
+    contentType = "csv"
+  )
+  
+  output$template1 <- downloadHandler(
+    filename <- function() {
+      paste("templateevidence", "txt", sep = ".")
+    },
+    
+    content <- function(file) {
+      file.copy("templateevidence.txt", file)
+    },
+    contentType = "txt"
+  )
+  
+  output$summary <- renderTable(
+    {
+      req(get_data())
+      head(get_data())
+    }, bordered = T
+  )
+  
+  output$summary1 <-  renderTable(
+    {
+      req(get_data())
+      df <- get_data()
+      nf <- ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
+      df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
+                              "Number of Biological Replicates" = n_distinct(BioReplicate),
+                              "Number of Fractions" = nf,
+                              "Number of MS runs" = n_distinct(Run)
+      )
+      df2 <- df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
+        select("Condition_Run")
+      df3 <- df %>% group_by(Run, BioReplicate) %>% summarise("BioReplicate_Run" = n()) %>% ungroup() %>%
+        select("BioReplicate_Run")
+      
+      df1 <- head(df1,1)
+      df2 <- head(df2,1)
+      df3 <- head(df3,1)
+      
+      df <- cbind(df1,df2,df3) %>%
+        mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
+        select(-Condition_Run,-BioReplicate_Run)
+      df <- df[,c(1,2,5,3,4)]
+      
+      
+      t_df <- as.data.frame(t(df))
+      rownames(t_df) <- colnames(df)
+      t_df <- cbind(rownames(t_df), t_df)
+      colnames(t_df) <- c("", "value")
+      t_df$value <- sub("\\.\\d+$", "", t_df$value)
+      colnames(t_df) <- c("", "")
+      t_df
+    }, colnames = FALSE, bordered = T
+  )
+  
+  output$summary2 <-  renderTable(
+    {
+      req(get_data())
+      df <- get_data()
+      if(input$DDA_DIA=="TMT"){
+        df <- df %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence, Charge, sep = '_'))
+      }
+      else{
+        df <- df %>% mutate("FEATURES" = paste(PeptideSequence, PrecursorCharge, FragmentIon, ProductCharge, sep = '_'))
+        
+      }
+      
+      
+      
+      df1 <- df %>% summarise("Number of Proteins" = n_distinct(ProteinName), 
+                              "Number of Peptides" = n_distinct(PeptideSequence),
+                              "Number of Features" = n_distinct(FEATURES),
+                              "Min_Intensity" = ifelse(!is.finite(min(Intensity, na.rm=T)),0,round(min(Intensity, na.rm=T),0)),
+                              "Max_Intensity" = ifelse(!is.finite(max(Intensity, na.rm=T)),0,
+                                                       round(max(Intensity, na.rm=T),0))) %>%
+        unite("Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
+      
+      Peptides_Proteins <- df %>% group_by(ProteinName)  %>%
+        summarise(npep = n_distinct(PeptideSequence)) %>% summarize(Peptides_Proteins_min=min(npep),
+                                                                    Peptides_Proteins_max=max(npep))
+      
+      Features_Peptides <- df %>% group_by(PeptideSequence)  %>%
+        summarise(nfea = n_distinct(FEATURES)) %>% summarize(Features_Peptides_min=min(nfea),
+                                                             Features_Peptides_max=max(nfea))
+      
+      df1 <- cbind(df1,Features_Peptides,Peptides_Proteins) %>%
+        unite("Number of Features/Peptide",Features_Peptides_min:Features_Peptides_max,sep = " - ") %>%
+        unite("Number of Peptides/Protein",Peptides_Proteins_min:Peptides_Proteins_max, sep = " - ")
+      
+      df1 <- df1[,c(1,2,3,6,5,4)]
+      
+      t_df <- as.data.frame(t(df1))
+      rownames(t_df) <- colnames(df1)
+      t_df <- cbind(rownames(t_df), t_df)
+      
+      colnames(t_df) <- c("", "value")
+      t_df$value <- sub("\\.\\d+$", "", t_df$value)
+      
+      colnames(t_df) <- c("", "")
+      
+      #t_df <- get_summary2()
+      t_df
+      
+    }, colnames = FALSE, bordered = T, align='lr'
+  )
+  
+  # shinyjs::enable("proceed1")
+  # observeEvent(get_data(),{
+  #   shinyjs::enable("proceed1")
+  # })
+  # 
+  # observeEvent(get_data(),{
+  #   shinyjs::enable("reset1")
+  # })
+  
+  onclick("proceed2", {
+    updateTabsetPanel(session = session, inputId = "tablist", selected = "DataProcessing")
+  })
+  
+  
+  output$summary_tables <- renderUI({
+    
+    tagList(conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+                             tags$br(),
+                             tags$h4("Calculation in progress...")),
+            tags$head(
+              tags$style(HTML('#proceed2{background-color:orange}'))
+            ),
+            actionButton(inputId = "proceed2", label = "Next step"),
+            h4("Summary of experimental design"),
+            column(width=12, tableOutput('summary1'), style = "height:200px; overflow-y: scroll;overflow-x: scroll;"),
+            tags$br(),
+            h4("Summary of dataset"),
+            column(width=12, tableOutput("summary2"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"),
+            h4("Top 6 rows of the dataset"),
+            column(width=12, tableOutput("summary"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"))
+    
+  })
 })

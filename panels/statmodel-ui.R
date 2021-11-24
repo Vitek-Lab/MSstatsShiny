@@ -142,7 +142,6 @@ statmodel = fluidPage(
                                      "View plot in browser (only for one \
                                      comparison/protein)"),
                         actionButton("plotresults", "Save plot results as pdf")
-                        
                  )
                )
     ),

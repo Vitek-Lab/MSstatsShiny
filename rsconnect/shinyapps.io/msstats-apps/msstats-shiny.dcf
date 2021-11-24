@@ -1,0 +1,11 @@
+name: msstats-shiny
+title:
+username:
+account: msstats-apps
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5146909
+bundleId: 5281700
+url: https://msstats-apps.shinyapps.io/msstats-shiny/
+when: 1637609932.3671
+lastSyncTime: 1637609932.3671
