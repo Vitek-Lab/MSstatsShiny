@@ -71,6 +71,9 @@ source("panels/expdes-ui.R", local = T)
 # #source("panels/clust-ui.R", local = T)
 # source("panels/report-ui.R", local = T)
 source("panels/help-ui.R", local = T)
+source("panels/msstats_help-ui.R", local = T)
+source("panels/msstatstmt_help-ui.R", local = T)
+
 
 #########################################################################
 
@@ -133,7 +136,11 @@ ui <- navbarPage(
   tabPanel("3. Statistical model", value = "StatsModel", icon = icon("magic"), statmodel),
   tabPanel("4. Future experiments", value = "Future", icon = icon("flask"), expdes),
   # tabPanel("Download logfile", icon = icon("download"), report),
-  tabPanel("Help", icon = icon("ambulance"), help),
+  navbarMenu("Help", icon = icon("ambulance"), 
+    tabPanel("Shiny Help", help),
+    tabPanel("MSstats Vignette", msstats_help),
+    tabPanel("MSstatsTMT Vignette", msstatstmt_help)
+    ),
   inverse = T,
   collapsible = T,
   windowTitle = "Shiny-MSstats"

@@ -15,7 +15,7 @@ library(gplots)
 #library(STRINGdb)
 if (FALSE) require("V8")
 #library(MSnbase)
-library(MSstatsBioData)
+#library(MSstatsBioData)
 
 ###### global functions ###########
 
@@ -69,6 +69,7 @@ shinyServer(function(input, output, session) {
   # #  source("panels/clust-server.R", local = T)
   # future experiment
   source("panels/expdes-server.R", local = T)
+
   # # report
   # source("panels/report-server.R", local = T)
   
