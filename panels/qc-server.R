@@ -391,19 +391,6 @@ theplot <- reactive({
   return (output)
 })
 
-output$theplot <- renderPlot(theplot())
-
-output$stats <- renderTable(statistics())
-
-shinyjs::enable("proceed6")
-observeEvent(preprocess_data(),{
-  shinyjs::enable("proceed6")
-})
-
-onclick("proceed6", {
-  updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
-})
-
 # quantification
 
 abundance <- reactive({
@@ -420,11 +407,30 @@ abundance <- reactive({
                    format = input$format)
   }
   else{
-    quantification(preprocess_data(),
+    temp <- copy(preprocess_data())
+    quantification(temp,
                    type = input$typequant,
                    format = input$format)
   }
 })
+
+output$theplot <- renderPlot(theplot())
+
+output$stats <- renderTable(statistics())
+
+output$abundance <- renderDataTable(abundance())
+
+
+shinyjs::enable("proceed6")
+observeEvent(preprocess_data(),{
+  shinyjs::enable("proceed6")
+})
+
+onclick("proceed6", {
+  updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
+})
+
+
 
 # downloads
 
@@ -437,7 +443,6 @@ output$download_summary <- downloadHandler(
   }
 )
 
-output$abundance <- renderDataTable(abundance())
 
 observeEvent(input$proceed4, {
   updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")

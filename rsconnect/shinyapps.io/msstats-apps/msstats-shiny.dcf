@@ -5,7 +5,9 @@ account: msstats-apps
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5146909
-bundleId: 5281700
+bundleId: 5305281
 url: https://msstats-apps.shinyapps.io/msstats-shiny/
-when: 1637609932.3671
-lastSyncTime: 1637609932.3671
+when: 1638194902.46879
+lastSyncTime: 1638194902.46879
+asMultiple: FALSE
+asStatic: FALSE
