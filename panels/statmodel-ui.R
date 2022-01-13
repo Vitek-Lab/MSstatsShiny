@@ -26,9 +26,7 @@ statmodel = fluidPage(
                         radioButtons("def_comp", label=h4("1. Define comparisons\
                                                           - contrast matrix", 
                                       tipify(icon("question-circle"), 
-                                             title="Choose pairwise comparisons\ 
-                                             to find significantly expressed\
-                                             proteins")), 
+                title="Define what conditions you want to compare here.")), 
                                      c("All possible pairwise comparisons" = "all_pair", 
                                        "Compare all against one" = "all_one", 
                                        "Create custom comparisons" = "custom"), 
@@ -51,89 +49,72 @@ statmodel = fluidPage(
                                          actionButton("submit2", "Submit"),
                                          actionButton("clear2", "Clear matrix")
                                          ),
-                        sliderInput("signif", 
-                                    label = h5("Significance level", 
-                                               tipify(icon("question-circle"),
-                                                      title="Probability of \
-                                                      rejecting the null \
-                                                      hypothesis given that it \
-                                                      is true (probability of \
-                                                      type I error)")) , 0, 1, 0.05),
                         tags$hr(),
                         h4("2. Group comparison"),
                         p("Please add a comparison matrix before modeling."),
                         disabled(actionButton("calculate", "Start")),
                         tags$hr(),
+                        sliderInput("signif", 
+                            label = h5("Significance level", 
+                                 tipify(icon("question-circle"),
+                                        title="The alpha used to determine significant results. IE the probability of type I error)")) 
+                            , 0, 1, 0.05),
                         ),
 # table of significant proteins 
-             tags$br(),
-
-               fluidRow(
-                 column(12,
-                          fluidRow(
-                                   selectInput("typeplot", 
-                                               label = h4("3. Visualization - \
-                                                          select plot type"), 
-                                               c("Volcano Plot" = "VolcanoPlot", 
-                                                 "Heatmap"="Heatmap", 
-                                                 "Comparison Plot"="ComparisonPlot")),
-                                   conditionalPanel(condition = "input.typeplot == 'VolcanoPlot'",
-                                                    uiOutput("WhichComp")),
-                                   conditionalPanel(
-                                     condition = "input.typeplot == 'VolcanoPlot' && input.DDA_DIA!=='TMT'",
-                                     checkboxInput("pname", label = p("display protein name"))),
-                                   conditionalPanel(
-                                     condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
-                                     selectInput("logp", 
-                                                 label = h5("Log transformation of adjusted p-value"),
-                                                 c("base 2" = "2", "base 10" = "10"), selected = "10")
-                                                    ),
-                                   sliderInput("sig", 
-                                               label = h5("Significance level", 
-                                                          tipify(icon("question-circle"), 
-                                                      title="Probability of \
-                                                      rejecting the null hypothesis \
-                                                      given that it is true \
-                                                      (probability of type I error)")),
-                                               0, 1, 0.05),
-                                    conditionalPanel(
-                                      condition = "input.typeplot == 'ComparisonPlot'",
-                                      uiOutput("WhichProt")),
-                                   conditionalPanel(
-                                     condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
-                                     checkboxInput("FC1", 
-                                                   label = p("Apply specific \
-                                                             fold change cutoff \
-                                                             for significance")),
-                                                    conditionalPanel(
-                                                      condition = "input.FC1 == true",
-                                                      numericInput("FC", "cutoff", 
-                                                                   1, 0, 100, 
-                                                                   0.1))),
-                                   tags$br(),
-                                   conditionalPanel(
-                                     condition = "input.typeplot == 'Heatmap'",
-                                     numericInput("nump", "Number of proteins \
-                                                  in heatmap", 100, 1, 180, 1),
-                                     selectInput("cluster", 
-                                                 label = h5("Cluster analysis", 
-                                                            tipify(
-                                                              icon("question-circle"), 
-                                                              title= "How to order \
-                                                              proteins and \
-                                                              comparisons: compute \
-                                                              protein dendrogram and \
-                                                              reorder based on protein \
-                                                              means; compute comparison \
-                                                              dendrogram and reorder \
-                                                              based on comparison means; \
-                                                              or both", 
-                                                              placement = "top")), 
-                                                 c("protein dendogram" = "protein", 
-                                                   "comparison dendogram" = "comparison", 
-                                                   "protein and comparison dendograms" = "both"))),
-                                   conditionalPanel(condition = "input.typeplot == 'ComparisonPlot'",
-                                                    uiOutput("WhichComp1"))
+         tags$br(),
+           fluidRow(
+             column(12,
+                fluidRow(
+                         selectInput("typeplot", 
+                                     label = h4("3. Visualization - \
+                                                select plot type"), 
+                                     c("Volcano Plot" = "VolcanoPlot", 
+                                       "Heatmap"="Heatmap", 
+                                       "Comparison Plot"="ComparisonPlot")),
+                         conditionalPanel(condition = "input.typeplot == 'VolcanoPlot'",
+                                          uiOutput("WhichComp")),
+                         conditionalPanel(
+                           condition = "input.typeplot == 'VolcanoPlot' && input.DDA_DIA!=='TMT'",
+                           checkboxInput("pname", label = p("display protein name"))),
+                         conditionalPanel(
+                           condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
+                           selectInput("logp", 
+                                       label = h5("Log transformation of adjusted p-value"),
+                                       c("base 2" = "2", "base 10" = "10"), selected = "10")
+                                          ),
+                         sliderInput("sig", 
+                                     label = h5("Significance level", 
+                                                tipify(icon("question-circle"), 
+                                            title="The alpha used to determine significant results. IE the probability of type I error)")),
+                                     0, 1, 0.05),
+                          conditionalPanel(
+                            condition = "input.typeplot == 'ComparisonPlot'",
+                            uiOutput("WhichProt")),
+                         conditionalPanel(
+                           condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
+                           checkboxInput("FC1", 
+                                         label = p("Apply specific fold change cutoff for significance")),
+                                          conditionalPanel(
+                                            condition = "input.FC1 == true",
+                                            numericInput("FC", "cutoff", 
+                                                         1, 0, 100, 
+                                                         0.1))),
+                         tags$br(),
+                         conditionalPanel(
+                           condition = "input.typeplot == 'Heatmap'",
+                           numericInput("nump", "Number of proteins \
+                                        in heatmap", 100, 1, 180, 1),
+                           selectInput("cluster", 
+                                       label = h5("Cluster analysis", 
+                                                  tipify(
+                                                    icon("question-circle"), 
+                                                    title= "Determines how to order proteins and comparisons. protein means, comparison means, or both", 
+                                                    placement = "top")), 
+                                       c("protein dendogram" = "protein", 
+                                         "comparison dendogram" = "comparison", 
+                                         "protein and comparison dendograms" = "both"))),
+                         conditionalPanel(condition = "input.typeplot == 'ComparisonPlot'",
+                                          uiOutput("WhichComp1"))
                                    ),
                         p("Please note if you want to plot more than one \
                           Volcano Plot comparison, you must save the results \

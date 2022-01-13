@@ -9,24 +9,24 @@ sbp_load = sidebarPanel(
   
   radioButtons("DDA_DIA",
                label = h4("1. Type of Acquisition", tipify(icon("question-circle"), 
-                          title = "Select if the acquisition was Data Independent, 
-                          Data Dependent or Selected/Parallel Reaction Monitoring")),
-               c("DDA" = "DDA", "DIA" = "DIA", "SRM/PRM" = "SRM_PRM", "DDA/TMT"="TMT")),
+                          title = "Select the acquisition type used in your experiment")),
+               c("DDA" = "DDA", "DIA" = "DIA", "SRM/PRM" = "SRM_PRM", 
+                 "DDA/TMT"="TMT")),
   
   # upload  
   
   radioButtons("filetype",
                label = h4("2. Type of File", tipify(icon("question-circle"), 
-                          title = "Choose input type: sample dataset, classical 10-column dataset, 
-                          or outputs from Skyline, MaxQuant, Progenesis or Proteome Discoverer")),
-               choices = c("Example dataset" = "sample", "MSstats required format" = "MRF", 
-                           "Skyline" = "sky", "MaxQuant" = "maxq", "Progenesis" = "prog", 
-                           "Proteome Discoverer" = "PD", "OpenMS" = "openms", "Spectronaut" = "spec", 
-                           "OpenSWATH" = "open", "DIA-Umpire" = "ump", "SpectroMine" = "spmin"), 
+                          title = "Choose the spectral processing tool used to process your data")),
+               choices = c("Example dataset" = "sample", "Skyline" = "sky", 
+                           "MaxQuant" = "maxq", "Progenesis" = "prog", 
+                           "Proteome Discoverer" = "PD", "OpenMS" = "openms", 
+                           "Spectronaut" = "spec", "OpenSWATH" = "open", 
+                           "DIA-Umpire" = "ump", "SpectroMine" = "spmin"), 
                selected = character(0)),
-  radioTooltip(id = "filetype", choice = "MRF", 
-               title = "check msstats.org to find the required format", 
-               placement = "right", trigger = "hover"),
+  # radioTooltip(id = "filetype", choice = "MRF", 
+  #              title = "check msstats.org to find the required format", 
+  #              placement = "right", trigger = "hover"),
   tags$hr(),
   conditionalPanel(
   condition = "input.filetype =='10col' || input.filetype =='prog' || input.filetype =='PD' || input.filetype =='open'||

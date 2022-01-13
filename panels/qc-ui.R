@@ -2,23 +2,20 @@
 
 sbp_params = sidebarPanel(
   
-  div(style="display:inline-block; float:right",actionButton("run", "Run preprocessing")),
   
   # transformation
   
   conditionalPanel(condition = "input.DDA_DIA == 'TMT'",
                    h4("1. Peptide level normalization", 
                       tipify(icon("question-circle"), 
-                      title = "Global median normalization on peptide level data, \
-                      which equalizes the medians across all the channels and MS runs")),
+                      title = "Global median normalization on peptide level data, equalizes medians across all the channels and runs")),
                    checkboxInput("global_norm", "Yes", value = T)),
   
   conditionalPanel(condition = "input.DDA_DIA !== 'TMT'",
                    radioButtons("log", 
                                 label= h4("1. Log transformation", 
                                           tipify(icon("question-circle"), 
-                                                 title = "Logarithmic transformation \
-                                                 is applied to the Intensities column")), 
+                   title = "Logarithmic transformation applied to the Intensity column")), 
                                 c(log2 = "2", log10 = "10"))),
   
   
@@ -28,18 +25,7 @@ sbp_params = sidebarPanel(
                    selectInput("summarization", 
                                label = h4("2. Summarization method", 
                                           tipify(icon("question-circle"), 
-                                                 title = "1. MSstats: Perform \
-                                                 missing value imputation and \
-                                                 Tukeys median polish summarization\
-                                                 for each MS run separately   \
-                                                 2. Tukeys median polish: Perform \
-                                                 Tukeys median polish summarization \
-                                                 for each MS run separately. 3. \
-                                                 Median: Perform median summarization \
-                                                 for each MS run separately. 4. \
-                                                 Log(Sum): Sum the raw intensities \
-                                                 of peptides ions matched with \
-                                                 each protein and log-transform the sum.")), 
+                                                 title = "Select method to be used for data summarization. For details on each option please see Help tab")), 
                                c("MSstats" = "msstats", 
                                  "Tukeys median polish" = "MedianPolish", 
                                  "Log(Sum)" = "LogSum","Median" = "Median"), 
@@ -48,10 +34,7 @@ sbp_params = sidebarPanel(
   conditionalPanel(condition = "input.DDA_DIA == 'TMT' && input.summarization == 'msstats'",
                                 checkboxInput("null", label = p("Do not apply cutoff", 
                                               tipify(icon("question-circle"), 
-                                              title = "We assume missing values \
-                                              are censored. The parameter is the \
-                                              maximum quantile for deciding \
-                                              censored missing value"))),
+                                              title = "Maximum quantile for deciding censored missing values, default is 0.999"))),
                                 numericInput("maxQC", NULL, 0.999, 0.000, 1.000, 0.001)),
   
   #normalisation
@@ -60,8 +43,7 @@ sbp_params = sidebarPanel(
                    selectInput("norm", 
                                label = h4("2. Normalisation", 
                                           tipify(icon("question-circle"), 
-                                                 title = "Choose a normalisation method.  \
-                                                 For more information visit the Help tab")), 
+                                                 title = "Normalization to remove systematic bias between MS runs. For more information visit the Help tab")), 
                                c("none" = "FALSE", "equalize medians" = "equalizeMedians", 
                                  "quantile" = "quantile", "global standards" = "globalStandards"), 
                                selected = "equalizeMedians")),
@@ -76,10 +58,7 @@ sbp_params = sidebarPanel(
     condition = "input.DDA_DIA === 'TMT'",
     h4("3. Local protein normalization",
        tipify(icon("question-circle"), 
-              title = "For each protein, perform reference channel-based \
-              normalization between MS runs on protein level data. It needs at \
-              least one reference channel in each MS run, annotated by ‘Norm’ \
-              in Condition column of annotation file")),
+              title = "Reference channel based normalization between MS runs on protein level data. Requires one reference channel in each MS run, annotated by ‘Norm’ in Condition column of annotation file")),
     checkboxInput("reference_norm", "Yes", value = T),
     tags$hr(),
     h4("4. Filtering"),
@@ -109,12 +88,10 @@ sbp_params = sidebarPanel(
     radioButtons('censInt', 
                  label = h5("Assumptions for missing values", 
                             tipify(icon("question-circle"), 
-                                   title = "Processing software report missing \
-                                   values differently; please choose the \
-                                   appropriate options to distinguish missing \
-                                   values and if censored/at random")), 
+                                   title = "Processing software report missing values differently; please choose the appropriate options to distinguish missing values and if censored/at random")), 
                  c("assume all NA as censored" = "NA", "assume all between 0 \
-                   and 1 as censored" = "0", "all missing values are random" = "null"), 
+                   and 1 as censored" = "0", 
+                   "all missing values are random" = "null"), 
                  selected = "NA"),
     radioTooltip(id = "censInt", choice = "NA", title = "It assumes that all \
                  NAs in Intensity column are censored.", placement = "right", 
@@ -139,10 +116,8 @@ sbp_params = sidebarPanel(
     conditionalPanel(condition = "input.censInt == 'NA' || input.censInt == '0'",
                      checkboxInput("MBi", 
                                    label = p("Model based imputation", 
-                                             tipify(icon("question-circle"), 
-                                                    title = "If unchecked the \
-                                                    values set as cutoff for \
-                                                    censored will be used")), 
+                                   tipify(icon("question-circle"), 
+                                          title = "If unchecked the values set as cutoff for censored will be used")), 
                                    value = TRUE
                      )),
     # cutoff for censored
@@ -169,6 +144,7 @@ sbp_params = sidebarPanel(
   ),
   
   tags$hr(),
+  actionButton("run", "Run preprocessing"),
   # run 
   width = 3
 )
@@ -187,9 +163,7 @@ main = mainPanel(
                fluidRow(
                  h4("Download summary of protein abundance", 
                     tipify(icon("question-circle"), 
-                           title="Model-based quantification for each \
-                                    condition or for each biological samples \
-                                    per protein.")),
+                           title="Model-based quantification for each condition or for each biological samples per protein.")),
                  radioButtons("typequant", 
                               label = h4("Type of summarisation"), 
                               c("Sample-level summarisation" = "Sample", 
@@ -204,37 +178,23 @@ main = mainPanel(
                #)
              #)
     ),
-    tabPanel("Quality Control Plots", 
+    tabPanel("Summarization Plots",
              wellPanel(
                conditionalPanel(condition = "input.DDA_DIA==='TMT'",
-                                selectInput("type1",
-                                            label = h5("Select plot type", 
-                                                       tipify(icon("question-circle"), 
-                                            title = "Use Profile Plots to view \
-                                            technical/biological variability \
-                                            and missing values; use Condition \
-                                            Plots to view differences in \
-                                            intensity between conditions; use \
-                                            QC Plots to view differences \
-                                            between runs and to check the \
-                                            effects of normalization")), 
-                                            c("Show QC plots"="QCPlot", 
-                                              "Show profile plots"="ProfilePlot"))),
+                    selectInput("type1",
+                                label = h5("Select plot type", 
+                                           tipify(icon("question-circle"), 
+            title="For details on plotting options please see the Help tab.")), 
+                                c("Quality Control Plots"="QCPlot", 
+                                  "Profile Plots"="ProfilePlot"))),
                conditionalPanel(condition = "input.DDA_DIA!=='TMT'",
                                 selectInput("type2",
-                                            label = h5("Select plot type", 
-                                                       tipify(icon("question-circle"), 
-                                                      title = "Use Profile Plots \
-                                                      to view technical/biological \
-                                                      variability and missing values; \
-                                                      use Condition Plots to view \
-                                                      differences in intensity between \
-                                                      conditions; use QC Plots to view \
-                                                      differences between runs and to \
-                                                      check the effects of normalization")), 
-                                            c("Show QC plots"="QCPlot", 
-                                              "Show profile plots"="ProfilePlot",
-                                              "Show Condition plot"="ConditionPlot"))),
+                                        label = h5("Select plot type", 
+                                                 tipify(icon("question-circle"), 
+            title="For details on plotting options please see the Help tab.")), 
+                                        c("Quality Control Plots"="QCPlot", 
+                                          "Profile Plots"="ProfilePlot",
+                                          "Condition Plots"="ConditionPlot"))),
                conditionalPanel(condition = "input.type1==='ProfilePlot' || input.type2==='ProfilePlot'",
                                 checkboxInput("summ", "Show plot with summary")
                                 ),
@@ -242,17 +202,13 @@ main = mainPanel(
                                 selectInput("fname",  
                                             label = h5("Feature legend", 
                                                        tipify(icon("question-circle"),
-                                                    title = "Print feature level\
-                                                    at transition level, peptide\
-                                                    level or choose no feature \
-                                                    legend")), 
+                                    title = "Type of legend to use in plot")), 
                                             c("Transition level"="Transition", 
                                               "Peptide level"="Peptide", 
                                               "No feature legend"="NA"))
                ),
                conditionalPanel(condition = "input.type2 == 'ConditionPlot'",
-                                checkboxInput("cond_scale", "Scale conditional \
-                                              level at x-axis (unequal space at x-axis)", 
+                                checkboxInput("cond_scale", "Scale conditional level at x-axis (unequal space at x-axis)", 
                                               value = FALSE),
                                 radioButtons("interval", "width of error bar",
                                              c("use Confidence Interval"="CI",
@@ -297,7 +253,10 @@ qc = fluidPage(
     (ii) Normalization, (iii) Feature selection, (iv) Imputation for censored \
     missing values, (v) Run-level summarisation.  Please choose the preprocessing \
     parameters in the side panel and then Run. More information on the preprocessing step can be found ", 
-    a("here", href="https://rdrr.io/bioc/MSstats/man/dataProcess.html", target="_blank")),
+    a("here", href="https://rdrr.io/bioc/MSstats/man/dataProcess.html", target="_blank"), 
+    "for label free and ",
+    a("here", href="https://rdrr.io/bioc/MSstatsTMT/man/proteinSummarization.html", target="_blank"),
+    " for TMT."),
   p("Quality of data and preprocessing can be assessed in the plot tab of the main panel."),
   p("Preprocessed data will be used for protein quantification and to build a \
     statistical model to evaluate the changes in protein expression."),

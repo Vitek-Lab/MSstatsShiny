@@ -371,11 +371,19 @@ onclick("proceed1", {
       req(get_data())
       df <- get_data()
       nf <- ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
-      df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
+      if(input$DDA_DIA=="TMT"){
+        df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
+                                "Number of Biological Replicates" = n_distinct(BioReplicate),
+                                "Number of Fractions" = nf,
+                                "Number of MS runs" = n_distinct(Run)
+                                )
+      } else{
+        df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
                               "Number of Biological Replicates" = n_distinct(BioReplicate),
                               "Number of Fractions" = nf,
                               "Number of MS runs" = n_distinct(Run)
-      )
+                              )
+      }
       df2 <- df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
         select("Condition_Run")
       df3 <- df %>% group_by(Run, BioReplicate) %>% summarise("BioReplicate_Run" = n()) %>% ungroup() %>%
