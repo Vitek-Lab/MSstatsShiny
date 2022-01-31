@@ -117,12 +117,28 @@ output$Which <- renderUI({
 
 # preprocess data
   
-preprocess_data = eventReactive(input$run, {
+preprocess_data <- eventReactive(input$run, {
+  show_modal_progress_line() # show the modal window
   validate(need(get_data(), 
                 message = "PLEASE UPLOAD DATASET OR SELECT SAMPLE"))
+  
+  ## Preprocess input for loop
+  input_data <- get_data()
+  proteins <- as.character(unique(input_data[, 'ProteinName']))
+  preprocess_list <- list()
+  
+  ## Setup progress bar
+  update_val <- 1/length(proteins)
+  counter <- 0
+  
+  ## Here we run the underlying functions for MSstats and MSstatsTMT 
+  ## summarization. Done so we can loop over proteins and create a progress bar
+  
   if(input$DDA_DIA == "TMT"){
     
-    preprocessed <- proteinSummarization(data = get_data(), 
+    ## TODO: Add ability to loop over proteins for progress bar for TMT
+    ## Currently hard bc internal TMT functions are not exported like MSstats
+    preprocessed <- proteinSummarization(data = input_data, 
                                          method = input$summarization,
                                          global_norm = input$global_norm,
                                          reference_norm = input$reference_norm,
@@ -130,34 +146,58 @@ preprocess_data = eventReactive(input$run, {
                                          MBimpute = TRUE,
                                          maxQuantileforCensored = quantile()
                                          )
+      
+    ## Update progress bar
+    counter <- counter + update_val
+    update_modal_progress(counter) 
+  
+  } else {
     
-  }
-  else{
-    preprocessed <- dataProcess(raw=get_data(),
-                                logTrans=input$log,
-                                normalization=input$norm,
-                                nameStandards=input$names,
-                                #                              betweenRunInterferenceScore=input$interf, 
-                                #                              fillIncompleteRows=input$fill,
-                                featureSubset=features(),
-                                #                              remove_proteins_with_interference=input$interf,
-                                n_top_feature=input$n_feat,
-                                summaryMethod="TMP",
-                                #                              equalFeatureVar=input$equal,
-                                censoredInt=input$censInt,
-                                cutoffCensored=input$cutoff,
-                                MBimpute=input$MBi,
-                                maxQuantileforCensored=quantile(),
-                                remove50missing=input$remove50
-                                #                             skylineReport=input$report
-    )
+    ## Prepare MSstats for summarization
+    peptides_dict = makePeptidesDictionary(as.data.table(unclass(input_data)), 
+                                           toupper(input$norm))
+    prep_input = MSstatsPrepareForDataProcess(input_data, as.numeric(input$log), NULL)
+    prep_input = MSstatsNormalize(prep_input, input$norm, peptides_dict, input$names)
+    prep_input = MSstatsMergeFractions(prep_input)
+    prep_input = MSstatsHandleMissing(prep_input, "TMP", input$MBi,
+                                 "NA", quantile())
+    prep_input = MSstatsSelectFeatures(prep_input, "all", input$n_feat, 2)
+    processed = getProcessed(prep_input)
+    prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
+                                           input$censInt, FALSE)
     
+    input_split = split(prep_input, prep_input$PROTEIN)
+    summarized_results = vector("list", length(proteins))
+    
+    ## Loop over proteins
+    for (i in seq_along(proteins)){
+
+      temp_data = input_split[[i]]
+      summarized_results[[i]] = MSstatsSummarizeSingleTMP(temp_data,
+                                             input$MBi, input$censInt, 
+                                             input$remove50)
+
+      ## Update progress bar
+      counter <- counter + update_val
+      update_modal_progress(counter)
+    }
+    
+    ## Summarization output
+    preprocessed <- MSstatsSummarizationOutput(prep_input, summarized_results, 
+                                               processed, "TMP", input$MBi, 
+                                               input$censInt)
+
   }
   
+  remove_modal_progress() # remove it when done
   return(preprocessed)
   })
 
 # plot data
+# onclick("run", {
+#   preprocess_data()
+# })
+
 
 plotresult <- function(saveFile, protein, summary, original) {
   if (input$which != "") {
@@ -175,8 +215,7 @@ plotresult <- function(saveFile, protein, summary, original) {
     
     if(input$DDA_DIA == "TMT"){
       
-      dataProcessPlotsTMT(get_data(),
-                          preprocess_data(),
+      dataProcessPlotsTMT(preprocess_data(),
                           type=input$type1,
                           ylimUp = FALSE,
                           ylimDown = FALSE,
@@ -240,7 +279,7 @@ plotresult <- function(saveFile, protein, summary, original) {
 # statistics (for ConditionPlot)
 
 statistics <- reactive({
-  sub <- preprocess_data()$RunlevelData[which(preprocess_data()$RunlevelData$Protein == input$which),]
+  sub <- preprocess_data()$ProteinLevelData[which(preprocess_data()$ProteinLevelData$Protein == input$which),]
   len <- aggregate(sub$LogIntensities~sub$GROUP_ORIGINAL, length, data = sub)
   colnames(len)[colnames(len)=="sub$LogIntensities"] <- "Number_of_Measurements"
   sd <- aggregate(sub$LogIntensities~sub$GROUP_ORIGINAL, sd, data = sub)
@@ -258,9 +297,18 @@ statistics <- reactive({
 })
 
 
-######## output #######
+cap <- eventReactive(input$run, {
+  text_output <- "Data has been processed, use the tabs below to download and plot the results."
+})
+
+observeEvent(input$run, {output$submit.button <- renderUI(actionButton(inputId = "proceed6", label = "Next step"))})
+
+output$caption <- renderText({
+  cap()
+})
 
 observeEvent(input$run,{
+  
   if(input$DDA_DIA=="TMT"){
     shinyjs::enable("prepr_csv")
   } else {
@@ -301,7 +349,7 @@ output$prepr_csv <- downloadHandler(
     }
     else{
       
-      write.csv(preprocess_data()$ProcessedData, file, row.names = F)
+      write.csv(preprocess_data()$FeatureLevelData, file, row.names = F)
     }
     
   }
@@ -312,7 +360,7 @@ output$summ_csv <- downloadHandler(
     paste("Summarized_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
-    write.csv(preprocess_data()$RunlevelData, file, row.names = F)
+    write.csv(preprocess_data()$ProteinLevelData, file, row.names = F)
   }
 )
 
@@ -358,7 +406,9 @@ output$showplot <- renderUI({
     tags$br(),
     conditionalPanel(condition = "input.which != ''",
                      actionButton("saveone", "Save this plot"),
-                     bsTooltip(id = "saveone", title = "Open plot as pdf.  Popups must be enabled", placement = "bottom", trigger = "hover")#,
+                     bsTooltip(id = "saveone", title = "Open plot as pdf. \
+                               Popups must be enabled", placement = "bottom", 
+                               trigger = "hover")#,
                      #actionButton("saveall", "Save all plots"),
                      #bsTooltip(id = "saveall", title = "Open pdf of all plots.  Popups must be enabled", placement = "bottom", trigger = "hover")
                      )
@@ -375,19 +425,66 @@ theplot <- reactive({
   return (output)
 })
 
+# quantification
+
+abundance <- reactive({
+  validate(need(preprocess_data(),
+                message = "PLEASE COMPLETE DATA PROCESSING"))
+  
+  if (input$DDA_DIA == "TMT"){
+    temp <- copy(preprocess_data())
+    setnames(temp$ProteinLevelData, 
+             c("Abundance", "Condition", "BioReplicate"), 
+             c("LogIntensities", "GROUP", "SUBJECT"))
+    quantification(temp,
+                   type = input$typequant,
+                   format = input$format)
+  }
+  else{
+    temp <- copy(preprocess_data())
+    quantification(temp,
+                   type = input$typequant,
+                   format = input$format)
+  }
+})
+
 output$theplot <- renderPlot(theplot())
 
 output$stats <- renderTable(statistics())
 
+output$abundance <- renderDataTable(abundance())
+
+
+shinyjs::enable("proceed6")
+observeEvent(preprocess_data(),{
+  shinyjs::enable("proceed6")
+})
+
 onclick("proceed6", {
-  if(input$DDA_DIA=="TMT"){
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
-  }
-  else{
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "PQ")
-  }
-  
+  updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
 })
 
 
+
+# downloads
+
+output$download_summary <- downloadHandler(
+  filename = function() {
+    paste("abundance-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(abundance(), file)
+  }
+)
+
+
+observeEvent(input$proceed4, {
+  updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
+})
+
+## Loading popup
+# observeEvent(input$run, {
+#   # Show a modal when the button is pressed
+#   shinyalert("Processing Data", "Data is now processing", type = "info")
+# })
 

@@ -4,11 +4,11 @@
 
 choices <- reactive({
   if(input$DDA_DIA=="TMT"){
-    levels(preprocess_data()$Condition)
+    levels(preprocess_data()$ProteinLevelData$Condition)
     
   }
   else{
-    levels(preprocess_data()$ProcessedData$GROUP_ORIGINAL)
+    levels(preprocess_data()$ProteinLevelData$GROUP)
   }
   
 })
@@ -69,7 +69,8 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
     )
     index1 <- reactive({which(choices() == input$group1)})
     index2 <- reactive({which(choices() == input$group2)})
-    comp_list$dList <- c(isolate(comp_list$dList), paste(input$group1, "vs", input$group2, sep = " "))
+    comp_list$dList <- c(isolate(comp_list$dList), paste(input$group1, "vs", 
+                                                         input$group2, sep = " "))
     contrast$row <- matrix(row(), nrow=1)
     contrast$row[index1()] = 1
     contrast$row[index2()] = -1
@@ -80,6 +81,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
       contrast$matrix <- rbind(contrast$matrix, contrast$row)
       contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
     }
+    print(contrast$matrix)
     rownames(contrast$matrix) <- comp_list$dList
     colnames(contrast$matrix) <- choices()
   }
@@ -117,7 +119,6 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
           } else{
             comp_list$dList <- c(isolate(comp_list$dList), paste("C",index, " vs ", "C",index1, sep = ""))
           }
-          
           contrast$row <- matrix(row(), nrow=1)
           contrast$row[index] = 1
           contrast$row[index1] = -1
@@ -134,7 +135,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
       }
     }
   }
-  
+  shinyjs::enable("calculate")
   return(contrast$matrix)
 })
 
@@ -150,13 +151,15 @@ observeEvent({input$clear
 # compare data
 
 data_comparison <- eventReactive(input$calculate, {
+  show_modal_spinner() # show the modal window
   if(input$DDA_DIA=="TMT"){
-    groupComparisonTMT(contrast.matrix = matrix_build(), data = preprocess_data())
+    model <- groupComparisonTMT(contrast.matrix = matrix_build(), data = preprocess_data())
   }
   else{
-    groupComparison(contrast.matrix = matrix_build(), data = preprocess_data())
+    model <- groupComparison(contrast.matrix = matrix_build(), data = preprocess_data())
   }
-  
+  remove_modal_spinner() # remove it when done
+  return(model)
 })
 
 round_df <- function(df) {
@@ -170,7 +173,7 @@ round_df <- function(df) {
 SignificantProteins <- reactive({
   if(input$DDA_DIA=="TMT"){
     data_comp <- data_comparison()
-    with(data_comp,round_df(data_comp[data_comp$adj.pvalue < input$signif, ]))
+    data_comp$ComparisonResult[data_comp$ComparisonResult$adj.pvalue < input$signif, ]
     
   } else {
     with(data_comparison(),round_df(ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ]))
@@ -216,7 +219,7 @@ group_comparison <- function(saveFile1, pdf) {
   
   if(input$DDA_DIA=="TMT"){
     
-    plot1 <- groupComparisonPlots2(data=data_comparison(),
+    plot1 <- groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                    type=input$typeplot,
                                    sig=input$sig,
                                    FCcutoff=input$FC,
@@ -321,7 +324,7 @@ output$fitted_v <- downloadHandler(
 
 output$matrix <- renderUI({
   tagList(
-    h5("Comparison matrix"),
+    h2("Comparison matrix"),
     if (is.null(contrast$matrix)) {
       ""
     } else {
@@ -340,12 +343,12 @@ output$table_results <- renderUI({
   req(data_comparison())
   tagList(
     tags$br(),
-    h5("Results"),
+    h2("Results"),
     h5("There are ",textOutput("number", inline = TRUE),"significant proteins"),
     dataTableOutput("significant", width = "100%"),
     tags$br(),
-    downloadButton("download_compar", "Download full table of comparison"),
-    downloadButton("download_signif", "Download table of significant proteins")
+    downloadButton("download_compar", "Download all modeling results"),
+    downloadButton("download_signif", "Download significant proteins")
   )
 })
 
@@ -391,7 +394,7 @@ observe ({output$comp_plots <- renderPlot({
 plotset <- reactive({
   
   if(input$DDA_DIA=="TMT"){
-    data_comp <- data_comparison()
+    data_comp <- data_comparison()$ComparisonResult
     v1 <- data_comp[,1]
     v2 <- round(data_comp[,3], 10)
     v3 <- round(data_comp[,8], 10)
@@ -471,11 +474,7 @@ output$download_compar <- downloadHandler(
     paste("data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
-    if(input$DDA_DIA=="TMT") {
-      write.csv(data_comparison(), file)
-    } else {
-      write.csv(data_comparison()$ComparisonResult, file)
-    }
+    write.csv(data_comparison()$ComparisonResult, file)
     
   }
 )
@@ -510,4 +509,11 @@ observeEvent(input$plotresults, {
 })
 
 
+observeEvent(input$calculate,{
+  shinyjs::enable("Design")
+})
+
+# observeEvent(input$power_next, {
+#   updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
+# })
 
