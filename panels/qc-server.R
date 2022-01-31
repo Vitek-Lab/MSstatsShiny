@@ -117,13 +117,28 @@ output$Which <- renderUI({
 
 # preprocess data
   
-preprocess_data = eventReactive(input$run, {
-  show_modal_spinner() # show the modal window
+preprocess_data <- eventReactive(input$run, {
+  show_modal_progress_line() # show the modal window
   validate(need(get_data(), 
                 message = "PLEASE UPLOAD DATASET OR SELECT SAMPLE"))
+  
+  ## Preprocess input for loop
+  input_data <- get_data()
+  proteins <- as.character(unique(input_data[, 'ProteinName']))
+  preprocess_list <- list()
+  
+  ## Setup progress bar
+  update_val <- 1/length(proteins)
+  counter <- 0
+  
+  ## Here we run the underlying functions for MSstats and MSstatsTMT 
+  ## summarization. Done so we can loop over proteins and create a progress bar
+  
   if(input$DDA_DIA == "TMT"){
     
-    preprocessed <- proteinSummarization(data = get_data(), 
+    ## TODO: Add ability to loop over proteins for progress bar for TMT
+    ## Currently hard bc internal TMT functions are not exported like MSstats
+    preprocessed <- proteinSummarization(data = input_data, 
                                          method = input$summarization,
                                          global_norm = input$global_norm,
                                          reference_norm = input$reference_norm,
@@ -131,32 +146,50 @@ preprocess_data = eventReactive(input$run, {
                                          MBimpute = TRUE,
                                          maxQuantileforCensored = quantile()
                                          )
+      
+    ## Update progress bar
+    counter <- counter + update_val
+    update_modal_progress(counter) 
+  
+  } else {
     
-  }
-  else{
-    preprocessed <- dataProcess(raw=get_data(),
-                                logTrans=as.numeric(input$log),
-                                normalization=input$norm,
-                                nameStandards=input$names,
-                                #                              betweenRunInterferenceScore=input$interf, 
-                                #                              fillIncompleteRows=input$fill,
-                                featureSubset=features(),
-                                #                              remove_proteins_with_interference=input$interf,
-                                n_top_feature=input$n_feat,
-                                summaryMethod="TMP",
-                                #                              equalFeatureVar=input$equal,
-                                censoredInt=input$censInt,
-                                #cutoffCensored=input$cutoff,
-                                MBimpute=input$MBi,
-                                maxQuantileforCensored=quantile(),
-                                remove50missing=input$remove50,
-                                use_log_file = FALSE,
-                                verbose = FALSE
-                                #                             skylineReport=input$report
-    )
+    ## Prepare MSstats for summarization
+    peptides_dict = makePeptidesDictionary(as.data.table(unclass(input_data)), 
+                                           toupper(input$norm))
+    prep_input = MSstatsPrepareForDataProcess(input_data, as.numeric(input$log), NULL)
+    prep_input = MSstatsNormalize(prep_input, input$norm, peptides_dict, input$names)
+    prep_input = MSstatsMergeFractions(prep_input)
+    prep_input = MSstatsHandleMissing(prep_input, "TMP", input$MBi,
+                                 "NA", quantile())
+    prep_input = MSstatsSelectFeatures(prep_input, "all", input$n_feat, 2)
+    processed = getProcessed(prep_input)
+    prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
+                                           input$censInt, FALSE)
     
+    input_split = split(prep_input, prep_input$PROTEIN)
+    summarized_results = vector("list", length(proteins))
+    
+    ## Loop over proteins
+    for (i in seq_along(proteins)){
+
+      temp_data = input_split[[i]]
+      summarized_results[[i]] = MSstatsSummarizeSingleTMP(temp_data,
+                                             input$MBi, input$censInt, 
+                                             input$remove50)
+
+      ## Update progress bar
+      counter <- counter + update_val
+      update_modal_progress(counter)
+    }
+    
+    ## Summarization output
+    preprocessed <- MSstatsSummarizationOutput(prep_input, summarized_results, 
+                                               processed, "TMP", input$MBi, 
+                                               input$censInt)
+
   }
-  remove_modal_spinner() # remove it when done
+  
+  remove_modal_progress() # remove it when done
   return(preprocessed)
   })
 
@@ -164,6 +197,7 @@ preprocess_data = eventReactive(input$run, {
 # onclick("run", {
 #   preprocess_data()
 # })
+
 
 plotresult <- function(saveFile, protein, summary, original) {
   if (input$which != "") {

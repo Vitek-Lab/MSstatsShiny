@@ -93,6 +93,7 @@ sbp_load = sidebarPanel(
                    h4("Select the options for pre-processing"),
                    checkboxInput("uniqe_peptides", "Use unique peptides", value = TRUE),
                    checkboxInput("remove", "Remove proteins with 1 peptide and charge", value = FALSE)),
+  
   conditionalPanel(condition = "input.filetype && input.DDA_DIA == 'DIA' && input.filetype !== 'sample'",
                    checkboxInput("remove", "Remove proteins with 1 feature", value = FALSE),
                    conditionalPanel(condition = "input.filetype == 'sky' || input.filetype == 'spec'",
