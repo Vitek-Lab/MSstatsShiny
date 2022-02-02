@@ -16,6 +16,12 @@ row <- reactive({rep(0, length(choices()))})
 contrast <- reactiveValues()
 comp_list <- reactiveValues()
 
+observe({
+  if(input$DDA_DIA == "TMT"){
+    shinyjs::hide("Design")
+  }
+})
+
 output$choice1 <- renderUI({
   selectInput("group1", "Group 1", choices())
 })
@@ -85,6 +91,28 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
     rownames(contrast$matrix) <- comp_list$dList
     colnames(contrast$matrix) <- choices()
   }
+  
+  else   if(input$def_comp == "custom_np") {
+    validate(
+      need(input$group1 != input$group2, "Please select different groups")
+    )
+    comp_list$dList <- unique(c(isolate(comp_list$dList), paste(input$group1, "vs", 
+                                                                input$group2, sep = " ")))
+    contrast$row <- matrix(row(), nrow=1)
+    contrast$row[index1()] = 1
+    contrast$row[index2()] = -1
+    if (is.null(contrast$matrix)) {
+      contrast$matrix <- contrast$row 
+    } 
+    else {
+      contrast$matrix <- rbind(contrast$matrix, contrast$row)
+      contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
+    }
+    print(contrast$matrix)
+    rownames(contrast$matrix) <- comp_list$dList
+    colnames(contrast$matrix) <- choices()
+  }
+  
   else if (input$def_comp == "all_one") {
     for (index in 1:length(choices())) {
       index3 <- reactive({which(choices() == input$group3)})
@@ -509,7 +537,10 @@ observeEvent(input$plotresults, {
 
 
 observeEvent(input$calculate,{
-  shinyjs::enable("Design")
+  if (input$DDA_DIA !="TMT"){
+    shinyjs::enable("Design")
+  }
+  
 })
 
 # observeEvent(input$power_next, {
