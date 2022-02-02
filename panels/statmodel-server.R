@@ -69,8 +69,8 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
     )
     index1 <- reactive({which(choices() == input$group1)})
     index2 <- reactive({which(choices() == input$group2)})
-    comp_list$dList <- c(isolate(comp_list$dList), paste(input$group1, "vs", 
-                                                         input$group2, sep = " "))
+    comp_list$dList <- unique(c(isolate(comp_list$dList), paste(input$group1, "vs", 
+                                                         input$group2, sep = " ")))
     contrast$row <- matrix(row(), nrow=1)
     contrast$row[index1()] = 1
     contrast$row[index2()] = -1
@@ -141,9 +141,8 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
 
 # clear matrix
 
-observeEvent({input$clear
-  input$clear1
-  input$clear2},  {
+observeEvent({input$clear | input$clear1 | input$clear2},  {
+    shinyjs::disable("calculate")
     comp_list$dList <- NULL
     contrast$matrix <- NULL
   })
