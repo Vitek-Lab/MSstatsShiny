@@ -1,6 +1,8 @@
 
 statmodel = fluidPage(
   tags$head(
+    tags$style(HTML('#submit3{background-color:orange}')),
+    tags$style(HTML('#clear3{background-color:orange}')),
     tags$style(HTML('#submit1{background-color:orange}')),
     tags$style(HTML('#clear1{background-color:orange}')),
     tags$style(HTML('#submit2{background-color:orange}')),
@@ -29,7 +31,8 @@ statmodel = fluidPage(
                 title="Define what conditions you want to compare here.")), 
                                      c("All possible pairwise comparisons" = "all_pair", 
                                        "Compare all against one" = "all_one", 
-                                       "Create custom comparisons" = "custom"), 
+                                       "Create custom pairwise comparisons" = "custom",
+                                       "Create custom non-pairwise comparisons" = "custom_np"), 
                                      selected = character(0)),
                         tags$br(),
                         conditionalPanel(condition = "input.def_comp == 'custom'",
@@ -49,6 +52,12 @@ statmodel = fluidPage(
                                          actionButton("submit2", "Submit"),
                                          actionButton("clear2", "Clear matrix")
                                          ),
+                        conditionalPanel(condition = "input.def_comp == 'custom_np'",
+                                         uiOutput('comp_name'),
+                                         uiOutput('weights'),
+                                         actionButton("submit3", "Add"),
+                                         actionButton("clear3", "Clear matrix")
+                ),
                         tags$hr(),
                         h4("2. Group comparison"),
                         p("Please add a comparison matrix before modeling."),

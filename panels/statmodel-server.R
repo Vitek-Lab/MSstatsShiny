@@ -34,6 +34,18 @@ output$choice3 <- renderUI({
   selectInput("group3", "", choices())
 })
 
+output$comp_name <- renderUI({
+  textInput("comp_name", label = "Comparison Name", value = "")
+})
+
+output$weights <- renderUI({
+  
+  lapply(1:length(choices()), function(i) {
+    list(tags$p(h4(choices()[i])),
+         numericInput(paste0("weight", i), label = "", value=0))  
+  })
+})
+
 # rownames for matrix
 
 Rownames <- reactive({
@@ -67,7 +79,7 @@ observeEvent(input$def_comp, {
   comp_list$dList <- NULL
 })
 
-matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
+matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
   req(input$def_comp)
   if(input$def_comp == "custom") {
     validate(
@@ -93,14 +105,14 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
   }
   
   else   if(input$def_comp == "custom_np") {
-    validate(
-      need(input$group1 != input$group2, "Please select different groups")
-    )
-    comp_list$dList <- unique(c(isolate(comp_list$dList), paste(input$group1, "vs", 
-                                                                input$group2, sep = " ")))
+    
+    comp_list$dList <- unique(c(isolate(comp_list$dList), input$comp_name))
     contrast$row <- matrix(row(), nrow=1)
-    contrast$row[index1()] = 1
-    contrast$row[index2()] = -1
+    
+    for (index in 1:length(choices())){
+      contrast$row[index] = input[[paste0("weight", index)]]
+    }
+    
     if (is.null(contrast$matrix)) {
       contrast$matrix <- contrast$row 
     } 
@@ -169,7 +181,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
 
 # clear matrix
 
-observeEvent({input$clear | input$clear1 | input$clear2},  {
+observeEvent({input$clear | input$clear1 | input$clear2 | input$clear3},  {
     shinyjs::disable("calculate")
     comp_list$dList <- NULL
     contrast$matrix <- NULL
