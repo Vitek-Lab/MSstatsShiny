@@ -105,7 +105,7 @@ sbp_load = sidebarPanel(
                                     conditionalPanel(condition = "input.m_score",
                                                      numericInput("m_cutoff", "M-score cutoff", 0.01, 0, 1, 0.01)))
   ),
-  actionButton(inputId = "proceed1", label = "Upload Data")
+  disabled(actionButton(inputId = "proceed1", label = "Upload Data"))
 )
 
 ##########################################

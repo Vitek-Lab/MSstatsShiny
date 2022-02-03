@@ -20,6 +20,9 @@ observe({
   if(input$DDA_DIA == "TMT"){
     shinyjs::hide("Design")
   }
+  else{
+    shinyjs::show("Design")
+  }
 })
 
 output$choice1 <- renderUI({

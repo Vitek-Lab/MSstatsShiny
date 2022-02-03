@@ -50,6 +50,12 @@ observe({
   
 })
 
+observeEvent(input$filetype,{
+    
+  shinyjs::enable("proceed1")
+  
+})
+
 ### functions ###
 
 get_annot <- reactive({
