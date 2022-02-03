@@ -115,81 +115,200 @@ output$Which <- renderUI({
 
 ######### functions ########
 
-# preprocess data
+lf_summarization_loop = function(data, busy_indicator = TRUE){
   
-preprocess_data <- eventReactive(input$run, {
-  show_modal_progress_line() # show the modal window
+  proteins = as.character(unique(data[, 'ProteinName']))
+  
+  if (busy_indicator){
+    show_modal_progress_line() # show the modal window
+    
+    ## Setup progress bar
+    update_val = 1/length(proteins)
+    counter = 0
+  }
+  
+  ## Prepare MSstats for summarization
+  peptides_dict = makePeptidesDictionary(as.data.table(unclass(data)), 
+                                         toupper(input$norm))
+  prep_input = MSstatsPrepareForDataProcess(data, as.numeric(input$log), NULL)
+  prep_input = MSstatsNormalize(prep_input, input$norm, peptides_dict, input$names)
+  prep_input = MSstatsMergeFractions(prep_input)
+  prep_input = MSstatsHandleMissing(prep_input, "TMP", input$MBi,
+                                    "NA", quantile())
+  prep_input = MSstatsSelectFeatures(prep_input, "all", input$n_feat, 2)
+  processed = getProcessed(prep_input)
+  prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
+                                              input$censInt, FALSE)
+  
+  input_split = split(prep_input, prep_input$PROTEIN)
+  summarized_results = vector("list", length(proteins))
+  
+  ## Loop over proteins
+  for (i in seq_along(proteins)){
+    
+    temp_data = input_split[[i]]
+    summarized_results[[i]] = MSstatsSummarizeSingleTMP(temp_data,
+                                                        input$MBi, input$censInt, 
+                                                        input$remove50)
+    
+    ## Update progress bar
+    if (busy_indicator){
+      counter = counter + update_val
+      update_modal_progress(counter)
+    }
+  }
+  
+  ## Summarization output
+  preprocessed <- MSstatsSummarizationOutput(prep_input, summarized_results, 
+                                             processed, "TMP", input$MBi, 
+                                             input$censInt)
+  
+  if (busy_indicator){
+    remove_modal_progress() # remove it when done
+  }
+  return(preprocessed)
+  
+}
+
+tmt_summarization_loop = function(data){
+  MBimpute = FALSE ## Add option for MBimpute to server..
+  
+  ## Prep functions
+  prep_input = MSstatsTMT:::MSstatsPrepareForSummarizationTMT(
+    data, input$summarization, input$global_norm, input$reference_norm,
+    input$remove_norm_channel, TRUE, MBimpute, quantile() 
+  )
+  prep_input = MSstatsTMT:::MSstatsNormalizeTMT(prep_input, "peptides", 
+                                                input$global_norm)
+  
+  ## Go inside summarization loop to track progress
+  log2Intensity = NULL
+  annotation = unique(prep_input[!is.na(log2Intensity),
+                                 c("Run", "Channel", "BioReplicate", "Condition",
+                                   "Mixture", "TechRepMixture", "RunChannel"),
+                                 with = FALSE])
+  
+  ## Current implementatin only keeps track of msstats progress
+  ## Other functions are vectorized and should be faster (?)
+  if (input$summarization == "msstats") {
+    MSRun = FragmentIon = ProductCharge = IsotopeLabelType = ProteinName = 
+      PeptideSequence = PrecursorCharge = Run = Condition = BioReplicate =
+      Intensity = PSM = RunChannel = NULL
+    
+    runs = na.omit(unique(annotation$Run))
+    num_runs = length(runs)
+    
+    data.table::setnames(prep_input, c("Run", "RunChannel", "Charge"),
+                         c("MSRun", "Run", "PrecursorCharge"))  
+    prep_input[, FragmentIon := NA]
+    prep_input[, ProductCharge := NA]
+    prep_input[, IsotopeLabelType := "L"]
+    
+    processed_data = vector("list", num_runs)
+    summarized_results = vector("list", num_runs)
+    
+    ## Setup progress bar
+    show_modal_progress_line() # show the modal window
+    update_val = 1/num_runs
+    counter = 0
+    
+    for (i in seq_len(num_runs)) {
+      
+      single_run = prep_input[MSRun == runs[i],
+                              list(ProteinName, PeptideSequence, PrecursorCharge,
+                                   FragmentIon, ProductCharge, Run, Condition,
+                                   BioReplicate, Intensity, IsotopeLabelType,
+                                   Fraction = 1)]
+      single_run = new("MSstatsValidated", single_run)
+      
+      ## Make LF flow into a function and replace it here
+      msstats_summary = lf_summarization_loop(single_run, FALSE)
+      
+      feature_level_data = msstats_summary$FeatureLevelData 
+      msstats_cols = c("PROTEIN", "PEPTIDE", "originalRUN", "censored",
+                       "predicted", "newABUNDANCE")
+      msstats_cols = intersect(msstats_cols, colnames(feature_level_data))
+      feature_level_data = feature_level_data[, msstats_cols]
+      processed_data[[i]] = feature_level_data
+      
+      protein_level_data = msstats_summary$ProteinLevelData
+      protein_level_data = protein_level_data[, c("Protein", "LogIntensities",
+                                                  "originalRUN")]
+      summarized_results[[i]] = protein_level_data
+      
+      ## Update progress bar
+      counter = counter + update_val
+      update_modal_progress(counter)
+    }
+    
+    processed = data.table::rbindlist(processed_data)
+    summarized_results = data.table::rbindlist(summarized_results)
+    
+    data.table::setnames(summarized_results,
+                         c("LogIntensities", "originalRUN"),
+                         c("Abundance", "RunChannel"))
+    summarized_results = merge(summarized_results, annotation,
+                               by = "RunChannel", all.x = TRUE)
+    summarized_results = summarized_results[, colnames(summarized_results) != "RunChannel",
+                                            with = FALSE]
+    data.table::setnames(processed, 
+                         c("PROTEIN", "PEPTIDE",
+                           "originalRUN", "newABUNDANCE"),
+                         c("ProteinName", "PSM", 
+                           "RunChannel", "log2Intensity"))
+    processed = merge(processed, annotation,
+                      by = "RunChannel", all.x = TRUE)
+    processed[, c("PeptideSequence", "Charge") := tstrsplit(PSM, "_", fixed=TRUE)]
+    processed[, RunChannel := NULL]
+    summarized = list(summarized_results, processed)
+    
+  } else if (input$summarization == "MedianPolish") {
+    summarized = MSstatsTMT:::.summarizeTMP(prep_input, annotation)
+  } else if (input$summarization == "LogSum") {
+    summarized = MSstatsTMT:::.summarizeSimpleStat(prep_input, annotation, 
+                                                   .logSum)
+  } else if (input$summarization == "Median") {
+    summarized = MSstatsTMT:::.summarizeSimpleStat(prep_input, annotation, median)
+  }
+  
+  ## Output functions
+  processed = MSstatsTMT:::getProcessedTMT(summarized, prep_input)
+  summarized = MSstatsTMT:::getSummarizedTMT(summarized)
+  summarized = MSstatsTMT:::MSstatsNormalizeTMT(summarized, "proteins", 
+                                                input$reference_norm)
+  preprocessed = MSstatsTMT:::MSstatsSummarizationOutputTMT(summarized,
+                                                            processed, TRUE,
+                                                            input$remove_norm_channel)
+  
+  remove_modal_progress() # remove it when done
+  
+  return(preprocessed)
+}
+
+# preprocess data
+preprocess_data = eventReactive(input$run, {
+  
   validate(need(get_data(), 
                 message = "PLEASE UPLOAD DATASET OR SELECT SAMPLE"))
   
   ## Preprocess input for loop
-  input_data <- get_data()
-  proteins <- as.character(unique(input_data[, 'ProteinName']))
-  preprocess_list <- list()
-  
-  ## Setup progress bar
-  update_val <- 1/length(proteins)
-  counter <- 0
+  input_data = get_data()
+  preprocess_list = list()
   
   ## Here we run the underlying functions for MSstats and MSstatsTMT 
   ## summarization. Done so we can loop over proteins and create a progress bar
-  
   if(input$DDA_DIA == "TMT"){
     
-    ## TODO: Add ability to loop over proteins for progress bar for TMT
-    ## Currently hard bc internal TMT functions are not exported like MSstats
-    preprocessed <- proteinSummarization(data = input_data, 
-                                         method = input$summarization,
-                                         global_norm = input$global_norm,
-                                         reference_norm = input$reference_norm,
-                                         remove_norm_channel = input$remove_norm_channel,
-                                         MBimpute = TRUE,
-                                         maxQuantileforCensored = quantile()
-                                         )
-      
-    ## Update progress bar
-    counter <- counter + update_val
-    update_modal_progress(counter) 
-  
+    ## Run MSstatsTMT summarization
+    preprocessed = tmt_summarization_loop(input_data)
+
   } else {
     
-    ## Prepare MSstats for summarization
-    peptides_dict = makePeptidesDictionary(as.data.table(unclass(input_data)), 
-                                           toupper(input$norm))
-    prep_input = MSstatsPrepareForDataProcess(input_data, as.numeric(input$log), NULL)
-    prep_input = MSstatsNormalize(prep_input, input$norm, peptides_dict, input$names)
-    prep_input = MSstatsMergeFractions(prep_input)
-    prep_input = MSstatsHandleMissing(prep_input, "TMP", input$MBi,
-                                 "NA", quantile())
-    prep_input = MSstatsSelectFeatures(prep_input, "all", input$n_feat, 2)
-    processed = getProcessed(prep_input)
-    prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
-                                           input$censInt, FALSE)
-    
-    input_split = split(prep_input, prep_input$PROTEIN)
-    summarized_results = vector("list", length(proteins))
-    
-    ## Loop over proteins
-    for (i in seq_along(proteins)){
-
-      temp_data = input_split[[i]]
-      summarized_results[[i]] = MSstatsSummarizeSingleTMP(temp_data,
-                                             input$MBi, input$censInt, 
-                                             input$remove50)
-
-      ## Update progress bar
-      counter <- counter + update_val
-      update_modal_progress(counter)
-    }
-    
-    ## Summarization output
-    preprocessed <- MSstatsSummarizationOutput(prep_input, summarized_results, 
-                                               processed, "TMP", input$MBi, 
-                                               input$censInt)
+    ## Run LF MSstats summarization
+    preprocessed = lf_summarization_loop(input_data)
 
   }
-  
-  remove_modal_progress() # remove it when done
+
   return(preprocessed)
   })
 
