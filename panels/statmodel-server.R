@@ -31,7 +31,9 @@ output$choice3 <- renderUI({
 # rownames for matrix
 
 Rownames <- reactive({
-  rownames(matrix_build())
+  tryCatch({
+    rownames(matrix_build())},
+    error=function(e){})
 })
 
 # choices of comparisons/proteins to plot
@@ -619,7 +621,10 @@ observeEvent(input$plotresults, {
 
 observeEvent(input$calculate,{
   shinyjs::enable("Design")
+  shinyjs::enable("typeplot")
+  shinyjs::enable("WhichComp")
 })
+
 
 # observeEvent(input$power_next, {
 #   updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")

@@ -62,17 +62,17 @@ statmodel = fluidPage(
                         ),
 # table of significant proteins 
          tags$br(),
-           fluidRow(
+          fluidRow(
              column(12,
                 fluidRow(
-                         selectInput("typeplot", 
+                  selectInput("typeplot", 
                                      label = h4("3. Visualization - \
                                                 select plot type"), 
                                      c("Volcano Plot" = "VolcanoPlot", 
                                        "Heatmap"="Heatmap", 
-                                       "Comparison Plot"="ComparisonPlot")),
+                                       "Comparison Plot"="ComparisonPlot"))),
                          conditionalPanel(condition = "input.typeplot == 'VolcanoPlot'",
-                                          uiOutput("WhichComp")),
+                                          uiOutput("WhichComp"),
                          conditionalPanel(
                            condition = "input.typeplot == 'VolcanoPlot' && input.DDA_DIA!=='TMT'",
                            checkboxInput("pname", label = p("display protein name"))),
