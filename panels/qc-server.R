@@ -173,6 +173,11 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
 tmt_summarization_loop = function(data){
   MBimpute = FALSE ## Add option for MBimpute to server..
   
+  MSstatsConvert::MSstatsLogsSettings(FALSE, FALSE, FALSE, 
+                                      NULL, 
+                                      base = "MSstatsTMT_summarization_log_",
+                                      pkg_name = "MSstatsTMT")
+  
   ## Prep functions
   prep_input = MSstatsTMT:::MSstatsPrepareForSummarizationTMT(
     data, input$summarization, input$global_norm, input$reference_norm,
@@ -430,6 +435,7 @@ observeEvent(input$run,{
   
   if(input$DDA_DIA=="TMT"){
     shinyjs::enable("prepr_csv")
+    shinyjs::enable("summ_csv")
   } else {
     shinyjs::enable("prepr_csv")
     shinyjs::enable("summ_csv")
@@ -463,7 +469,7 @@ output$prepr_csv <- downloadHandler(
   content = function(file) {
     if(input$DDA_DIA=='TMT'){
       
-      write.csv(preprocess_data(), file, row.names = F)
+      write.csv(preprocess_data()$FeatureLevelData, file, row.names = F)
       
     }
     else{
@@ -527,9 +533,7 @@ output$showplot <- renderUI({
                      actionButton("saveone", "Save this plot"),
                      bsTooltip(id = "saveone", title = "Open plot as pdf. \
                                Popups must be enabled", placement = "bottom", 
-                               trigger = "hover")#,
-                     #actionButton("saveall", "Save all plots"),
-                     #bsTooltip(id = "saveall", title = "Open pdf of all plots.  Popups must be enabled", placement = "bottom", trigger = "hover")
+                               trigger = "hover")
                      )
     )
 })
@@ -600,10 +604,4 @@ output$download_summary <- downloadHandler(
 observeEvent(input$proceed4, {
   updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
 })
-
-## Loading popup
-# observeEvent(input$run, {
-#   # Show a modal when the button is pressed
-#   shinyalert("Processing Data", "Data is now processing", type = "info")
-# })
 

@@ -141,12 +141,15 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
 
 # clear matrix
 
-observeEvent({input$clear
+observeEvent(
+  {input$clear
   input$clear1
-  input$clear2},  {
+  input$clear2},  
+  {
     comp_list$dList <- NULL
     contrast$matrix <- NULL
-  })
+    }
+  )
 
 # Run Models
 ## Function for LF so we can track progress
@@ -288,9 +291,6 @@ SignificantProteins <- reactive({
   }
   
 })
-  
-
-
 
 # comparison plots
 

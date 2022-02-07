@@ -165,9 +165,9 @@ main = mainPanel(
                     tipify(icon("question-circle"), 
                            title="Model-based quantification for each condition or for each biological samples per protein.")),
                  radioButtons("typequant", 
-                              label = h4("Type of summarisation"), 
-                              c("Sample-level summarisation" = "Sample", 
-                                "Group-level summarisation" = "Group")),
+                              label = h4("Type of summarization"), 
+                              c("Biological replicate level summarization" = "Sample", 
+                                "Group level summarization" = "Group")),
                  radioButtons("format", "Save as", c("Wide format" = "matrix", 
                                                      "Long format" = "long")),
                  downloadButton("download_summary", "Download")
@@ -217,24 +217,24 @@ main = mainPanel(
                uiOutput("Which"),
                tags$br()
              ),
-             conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-                              tags$br(),
-                              tags$br(),
-                              tags$h4("Calculation in progress...")),
+             # conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+             #                  tags$br(),
+             #                  tags$br(),
+             #                  tags$h4("Calculation in progress...")),
              uiOutput("showplot")
              ),
     tabPanel("Download Data", 
              #verbatimTextOutput('effect'),
-             conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-                              tags$br(),
-                              tags$br(),
-                              tags$h4("Calculation in progress...")),
+             # conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+             #                  tags$br(),
+             #                  tags$br(),
+             #                  tags$h4("Calculation in progress...")),
              #tags$div(id='download_buttons')
              tags$br(),
              disabled(downloadButton("prepr_csv","Download .csv of preprocessed data")),
-             conditionalPanel(condition = "input.DDA_DIA !== 'TMT'",
-                              disabled(downloadButton("summ_csv","Download .csv of summarised data"))
-             )
+             # conditionalPanel(condition = "input.DDA_DIA !== 'TMT'",
+             #                  disabled(downloadButton("summ_csv","Download .csv of summarised data"))
+             # )
     )
     )
 )
@@ -251,7 +251,7 @@ qc = fluidPage(
   headerPanel("Data processing"),
   p("Preprocessing of the data is performed through: (i) Log transformation, \
     (ii) Normalization, (iii) Feature selection, (iv) Imputation for censored \
-    missing values, (v) Run-level summarisation.  Please choose the preprocessing \
+    missing values, (v) Run-level summarization. Please choose the preprocessing \
     parameters in the side panel and then Run. More information on the preprocessing step can be found ", 
     a("here", href="https://rdrr.io/bioc/MSstats/man/dataProcess.html", target="_blank"), 
     "for label free and ",

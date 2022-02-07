@@ -476,9 +476,11 @@ onclick("proceed1", {
   
   output$summary_tables <- renderUI({
     
-    tagList(conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-                             tags$br(),
-                             tags$h4("Calculation in progress...")),
+    # conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+    #                  tags$br(),
+    #                  tags$h4("Calculation in progress...")),
+    
+    tagList(
             tags$head(
               tags$style(HTML('#proceed2{background-color:orange}'))
             ),
