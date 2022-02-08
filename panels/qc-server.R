@@ -298,6 +298,8 @@ preprocess_data = eventReactive(input$run, {
   input_data = get_data()
   preprocess_list = list()
   
+  MSstatsConvert::MSstatsLogsSettings(FALSE)
+  
   ## Here we run the underlying functions for MSstats and MSstatsTMT 
   ## summarization. Done so we can loop over proteins and create a progress bar
   if(input$DDA_DIA == "TMT"){
@@ -559,13 +561,15 @@ abundance <- reactive({
              c("LogIntensities", "GROUP", "SUBJECT"))
     quantification(temp,
                    type = input$typequant,
-                   format = input$format)
+                   format = input$format,
+                   use_log_file = FALSE)
   }
   else{
     temp <- copy(preprocess_data())
     quantification(temp,
                    type = input$typequant,
-                   format = input$format)
+                   format = input$format,
+                   use_log_file = FALSE)
   }
 })
 
