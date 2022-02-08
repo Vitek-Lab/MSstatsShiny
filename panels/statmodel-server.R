@@ -98,7 +98,7 @@ check_cond <- eventReactive(input$submit | input$submit1 | input$submit2 | input
     
     validate(
       need( wt_sum == 0, 
-            "Please select different groups")
+            "The contrast weights should sum up to 0")
     )}
   
     

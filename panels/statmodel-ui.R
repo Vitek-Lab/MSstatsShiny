@@ -53,6 +53,7 @@ statmodel = fluidPage(
                                          actionButton("clear2", "Clear matrix")
                                          ),
                         conditionalPanel(condition = "input.def_comp == 'custom_np'",
+                                         h5("Non-pairwise Comparison:"),
                                          uiOutput('comp_name'),
                                          uiOutput('weights'),
                                          actionButton("submit3", "Add"),

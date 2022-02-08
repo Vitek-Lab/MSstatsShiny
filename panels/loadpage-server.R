@@ -376,12 +376,14 @@ onclick("proceed1", {
     {
       req(get_data())
       df <- get_data()
+      df <- df %>% filter(Condition != "Norm")
       nf <- ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
       if(input$DDA_DIA=="TMT"){
         df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
                                 "Number of Biological Replicates" = n_distinct(BioReplicate),
                                 "Number of Fractions" = nf,
-                                "Number of MS runs" = n_distinct(Run)
+                                "Number of MS runs" = n_distinct(Run),
+                                "Number of Technical Replicates" = n_distinct(TechRepMixture)
                                 )
       } else{
         df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
@@ -399,10 +401,13 @@ onclick("proceed1", {
       df2 <- head(df2,1)
       df3 <- head(df3,1)
       
-      df <- cbind(df1,df2,df3) %>%
-        mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
-        select(-Condition_Run,-BioReplicate_Run)
-      df <- df[,c(1,2,5,3,4)]
+      if(input$DDA_DIA !="TMT"){
+        df1 <- cbind(df1,df2,df3) %>%
+          mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
+          select(-Condition_Run,-BioReplicate_Run)
+      }
+      
+      df <- df1[,c(1,2,5,3,4)]
       
       
       t_df <- as.data.frame(t(df))
