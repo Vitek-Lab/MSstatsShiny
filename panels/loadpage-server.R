@@ -381,6 +381,7 @@ onclick("proceed1", {
       if(input$DDA_DIA=="TMT"){
         df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
                                 "Number of Biological Replicates" = n_distinct(BioReplicate),
+                                "Number of Mixtures" = n_distinct(Mixture),
                                 "Number of Fractions" = nf,
                                 "Number of MS runs" = n_distinct(Run),
                                 "Number of Technical Replicates" = n_distinct(TechRepMixture)
@@ -405,9 +406,13 @@ onclick("proceed1", {
         df1 <- cbind(df1,df2,df3) %>%
           mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
           select(-Condition_Run,-BioReplicate_Run)
+        df <- df1[,c(1,2,5,3,4)]
+      }
+      else{
+        df <- df1[,c(1,2,3,6,4,5)]
       }
       
-      df <- df1[,c(1,2,5,3,4)]
+      
       
       
       t_df <- as.data.frame(t(df))
