@@ -44,8 +44,8 @@ output$comp_name <- renderUI({
 output$weights <- renderUI({
   
   lapply(1:length(choices()), function(i) {
-    list(tags$p(h4(choices()[i])),
-         numericInput(paste0("weight", i), label = "", value=0))  
+    list(
+         numericInput(paste0("weight", i), label = choices()[i], value=0))  
   })
 })
 
@@ -82,12 +82,34 @@ observeEvent(input$def_comp, {
   comp_list$dList <- NULL
 })
 
-matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
+check_cond <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
   req(input$def_comp)
   if(input$def_comp == "custom") {
     validate(
       need(input$group1 != input$group2, "Please select different groups")
-    )
+    )}
+  
+  else if(input$def_comp == "custom_np") {
+    
+    wt_sum <- 0
+    for (index in 1:length(choices())){
+      wt_sum <- wt_sum + input[[paste0("weight", index)]]
+    }
+    
+    validate(
+      need( wt_sum == 0, 
+            "Please select different groups")
+    )}
+  
+    
+})
+
+matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
+  req(input$def_comp)
+  if(input$def_comp == "custom") {
+    if(input$group1 == input$group2){
+      return(contrast$matrix)
+    }
     index1 <- reactive({which(choices() == input$group1)})
     index2 <- reactive({which(choices() == input$group2)})
     comp_list$dList <- unique(c(isolate(comp_list$dList), paste(input$group1, "vs", 
@@ -107,7 +129,16 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | inp
     colnames(contrast$matrix) <- choices()
   }
   
-  else   if(input$def_comp == "custom_np") {
+  else if(input$def_comp == "custom_np") {
+    
+    wt_sum <- 0
+    for (index in 1:length(choices())){
+      wt_sum <- wt_sum + input[[paste0("weight", index)]]
+    }
+
+    if(wt_sum != 0){
+      return(contrast$matrix)
+    }
     
     comp_list$dList <- unique(c(isolate(comp_list$dList), input$comp_name))
     contrast$row <- matrix(row(), nrow=1)
@@ -364,9 +395,16 @@ output$fitted_v <- downloadHandler(
 
 # matrix
 
+output$message <- renderText({
+  check_cond()
+})
+
 output$matrix <- renderUI({
   tagList(
     h2("Comparison matrix"),
+    br(),
+    textOutput("message"),
+    br(),
     if (is.null(contrast$matrix)) {
       ""
     } else {
