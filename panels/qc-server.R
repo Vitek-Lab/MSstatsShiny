@@ -173,9 +173,7 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
 tmt_summarization_loop = function(data){
   MBimpute = FALSE ## Add option for MBimpute to server..
   
-  MSstatsConvert::MSstatsLogsSettings(FALSE, FALSE, FALSE, 
-                                      NULL, 
-                                      base = "MSstatsTMT_summarization_log_",
+  MSstatsConvert::MSstatsLogsSettings(FALSE,
                                       pkg_name = "MSstatsTMT")
   
   ## Prep functions
