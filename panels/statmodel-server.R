@@ -16,6 +16,15 @@ row <- reactive({rep(0, length(choices()))})
 contrast <- reactiveValues()
 comp_list <- reactiveValues()
 
+observe({
+  if(input$DDA_DIA == "TMT"){
+    shinyjs::hide("Design")
+  }
+  else{
+    shinyjs::show("Design")
+  }
+})
+
 output$choice1 <- renderUI({
   selectInput("group1", "Group 1", choices())
 })
@@ -26,6 +35,18 @@ output$choice2 <- renderUI({
 
 output$choice3 <- renderUI({
   selectInput("group3", "", choices())
+})
+
+output$comp_name <- renderUI({
+  textInput("comp_name", label = "Comparison Name", value = "")
+})
+
+output$weights <- renderUI({
+  
+  lapply(1:length(choices()), function(i) {
+    list(
+      numericInput(paste0("weight", i), label = choices()[i], value=0))  
+  })
 })
 
 # rownames for matrix
@@ -63,16 +84,37 @@ observeEvent(input$def_comp, {
   comp_list$dList <- NULL
 })
 
-matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
+## Check contrast matrix was created correctly
+check_cond <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
   req(input$def_comp)
   if(input$def_comp == "custom") {
     validate(
       need(input$group1 != input$group2, "Please select different groups")
-    )
+    )}
+  
+  else if(input$def_comp == "custom_np") {
+    
+    wt_sum <- 0
+    for (index in 1:length(choices())){
+      wt_sum <- wt_sum + input[[paste0("weight", index)]]
+    }
+    
+    validate(
+      need( wt_sum == 0, 
+            "The contrast weights should sum up to 0")
+    )}
+})
+
+matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
+  req(input$def_comp)
+  if(input$def_comp == "custom") {
+    if(input$group1 == input$group2){
+      return(contrast$matrix)
+    }
     index1 <- reactive({which(choices() == input$group1)})
     index2 <- reactive({which(choices() == input$group2)})
-    comp_list$dList <- c(isolate(comp_list$dList), paste(input$group1, "vs", 
-                                                         input$group2, sep = " "))
+    comp_list$dList <- unique(c(isolate(comp_list$dList), paste(input$group1, "vs", 
+                                                                input$group2, sep = " ")))
     contrast$row <- matrix(row(), nrow=1)
     contrast$row[index1()] = 1
     contrast$row[index2()] = -1
@@ -87,6 +129,36 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
     rownames(contrast$matrix) <- comp_list$dList
     colnames(contrast$matrix) <- choices()
   }
+  
+  else if(input$def_comp == "custom_np") {
+    
+    wt_sum <- 0
+    for (index in 1:length(choices())){
+      wt_sum <- wt_sum + input[[paste0("weight", index)]]
+    }
+    
+    if(wt_sum != 0){
+      return(contrast$matrix)
+    }
+    
+    comp_list$dList <- unique(c(isolate(comp_list$dList), input$comp_name))
+    contrast$row <- matrix(row(), nrow=1)
+    
+    for (index in 1:length(choices())){
+      contrast$row[index] = input[[paste0("weight", index)]]
+    }
+    
+    if (is.null(contrast$matrix)) {
+      contrast$matrix <- contrast$row 
+    } else {
+      contrast$matrix <- rbind(contrast$matrix, contrast$row)
+      contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
+    }
+    print(contrast$matrix)
+    rownames(contrast$matrix) <- comp_list$dList
+    colnames(contrast$matrix) <- choices()
+  }
+  
   else if (input$def_comp == "all_one") {
     for (index in 1:length(choices())) {
       index3 <- reactive({which(choices() == input$group3)})
@@ -102,8 +174,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
       contrast$row[index3()] = -1
       if (is.null(contrast$matrix)) {
         contrast$matrix <- contrast$row 
-      } 
-      else {
+      } else {
         contrast$matrix <- rbind(contrast$matrix, contrast$row)
       }
       rownames(contrast$matrix) <- comp_list$dList
@@ -126,8 +197,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
           contrast$row[index1] = -1
           if (is.null(contrast$matrix)) {
             contrast$matrix <- contrast$row 
-          } 
-          else {
+          } else {
             contrast$matrix <- rbind(contrast$matrix, contrast$row)
             contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
           }
@@ -143,15 +213,11 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
 
 # clear matrix
 
-observeEvent(
-  {input$clear
-  input$clear1
-  input$clear2},  
-  {
-    comp_list$dList <- NULL
-    contrast$matrix <- NULL
-    }
-  )
+observeEvent({input$clear | input$clear1 | input$clear2 | input$clear3},  {
+  shinyjs::disable("calculate")
+  comp_list$dList <- NULL
+  contrast$matrix <- NULL
+})
 
 # Run Models
 ## Function for LF so we can track progress
@@ -195,13 +261,13 @@ lf_model = function(data, contrast.matrix, busy_indicator = TRUE){
       update_modal_progress(counter)
     }
   }
-
+  
   results = MSstatsGroupComparisonOutput(test_results, data, 2) ## 2 is log_base param
   
   if (busy_indicator){
     remove_modal_progress() # remove it when done
   }
-
+  
   return(results)
   
 }
@@ -220,8 +286,8 @@ tmt_model = function(data, contrast.matrix, busy_indicator = TRUE){
   
   ## Prep data for modeling
   summarized = MSstatsTMT:::MSstatsPrepareForGroupComparisonTMT(data$ProteinLevelData, 
-                                                   TRUE,#remove_norm_channel
-                                                   TRUE)#remove_empty_channel
+                                                                TRUE,#remove_norm_channel
+                                                                TRUE)#remove_empty_channel
   contrast_matrix = MSstats::MSstatsContrastMatrix(contrast.matrix,
                                                    unique(summarized$Group))
   fitted_models = MSstatsTMT:::MSstatsFitComparisonModelsTMT(summarized)
@@ -235,7 +301,7 @@ tmt_model = function(data, contrast.matrix, busy_indicator = TRUE){
   
   for (i in seq_along(fitted_models)) {
     testing_result = MSstatsTMT:::MSstatsTestSingleProteinTMT(fitted_models[[i]], 
-                                                 contrast_matrix)
+                                                              contrast_matrix)
     testing_results[[i]] = testing_result
     
     ## Update progress bar
@@ -371,7 +437,6 @@ group_comparison <- function(saveFile1, pdf) {
 
 # model assumptions plots
 
-
 assumptions1 <- function(saveFile3, protein) {
   if (input$whichProt1 != "") {
     id2 <- as.character(UUIDgenerate(FALSE))
@@ -432,9 +497,16 @@ output$fitted_v <- downloadHandler(
 
 # matrix
 
+output$message <- renderText({
+  check_cond()
+})
+
 output$matrix <- renderUI({
   tagList(
     h2("Comparison matrix"),
+    br(),
+    textOutput("message"),
+    br(),
     if (is.null(contrast$matrix)) {
       ""
     } else {
@@ -493,8 +565,6 @@ observeEvent(input$viewresults, {
   )
 }
 )
-
-
 
 observe ({output$comp_plots <- renderPlot({
   group_comparison(FALSE, FALSE)}, height = input$height
@@ -629,4 +699,3 @@ observeEvent(input$calculate,{
 # observeEvent(input$power_next, {
 #   updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
 # })
-

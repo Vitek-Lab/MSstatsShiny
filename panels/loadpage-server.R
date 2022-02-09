@@ -50,6 +50,12 @@ observe({
   
 })
 
+observeEvent(input$filetype,{
+  
+  shinyjs::enable("proceed1")
+  
+})
+
 ### functions ###
 
 get_annot <- reactive({
@@ -341,7 +347,7 @@ get_data <- reactive({
 onclick("proceed1", {
   get_data()
   shinyjs::show("summary_tables")
-
+  
   ### outputs ###
   
   get_summary <- reactive({
@@ -385,19 +391,22 @@ onclick("proceed1", {
     {
       req(get_data())
       df <- get_data()
+      df <- df %>% filter(Condition != "Norm")
       nf <- ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
       if(input$DDA_DIA=="TMT"){
         df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
                                 "Number of Biological Replicates" = n_distinct(BioReplicate),
+                                "Number of Mixtures" = n_distinct(Mixture),
                                 "Number of Fractions" = nf,
-                                "Number of MS runs" = n_distinct(Run)
-                                )
+                                "Number of MS runs" = n_distinct(Run),
+                                "Number of Technical Replicates" = n_distinct(TechRepMixture)
+        )
       } else{
         df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
-                              "Number of Biological Replicates" = n_distinct(BioReplicate),
-                              "Number of Fractions" = nf,
-                              "Number of MS runs" = n_distinct(Run)
-                              )
+                                "Number of Biological Replicates" = n_distinct(BioReplicate),
+                                "Number of Fractions" = nf,
+                                "Number of MS runs" = n_distinct(Run)
+        )
       }
       df2 <- df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
         select("Condition_Run")
@@ -408,11 +417,15 @@ onclick("proceed1", {
       df2 <- head(df2,1)
       df3 <- head(df3,1)
       
-      df <- cbind(df1,df2,df3) %>%
-        mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
-        select(-Condition_Run,-BioReplicate_Run)
-      df <- df[,c(1,2,5,3,4)]
-      
+      if(input$DDA_DIA !="TMT"){
+        df1 <- cbind(df1,df2,df3) %>%
+          mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
+          select(-Condition_Run,-BioReplicate_Run)
+        df <- df1[,c(1,2,5,3,4)]
+      }
+      else{
+        df <- df1[,c(1,2,3,6,4,5)]
+      }
       
       t_df <- as.data.frame(t(df))
       rownames(t_df) <- colnames(df)
@@ -496,17 +509,17 @@ onclick("proceed1", {
     #                  tags$h4("Calculation in progress...")),
     
     tagList(
-            tags$head(
-              tags$style(HTML('#proceed2{background-color:orange}'))
-            ),
-            actionButton(inputId = "proceed2", label = "Next step"),
-            h4("Summary of experimental design"),
-            column(width=12, tableOutput('summary1'), style = "height:200px; overflow-y: scroll;overflow-x: scroll;"),
-            tags$br(),
-            h4("Summary of dataset"),
-            column(width=12, tableOutput("summary2"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"),
-            h4("Top 6 rows of the dataset"),
-            column(width=12, tableOutput("summary"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"))
+      tags$head(
+        tags$style(HTML('#proceed2{background-color:orange}'))
+      ),
+      actionButton(inputId = "proceed2", label = "Next step"),
+      h4("Summary of experimental design"),
+      column(width=12, tableOutput('summary1'), style = "height:200px; overflow-y: scroll;overflow-x: scroll;"),
+      tags$br(),
+      h4("Summary of dataset"),
+      column(width=12, tableOutput("summary2"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"),
+      h4("Top 6 rows of the dataset"),
+      column(width=12, tableOutput("summary"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"))
     
   })
 })
