@@ -51,7 +51,7 @@ observe({
 })
 
 observeEvent(input$filetype,{
-    
+  
   shinyjs::enable("proceed1")
   
 })
@@ -171,7 +171,8 @@ get_data <- reactive({
     else if(input$DDA_DIA == "TMT"){
       mydata <- PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd, 
                                      annotation = MSstatsTMT::annotation.pd,
-                                     which.proteinid = "Protein.Accessions" ## same as default
+                                     which.proteinid = "Protein.Accessions", ## same as default
+                                     use_log_file = FALSE
       )
     }
     
@@ -219,7 +220,8 @@ get_data <- reactive({
         mydata <- SkylinetoMSstatsFormat(data,
                                          annotation = get_annot(),
                                          fewMeasurements="remove",
-                                         removeProtein_with1Feature = input$remove)
+                                         removeProtein_with1Feature = input$remove,
+                                         use_log_file = FALSE)
       }
       else if(input$DDA_DIA=="DIA"){
         mydata <- SkylinetoMSstatsFormat(data,
@@ -227,7 +229,8 @@ get_data <- reactive({
                                          filter_with_Qvalue = TRUE, 
                                          qvalue_cutoff = 0.01, 
                                          fewMeasurements="remove", 
-                                         removeProtein_with1Feature = TRUE)
+                                         removeProtein_with1Feature = TRUE,
+                                         use_log_file = FALSE)
         
       }
       else if(input$DDA_DIA=="SRM_PRM") {
@@ -240,14 +243,16 @@ get_data <- reactive({
       if(input$DDA_DIA=="TMT"){
         mydata <- MaxQtoMSstatsTMTFormat(evidence=ev_maxq, 
                                          annotation=an_maxq,
-                                         proteinGroups=pg_maxq)
+                                         proteinGroups=pg_maxq,
+                                         use_log_file = FALSE)
         
       }
       else{
         mydata <- MaxQtoMSstatsFormat(evidence= ev_maxq, annotation= an_maxq, proteinGroups= pg_maxq,
                                       useUniquePeptide = TRUE,
                                       summaryforMultipleRows = max,
-                                      removeProtein_with1Peptide=input$remove)
+                                      removeProtein_with1Peptide=input$remove,
+                                      use_log_file = FALSE)
       }
       
     }
@@ -255,7 +260,9 @@ get_data <- reactive({
       cat(file=stderr(), "Reached in prog\n")
       data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
       
-      mydata <- ProgenesistoMSstatsFormat(data, annotation = get_annot(), removeProtein_with1Peptide = TRUE)
+      mydata <- ProgenesistoMSstatsFormat(data, annotation = get_annot(), 
+                                          removeProtein_with1Peptide = TRUE,
+                                          use_log_file = FALSE)
       colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] <- 'PeptideSequence'
     }
     else if(input$filetype == 'PD') {
@@ -264,12 +271,15 @@ get_data <- reactive({
         data <- read.delim(infile$datapath)
         mydata <- PDtoMSstatsTMTFormat(input = data, 
                                        annotation = get_annot(),
-                                       which.proteinid = "Protein.Accessions" ## same as default
+                                       which.proteinid = "Protein.Accessions", ## same as default
+                                       use_log_file = FALSE
         )
       }
       else{
         data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
-        mydata <- PDtoMSstatsFormat(data, annotation = get_annot(), removeProtein_with1Peptide = input$remove)
+        mydata <- PDtoMSstatsFormat(data, annotation = get_annot(), 
+                                    removeProtein_with1Peptide = input$remove,
+                                    use_log_file = FALSE)
         colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] <- 'PeptideSequence'
       }
       
@@ -281,7 +291,8 @@ get_data <- reactive({
                                            filter_with_Qvalue = TRUE, ## same as default
                                            qvalue_cutoff = 0.01, ## same as default
                                            fewMeasurements="remove",
-                                           removeProtein_with1Feature = TRUE)
+                                           removeProtein_with1Feature = TRUE,
+                                           use_log_file = FALSE)
       
     }
     else if(input$filetype == 'open') {
@@ -291,20 +302,22 @@ get_data <- reactive({
                                         filter_with_mscore = TRUE, ## same as default
                                         mscore_cutoff = 0.01, ## same as default
                                         fewMeasurements="remove",
-                                        removeProtein_with1Feature = TRUE)
+                                        removeProtein_with1Feature = TRUE,
+                                        use_log_file = FALSE)
       cat(file=stderr(), "Reached in openSwath\n")
     }
     else if(input$filetype == 'openms') {
       if(input$DDA_DIA=="TMT"){
         data <- read.csv(infile$datapath, header = T, sep = input$sep)
-        mydata <- OpenMStoMSstatsTMTFormat(data)
+        mydata <- OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)
         
       }
       else{
         data <- read.csv(infile$datapath, header = T, sep = input$sep)
         unique(data[, c('Run', 'BioReplicate', 'Condition')])
         mydata <-OpenMStoMSstatsFormat(data,
-                                       removeProtein_with1Feature=TRUE)
+                                       removeProtein_with1Feature=TRUE,
+                                       use_log_file = FALSE)
         
       }
       
@@ -317,11 +330,13 @@ get_data <- reactive({
                                          useSelectedFrag = TRUE,
                                          useSelectedPep = FALSE,
                                          fewMeasurements="remove",
-                                         removeProtein_with1Feature = TRUE)
+                                         removeProtein_with1Feature = TRUE,
+                                         use_log_file = FALSE)
     }
     else if(input$filetype == 'spmin') {
       data <- read.csv(infile$datapath, sep="\t")
-      mydata <- SpectroMinetoMSstatsTMTFormat(data, get_annot())
+      mydata <- SpectroMinetoMSstatsTMTFormat(data, get_annot(),
+                                              use_log_file = FALSE)
     }
   }
   mydata <- unique(data.frame(mydata))
@@ -332,7 +347,7 @@ get_data <- reactive({
 onclick("proceed1", {
   get_data()
   shinyjs::show("summary_tables")
-
+  
   ### outputs ###
   
   get_summary <- reactive({
@@ -385,13 +400,13 @@ onclick("proceed1", {
                                 "Number of Fractions" = nf,
                                 "Number of MS runs" = n_distinct(Run),
                                 "Number of Technical Replicates" = n_distinct(TechRepMixture)
-                                )
+        )
       } else{
         df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
-                              "Number of Biological Replicates" = n_distinct(BioReplicate),
-                              "Number of Fractions" = nf,
-                              "Number of MS runs" = n_distinct(Run)
-                              )
+                                "Number of Biological Replicates" = n_distinct(BioReplicate),
+                                "Number of Fractions" = nf,
+                                "Number of MS runs" = n_distinct(Run)
+        )
       }
       df2 <- df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
         select("Condition_Run")
@@ -411,9 +426,6 @@ onclick("proceed1", {
       else{
         df <- df1[,c(1,2,3,6,4,5)]
       }
-      
-      
-      
       
       t_df <- as.data.frame(t(df))
       rownames(t_df) <- colnames(df)
@@ -492,20 +504,22 @@ onclick("proceed1", {
   
   output$summary_tables <- renderUI({
     
-    tagList(conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-                             tags$br(),
-                             tags$h4("Calculation in progress...")),
-            tags$head(
-              tags$style(HTML('#proceed2{background-color:orange}'))
-            ),
-            actionButton(inputId = "proceed2", label = "Next step"),
-            h4("Summary of experimental design"),
-            column(width=12, tableOutput('summary1'), style = "height:200px; overflow-y: scroll;overflow-x: scroll;"),
-            tags$br(),
-            h4("Summary of dataset"),
-            column(width=12, tableOutput("summary2"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"),
-            h4("Top 6 rows of the dataset"),
-            column(width=12, tableOutput("summary"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"))
+    # conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+    #                  tags$br(),
+    #                  tags$h4("Calculation in progress...")),
+    
+    tagList(
+      tags$head(
+        tags$style(HTML('#proceed2{background-color:orange}'))
+      ),
+      actionButton(inputId = "proceed2", label = "Next step"),
+      h4("Summary of experimental design"),
+      column(width=12, tableOutput('summary1'), style = "height:200px; overflow-y: scroll;overflow-x: scroll;"),
+      tags$br(),
+      h4("Summary of dataset"),
+      column(width=12, tableOutput("summary2"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"),
+      h4("Top 6 rows of the dataset"),
+      column(width=12, tableOutput("summary"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"))
     
   })
 })
