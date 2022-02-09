@@ -92,9 +92,10 @@ shinyServer(function(input, output, session) {
     
   })
   
-  onclick("reset1", {
-    shinyjs::runjs("location.reload()")
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
+  observeEvent(input$Reset, {
+    #shinyjs::runjs("location.reload()")
+    session$reload()
+    #updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
   })
   
 
