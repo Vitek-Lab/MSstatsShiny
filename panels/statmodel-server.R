@@ -15,6 +15,8 @@ choices <- reactive({
 row <- reactive({rep(0, length(choices()))})
 contrast <- reactiveValues()
 comp_list <- reactiveValues()
+significant <- reactiveValues()
+
 
 observe({
   if(input$DDA_DIA == "TMT"){
@@ -51,7 +53,9 @@ output$weights <- renderUI({
 
 # rownames for matrix
 
-Rownames <- reactive({
+Rownames <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
+  req(input$def_comp)
+  req(input$DDA_DIA)
   tryCatch({
     rownames(matrix_build())},
     error=function(e){})
@@ -84,9 +88,16 @@ observeEvent(input$def_comp, {
   comp_list$dList <- NULL
 })
 
+observeEvent(input$DDA_DIA, {
+  contrast$matrix <- NULL
+  comp_list$dList <- NULL
+  significant$result <- NULL
+})
+
 ## Check contrast matrix was created correctly
 check_cond <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
   req(input$def_comp)
+  req(input$DDA_DIA)
   if(input$def_comp == "custom") {
     validate(
       need(input$group1 != input$group2, "Please select different groups")
@@ -107,6 +118,7 @@ check_cond <- eventReactive(input$submit | input$submit1 | input$submit2 | input
 
 matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
   req(input$def_comp)
+  req(input$DDA_DIA)
   if(input$def_comp == "custom") {
     if(input$group1 == input$group2){
       return(contrast$matrix)
@@ -349,15 +361,15 @@ round_df <- function(df) {
   (df)
 }
 
-SignificantProteins <- reactive({
+SignificantProteins <- eventReactive(input$calculate,{
   if(input$DDA_DIA=="TMT"){
     data_comp <- data_comparison()
-    data_comp$ComparisonResult[data_comp$ComparisonResult$adj.pvalue < input$signif, ]
+    significant$result <- data_comp$ComparisonResult[data_comp$ComparisonResult$adj.pvalue < input$signif, ]
     
   } else {
-    with(data_comparison(),round_df(ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ]))
+    significant$result <- with(data_comparison(),round_df(ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ]))
   }
-  
+  return(significant$result)
 })
 
 # comparison plots
@@ -523,15 +535,24 @@ output$table <-  renderDataTable({
 
 output$table_results <- renderUI({
   req(data_comparison())
-  tagList(
-    tags$br(),
-    h2("Results"),
-    h5("There are ",textOutput("number", inline = TRUE),"significant proteins"),
-    dataTableOutput("significant", width = "100%"),
-    tags$br(),
-    downloadButton("download_compar", "Download all modeling results"),
-    downloadButton("download_signif", "Download significant proteins")
-  )
+  req(SignificantProteins())
+  if (is.null(significant$result)) {
+
+    tagList(
+      tags$br())
+  } else {
+    tagList(
+      tags$br(),
+      h2("Results"),
+      h5("There are ",textOutput("number", inline = TRUE),"significant proteins"),
+      tags$br(),
+      dataTableOutput("significant"),
+      downloadButton("download_compar", "Download all modeling results"),
+      downloadButton("download_signif", "Download significant proteins")
+    )
+    
+  }
+  
 })
 
 output$significant <- renderDataTable({

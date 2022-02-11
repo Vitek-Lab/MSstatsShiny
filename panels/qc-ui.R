@@ -174,7 +174,7 @@ main = mainPanel(
                )),
                #column(7,
                       h4("Table of abundance"),
-                      dataTableOutput("abundance")
+                      uiOutput("abundance")
                #)
              #)
     ),

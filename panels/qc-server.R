@@ -550,7 +550,13 @@ theplot <- reactive({
 
 # quantification
 
-abundance <- reactive({
+abundant <- reactiveValues()
+
+observeEvent(input$DDA_DIA, {
+  abundant$results <- NULL
+})
+
+abundance <- eventReactive(input$run, {
   validate(need(preprocess_data(),
                 message = "PLEASE COMPLETE DATA PROCESSING"))
   
@@ -559,25 +565,38 @@ abundance <- reactive({
     setnames(temp$ProteinLevelData, 
              c("Abundance", "Condition", "BioReplicate"), 
              c("LogIntensities", "GROUP", "SUBJECT"))
-    quantification(temp,
+    abundant$results <- quantification(temp,
                    type = input$typequant,
                    format = input$format,
                    use_log_file = FALSE)
   }
   else{
     temp <- copy(preprocess_data())
-    quantification(temp,
+    abundant$results <-quantification(temp,
                    type = input$typequant,
                    format = input$format,
                    use_log_file = FALSE)
   }
+  
+  return(abundant$results)
 })
 
 output$theplot <- renderPlot(theplot())
 
 output$stats <- renderTable(statistics())
 
-output$abundance <- renderDataTable(abundance())
+output$abundance <- renderUI({
+  req(abundance())
+  if (is.null(abundant$results)) {
+    
+    tagList(
+      tags$br())
+  } else {
+    tagList(
+      dataTableOutput("abundanceTable") )
+    }
+})
+output$abundanceTable <- renderDataTable(abundance())
 
 
 shinyjs::enable("proceed6")
