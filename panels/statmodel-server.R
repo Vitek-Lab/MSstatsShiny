@@ -88,7 +88,7 @@ observeEvent(input$def_comp, {
   comp_list$dList <- NULL
 })
 
-observeEvent(input$DDA_DIA, {
+observeEvent(input$proceed1, {
   contrast$matrix <- NULL
   comp_list$dList <- NULL
   significant$result <- NULL

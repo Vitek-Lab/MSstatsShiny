@@ -552,7 +552,7 @@ theplot <- reactive({
 
 abundant <- reactiveValues()
 
-observeEvent(input$DDA_DIA, {
+observeEvent(input$proceed1, {
   abundant$results <- NULL
 })
 
