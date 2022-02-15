@@ -18,11 +18,14 @@ For large file processing, it is recommened you use a local install of the appli
 2. Download this github repository to your local machine.
 3. Open RStudio and set working directory to the local repository.
 4. Install the dependecies listed below.
-`install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr',
-                  'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager'))
-
-BiocManager::install(c('MSstatsTMT', 'biomaRt'))`
 5. Run the application by executing `library(shiny)` and `runApp()` in the console.
+
+#### Dependencies
+
+
+  install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr',
+                    'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager'))
+  BiocManager::install(c('MSstatsTMT', 'biomaRt'))
 
 
 
