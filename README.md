@@ -28,5 +28,7 @@ For large file processing, it is recommened you use a local install of the appli
                     
   `BiocManager::install(c('MSstatsTMT', 'biomaRt'))`
 
+## Processing instructions
 
+Instructions for processing your dataset are listed directly in the application. The general workflow includes: uploading your data into the application, run level summarization and vizualization, and data modeling to determine differential proteins. For questions on how to process your data please see the Help section of the application.
 
