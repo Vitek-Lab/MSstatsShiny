@@ -23,9 +23,9 @@ For large file processing, it is recommened you use a local install of the appli
 #### Dependencies
 
 
-  install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr',
+  `install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr',
                     'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager'))
-  BiocManager::install(c('MSstatsTMT', 'biomaRt'))
+  BiocManager::install(c('MSstatsTMT', 'biomaRt'))`
 
 
 
