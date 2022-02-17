@@ -56,6 +56,8 @@ observeEvent(input$filetype,{
   
 })
 
+
+
 ### functions ###
 
 get_annot <- reactive({
@@ -181,6 +183,13 @@ get_data <- eventReactive(input$proceed1, {
     if(input$filetype=='spec' || input$filetype=='spmin'){
       infile <- input$data1
     }
+    else if(input$filetype=='phil'){
+      x<- unzip(input$folder$datapath, list = TRUE)
+      print(x)
+      y<- unzip(input$folder$datapath, list = FALSE)
+      print(y)
+      infile <- paste0("./", x$Name[1])
+    }
     else{
       infile <- input$data
     }
@@ -268,6 +277,7 @@ get_data <- eventReactive(input$proceed1, {
     else if(input$filetype == 'PD') {
       
       if(input$DDA_DIA=="TMT"){
+        print(infile$datapath)
         data <- read.delim(infile$datapath)
         mydata <- PDtoMSstatsTMTFormat(input = data, 
                                        annotation = get_annot(),
@@ -338,8 +348,20 @@ get_data <- eventReactive(input$proceed1, {
       mydata <- SpectroMinetoMSstatsTMTFormat(data, get_annot(),
                                               use_log_file = FALSE)
     }
+    else if(input$filetype == 'phil') {
+      
+      print(infile)
+      
+      mixture_files = list.files(infile, pattern = NULL,
+                                 full.names = TRUE)
+      
+      print(mixture_files)
+      mydata <- PhilosophertoMSstatsTMTFormat(infile, get_annot(),
+                                              use_log_file = FALSE)
+      #print(as.data.frame(mydata))
+    }
   }
-  mydata <- unique(data.frame(mydata))
+  mydata <- unique(as.data.frame(mydata))
   remove_modal_spinner()
   return(mydata)
 })

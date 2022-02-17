@@ -22,7 +22,8 @@ sbp_load = sidebarPanel(
                            "MaxQuant" = "maxq", "Progenesis" = "prog", 
                            "Proteome Discoverer" = "PD", "OpenMS" = "openms", 
                            "Spectronaut" = "spec", "OpenSWATH" = "open", 
-                           "DIA-Umpire" = "ump", "SpectroMine" = "spmin"), 
+                           "DIA-Umpire" = "ump", "SpectroMine" = "spmin",
+                           "Philosopher" = "phil"), 
                selected = character(0)),
   # radioTooltip(id = "filetype", choice = "MRF", 
   #              title = "check msstats.org to find the required format", 
@@ -36,8 +37,10 @@ sbp_load = sidebarPanel(
                    h4("3. Upload MSstats report from Skyline")),
   conditionalPanel(condition = "input.filetype == 'spec'",
                    h4("3. Upload MSstats scheme output from Spectronaut")),
+  conditionalPanel(condition = "input.filetype == 'sky'",
+                   h4("3. Upload MSstats report directory from Philosopher")),
   conditionalPanel(
-    condition = "input.filetype && input.filetype != 'maxq' && input.filetype != 'sample' && input.filetype != 'ump' && input.filetype != 'MRF' && input.filetype != 'spec' && input.filetype != 'spmin'",
+    condition = "input.filetype && input.filetype != 'maxq' && input.filetype != 'sample' && input.filetype != 'ump' && input.filetype != 'MRF' && input.filetype != 'spec' && input.filetype != 'spmin' && input.filetype != 'phil'",
                    fileInput('data', "", multiple = F, 
                              accept = c("text/csv", 
                                         "text/comma-separated-values,text/plain", 
@@ -48,12 +51,17 @@ sbp_load = sidebarPanel(
                                                   title = "Choose how columns are separated in the uploaded file")),
                                 c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), 
                                 inline = T)),
+  conditionalPanel(
+    condition = "input.filetype && input.filetype == 'phil'",
+    fileInput("folder", "Upload a zip file", accept = ".zip")
+    ),
+  
   conditionalPanel(condition = "input.filetype && (input.filetype == 'spec' || input.filetype =='spmin')",
                    fileInput('data1', "", multiple = F, accept = c(".xls")),
                    ),
   tags$br(),
   conditionalPanel(
-    condition = "input.filetype == 'sky' || input.filetype == 'prog' || input.filetype == 'PD' || input.filetype == 'spec' || input.filetype == 'open'|| input.filetype =='spmin' ",
+    condition = "input.filetype == 'sky' || input.filetype == 'prog' || input.filetype == 'PD' || input.filetype == 'spec' || input.filetype == 'open'|| input.filetype =='spmin' || input.filetype == 'phil'",
     h4("4. Upload annotation File"),
     downloadLink("template", "Annotation file template"),
     fileInput('annot', "", multiple = F, 
