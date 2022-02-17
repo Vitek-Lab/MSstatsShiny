@@ -184,11 +184,9 @@ get_data <- eventReactive(input$proceed1, {
       infile <- input$data1
     }
     else if(input$filetype=='phil'){
-      x<- unzip(input$folder$datapath, list = TRUE)
-      print(x)
-      y<- unzip(input$folder$datapath, list = FALSE)
-      print(y)
-      infile <- paste0("./", x$Name[1])
+      extracted.files <- unzip(input$folder$datapath, list = TRUE)
+      unzip(input$folder$datapath, list = FALSE)
+      infile <- paste0("./", extracted.files$Name[1])
     }
     else{
       infile <- input$data
@@ -350,15 +348,8 @@ get_data <- eventReactive(input$proceed1, {
     }
     else if(input$filetype == 'phil') {
       
-      print(infile)
-      
-      mixture_files = list.files(infile, pattern = NULL,
-                                 full.names = TRUE)
-      
-      print(mixture_files)
       mydata <- PhilosophertoMSstatsTMTFormat(infile, get_annot(),
                                               use_log_file = FALSE)
-      #print(as.data.frame(mydata))
     }
   }
   mydata <- unique(as.data.frame(mydata))
