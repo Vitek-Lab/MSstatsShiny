@@ -56,6 +56,8 @@ observeEvent(input$filetype,{
   
 })
 
+
+
 ### functions ###
 
 get_annot <- reactive({
@@ -181,6 +183,11 @@ get_data <- eventReactive(input$proceed1, {
     if(input$filetype=='spec' || input$filetype=='spmin'){
       infile <- input$data1
     }
+    else if(input$filetype=='phil'){
+      extracted.files <- unzip(input$folder$datapath, list = TRUE)
+      unzip(input$folder$datapath, list = FALSE)
+      infile <- paste0("./", extracted.files$Name[1])
+    }
     else{
       infile <- input$data
     }
@@ -268,10 +275,11 @@ get_data <- eventReactive(input$proceed1, {
     else if(input$filetype == 'PD') {
       
       if(input$DDA_DIA=="TMT"){
+        print(infile$datapath)
         data <- read.delim(infile$datapath)
         mydata <- PDtoMSstatsTMTFormat(input = data, 
                                        annotation = get_annot(),
-                                       which.proteinid = "Protein.Accessions", ## same as default
+                                       which.proteinid = input$which.proteinid, ## same as default
                                        use_log_file = FALSE
         )
       }
@@ -338,8 +346,14 @@ get_data <- eventReactive(input$proceed1, {
       mydata <- SpectroMinetoMSstatsTMTFormat(data, get_annot(),
                                               use_log_file = FALSE)
     }
+    else if(input$filetype == 'phil') {
+      
+      mydata <- PhilosophertoMSstatsTMTFormat(infile, get_annot(),
+                                              protein_id_col = input$which.proteinid,
+                                              use_log_file = FALSE)
+    }
   }
-  mydata <- unique(data.frame(mydata))
+  mydata <- unique(as.data.frame(mydata))
   remove_modal_spinner()
   return(mydata)
 })
@@ -533,3 +547,4 @@ onclick("proceed1", {
     
   })
 })
+
