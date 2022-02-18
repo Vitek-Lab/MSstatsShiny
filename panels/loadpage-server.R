@@ -186,7 +186,7 @@ get_data <- eventReactive(input$proceed1, {
     else if(input$filetype=='phil'){
       extracted.files <- unzip(input$folder$datapath, list = TRUE)
       unzip(input$folder$datapath, list = FALSE)
-      infile <- paste0("./", extracted.files$Name[1])
+      infile <- paste0("./", str_split(extracted.files$Name[1], "/")[[1]][[1]])
     }
     else{
       infile <- input$data
@@ -347,10 +347,10 @@ get_data <- eventReactive(input$proceed1, {
                                               use_log_file = FALSE)
     }
     else if(input$filetype == 'phil') {
-      
       mydata <- PhilosophertoMSstatsTMTFormat(infile, get_annot(),
                                               protein_id_col = input$which.proteinid,
                                               use_log_file = FALSE)
+      print("here2")
     }
   }
   mydata <- unique(as.data.frame(mydata))
