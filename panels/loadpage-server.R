@@ -173,7 +173,7 @@ get_data <- eventReactive(input$proceed1, {
     else if(input$DDA_DIA == "TMT"){
       mydata <- PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd, 
                                      annotation = MSstatsTMT::annotation.pd,
-                                     which.proteinid = "Protein.Accessions", ## same as default
+                                     which.proteinid = input$which.proteinid, #"Protein.Accessions"
                                      use_log_file = FALSE
       )
     }
@@ -250,7 +250,7 @@ get_data <- eventReactive(input$proceed1, {
       if(input$DDA_DIA=="TMT"){
         mydata <- MaxQtoMSstatsTMTFormat(evidence=ev_maxq, 
                                          annotation=an_maxq,
-                                         proteinGroups=pg_maxq,
+                                         proteinGroups=input$which.proteinid,
                                          use_log_file = FALSE)
         
       }
@@ -279,7 +279,7 @@ get_data <- eventReactive(input$proceed1, {
         data <- read.delim(infile$datapath)
         mydata <- PDtoMSstatsTMTFormat(input = data, 
                                        annotation = get_annot(),
-                                       which.proteinid = "Protein.Accessions", ## same as default
+                                       which.proteinid = input$which.proteinid, ## same as default
                                        use_log_file = FALSE
         )
       }
@@ -349,6 +349,7 @@ get_data <- eventReactive(input$proceed1, {
     else if(input$filetype == 'phil') {
       
       mydata <- PhilosophertoMSstatsTMTFormat(infile, get_annot(),
+                                              protein_id_col = input$which.proteinid,
                                               use_log_file = FALSE)
     }
   }
@@ -546,3 +547,4 @@ onclick("proceed1", {
     
   })
 })
+

@@ -307,7 +307,7 @@ tmt_model = function(data, contrast.matrix, busy_indicator = TRUE){
   names(FittedModel) <- fitted_models$protein
   
   fitted_models = MSstatsTMT:::MSstatsModerateTTest(summarized, fitted_models, 
-                                                    FALSE)#moderated
+                                                    input$moderated)#moderated
   
   testing_results = vector("list", length(fitted_models))
   
