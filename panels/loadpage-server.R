@@ -184,6 +184,7 @@ get_data <- eventReactive(input$proceed1, {
       infile <- input$data1
     }
     else if(input$filetype=='phil'){
+      print(input$folder$datapath)
       extracted.files <- unzip(input$folder$datapath, list = TRUE)
       unzip(input$folder$datapath, list = FALSE)
       infile <- paste0("./", str_split(extracted.files$Name[1], "/")[[1]][[1]])
