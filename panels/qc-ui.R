@@ -170,6 +170,7 @@ main = mainPanel(
                                 "Group level summarization" = "Group")),
                  radioButtons("format", "Save as", c("Wide format" = "matrix", 
                                                      "Long format" = "long")),
+                 actionButton("update_results", "Update Summarized Results"),
                  downloadButton("download_summary", "Download")
                )),
                #column(7,
@@ -231,10 +232,9 @@ main = mainPanel(
              #                  tags$h4("Calculation in progress...")),
              #tags$div(id='download_buttons')
              tags$br(),
-             disabled(downloadButton("prepr_csv","Download .csv of preprocessed data")),
-             # conditionalPanel(condition = "input.DDA_DIA !== 'TMT'",
-             #                  disabled(downloadButton("summ_csv","Download .csv of summarised data"))
-             # )
+             disabled(downloadButton("prepr_csv","Download .csv of feature level data")),
+             disabled(downloadButton("summ_csv","Download .csv of protein level data"))
+             
     )
     )
 )

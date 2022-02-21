@@ -464,7 +464,7 @@ observeEvent(input$run,{
 
 output$prepr_csv <- downloadHandler(
   filename = function() {
-    paste("Preprocessed_data-", Sys.Date(), ".csv", sep="")
+    paste("feature_level_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
     if(input$DDA_DIA=='TMT'){
@@ -482,7 +482,7 @@ output$prepr_csv <- downloadHandler(
 
 output$summ_csv <- downloadHandler(
   filename = function() {
-    paste("Summarized_data-", Sys.Date(), ".csv", sep="")
+    paste("Protein_level_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
     write.csv(preprocess_data()$ProteinLevelData, file, row.names = F)
@@ -556,7 +556,7 @@ observeEvent(input$proceed1, {
   abundant$results <- NULL
 })
 
-abundance <- eventReactive(input$run, {
+abundance <- eventReactive(input$update_results, {
   validate(need(preprocess_data(),
                 message = "PLEASE COMPLETE DATA PROCESSING"))
   
