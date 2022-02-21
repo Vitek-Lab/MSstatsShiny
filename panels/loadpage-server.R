@@ -361,7 +361,7 @@ get_data <- eventReactive(input$proceed1, {
 
 get_summary1 <- eventReactive(input$proceed1, {
   df <- get_data()
-  df <- df %>% filter(Condition != "Norm")
+  df <- df %>% filter(!Condition %in% c("Norm", "Empty"))
   nf <- ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
   if(input$DDA_DIA=="TMT"){
     df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
