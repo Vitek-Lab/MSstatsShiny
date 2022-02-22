@@ -422,7 +422,7 @@ statistics <- reactive({
 
 
 cap <- eventReactive(input$run, {
-  text_output <- "Data has been processed, use the tabs below to download and plot the results."
+  text_output <- "Protein abundance have been estimated, use the tabs below to download and plot the results."
 })
 
 observeEvent(input$run, {output$submit.button <- renderUI(actionButton(inputId = "proceed6", label = "Next step"))})

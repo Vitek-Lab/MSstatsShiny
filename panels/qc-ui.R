@@ -144,7 +144,7 @@ sbp_params = sidebarPanel(
   ),
   
   tags$hr(),
-  actionButton("run", "Run preprocessing"),
+  actionButton("run", "Run protein summarization"),
   # run 
   width = 3
 )
@@ -154,7 +154,7 @@ sbp_params = sidebarPanel(
   
 main = mainPanel(
   
-  h3("Please run preprocessing in the side panel."),
+  h3("Please run protein summarization in the side panel."),
   h3(textOutput("caption", container = span)),
   
   tabsetPanel(
