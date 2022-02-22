@@ -25,7 +25,7 @@ home = fluidPage(
       h2("Please select from the following options to get started"),
       h4("1.", actionButton(inputId = "StartPipeline", label = "Run MSstats Pipeline")),
       h4("2.", actionButton(inputId = "Reset", label = "Reset Pipeline")),
-      h4("3.", actionButton(inputId = "Help", label = "Help!")),
+      h4("3.", actionButton(inputId = "Help", label = "Help!", onclick ="window.open('https://groups.google.com/g/msstats', '_blank')")),
       br(),
       h2("Features"),
       p("- Analyze data from many different acquisition methods, including \

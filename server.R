@@ -42,9 +42,9 @@ shinyServer(function(input, output, session) {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
   })
   
-  observeEvent(input$Help, {
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "Help")
-  })
+  # observeEvent(input$Help, {
+  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "Help")
+  # })
   
   observeEvent(input$StartPipeline, {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
