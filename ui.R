@@ -131,9 +131,9 @@ ui <- navbarPage(
   
   tabPanel("Homepage", icon = icon("home"), home),
   # tabPanel("Run Pipeline", icon = icon("running"), pipeline),
-  tabPanel("1. Upload data",value = "Uploaddata", icon = icon("send"), loadpage),
-  tabPanel("2. Data Summarization", value = "DataProcessing", icon = icon("gears"), qc),
-  tabPanel("3. Statistical model", value = "StatsModel", icon = icon("magic"), statmodel),
+  tabPanel("1. Data Uploading",value = "Uploaddata", icon = icon("send"), loadpage),
+  tabPanel("2. Data Processing", value = "DataProcessing", icon = icon("gears"), qc),
+  tabPanel("3. Statistical Inference", value = "StatsModel", icon = icon("magic"), statmodel),
   tabPanel("4. Future experiments", value = "Future", icon = icon("flask"), expdes),
   # tabPanel("Download logfile", icon = icon("download"), report),
   navbarMenu("Help", icon = icon("ambulance"), 

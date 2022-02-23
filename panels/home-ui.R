@@ -17,7 +17,7 @@ home = fluidPage(
         a("MSstats (v 4.2.0).", 
           href="https://www.bioconductor.org/packages/release/bioc/html/MSstats.html"), 
         " and ", 
-        a("MSstatsTMT (v 2.2.0).", href="https://www.bioconductor.org/packages/release/bioc/html/MSstatsTMT.html")),
+        a("MSstatsTMT (v 2.2.7).", href="https://www.bioconductor.org/packages/release/bioc/html/MSstatsTMT.html")),
       p("This tool is designed to increase the usability of the packages, \
       providing an all in one, end to end, analysis pipeline for proteomic 
         data."),

@@ -348,7 +348,7 @@ get_data <- eventReactive(input$proceed1, {
                                               use_log_file = FALSE)
     }
     else if(input$filetype == 'phil') {
-      mydata <- PhilosophertoMSstatsTMTFormat(infile, get_annot(),
+      mydata <- PhilosophertoMSstatsTMTFormat(path = infile, folder = TRUE, annotation = get_annot(),
                                               protein_id_col = input$which.proteinid,
                                               use_log_file = FALSE)
       print("here2")

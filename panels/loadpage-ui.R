@@ -62,7 +62,7 @@ sbp_load = sidebarPanel(
   conditionalPanel(
     condition = "input.filetype == 'sky' || input.filetype == 'prog' || input.filetype == 'PD' || input.filetype == 'spec' || input.filetype == 'open'|| input.filetype =='spmin' || input.filetype == 'phil'",
     h4("4. Upload annotation File"),
-    # downloadLink("template", "Annotation file template"),
+    downloadLink("template", "Annotation file template"),
     fileInput('annot', "", multiple = F,
               accept = c("text/csv",
                          "text/comma-separated-values,text/plain", ".csv"))
@@ -143,11 +143,14 @@ loadpage = fluidPage(
     depend on the spectral processing tool used. Generally the raw data and an \
     annotation file are needed. The output of this step is your experimental \
     data processed in MSstats format."),
-  p("Additionally, you can format the data on your own, and select the `MSstats required format`\
-     option under `Type of File`. For an example of what MSstats format is \
-    please select the `Example dataset` option."),
+  # p("Additionally, you can format the data on your own, and select the `MSstats required format`\
+  #    option under `Type of File`. For an example of what MSstats format is \
+  #   please select the `Example dataset` option."),
   p("For more information on the type of dataset accepted by Shiny-MSstats please check the ",
-    a("documentation.", href="https://bioconductor.org/packages/devel/bioc/vignettes/MSstats/inst/doc/MSstats.html", target="_blank")),
+    a("documentation ", href="https://bioconductor.org/packages/devel/bioc/vignettes/MSstats/inst/doc/MSstats.html", target="_blank"), 
+    "for label free and ",
+    a("documentation", href="https://bioconductor.org/packages/devel/bioc/vignettes/MSstatsTMT/inst/doc/MSstatsTMT.html", target="_blank"),
+    " for TMT."),
   tags$br(),
   conditionalPanel(
     condition = "input.filetype == 'sample' && input.DDA_DIA == 'DDA'",

@@ -14,7 +14,7 @@ statmodel = fluidPage(
     tags$style(HTML('#clear{background-color:orange}'))
   ),
   use_busy_spinner(spin = "fading-circle"),
-  headerPanel("Statistical model"),
+  headerPanel("Statistical modeling and inference"),
   p("In this tab a statistical model is built in three steps:"),
   p("(i) Create a contrast matrix with the correct Group comparisons,"), 
   p("(ii) generate the model and "),
