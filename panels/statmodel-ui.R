@@ -14,7 +14,7 @@ statmodel = fluidPage(
     tags$style(HTML('#clear{background-color:orange}'))
   ),
   use_busy_spinner(spin = "fading-circle"),
-  headerPanel("Statistical model"),
+  headerPanel("Statistical modeling and inference"),
   p("In this tab a statistical model is built in three steps:"),
   p("(i) Create a contrast matrix with the correct Group comparisons,"), 
   p("(ii) generate the model and "),
@@ -126,6 +126,7 @@ statmodel = fluidPage(
                                   numericInput("FC", "cutoff", 
                                                1, 0, 100, 
                                                0.1)),
+
                                 numericInput("nump", "Number of proteins \
                                         in heatmap", 100, 1, 180, 1),
                                 selectInput("cluster", 
@@ -137,8 +138,7 @@ statmodel = fluidPage(
                                             c("protein dendogram" = "protein", 
                                               "comparison dendogram" = "comparison", 
                                               "protein and comparison dendograms" = "both"))),
-                              conditionalPanel(condition = "input.typeplot == 'ComparisonPlot'",
-                                               ),
+
              p("Please note if you want to plot more than one \
                           Volcano Plot comparison, you must save the results \
                           as a pdf."),

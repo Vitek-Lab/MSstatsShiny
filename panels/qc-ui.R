@@ -25,7 +25,7 @@ sbp_params = sidebarPanel(
                    selectInput("summarization", 
                                label = h4("2. Summarization method", 
                                           tipify(icon("question-circle"), 
-                                                 title = "Select method to be used for data summarization. For details on each option please see Help tab")), 
+                                                 title = "Select method to be used for protein summarization. For details on each option please see Help tab")), 
                                c("MSstats" = "msstats", 
                                  "Tukeys median polish" = "MedianPolish", 
                                  "Log(Sum)" = "LogSum","Median" = "Median"), 
@@ -248,18 +248,23 @@ qc = fluidPage(
   # useShinyalert(),
   use_busy_spinner(spin = "fading-circle"),
   tags$style(HTML('#proceed6{background-color:orange}')),
-  headerPanel("Data processing"),
-  p("Preprocessing of the data is performed through: (i) Log transformation, \
+  headerPanel("Process and quantify data"),
+  p("Processing of the label-free data is performed through: (i) Log transformation, \
     (ii) Normalization, (iii) Feature selection, (iv) Imputation for censored \
     missing values, (v) Run-level summarization. Please choose the preprocessing \
-    parameters in the side panel and then Run. More information on the preprocessing step can be found ", 
+    parameters in the side panel and then Run. More information on the quantification step can be found ", 
     a("here", href="https://rdrr.io/bioc/MSstats/man/dataProcess.html", target="_blank"), 
-    "for label free and ",
+    "for label free"),
+  p("Processing (Protein summarization) of the isobaric labeling data is performed through:  \ 
+  (i) Log transformation, (ii) Feature-level global normalization, (iii) Imputation  \ 
+  for censored missing values, (iv) Protein-level local normalization, (v) Channel-level \
+  summarization. Please choose the summarization parameters in the side panel and then Run. \
+    More information on the quantification step can be found ", 
     a("here", href="https://rdrr.io/bioc/MSstatsTMT/man/proteinSummarization.html", target="_blank"),
     " for TMT."),
-  p("Quality of data and preprocessing can be assessed in the plot tab of the main panel."),
-  p("Preprocessed data will be used for protein quantification and to build a \
-    statistical model to evaluate the changes in protein expression."),
+  p("Quality of data can be assessed in the plot tab of the main panel."),
+  p("Quantification data will be used to build a statistical model \
+     to evaluate the changes in protein expression."),
   p("You must upload your data in the `Upload data` tab before completing \
     this step"),
   tags$br(),
