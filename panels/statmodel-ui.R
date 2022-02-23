@@ -90,34 +90,42 @@ statmodel = fluidPage(
              conditionalPanel(condition = "input.typeplot == 'VolcanoPlot'",
                               uiOutput("WhichComp"),
                               conditionalPanel(
-                                condition = "input.typeplot == 'VolcanoPlot' && input.DDA_DIA!=='TMT'",
+                                condition = "input.DDA_DIA!=='TMT'",
                                 checkboxInput("pname", label = p("display protein name"))),
-                              conditionalPanel(
-                                condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
                                 selectInput("logp", 
                                             label = h5("Log transformation of adjusted p-value"),
-                                            c("base 2" = "2", "base 10" = "10"), selected = "10")
-                              ),
-                              sliderInput("sig", 
+                                            c("base 2" = "2", "base 10" = "10"), selected = "10"),
+                                sliderInput("sig", 
                                           label = h5("Significance level", 
                                                      tipify(icon("question-circle"), 
                                                             title="The alpha used to determine significant results. IE the probability of type I error)")),
                                           0, 1, 0.05),
+                                checkboxInput("FC1", 
+                                            label = p("Apply specific fold change cutoff for significance")),
+                                conditionalPanel(
+                                  condition = "input.FC1 == true",
+                                  numericInput("FC", "cutoff", 
+                                             1, 0, 100, 
+                                             0.1)),
+                                tags$br()),
                               conditionalPanel(
                                 condition = "input.typeplot == 'ComparisonPlot'",
-                                uiOutput("WhichProt")),
+                                uiOutput("WhichProt"),
+                                uiOutput("WhichComp1")),
+             
+                                
                               conditionalPanel(
-                                condition = "input.typeplot == 'VolcanoPlot' || input.typeplot == 'Heatmap'",
+                                condition = "input.typeplot == 'Heatmap'",
+                                selectInput("logp", 
+                                            label = h5("Log transformation of adjusted p-value"),
+                                            c("base 2" = "2", "base 10" = "10"), selected = "10"),
                                 checkboxInput("FC1", 
                                               label = p("Apply specific fold change cutoff for significance")),
                                 conditionalPanel(
                                   condition = "input.FC1 == true",
                                   numericInput("FC", "cutoff", 
                                                1, 0, 100, 
-                                               0.1))),
-                              tags$br(),
-                              conditionalPanel(
-                                condition = "input.typeplot == 'Heatmap'",
+                                               0.1)),
                                 numericInput("nump", "Number of proteins \
                                         in heatmap", 100, 1, 180, 1),
                                 selectInput("cluster", 
@@ -130,8 +138,7 @@ statmodel = fluidPage(
                                               "comparison dendogram" = "comparison", 
                                               "protein and comparison dendograms" = "both"))),
                               conditionalPanel(condition = "input.typeplot == 'ComparisonPlot'",
-                                               uiOutput("WhichComp1"))
-             ),
+                                               ),
              p("Please note if you want to plot more than one \
                           Volcano Plot comparison, you must save the results \
                           as a pdf."),

@@ -69,13 +69,13 @@ output$WhichComp <- renderUI ({
 })
 
 output$WhichProt <- renderUI ({
-  selectizeInput("whichProt",
-                 label = h4("which protein to plot"), unique(get_data()[1]))
+  selectInput("whichProt",
+                 label = h4("which protein to plot"), c("", unique(get_data()[[1]])))
 })
 
 output$WhichProt1 <- renderUI ({
   selectizeInput("whichProt1",
-                 label = h4("which protein to plot"), c("", unique(get_data()[1])))
+                 label = h4("which protein to plot"), c("", unique(get_data()[[1]])))
 })
 
 
@@ -393,6 +393,9 @@ SignificantProteins <- eventReactive(input$calculate,{
 # })
 
 group_comparison <- function(saveFile1, pdf) {
+  
+  print(Rownames())
+  print(unique(get_data()[[1]]))
   id1 <- as.character(UUIDgenerate(FALSE))
   id_address1 <- paste("tmp/",id1, sep = "")
   path1 <- function() {
