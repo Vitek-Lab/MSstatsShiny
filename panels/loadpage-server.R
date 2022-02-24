@@ -9,6 +9,7 @@ observe({
     shinyjs::disable(selector = "[type=radio][value=open]")
     shinyjs::disable(selector = "[type=radio][value=ump]")
     shinyjs::disable(selector = "[type=radio][value=spmin]")
+    shinyjs::disable(selector = "[type=radio][value=phil]")
     shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
   }
   else if (input$DDA_DIA == "DIA") {
@@ -19,6 +20,7 @@ observe({
     shinyjs::disable(selector = "[type=radio][value=PD]")
     shinyjs::disable(selector = "[type=radio][value=openms]")
     shinyjs::disable(selector = "[type=radio][value=spmin]")
+    shinyjs::disable(selector = "[type=radio][value=phil]")
     shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
   }
   else if (input$DDA_DIA == "SRM_PRM") {
@@ -32,6 +34,7 @@ observe({
     shinyjs::disable(selector = "[type=radio][value=open]")
     shinyjs::disable(selector = "[type=radio][value=ump]")
     shinyjs::disable(selector = "[type=radio][value=spmin]")
+    shinyjs::disable(selector = "[type=radio][value=phil]")
     shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
     
   }
@@ -184,7 +187,7 @@ get_data <- eventReactive(input$proceed1, {
       infile <- input$data1
     }
     else if(input$filetype=='phil'){
-      print(input$folder$datapath)
+      #print(input$folder$datapath)
       extracted.files <- unzip(input$folder$datapath, list = TRUE)
       unzip(input$folder$datapath, list = FALSE)
       infile <- paste0("./", str_split(extracted.files$Name[1], "/")[[1]][[1]])
