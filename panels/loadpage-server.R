@@ -60,13 +60,16 @@ observeEvent(input$filetype,{
 })
 
 
-
 ### functions ###
 
-get_annot <- reactive({
+get_annot <- eventReactive(input$proceed1, {
   annot <- input$annot
   if(is.null(annot)) {
     return(NULL)
+  }
+  else if (input$DDA_DIA == "TMT" && input$filetype == "sample") 
+  {
+    return(MSstatsTMT::annotation.pd)
   }
   annot_file <- read.csv(annot$datapath)
   return(annot_file)
@@ -364,16 +367,28 @@ get_data <- eventReactive(input$proceed1, {
 
 get_summary1 <- eventReactive(input$proceed1, {
   df <- get_data()
+  annot_df <- get_annot()
   df <- df %>% filter(!Condition %in% c("Norm", "Empty"))
   nf <- ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
   if(input$DDA_DIA=="TMT"){
-    df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
-                            "Number of Biological Replicates" = n_distinct(BioReplicate),
-                            "Number of Mixtures" = n_distinct(Mixture),
-                            "Number of Fractions" = nf,
-                            "Number of MS runs" = n_distinct(Run),
-                            "Number of Technical Replicates" = n_distinct(TechRepMixture)
-    )
+    if(is.null(annot_df)){
+      df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
+                              "Number of Biological Replicates" = n_distinct(BioReplicate),
+                              "Number of Mixtures" = n_distinct(Mixture),
+                              "Number of Fractions" = nf,
+                              "Number of MS runs" = n_distinct(Run),
+                              "Number of Technical Replicates" = n_distinct(TechRepMixture))
+    }
+    else{
+      annot_df <- annot_df %>% filter(!Condition %in% c("Norm", "Empty"))
+      df1 <- annot_df %>% summarise("Number of Conditions" = n_distinct(Condition),
+                              "Number of Biological Replicates" = n_distinct(BioReplicate),
+                              "Number of Mixtures" = n_distinct(Mixture),
+                              "Number of Fractions" = n_distinct(Fraction),
+                              "Number of MS runs" = n_distinct(Run),
+                              "Number of Technical Replicates" = n_distinct(TechRepMixture))
+    }
+    
   } else{
     df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
                             "Number of Biological Replicates" = n_distinct(BioReplicate),
@@ -459,6 +474,7 @@ get_summary2 <- eventReactive(input$proceed1, {
 
 onclick("proceed1", {
   get_data()
+  get_annot()
   shinyjs::show("summary_tables")
   
   ### outputs ###
