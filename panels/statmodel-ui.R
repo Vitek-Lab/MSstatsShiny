@@ -66,15 +66,15 @@ statmodel = fluidPage(
       tags$hr(),
       conditionalPanel(condition = "input.DDA_DIA == 'TMT'",
                        radioButtons("moderated", 
-                                    label= h4("Moderate t-test", 
+                                    label= h4("Empirical Bayes moderation", 
                                               tipify(icon("question-circle"), 
           title = "TRUE will moderate t statistic; FALSE (default) uses ordinary t statistic.")), 
                                     c(True = TRUE, False = FALSE))),
-      sliderInput("signif", 
-                  label = h5("Significance level", 
-                             tipify(icon("question-circle"),
-                                    title="The alpha used to determine significant results. IE the probability of type I error)")) 
-                  , 0, .1, 0.05),
+      # sliderInput("signif", 
+      #             label = h5("Significance level", 
+      #                        tipify(icon("question-circle"),
+      #                               title="The alpha used to determine significant results. IE the probability of type I error)")) 
+      #             , 0, .1, 0.05),
     ),
     # table of significant proteins 
     tags$br(),
