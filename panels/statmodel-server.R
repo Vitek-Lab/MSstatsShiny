@@ -15,6 +15,17 @@ choices <- reactive({
 row <- reactive({rep(0, length(choices()))})
 contrast <- reactiveValues()
 comp_list <- reactiveValues()
+significant <- reactiveValues()
+
+
+observe({
+  if(input$DDA_DIA == "TMT"){
+    shinyjs::hide("Design")
+  }
+  else{
+    shinyjs::show("Design")
+  }
+})
 
 output$choice1 <- renderUI({
   selectInput("group1", "Group 1", choices())
@@ -28,10 +39,26 @@ output$choice3 <- renderUI({
   selectInput("group3", "", choices())
 })
 
+output$comp_name <- renderUI({
+  textInput("comp_name", label = "Comparison Name", value = "")
+})
+
+output$weights <- renderUI({
+  
+  lapply(1:length(choices()), function(i) {
+    list(
+      numericInput(paste0("weight", i), label = choices()[i], value=0))  
+  })
+})
+
 # rownames for matrix
 
-Rownames <- reactive({
-  rownames(matrix_build())
+Rownames <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
+  req(input$def_comp)
+  req(input$DDA_DIA)
+  tryCatch({
+    rownames(matrix_build())},
+    error=function(e){})
 })
 
 # choices of comparisons/proteins to plot
@@ -42,13 +69,13 @@ output$WhichComp <- renderUI ({
 })
 
 output$WhichProt <- renderUI ({
-  selectizeInput("whichProt",
-                 label = h4("which protein to plot"), unique(get_data()[1]))
+  selectInput("whichProt",
+                 label = h4("which protein to plot"), unique(get_data()[[1]]))
 })
 
 output$WhichProt1 <- renderUI ({
   selectizeInput("whichProt1",
-                 label = h4("which protein to plot"), c("", unique(get_data()[1])))
+                 label = h4("which protein to plot"), c("", unique(get_data()[[1]])))
 })
 
 
@@ -61,16 +88,45 @@ observeEvent(input$def_comp, {
   comp_list$dList <- NULL
 })
 
-matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
+observeEvent(input$proceed1, {
+  contrast$matrix <- NULL
+  comp_list$dList <- NULL
+  significant$result <- NULL
+})
+
+## Check contrast matrix was created correctly
+check_cond <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
   req(input$def_comp)
+  req(input$DDA_DIA)
   if(input$def_comp == "custom") {
     validate(
       need(input$group1 != input$group2, "Please select different groups")
-    )
+    )}
+  
+  else if(input$def_comp == "custom_np") {
+    
+    wt_sum <- 0
+    for (index in 1:length(choices())){
+      wt_sum <- wt_sum + input[[paste0("weight", index)]]
+    }
+    
+    validate(
+      need( wt_sum == 0, 
+            "The contrast weights should sum up to 0")
+    )}
+})
+
+matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
+  req(input$def_comp)
+  req(input$DDA_DIA)
+  if(input$def_comp == "custom") {
+    if(input$group1 == input$group2){
+      return(contrast$matrix)
+    }
     index1 <- reactive({which(choices() == input$group1)})
     index2 <- reactive({which(choices() == input$group2)})
-    comp_list$dList <- c(isolate(comp_list$dList), paste(input$group1, "vs", 
-                                                         input$group2, sep = " "))
+    comp_list$dList <- unique(c(isolate(comp_list$dList), paste(input$group1, "vs", 
+                                                                input$group2, sep = " ")))
     contrast$row <- matrix(row(), nrow=1)
     contrast$row[index1()] = 1
     contrast$row[index2()] = -1
@@ -85,6 +141,36 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
     rownames(contrast$matrix) <- comp_list$dList
     colnames(contrast$matrix) <- choices()
   }
+  
+  else if(input$def_comp == "custom_np") {
+    
+    wt_sum <- 0
+    for (index in 1:length(choices())){
+      wt_sum <- wt_sum + input[[paste0("weight", index)]]
+    }
+    
+    if(wt_sum != 0){
+      return(contrast$matrix)
+    }
+    
+    comp_list$dList <- unique(c(isolate(comp_list$dList), input$comp_name))
+    contrast$row <- matrix(row(), nrow=1)
+    
+    for (index in 1:length(choices())){
+      contrast$row[index] = input[[paste0("weight", index)]]
+    }
+    
+    if (is.null(contrast$matrix)) {
+      contrast$matrix <- contrast$row 
+    } else {
+      contrast$matrix <- rbind(contrast$matrix, contrast$row)
+      contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
+    }
+    print(contrast$matrix)
+    rownames(contrast$matrix) <- comp_list$dList
+    colnames(contrast$matrix) <- choices()
+  }
+  
   else if (input$def_comp == "all_one") {
     for (index in 1:length(choices())) {
       index3 <- reactive({which(choices() == input$group3)})
@@ -100,8 +186,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
       contrast$row[index3()] = -1
       if (is.null(contrast$matrix)) {
         contrast$matrix <- contrast$row 
-      } 
-      else {
+      } else {
         contrast$matrix <- rbind(contrast$matrix, contrast$row)
       }
       rownames(contrast$matrix) <- comp_list$dList
@@ -124,8 +209,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
           contrast$row[index1] = -1
           if (is.null(contrast$matrix)) {
             contrast$matrix <- contrast$row 
-          } 
-          else {
+          } else {
             contrast$matrix <- rbind(contrast$matrix, contrast$row)
             contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
           }
@@ -141,24 +225,131 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
 
 # clear matrix
 
-observeEvent({input$clear
-  input$clear1
-  input$clear2},  {
-    comp_list$dList <- NULL
-    contrast$matrix <- NULL
-  })
+observeEvent({input$clear | input$clear1 | input$clear2 | input$clear3},  {
+  shinyjs::disable("calculate")
+  comp_list$dList <- NULL
+  contrast$matrix <- NULL
+})
 
-# compare data
+# Run Models
+## Function for LF so we can track progress
+lf_model = function(data, contrast.matrix, busy_indicator = TRUE){
+  
+  proteins = as.character(unique(data$ProteinLevelData[, 'Protein']))
+  
+  if (busy_indicator){
+    show_modal_progress_line() # show the modal window
+    
+    ## Setup progress bar
+    update_val = 1/length(proteins)
+    counter = 0
+  }
+  
+  ## Prepare data for modeling
+  labeled = data.table::uniqueN(data$FeatureLevelData$Label) > 1
+  split_summarized = MSstatsPrepareForGroupComparison(data)
+  repeated = checkRepeatedDesign(data)
+  samples_info = getSamplesInfo(data)
+  groups = unique(data$ProteinLevelData$GROUP)
+  contrast_matrix = MSstatsContrastMatrix(contrast.matrix, groups)
+  
+  ## Inside MSstatsGroupComparison function
+  groups = sort(colnames(contrast_matrix))
+  has_imputed = attr(split_summarized, "has_imputed")
+  all_proteins_id = seq_along(split_summarized)
+  test_results = vector("list", length(all_proteins_id))
+  pb = txtProgressBar(max = length(all_proteins_id), style = 3)
+  
+  for (i in all_proteins_id) {
+    comparison_outputs = MSstatsGroupComparisonSingleProtein(
+      split_summarized[[i]], contrast_matrix, repeated, 
+      groups, samples_info, TRUE, has_imputed
+    )
+    test_results[[i]] = comparison_outputs
+    
+    ## Update progress bar
+    if (busy_indicator){
+      counter = counter + update_val
+      update_modal_progress(counter)
+    }
+  }
+  
+  results = MSstatsGroupComparisonOutput(test_results, data, 2) ## 2 is log_base param
+  
+  if (busy_indicator){
+    remove_modal_progress() # remove it when done
+  }
+  
+  return(results)
+  
+}
+
+tmt_model = function(data, contrast.matrix, busy_indicator = TRUE){
+  
+  proteins = as.character(unique(data$ProteinLevelData[, 'Protein']))
+  
+  if (busy_indicator){
+    show_modal_progress_line() # show the modal window
+    
+    ## Setup progress bar
+    update_val = 1/length(proteins)
+    counter = 0
+  }
+  
+  ## Prep data for modeling
+  summarized = MSstatsTMT:::MSstatsPrepareForGroupComparisonTMT(data$ProteinLevelData, 
+                                                                TRUE,#remove_norm_channel
+                                                                TRUE)#remove_empty_channel
+  contrast_matrix = MSstats::MSstatsContrastMatrix(contrast.matrix,
+                                                   unique(summarized$Group))
+  fitted_models = MSstatsTMT:::MSstatsFitComparisonModelsTMT(summarized)
+  FittedModel <- fitted_models$fitted_model
+  names(FittedModel) <- fitted_models$protein
+  
+  fitted_models = MSstatsTMT:::MSstatsModerateTTest(summarized, fitted_models, 
+                                                    input$moderated)#moderated
+  
+  testing_results = vector("list", length(fitted_models))
+  
+  for (i in seq_along(fitted_models)) {
+    testing_result = MSstatsTMT:::MSstatsTestSingleProteinTMT(fitted_models[[i]], 
+                                                              contrast_matrix)
+    testing_results[[i]] = testing_result
+    
+    ## Update progress bar
+    if (busy_indicator){
+      counter = counter + update_val
+      update_modal_progress(counter)
+    }
+  }
+  
+  testing_results = MSstatsTMT:::MSstatsGroupComparisonOutputTMT(
+    testing_results, "BH") #adj.method
+  
+  results = list(ComparisonResult = testing_results, 
+                 ModelQC = NULL,
+                 FittedModel = FittedModel)   
+  
+  if (busy_indicator){
+    remove_modal_progress() # remove it when done
+  }
+  
+  return(results)
+  
+}
 
 data_comparison <- eventReactive(input$calculate, {
-  show_modal_spinner() # show the modal window
+  
+  input_data = preprocess_data()
+  contrast.matrix = matrix_build()
+  
   if(input$DDA_DIA=="TMT"){
-    model <- groupComparisonTMT(contrast.matrix = matrix_build(), data = preprocess_data())
+    model <- tmt_model(input_data, contrast.matrix)
   }
   else{
-    model <- groupComparison(contrast.matrix = matrix_build(), data = preprocess_data())
+    model <- lf_model(input_data, contrast.matrix)
   }
-  remove_modal_spinner() # remove it when done
+  
   return(model)
 })
 
@@ -170,19 +361,16 @@ round_df <- function(df) {
   (df)
 }
 
-SignificantProteins <- reactive({
+SignificantProteins <- eventReactive(input$calculate,{
   if(input$DDA_DIA=="TMT"){
     data_comp <- data_comparison()
-    data_comp$ComparisonResult[data_comp$ComparisonResult$adj.pvalue < input$signif, ]
+    significant$result <- data_comp$ComparisonResult[data_comp$ComparisonResult$adj.pvalue < input$signif, ]
     
   } else {
-    with(data_comparison(),round_df(ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ]))
+    significant$result <- with(data_comparison(),round_df(ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ]))
   }
-  
+  return(significant$result)
 })
-  
-
-
 
 # comparison plots
 
@@ -205,6 +393,7 @@ SignificantProteins <- reactive({
 # })
 
 group_comparison <- function(saveFile1, pdf) {
+  
   id1 <- as.character(UUIDgenerate(FALSE))
   id_address1 <- paste("tmp/",id1, sep = "")
   path1 <- function() {
@@ -260,7 +449,6 @@ group_comparison <- function(saveFile1, pdf) {
 }
 
 # model assumptions plots
-
 
 assumptions1 <- function(saveFile3, protein) {
   if (input$whichProt1 != "") {
@@ -322,9 +510,16 @@ output$fitted_v <- downloadHandler(
 
 # matrix
 
+output$message <- renderText({
+  check_cond()
+})
+
 output$matrix <- renderUI({
   tagList(
     h2("Comparison matrix"),
+    br(),
+    textOutput("message"),
+    br(),
     if (is.null(contrast$matrix)) {
       ""
     } else {
@@ -341,15 +536,24 @@ output$table <-  renderDataTable({
 
 output$table_results <- renderUI({
   req(data_comparison())
-  tagList(
-    tags$br(),
-    h2("Results"),
-    h5("There are ",textOutput("number", inline = TRUE),"significant proteins"),
-    dataTableOutput("significant", width = "100%"),
-    tags$br(),
-    downloadButton("download_compar", "Download all modeling results"),
-    downloadButton("download_signif", "Download significant proteins")
-  )
+  req(SignificantProteins())
+  if (is.null(significant$result)) {
+
+    tagList(
+      tags$br())
+  } else {
+    tagList(
+      tags$br(),
+      h2("Results"),
+      h5("There are ",textOutput("number", inline = TRUE),"significant proteins"),
+      tags$br(),
+      dataTableOutput("significant"),
+      downloadButton("download_compar", "Download all modeling results"),
+      downloadButton("download_signif", "Download significant proteins")
+    )
+    
+  }
+  
 })
 
 output$significant <- renderDataTable({
@@ -383,8 +587,6 @@ observeEvent(input$viewresults, {
   )
 }
 )
-
-
 
 observe ({output$comp_plots <- renderPlot({
   group_comparison(FALSE, FALSE)}, height = input$height
@@ -511,9 +713,11 @@ observeEvent(input$plotresults, {
 
 observeEvent(input$calculate,{
   shinyjs::enable("Design")
+  shinyjs::enable("typeplot")
+  shinyjs::enable("WhichComp")
 })
+
 
 # observeEvent(input$power_next, {
 #   updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
 # })
-

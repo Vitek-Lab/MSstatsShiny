@@ -42,9 +42,9 @@ shinyServer(function(input, output, session) {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
   })
   
-  observeEvent(input$Help, {
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "Help")
-  })
+  # observeEvent(input$Help, {
+  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "Help")
+  # })
   
   observeEvent(input$StartPipeline, {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
@@ -92,9 +92,9 @@ shinyServer(function(input, output, session) {
     
   })
   
-  onclick("reset1", {
-    shinyjs::runjs("location.reload()")
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
+  observeEvent(input$Reset, {
+    #shinyjs::runjs("location.reload()")
+    refresh()
   })
   
 

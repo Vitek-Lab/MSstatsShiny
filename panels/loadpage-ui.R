@@ -1,3 +1,4 @@
+
 ##### sidebar #####
 
 sbp_load = sidebarPanel(
@@ -22,7 +23,8 @@ sbp_load = sidebarPanel(
                            "MaxQuant" = "maxq", "Progenesis" = "prog", 
                            "Proteome Discoverer" = "PD", "OpenMS" = "openms", 
                            "Spectronaut" = "spec", "OpenSWATH" = "open", 
-                           "DIA-Umpire" = "ump", "SpectroMine" = "spmin"), 
+                           "DIA-Umpire" = "ump", "SpectroMine" = "spmin",
+                           "Philosopher" = "phil"), 
                selected = character(0)),
   # radioTooltip(id = "filetype", choice = "MRF", 
   #              title = "check msstats.org to find the required format", 
@@ -37,27 +39,32 @@ sbp_load = sidebarPanel(
   conditionalPanel(condition = "input.filetype == 'spec'",
                    h4("3. Upload MSstats scheme output from Spectronaut")),
   conditionalPanel(
-    condition = "input.filetype && input.filetype != 'maxq' && input.filetype != 'sample' && input.filetype != 'ump' && input.filetype != 'MRF' && input.filetype != 'spec' && input.filetype != 'spmin'",
-                   fileInput('data', "", multiple = F, 
-                             accept = c("text/csv", 
-                                        "text/comma-separated-values,text/plain", 
-                                        ".csv")),
-                   radioButtons("sep",
-                                label = h5("Column separator in uploaded file", 
-                                           tipify(icon("question-circle"), 
-                                                  title = "Choose how columns are separated in the uploaded file")),
-                                c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), 
-                                inline = T)),
+    condition = "input.filetype && input.filetype != 'maxq' && input.filetype != 'sample' && input.filetype != 'ump' && input.filetype != 'MRF' && input.filetype != 'spec' && input.filetype != 'spmin' && input.filetype != 'phil'",
+    fileInput('data', "", multiple = F, 
+              accept = c("text/csv", 
+                         "text/comma-separated-values,text/plain", 
+                         ".csv")),
+    radioButtons("sep",
+                 label = h5("Column separator in uploaded file", 
+                            tipify(icon("question-circle"), 
+                                   title = "Choose how columns are separated in the uploaded file")),
+                 c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), 
+                 inline = T)),
+  conditionalPanel(
+    condition = "input.filetype && input.filetype == 'phil'",
+    fileInput("folder", "Upload a zip file", accept = ".zip")
+  ),
+  
   conditionalPanel(condition = "input.filetype && (input.filetype == 'spec' || input.filetype =='spmin')",
                    fileInput('data1', "", multiple = F, accept = c(".xls")),
-                   ),
+  ),
   tags$br(),
   conditionalPanel(
-    condition = "input.filetype == 'sky' || input.filetype == 'prog' || input.filetype == 'PD' || input.filetype == 'spec' || input.filetype == 'open'|| input.filetype =='spmin' ",
+    condition = "input.filetype == 'sky' || input.filetype == 'prog' || input.filetype == 'PD' || input.filetype == 'spec' || input.filetype == 'open'|| input.filetype =='spmin' || input.filetype == 'phil'",
     h4("4. Upload annotation File"),
     downloadLink("template", "Annotation file template"),
-    fileInput('annot', "", multiple = F, 
-              accept = c("text/csv", 
+    fileInput('annot', "", multiple = F,
+              accept = c("text/csv",
                          "text/comma-separated-values,text/plain", ".csv"))
   ),
   tags$br(),
@@ -89,6 +96,25 @@ sbp_load = sidebarPanel(
               accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
   ),
   tags$hr(),
+  conditionalPanel(condition = "input.filetype && input.DDA_DIA == 'TMT' && input.filetype == 'PD'",
+                   h4("Select the options for pre-processing"),
+                   textInput("which.proteinid", h5("Protein Name Column", 
+                                                   tipify(icon("question-circle"), 
+                            title = "Enter the column in your data containing protein names")), 
+                            value = "Protein.Accessions")),
+  conditionalPanel(condition = "input.filetype && input.DDA_DIA == 'TMT' && input.filetype == 'maxq'",
+                   h4("Select the options for pre-processing"),
+                   textInput("which.proteinid", h5("Protein Name Column", 
+                                                   tipify(icon("question-circle"), 
+                            title = "Enter the column in your data containing protein names")), 
+                            value = "Proteins")),
+    conditionalPanel(condition = "input.filetype && input.DDA_DIA == 'TMT' && input.filetype == 'phil'",
+                   h4("Select the options for pre-processing"),
+                   textInput("which.proteinid", h5("Protein Name Column", 
+                                                   tipify(icon("question-circle"), 
+                            title = "Enter the column in your data containing protein names")), 
+                            value = "ProteinAccessions")),
+  
   conditionalPanel(condition = "input.filetype && input.DDA_DIA == 'DDA' && input.filetype !== 'sample' && input.filetype !== 'MRF'",
                    h4("Select the options for pre-processing"),
                    checkboxInput("uniqe_peptides", "Use unique peptides", value = TRUE),
@@ -105,7 +131,7 @@ sbp_load = sidebarPanel(
                                     conditionalPanel(condition = "input.m_score",
                                                      numericInput("m_cutoff", "M-score cutoff", 0.01, 0, 1, 0.01)))
   ),
-  actionButton(inputId = "proceed1", label = "Upload Data")
+  disabled(actionButton(inputId = "proceed1", label = "Upload Data"))
 )
 
 ##########################################
@@ -117,11 +143,14 @@ loadpage = fluidPage(
     depend on the spectral processing tool used. Generally the raw data and an \
     annotation file are needed. The output of this step is your experimental \
     data processed in MSstats format."),
-  p("Additionally, you can format the data on your own, and select the `MSstats required format`\
-     option under `Type of File`. For an example of what MSstats format is \
-    please select the `Example dataset` option."),
+  # p("Additionally, you can format the data on your own, and select the `MSstats required format`\
+  #    option under `Type of File`. For an example of what MSstats format is \
+  #   please select the `Example dataset` option."),
   p("For more information on the type of dataset accepted by Shiny-MSstats please check the ",
-    a("documentation.", href="https://bioconductor.org/packages/devel/bioc/vignettes/MSstats/inst/doc/MSstats.html", target="_blank")),
+    a("documentation ", href="https://bioconductor.org/packages/devel/bioc/vignettes/MSstats/inst/doc/MSstats.html", target="_blank"), 
+    "for label free and ",
+    a("documentation", href="https://bioconductor.org/packages/devel/bioc/vignettes/MSstatsTMT/inst/doc/MSstatsTMT.html", target="_blank"),
+    " for TMT."),
   tags$br(),
   conditionalPanel(
     condition = "input.filetype == 'sample' && input.DDA_DIA == 'DDA'",
@@ -144,6 +173,3 @@ loadpage = fluidPage(
          
   )
 )
-
-
-
