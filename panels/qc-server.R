@@ -464,7 +464,7 @@ observeEvent(input$run,{
 
 output$prepr_csv <- downloadHandler(
   filename = function() {
-    paste("feature_level_data-", Sys.Date(), ".csv", sep="")
+    paste("Feature_level_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
     if(input$DDA_DIA=='TMT'){
@@ -614,7 +614,7 @@ onclick("proceed6", {
 
 output$download_summary <- downloadHandler(
   filename = function() {
-    paste("abundance-", Sys.Date(), ".csv", sep="")
+    paste("Abundance-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
     write.csv(abundance(), file)

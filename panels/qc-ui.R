@@ -166,7 +166,7 @@ main = mainPanel(
                            title="Model-based quantification for each condition or for each biological samples per protein.")),
                  radioButtons("typequant", 
                               label = h4("Type of summarization"), 
-                              c("Biological replicate level summarization" = "Sample", 
+                              c("Sample level summarization" = "Sample", 
                                 "Group level summarization" = "Group")),
                  radioButtons("format", "Save as", c("Wide format" = "matrix", 
                                                      "Long format" = "long")),
