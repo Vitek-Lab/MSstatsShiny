@@ -166,6 +166,7 @@ loadpage = fluidPage(
     p("The sample dataset for SRM/PRM acquisition is taken from the publication ",
     a("Picotti, P. et al. Full dynamic range proteome analysis of S. cerevisiae by targeted proteomics. Cell (2009), 138, 795–806.", href = "http://www.cell.com/cell/fulltext/S0092-8674(09)00715-6", target="_blank"))
   ),
+  verbatimTextOutput("code"),
   tags$br(),
   sbp_load,
   column(width = 8,
