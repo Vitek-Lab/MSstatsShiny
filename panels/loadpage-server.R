@@ -365,7 +365,7 @@ get_data <- eventReactive(input$proceed1, {
   return(mydata)
 })
 
-get_data_code <- eventReactive(input$proceed1, { 
+get_data_code <- eventReactive(input$calculate, { 
   codes <- ""
   
   if(input$filetype == 'sample') {
@@ -381,7 +381,7 @@ get_data_code <- eventReactive(input$proceed1, {
     else if(input$DDA_DIA == "TMT"){
       codes <- paste(codes, "data <- PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd,
                                        annotation = MSstatsTMT::annotation.pd,
-                                       which.proteinid =", input$which.proteinid,",\n\t\t\t\t       ",
+                                       which.proteinid =\'", input$which.proteinid,"\',\n\t\t\t\t       ",
                                        "use_log_file = FALSE)\n", sep = "")
     }
     
@@ -437,7 +437,7 @@ get_data_code <- eventReactive(input$proceed1, {
         
         codes <- paste(codes, "data <- MaxQtoMSstatsTMTFormat(evidence=ev_maxq, 
                                          annotation=an_maxq,
-                                         proteinGroups=", input$which.proteinid,",\n\t\t\t\t       ",
+                                         proteinGroups=\'", input$which.proteinid,"\',\n\t\t\t\t       ",
                        "use_log_file = FALSE)\n", sep = "")
 
         
@@ -481,7 +481,7 @@ get_data_code <- eventReactive(input$proceed1, {
         
         codes <- paste(codes, "data <- PDtoMSstatsTMTFormat(input = data,
                                        annotation = annot_file,
-                                       which.proteinid =", input$which.proteinid,",\n\t\t\t\t       ",
+                                       which.proteinid =\'", input$which.proteinid,"\',\n\t\t\t\t       ",
                        "use_log_file = FALSE)\n", sep = "")
         
       }
@@ -574,7 +574,7 @@ get_data_code <- eventReactive(input$proceed1, {
       codes <- paste(codes, "data <- PhilosophertoMSstatsTMTFormat((path = \"insert your folder path\",
                                        folder = TRUE,
                                        annotation = annot_file,
-                                       protein_id_col =", input$which.proteinid,",\n\t\t\t\t       ",
+                                       protein_id_col =\'", input$which.proteinid,"\',\n\t\t\t\t       ",
                      "use_log_file = FALSE)\n", sep = "")
     }
   }
@@ -582,17 +582,11 @@ get_data_code <- eventReactive(input$proceed1, {
   codes <- paste(codes,"data <- unique(as.data.frame(data))\n"
                  , sep = "")
 
-  cat(codes)
+  
   return(codes)
 
   })
 
-output$code <- renderPrint({
-
-  get_data_code()
-
-
-})
 
 get_summary1 <- eventReactive(input$proceed1, {
   df <- get_data()

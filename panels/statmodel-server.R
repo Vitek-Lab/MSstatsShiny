@@ -343,6 +343,7 @@ data_comparison <- eventReactive(input$calculate, {
   input_data = preprocess_data()
   contrast.matrix = matrix_build()
   
+  print(matrix_build())
   if(input$DDA_DIA=="TMT"){
     model <- tmt_model(input_data, contrast.matrix)
   }
@@ -352,6 +353,30 @@ data_comparison <- eventReactive(input$calculate, {
   
   return(model)
 })
+
+data_comparison_code <- eventReactive(input$calculate, { 
+  
+  codes <- preprocess_data_code()
+  
+  if(input$DDA_DIA == "TMT"){
+    
+    codes <- paste(codes, "contrast.matrix <- \"insert contrast matrix here\"\n")
+    codes <- paste(codes,"model <- MSstatsTMT:::groupComparisonTMT(data,
+                   contrast.matrix,
+                   moderated = ", input$moderated,",\t\t\t\t   
+                   adj.method = \"BH\",
+                   remove_norm_channel = TRUE,
+                   remove_empty_channel = TRUE
+                   )\n", sep = "")
+  }
+  else{
+    codes <- paste(codes, "contrast.matrix <- \"insert contrast matrix here\"\n")
+    codes <- paste(codes,"model <- MSstatsTMT:::groupComparison(contrast.matrix, data)\n", sep = "")
+  }
+  
+  return(codes)
+})
+
 
 round_df <- function(df) {
   nums <- vapply(df, is.numeric, FUN.VALUE = logical(1))
@@ -549,7 +574,8 @@ output$table_results <- renderUI({
       tags$br(),
       dataTableOutput("significant"),
       downloadButton("download_compar", "Download all modeling results"),
-      downloadButton("download_signif", "Download significant proteins")
+      downloadButton("download_signif", "Download significant proteins"),
+      downloadButton("download_code", "Download analysis code")
     )
     
   }
@@ -680,6 +706,15 @@ output$download_compar <- downloadHandler(
     
   }
 )
+
+output$download_code <- downloadHandler(
+  filename = function() {
+    paste("mstats-code-", Sys.Date(), ".R", sep="")
+  },
+  content = function(file) {
+    writeLines(paste(
+                  data_comparison_code(), sep = ""), file)
+  })
 
 output$download_signif <- downloadHandler(
   filename = function() {

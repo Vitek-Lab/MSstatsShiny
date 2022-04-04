@@ -164,6 +164,7 @@ statmodel = fluidPage(
            #                  tags$br(),
            #                  tags$h4("Calculation in progress...")),
            tags$br(),
+           verbatimTextOutput("code1"),
            uiOutput("comparison_plots")
     ))
   

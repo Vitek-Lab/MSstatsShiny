@@ -317,6 +317,33 @@ preprocess_data = eventReactive(input$run, {
   return(preprocessed)
   })
 
+preprocess_data_code <- eventReactive(input$calculate, { 
+  
+  codes <- get_data_code()
+  
+  if(input$DDA_DIA == "TMT"){
+    
+    codes <- paste(codes, "summarized <- MSstatsTMT:::proteinSummarization(data, \'",input$summarization,"\',", 
+                   input$global_norm,",\'", input$reference_norm,"\',",
+                   input$remove_norm_channel,",", "TRUE, FALSE,",input$maxQC1,")\n", sep = "")
+  }
+  else{
+    codes <- paste(codes, "summarized <- MSstats:::dataProcess(data,
+                               normalization = \'", input$norm,"\',\t\t\t\t   
+                               logTrans = ", as.numeric(input$log),",\t\t\t\t   
+                               nameStandards = ", input$name, ",\t\t\t\t   
+                               summaryMethod=\"TMP\",
+                               censoredInt=\'", input$censInt, "\',\t\t\t\t   
+                               MBimpute=", input$MBi, ",\t\t\t\t   
+                               remove50missing=", input$remove50, ",\t\t\t\t   
+                               maxQuantileforCensored=", input$maxQC, ")\n", sep = "")
+  }
+  
+  return(codes)
+})
+
+
+
 # plot data
 # onclick("run", {
 #   preprocess_data()
