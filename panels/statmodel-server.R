@@ -361,6 +361,8 @@ data_comparison_code <- eventReactive(input$calculate, {
   if(input$DDA_DIA == "TMT"){
     
     comp.mat <- matrix_build()
+    
+    codes <- paste(codes, "\n# Create the contrat matrix\n", sep = "")
     codes <- paste(codes, "contrast.matrix <- NULL\n", sep = "")
     for(i in 1:nrow(comp.mat)){
       codes <- paste(codes, "comparison <- matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
@@ -371,6 +373,7 @@ data_comparison_code <- eventReactive(input$calculate, {
     codes <- paste(codes, "row.names(contrast.matrix)<-c(\"", paste(row.names(comp.mat), collapse='","'),"\")\n", sep = "")
     codes <- paste(codes, "colnames(contrast.matrix)<-c(\"", paste(colnames(comp.mat), collapse='","'),"\")\n", sep = "")
 
+    codes <- paste(codes, "\n# Model-based comparison\n", sep = "")
     codes <- paste(codes,"model <- MSstatsTMT:::groupComparisonTMT(summarized,
                    contrast.matrix = contrast.matrix,
                    moderated = ", input$moderated,",\t\t\t\t   
@@ -381,6 +384,7 @@ data_comparison_code <- eventReactive(input$calculate, {
   }
   else{
     comp.mat <- matrix_build()
+    codes <- paste(codes, "\n# Create the contrat matrix\n", sep = "")
     codes <- paste(codes, "contrast.matrix <- NULL\n", sep = "")
     for(i in 1:nrow(comp.mat)){
       codes <- paste(codes, "comparison <- matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
@@ -391,6 +395,7 @@ data_comparison_code <- eventReactive(input$calculate, {
     codes <- paste(codes, "row.names(contrast.matrix)<-c(\"", paste(row.names(comp.mat), collapse='","'),"\")\n", sep = "")
     codes <- paste(codes, "colnames(contrast.matrix)<-c(\"", paste(colnames(comp.mat), collapse='","'),"\")\n", sep = "")
     
+    codes <- paste(codes, "\n# Model-based comparison\n", sep = "")
     codes <- paste(codes,"model <- MSstats:::groupComparison(contrast.matrix, summarized)\n", sep = "")
   }
   

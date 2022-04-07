@@ -323,11 +323,13 @@ preprocess_data_code <- eventReactive(input$calculate, {
   
   if(input$DDA_DIA == "TMT"){
     
+    codes <- paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
     codes <- paste(codes, "summarized <- MSstatsTMT:::proteinSummarization(data, \'",input$summarization,"\',", 
                    input$global_norm,",", input$reference_norm,",",
                    input$remove_norm_channel,",", "TRUE, FALSE,",input$maxQC1,")\n", sep = "")
   }
   else{
+    codes <- paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
     codes <- paste(codes, "summarized <- MSstats:::dataProcess(data,
                                normalization = \'", input$norm,"\',\t\t\t\t   
                                logTrans = ", as.numeric(input$log),",\t\t\t\t   

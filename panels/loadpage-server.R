@@ -367,7 +367,7 @@ get_data <- eventReactive(input$proceed1, {
 
 get_data_code <- eventReactive(input$calculate, { 
   codes <- ""
-  
+  codes <- paste(codes, "\n# Read data\n", sep = "")
   if(input$filetype == 'sample') {
     if(input$DDA_DIA == "SRM_PRM") {
       codes <- paste(codes, "data <- SRM_yeast\n", sep = "")
