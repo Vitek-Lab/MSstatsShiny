@@ -380,7 +380,17 @@ data_comparison_code <- eventReactive(input$calculate, {
                    )\n", sep = "")
   }
   else{
-    codes <- paste(codes, "contrast.matrix <- \"insert contrast matrix here\"\n")
+    comp.mat <- matrix_build()
+    codes <- paste(codes, "contrast.matrix <- NULL\n", sep = "")
+    for(i in 1:nrow(comp.mat)){
+      codes <- paste(codes, "comparison <- matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
+      codes <- paste(codes, "contrast.matrix <- rbind(contrast.matrix, comparison)\n", sep = "")
+      
+    }
+    
+    codes <- paste(codes, "row.names(contrast.matrix)<-c(\"", paste(row.names(comp.mat), collapse='","'),"\")\n", sep = "")
+    codes <- paste(codes, "colnames(contrast.matrix)<-c(\"", paste(colnames(comp.mat), collapse='","'),"\")\n", sep = "")
+    
     codes <- paste(codes,"model <- MSstats:::groupComparison(contrast.matrix, summarized)\n", sep = "")
   }
   
@@ -548,6 +558,7 @@ output$fitted_v <- downloadHandler(
 output$message <- renderText({
   check_cond()
 })
+observeEvent(input$calculate, {output$code.button <- renderUI(downloadButton("download_code", "Download analysis code"))})
 
 output$matrix <- renderUI({
   tagList(
@@ -584,8 +595,8 @@ output$table_results <- renderUI({
       tags$br(),
       dataTableOutput("significant"),
       downloadButton("download_compar", "Download all modeling results"),
-      downloadButton("download_signif", "Download significant proteins"),
-      downloadButton("download_code", "Download analysis code")
+      downloadButton("download_signif", "Download significant proteins")
+      
     )
     
   }
@@ -760,6 +771,8 @@ observeEvent(input$calculate,{
   shinyjs::enable("Design")
   shinyjs::enable("typeplot")
   shinyjs::enable("WhichComp")
+  shinyjs::enable("download_code")
+  
 })
 
 
