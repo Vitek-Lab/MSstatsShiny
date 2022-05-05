@@ -150,13 +150,13 @@ statmodel = fluidPage(
   ),
   
   fluidRow(
-    column(7,
-           fluidRow(
+    column(7, 
+           fluidRow(uiOutput('code.button'),
              column(7,offset = 10,
            disabled(actionButton(inputId = "Design", label = "Next Step")),
            tags$br(),
            tags$br(),
-           uiOutput('code.button'))),
+           )),
            uiOutput("matrix"),
            # conditionalPanel(condition="$('html').hasClass('shiny-busy')",
            #                  tags$br(),

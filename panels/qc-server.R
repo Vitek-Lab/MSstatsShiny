@@ -327,6 +327,15 @@ preprocess_data_code <- eventReactive(input$calculate, {
     codes <- paste(codes, "summarized <- MSstatsTMT:::proteinSummarization(data, \'",input$summarization,"\',", 
                    input$global_norm,",", input$reference_norm,",",
                    input$remove_norm_channel,",", "TRUE, FALSE,",input$maxQC1,")\n", sep = "")
+    codes <- paste(codes, "\n# use to create data summarization plots\n", sep = "")
+    codes <- paste(codes, "dataProcessPlotsTMT(summarized,
+                            type= \"Enter ProfilePlot or QCPlot Here\",
+                            ylimUp = FALSE,
+                            ylimDown = FALSE,
+                            which.Protein = \"Enter Protein to Plot Here\",
+                            originalPlot = TRUE,
+                            summaryPlot =", input$summ,",\t\t\t\t   
+                            address = FALSE)\n", sep="")
   }
   else{
     codes <- paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
@@ -339,6 +348,14 @@ preprocess_data_code <- eventReactive(input$calculate, {
                                MBimpute=", input$MBi, ",\t\t\t\t   
                                remove50missing=", input$remove50, ",\t\t\t\t   
                                maxQuantileforCensored=", input$maxQC, ")\n", sep = "")
+    
+    codes <- paste(codes, "dataProcessPlots(data=summarized,
+                           type=\"Enter ProfilePlot or QCPlot Here\",
+                           ylimUp = F,
+                           ylimDown = F,
+                           which.Protein = \"Enter Protein to Plot Here\",
+                           summaryPlot = TRUE,
+                           address = FALSE)\n", sep="")
   }
   
   return(codes)

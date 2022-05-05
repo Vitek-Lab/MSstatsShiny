@@ -394,18 +394,13 @@ get_data_code <- eventReactive(input$calculate, {
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
-      codes <- paste(codes, "data <- read.csv(\"insert your MSstats report from Skyline filepath\", header = T, sep = ",input$sep,",stringsAsFactors=F)\n", sep = "")
+      codes <- paste(codes, "data <- read.csv(\"insert your MSstats report from Skyline filepath\", header = T, sep = \",\", stringsAsFactors=F)\n", sep = "")
       
       if(input$DDA_DIA=="DDA" ){
-        codes <- paste(codes, "data <- data[which(data$Fragment.Ion %in% c( \"precursor\", \"precursor [M+1]\",\"precursor [M+2]\")), ]
-                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
-                       , sep = "")
-        
-        codes <- paste(codes, "data <- SkylinetoMSstatsFormat(data,
-                                       annotation = annot_file,
-                                       fewMeasurements=\"remove\",
-                                       removeProtein_with1Feature = ", input$remove,",\n\t\t\t\t       ",
-                       "use_log_file = FALSE)\n", sep = "")
+        codes <- paste(codes, "data <- data[which(data$Fragment.Ion %in% c( \"precursor\", \"precursor [M+1]\",\"precursor [M+2]\")), ]\nannot_file <- read.csv(\"insert your annotation filepath\")\n", sep = "")
+    
+        codes <- paste(codes, "data <- SkylinetoMSstatsFormat(data,\n\t\t\t\t        annotation = annot_file,\n\t\t\t\t        fewMeasurements=\"remove\",\n\t\t\t\t        removeProtein_with1Feature = ", 
+                       input$remove,",\n\t\t\t\t       ", "use_log_file = FALSE)\n", sep = "")
         
       }
       else if(input$DDA_DIA=="DIA"){

@@ -399,6 +399,12 @@ data_comparison_code <- eventReactive(input$calculate, {
     codes <- paste(codes,"model <- MSstats:::groupComparison(contrast.matrix, summarized)\n", sep = "")
   }
   
+  codes <- paste(codes, "groupComparisonPlots(data=model$ComparisonResult,
+                         type=\"Enter VolcanoPlot, Heatmap, or ComparisonPlot\",
+                         which.Comparison=\"all\",
+                         which.Protein=\"all\",
+                         address=\"\")\n", sep="")
+  
   return(codes)
 })
 
@@ -514,7 +520,8 @@ assumptions1 <- function(saveFile3, protein) {
       return (path_id2)
     }
     
-    plots <- modelBasedQCPlots(data=data_comparison(), type=input$assum_type, which.Protein = protein, address = path2())
+    plots <- modelBasedQCPlots(data=data_comparison(), type=input$assum_type, 
+                               which.Protein = protein, address = path2())
     
     if(saveFile3) {
       return(id_address2)
@@ -563,7 +570,9 @@ output$fitted_v <- downloadHandler(
 output$message <- renderText({
   check_cond()
 })
-observeEvent(input$calculate, {output$code.button <- renderUI(downloadButton("download_code", "Download analysis code"))})
+observeEvent(input$calculate, {output$code.button <- renderUI(
+  downloadButton("download_code", "Download analysis code", icon("download"),
+    style="color: #000000; background-color: #75ba82; border-color: #000000"))})
 
 output$matrix <- renderUI({
   tagList(
