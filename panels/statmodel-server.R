@@ -343,6 +343,7 @@ data_comparison <- eventReactive(input$calculate, {
   input_data = preprocess_data()
   contrast.matrix = matrix_build()
   
+  print(matrix_build())
   if(input$DDA_DIA=="TMT"){
     model <- tmt_model(input_data, contrast.matrix)
   }
@@ -352,6 +353,55 @@ data_comparison <- eventReactive(input$calculate, {
   
   return(model)
 })
+
+data_comparison_code <- eventReactive(input$calculate, { 
+  
+  codes <- preprocess_data_code()
+  
+  if(input$DDA_DIA == "TMT"){
+    
+    comp.mat <- matrix_build()
+    
+    codes <- paste(codes, "\n# Create the contrat matrix\n", sep = "")
+    codes <- paste(codes, "contrast.matrix <- NULL\n", sep = "")
+    for(i in 1:nrow(comp.mat)){
+      codes <- paste(codes, "comparison <- matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
+      codes <- paste(codes, "contrast.matrix <- rbind(contrast.matrix, comparison)\n", sep = "")
+      
+    }
+    
+    codes <- paste(codes, "row.names(contrast.matrix)<-c(\"", paste(row.names(comp.mat), collapse='","'),"\")\n", sep = "")
+    codes <- paste(codes, "colnames(contrast.matrix)<-c(\"", paste(colnames(comp.mat), collapse='","'),"\")\n", sep = "")
+
+    codes <- paste(codes, "\n# Model-based comparison\n", sep = "")
+    codes <- paste(codes,"model <- MSstatsTMT:::groupComparisonTMT(summarized,
+                   contrast.matrix = contrast.matrix,
+                   moderated = ", input$moderated,",\t\t\t\t   
+                   adj.method = \"BH\",
+                   remove_norm_channel = TRUE,
+                   remove_empty_channel = TRUE
+                   )\n", sep = "")
+  }
+  else{
+    comp.mat <- matrix_build()
+    codes <- paste(codes, "\n# Create the contrat matrix\n", sep = "")
+    codes <- paste(codes, "contrast.matrix <- NULL\n", sep = "")
+    for(i in 1:nrow(comp.mat)){
+      codes <- paste(codes, "comparison <- matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
+      codes <- paste(codes, "contrast.matrix <- rbind(contrast.matrix, comparison)\n", sep = "")
+      
+    }
+    
+    codes <- paste(codes, "row.names(contrast.matrix)<-c(\"", paste(row.names(comp.mat), collapse='","'),"\")\n", sep = "")
+    codes <- paste(codes, "colnames(contrast.matrix)<-c(\"", paste(colnames(comp.mat), collapse='","'),"\")\n", sep = "")
+    
+    codes <- paste(codes, "\n# Model-based comparison\n", sep = "")
+    codes <- paste(codes,"model <- MSstats:::groupComparison(contrast.matrix, summarized)\n", sep = "")
+  }
+  
+  return(codes)
+})
+
 
 round_df <- function(df) {
   nums <- vapply(df, is.numeric, FUN.VALUE = logical(1))
@@ -513,6 +563,7 @@ output$fitted_v <- downloadHandler(
 output$message <- renderText({
   check_cond()
 })
+observeEvent(input$calculate, {output$code.button <- renderUI(downloadButton("download_code", "Download analysis code"))})
 
 output$matrix <- renderUI({
   tagList(
@@ -550,6 +601,7 @@ output$table_results <- renderUI({
       dataTableOutput("significant"),
       downloadButton("download_compar", "Download all modeling results"),
       downloadButton("download_signif", "Download significant proteins")
+      
     )
     
   }
@@ -681,6 +733,15 @@ output$download_compar <- downloadHandler(
   }
 )
 
+output$download_code <- downloadHandler(
+  filename = function() {
+    paste("mstats-code-", Sys.Date(), ".R", sep="")
+  },
+  content = function(file) {
+    writeLines(paste(
+                  data_comparison_code(), sep = ""), file)
+  })
+
 output$download_signif <- downloadHandler(
   filename = function() {
     paste("data-", Sys.Date(), ".csv", sep="")
@@ -715,6 +776,8 @@ observeEvent(input$calculate,{
   shinyjs::enable("Design")
   shinyjs::enable("typeplot")
   shinyjs::enable("WhichComp")
+  shinyjs::enable("download_code")
+  
 })
 
 

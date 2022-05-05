@@ -365,6 +365,229 @@ get_data <- eventReactive(input$proceed1, {
   return(mydata)
 })
 
+get_data_code <- eventReactive(input$calculate, { 
+  codes <- ""
+  codes <- paste(codes, "\n# Read data\n", sep = "")
+  if(input$filetype == 'sample') {
+    if(input$DDA_DIA == "SRM_PRM") {
+      codes <- paste(codes, "data <- SRM_yeast\n", sep = "")
+    }
+    else if(input$DDA_DIA == "DDA") {
+      codes <- paste(codes, "data <- DDARawData\n", sep = "")
+    }
+    else if(input$DDA_DIA == "DIA"){
+      codes <- paste(codes, "data <- read.csv(\"dataset.csv\", header = T, sep = \";\")\n", sep = "")
+    }
+    else if(input$DDA_DIA == "TMT"){
+      codes <- paste(codes, "data <- PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd,
+                                       annotation = MSstatsTMT::annotation.pd,
+                                       which.proteinid =\'", input$which.proteinid,"\',\n\t\t\t\t       ",
+                                       "use_log_file = FALSE)\n", sep = "")
+    }
+    
+  }
+  
+  else {
+    
+    if(input$filetype == '10col') {
+      codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")\n", sep = "")
+    }
+    else if(input$filetype == 'sky') {
+      cat(file=stderr(), "Reached here in skyline\n")
+      codes <- paste(codes, "data <- read.csv(\"insert your MSstats report from Skyline filepath\", header = T, sep = ",input$sep,",stringsAsFactors=F)\n", sep = "")
+      
+      if(input$DDA_DIA=="DDA" ){
+        codes <- paste(codes, "data <- data[which(data$Fragment.Ion %in% c( \"precursor\", \"precursor [M+1]\",\"precursor [M+2]\")), ]
+                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
+                       , sep = "")
+        
+        codes <- paste(codes, "data <- SkylinetoMSstatsFormat(data,
+                                       annotation = annot_file,
+                                       fewMeasurements=\"remove\",
+                                       removeProtein_with1Feature = ", input$remove,",\n\t\t\t\t       ",
+                       "use_log_file = FALSE)\n", sep = "")
+        
+      }
+      else if(input$DDA_DIA=="DIA"){
+        
+        codes <- paste(codes, "annot_file <- read.csv(\"insert your annotation filepath\")\n"
+                      , sep = "")
+        
+        codes <- paste(codes, "data <- SkylinetoMSstatsFormat(data,
+                                       annotation = annot_file,
+                                       filter_with_Qvalue = TRUE, 
+                                       qvalue_cutoff = 0.01,
+                                       fewMeasurements=\"remove\",
+                                       removeProtein_with1Feature = TRUE,
+                                       use_log_file = FALSE)\n", sep = "")
+        
+       }
+      # else if(input$DDA_DIA=="SRM_PRM") {
+      #   mydata <- data
+      # }
+      
+    }
+    else if(input$filetype == 'maxq') {
+      cat(file=stderr(), "Reached in maxq\n")
+      codes <- paste(codes, "an_maxq <- read.csv(\"insert your annotation filepath\")
+                       ev_maxq <- read.table(\"insert your evidence.txt filepath\",sep=\"\t\", header=TRUE)
+                       pg_maxq <- read.table(\"insert your proteinGroups.txt filepath\",sep=\"\t\", header=TRUE)\n"
+                     , sep = "")
+      if(input$DDA_DIA=="TMT"){
+        
+        codes <- paste(codes, "data <- MaxQtoMSstatsTMTFormat(evidence=ev_maxq, 
+                                         annotation=an_maxq,
+                                         proteinGroups=\'", input$which.proteinid,"\',\n\t\t\t\t       ",
+                       "use_log_file = FALSE)\n", sep = "")
+
+        
+      }
+      else{
+        
+        codes <- paste(codes, "data <- MaxQtoMSstatsFormat(evidence=ev_maxq, 
+                                         annotation=an_maxq,
+                                         proteinGroups= pg_maxq,
+                                         useUniquePeptide = TRUE,
+                                         removeProtein_with1Peptide=", input$remove,",\n\t\t\t\t       ",
+                       "use_log_file = FALSE)\n", sep = "")
+        
+      }
+      
+    }
+    else if(input$filetype == 'prog') {
+      cat(file=stderr(), "Reached in prog\n")
+      
+      codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
+                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
+                     , sep = "")
+      
+      codes <- paste(codes, "data <- ProgenesistoMSstatsFormat(input = data,
+                                       annotation = annot_file,
+                                       removeProtein_with1Peptide = TRUE,
+                                       use_log_file = FALSE)\n", sep = "")
+      
+      codes <- paste(codes, "colnames(data)[colnames(data) == \'PeptideModifiedSequence\'] <- \'PeptideSequence\'\n", sep = "")
+      
+      
+    }
+    else if(input$filetype == 'PD') {
+      
+      if(input$DDA_DIA=="TMT"){
+        
+        codes <- paste(codes, "data <- read.delim(\"insert your quantification dataset filepath\")
+                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
+                       , sep = "")
+        
+        
+        codes <- paste(codes, "data <- PDtoMSstatsTMTFormat(input = data,
+                                       annotation = annot_file,
+                                       which.proteinid =\'", input$which.proteinid,"\',\n\t\t\t\t       ",
+                       "use_log_file = FALSE)\n", sep = "")
+        
+      }
+      else{
+        codes <- paste(codes, "data <- read.delim(\"insert your quantification dataset filepath\")
+                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
+                       , sep = "")
+        
+        codes <- paste(codes, "data <- PDtoMSstatsFormat(data,
+                                       annotation = annot_file,
+                                       removeProtein_with1Peptide = ", input$remove,",\n\t\t\t\t       ",
+                       "use_log_file = FALSE)\n", sep = "")
+        
+        codes <- paste(codes, "colnames(data)[colnames(data) == \'PeptideModifiedSequence\'] <- \'PeptideSequence\'\n", sep = "")
+        
+      }
+      
+    }
+    else if(input$filetype == 'spec') {
+      
+      codes <- paste(codes, "data <- read_xls(\"insert your MSstats scheme output from Spectronaut filepath\", header = T)
+                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
+                     , sep = "")
+      
+      codes <- paste(codes, "data <- SpectronauttoMSstatsFormat(data,
+                                       annotation = annot_file,
+                                       filter_with_Qvalue = TRUE, ## same as default
+                                       qvalue_cutoff = 0.01, ## same as default
+                                       fewMeasurements=\"remove\",
+                                       removeProtein_with1Feature = TRUE,
+                                       use_log_file = FALSE)\n", sep = "")
+
+    }
+    else if(input$filetype == 'open') {
+      
+      codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
+                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
+                     , sep = "")
+      
+      codes <- paste(codes, "data <- OpenSWATHtoMSstatsFormat(data,
+                                       annotation = annot_file,
+                                       filter_with_Qvalue = TRUE, ## same as default
+                                       mscore_cutoff = 0.01, ## same as default
+                                       fewMeasurements=\"remove\",
+                                       removeProtein_with1Feature = TRUE,
+                                       use_log_file = FALSE)\n", sep = "")
+
+    }
+    else if(input$filetype == 'openms') {
+      if(input$DDA_DIA=="TMT"){
+        
+        codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
+                       data <- OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)\n"
+                       , sep = "")
+
+      }
+      else{
+        
+        codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
+                        unique(data[, c('Run', 'BioReplicate', 'Condition')])
+                        data <- OpenMStoMSstatsFormat(data, removeProtein_with1Feature=TRUE, use_log_file = FALSE)\n"
+                       , sep = "")
+        
+      }
+
+    }
+    # else if(input$filetype == 'ump') {
+    #   
+    #   mydata <- DIAUmpiretoMSstatsFormat(raw.frag, raw.pep, raw.pro,
+    #                                      annot2,
+    #                                      useSelectedFrag = TRUE,
+    #                                      useSelectedPep = FALSE,
+    #                                      fewMeasurements="remove",
+    #                                      removeProtein_with1Feature = TRUE,
+    #                                      use_log_file = FALSE)
+    # }
+    else if(input$filetype == 'spmin') {
+      
+      codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = \"\t\")
+                       annot_file <- read.csv(\"insert your annotation filepath\")
+                    data <- SpectroMinetoMSstatsTMTFormat(data, annot_file,
+                                              use_log_file = FALSE)"
+                     , sep = "")
+    }
+    else if(input$filetype == 'phil') {
+      
+      codes <- paste(codes,"annot_file <- read.csv(\"insert your annotation filepath\")\n"
+                     , sep = "")
+      
+      codes <- paste(codes, "data <- PhilosophertoMSstatsTMTFormat((path = \"insert your folder path\",
+                                       folder = TRUE,
+                                       annotation = annot_file,
+                                       protein_id_col =\'", input$which.proteinid,"\',\n\t\t\t\t       ",
+                     "use_log_file = FALSE)\n", sep = "")
+    }
+  }
+  
+  codes <- paste(codes,"data <- unique(as.data.frame(data))\n"
+                 , sep = "")
+
+  
+  return(codes)
+
+  })
+
+
 get_summary1 <- eventReactive(input$proceed1, {
   df <- get_data()
   annot_df <- get_annot()
