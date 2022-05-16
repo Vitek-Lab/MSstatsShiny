@@ -60,16 +60,18 @@ quantile <- function() {
 output$features <- renderUI({
   req(get_data())
   max_feat <- reactive ({
-    if (nrow(unique(get_data()[1])) < 20) {
-      m_feat <- nrow(unique(get_data()[1]))
-    }
-    else
-    {
-      m_feat <- 20
-      }
+    ## Old code for only 20 features. Meena thought this should be all uniques
+    # if (nrow(unique(get_data()[1])) < 20) {
+    #   m_feat <- nrow(unique(get_data()[1]))
+    # }
+    # else
+    # {
+    #   m_feat <- 20
+    #   }
+    m_feat <- nrow(unique(get_data()[1]))
     return(m_feat)
   })
-  sliderInput("n_feat", "Number of top features to use", 1, as.numeric(max_feat()), 3)
+  sliderInput("n_feat", "Number of top features to use", 1, as.numeric(max_feat()), 1)
 })
 
 observe ({

@@ -62,7 +62,6 @@ sbp_load = sidebarPanel(
   conditionalPanel(
     condition = "input.filetype == 'sky' || input.filetype == 'prog' || input.filetype == 'PD' || input.filetype == 'spec' || input.filetype == 'open'|| input.filetype =='spmin' || input.filetype == 'phil'",
     h4("4. Upload annotation File"),
-    downloadLink("template", "Annotation file template"),
     fileInput('annot', "", multiple = F,
               accept = c("text/csv",
                          "text/comma-separated-values,text/plain", ".csv"))
