@@ -50,7 +50,22 @@ observe({
     shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
     
   }
-  
+  else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")) {
+    shinyjs::runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
+    shinyjs::enable("filetype")
+    shinyjs::disable(selector = "[type=radio][value=sky]")
+    shinyjs::disable(selector = "[type=radio][value=maxq]")
+    shinyjs::disable(selector = "[type=radio][value=prog]")
+    shinyjs::disable(selector = "[type=radio][value=PD]")
+    shinyjs::disable(selector = "[type=radio][value=openms]")
+    shinyjs::disable(selector = "[type=radio][value=spec]")
+    shinyjs::disable(selector = "[type=radio][value=open]")
+    shinyjs::disable(selector = "[type=radio][value=ump]")
+    shinyjs::disable(selector = "[type=radio][value=spmin]")
+    shinyjs::disable(selector = "[type=radio][value=phil]")
+    shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
+    
+  }
 })
 
 observeEvent(input$filetype,{
@@ -108,6 +123,17 @@ get_evidence <- reactive({
   
 })
 
+get_global <- reactive({
+  unmod <- input$unmod
+  if(is.null(input$unmod)) {
+    return(NULL)
+  }
+  unmod <- read.table(unmod$datapath, sep="\t", header=TRUE)
+  cat(file=stderr(), "Reached in unmod\n")
+  return(unmod)
+  
+})
+
 get_proteinGroups <- reactive({
   pGroup <- input$pGroup
   if(is.null(input$pGroup)) {
@@ -159,6 +185,7 @@ get_data <- eventReactive(input$proceed1, {
   raw.pep <- get_peptideSummary()
   raw.pro <- get_protSummary()
   annot2 <- get_annot2()
+  unmod <- get_global()
   
   cat(file=stderr(), "Reached in get_data\n")
   
@@ -185,6 +212,9 @@ get_data <- eventReactive(input$proceed1, {
     }
     
   }
+  else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")){
+    mydata <- list("PTM" = input$data, "PROTEIN" = unmod)
+  }
   else {
     if(input$filetype=='spec' || input$filetype=='spmin'){
       infile <- input$data1
@@ -198,6 +228,7 @@ get_data <- eventReactive(input$proceed1, {
     else{
       infile <- input$data
     }
+
     
     
     if(input$filetype=='maxq'){
@@ -360,7 +391,9 @@ get_data <- eventReactive(input$proceed1, {
       print("here2")
     }
   }
-  mydata <- unique(as.data.frame(mydata))
+  if (!input$DDA_DIA %in% c("PTM", "PTM_TMT")){
+    mydata <- unique(as.data.frame(mydata))
+  }
   remove_modal_spinner()
   return(mydata)
 })
