@@ -37,9 +37,9 @@ observe({
   #download
    
   output$download_future <- downloadHandler(
-    filename = "future_exp.png",
+    filename = "future_exp.pdf",
     content = function(file) {
-      png(file)
+      pdf(file)
       designSampleSizePlots(future_exp())
       dev.off()
     })    
