@@ -618,9 +618,12 @@ get_data_code <- eventReactive(input$calculate, {
 
 get_summary1 <- eventReactive(input$proceed1, {
   df <- get_data()
+  print("balls")
   annot_df <- get_annot()
-  df <- df %>% filter(!Condition %in% c("Norm", "Empty"))
-  nf <- ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
+  if (input$DDA_DIA != "PTM"){
+    df <- df %>% filter(!Condition %in% c("Norm", "Empty"))
+    nf <- ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
+  }
   if(input$DDA_DIA=="TMT"){
     if(is.null(annot_df)){
       df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
@@ -629,8 +632,7 @@ get_summary1 <- eventReactive(input$proceed1, {
                               "Number of Fractions" = nf,
                               "Number of MS runs" = n_distinct(Run),
                               "Number of Technical Replicates" = n_distinct(TechRepMixture))
-    }
-    else{
+    } else {
       annot_df <- annot_df %>% filter(!Condition %in% c("Norm", "Empty"))
       df1 <- annot_df %>% summarise("Number of Conditions" = n_distinct(Condition),
                               "Number of Biological Replicates" = n_distinct(BioReplicate),
@@ -640,6 +642,24 @@ get_summary1 <- eventReactive(input$proceed1, {
                               "Number of Technical Replicates" = n_distinct(TechRepMixture))
     }
     
+  } else if (input$DDA_DIA == "PTM"){
+    if (input$PTMTMT == TRUE){
+      ptm_df = df$PTM
+      unmod_df = df$PROTEIN
+      ptm_df1 = ptm_df %>% summarise("Number of Conditions" = n_distinct(Condition),
+                                     "Number of PTM Mixtures" = n_distinct(Mixture),
+                                     "Number of PTM Biological Replicates" = n_distinct(BioReplicate),
+                                     "Number of PTM MS runs" = n_distinct(Run),
+                                     "Number of PTM Technical Replicates" = n_distinct(TechRepMixture))
+      unmod_df1 = unmod_df %>% summarise(
+                                     "Number of Unmod Mixtures" = n_distinct(Mixture),
+                                     "Number of Unmod Biological Replicates" = n_distinct(BioReplicate),
+                                     "Number of Unmod MS runs" = n_distinct(Run),
+                                     "Number of Unmod Technical Replicates" = n_distinct(TechRepMixture))
+      df = cbind(ptm_df1, unmod_df1)
+    } else {
+      
+    }
   } else{
     df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
                             "Number of Biological Replicates" = n_distinct(BioReplicate),
@@ -647,23 +667,25 @@ get_summary1 <- eventReactive(input$proceed1, {
                             "Number of MS runs" = n_distinct(Run)
     )
   }
-  df2 <- df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
-    select("Condition_Run")
-  df3 <- df %>% group_by(Run, BioReplicate) %>% summarise("BioReplicate_Run" = n()) %>% ungroup() %>%
-    select("BioReplicate_Run")
-  
-  df1 <- head(df1,1)
-  df2 <- head(df2,1)
-  df3 <- head(df3,1)
-  
-  if(input$DDA_DIA !="TMT"){
-    df1 <- cbind(df1,df2,df3) %>%
-      mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
-      select(-Condition_Run,-BioReplicate_Run)
-    df <- df1[,c(1,2,5,3,4)]
-  }
-  else{
-    df <- df1[,c(1,2,3,6,4,5)]
+  if (input$DDA_DIA != "PTM"){
+    df2 <- df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
+      select("Condition_Run")
+    df3 <- df %>% group_by(Run, BioReplicate) %>% summarise("BioReplicate_Run" = n()) %>% ungroup() %>%
+      select("BioReplicate_Run")
+    
+    df1 <- head(df1,1)
+    df2 <- head(df2,1)
+    df3 <- head(df3,1)
+    
+    if(input$DDA_DIA !="TMT"){
+      df1 <- cbind(df1,df2,df3) %>%
+        mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
+        select(-Condition_Run,-BioReplicate_Run)
+      df <- df1[,c(1,2,5,3,4)]
+    }
+    else{
+      df <- df1[,c(1,2,3,6,4,5)]
+    }
   }
   
   t_df <- as.data.frame(t(df))
@@ -762,7 +784,7 @@ onclick("proceed1", {
   
   output$summary <- renderTable(
     {
-      req(get_data())
+      # req(get_data())
       head(get_data())
     }, bordered = T
   )
@@ -808,14 +830,22 @@ onclick("proceed1", {
         tags$style(HTML('#proceed2{background-color:orange}'))
       ),
       actionButton(inputId = "proceed2", label = "Next step"),
+      # conditionalPanel(
+      #   condition = "input.DDA_DIA == 'PTM'",
       h4("Summary of experimental design"),
       column(width=12, tableOutput('summary1'), style = "height:200px; overflow-y: scroll;overflow-x: scroll;"),
       tags$br(),
       h4("Summary of dataset"),
       column(width=12, tableOutput("summary2"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"),
       h4("Top 6 rows of the dataset"),
-      column(width=12, tableOutput("summary"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"))
-    
+      column(width=12, tableOutput("summary"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;")
+    )
+    # ),
+    # conditionalPanel(
+    #   condition = "input.filetype == 'sample'",
+    #   h4("Summary of experimental design"),
+    #   column(width=12, tableOutput('summary1'), style = "height:200px; overflow-y: scroll;overflow-x: scroll;"),
+    # )
   })
 })
 

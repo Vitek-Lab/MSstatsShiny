@@ -5,13 +5,13 @@ sbp_params = sidebarPanel(
   
   # transformation
   
-  conditionalPanel(condition = "input.DDA_DIA == 'TMT'",
+  conditionalPanel(condition = "input.DDA_DIA == 'TMT' || input$PTMTMT == TRUE",
                    h4("1. Peptide level normalization", 
                       tipify(icon("question-circle"), 
                       title = "Global median normalization on peptide level data, equalizes medians across all the channels and runs")),
                    checkboxInput("global_norm", "Yes", value = T)),
   
-  conditionalPanel(condition = "input.DDA_DIA !== 'TMT'",
+  conditionalPanel(condition = "input.DDA_DIA !== 'TMT' || input$PTMTMT == FALSE",
                    radioButtons("log", 
                                 label= h4("1. Log transformation", 
                                           tipify(icon("question-circle"), 

@@ -79,17 +79,11 @@ sbp_load = sidebarPanel(
                              accept = c("text/csv", 
                                         "text/comma-separated-values,text/plain", 
                                         ".csv")),
-                   radioButtons("sep",
-                                label = h5("Column separator in uploaded file", 
-                                           tipify(icon("question-circle"), 
-                                                  title = "Choose how columns are separated in the uploaded file")),
-                                c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), 
-                                inline = T),
                    tags$br(),
                    h4("5. TMT Experiment"),
                    radioButtons("PTMTMT", tipify(icon("question-circle"),
                                                  title = "Indicate if experiment was processed using TMT labeling"),
-                                c(Yes="Yes", No="No"),
+                                c(Yes=TRUE, No=FALSE),
                                 inline=T)),
   conditionalPanel(
     condition = "input.filetype == 'maxq'",
@@ -169,6 +163,10 @@ loadpage = fluidPage(
   # p("Additionally, you can format the data on your own, and select the `MSstats required format`\
   #    option under `Type of File`. For an example of what MSstats format is \
   #   please select the `Example dataset` option."),
+  p("PTM data must be preformatted into MSstats format. For information on how \
+  to format your data please see the MSstatsPTM ", 
+    a("documentation", href="https://www.bioconductor.org/packages/release/bioc/vignettes/MSstatsPTM/inst/doc/MSstatsPTM_LabelFree_Workflow.html",
+    target="_blank")),
   p("For more information on the type of dataset accepted by Shiny-MSstats please check the ",
     a("documentation ", href="https://bioconductor.org/packages/devel/bioc/vignettes/MSstats/inst/doc/MSstats.html", target="_blank"), 
     "for label free and ",
