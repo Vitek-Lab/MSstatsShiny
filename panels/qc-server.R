@@ -328,9 +328,14 @@ preprocess_data_code <- eventReactive(input$calculate, {
   if(input$DDA_DIA == "TMT"){
     
     codes <- paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
-    codes <- paste(codes, "summarized <- MSstatsTMT:::proteinSummarization(data, \'",input$summarization,"\',", 
-                   input$global_norm,",", input$reference_norm,",",
-                   input$remove_norm_channel,",", "TRUE, FALSE,",input$maxQC1,")\n", sep = "")
+    codes <- paste(codes, "summarized <- MSstatsTMT:::proteinSummarization(data, 
+                   method = '",input$summarization,"\',\t\t\t\t
+                   global_norm = ", input$global_norm,",\t\t\t\t 
+                   reference_norm = ", input$reference_norm,",\t\t\t\t
+                   remove_norm_channel  = ", input$remove_norm_channel,",\t\t\t\t
+                   remove_empty_channel = TRUE, \t\t\t\t 
+                   MBimpute = FALSE, \t\t\t\t
+                   maxQuantileforCensored = ", input$maxQC1,")\n", sep = "")
     codes <- paste(codes, "\n# use to create data summarization plots\n", sep = "")
     codes <- paste(codes, "dataProcessPlotsTMT(summarized,
                             type= \"Enter ProfilePlot or QCPlot Here\",
