@@ -88,15 +88,17 @@ observe ({
 #   return(n_feat)
 # }
 
-features <- function() {
-  if (input$features_used == "all_feat") {
-    n_feat <- "n_feat"
-  }
-  else {
-    n_feat <- "all_feat"
-  }
-  return(n_feat)
-}
+# features <- function() {
+#   if (input$features_used == "all_feat") {
+#     n_feat = "all_feat"
+#     code_feat = "all"
+#   }
+#   else {
+#     n_feat = "n_feat"
+#     code_feat = "topN"
+#   }
+#   return(n_feat)
+# }
 
 # which protein to plot (will add "all" for QCPlot)
 
@@ -204,7 +206,7 @@ tmt_summarization_loop = function(data){
     num_runs = length(runs)
     
     data.table::setnames(prep_input, c("Run", "RunChannel", "Charge"),
-                         c("MSRun", "Run", "PrecursorCharge"))  
+                         c("MSRun", "Run", "PrecursorCharge"))
     prep_input[, FragmentIon := NA]
     prep_input[, ProductCharge := NA]
     prep_input[, IsotopeLabelType := "L"]
@@ -340,11 +342,30 @@ preprocess_data_code <- eventReactive(input$calculate, {
                             address = FALSE)\n", sep="")
   }
   else{
+    if (input$features_used == "all_feat"){
+      code_feat = "all"
+      code_n_feat = 'NULL'
+    } else if (input$features_used == "n_feat") {
+      code_feat = "topN"
+      code_n_feat = input$n_feat
+    } else {
+      code_feat = "highQuality"
+      code_n_feat = 'NULL'
+    }
+    if (input$norm != 'globalStandards'){
+      code_name = "NULL"
+    } else {
+      ## TODO: This doesn't work if values are a vector
+      code_name = input$name
+    }
+    print(input$censInt)
     codes <- paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
     codes <- paste(codes, "summarized <- MSstats:::dataProcess(data,
                                normalization = \'", input$norm,"\',\t\t\t\t   
                                logTrans = ", as.numeric(input$log),",\t\t\t\t   
-                               nameStandards = ", input$name, ",\t\t\t\t   
+                               nameStandards = ", code_name, ",\t\t\t\t  
+                               featureSubset = \'", code_feat, "\',\t\t\t\t  
+                               n_top_feature = ", code_n_feat, ",\t\t\t\t  
                                summaryMethod=\"TMP\",
                                censoredInt=\'", input$censInt, "\',\t\t\t\t   
                                MBimpute=", input$MBi, ",\t\t\t\t   

@@ -431,7 +431,7 @@ SignificantProteins <- eventReactive(input$calculate,{
     data_comp <- data_comparison()
     significant$result <- data_comp$ComparisonResult[
       (data_comp$ComparisonResult$adj.pvalue < input$signif) & 
-        (!is.na(ComparisonResult$adj.pvalue)), ]
+        (!is.na(data_comp$ComparisonResult$adj.pvalue)), ]
     
   } else {
     significant$result <- with(data_comparison(),
