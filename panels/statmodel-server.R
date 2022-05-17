@@ -371,7 +371,7 @@ data_comparison_code <- eventReactive(input$calculate, {
     
     comp.mat <- matrix_build()
     
-    codes <- paste(codes, "\n# Create the contrat matrix\n", sep = "")
+    codes <- paste(codes, "\n# Create the contrast matrix\n", sep = "")
     codes <- paste(codes, "contrast.matrix <- NULL\n", sep = "")
     for(i in 1:nrow(comp.mat)){
       codes <- paste(codes, "comparison <- matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
