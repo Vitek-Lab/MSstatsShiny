@@ -128,7 +128,7 @@ get_global <- reactive({
   if(is.null(input$unmod)) {
     return(NULL)
   }
-  unmod <- read.table(unmod$datapath, sep="\t", header=TRUE)
+  unmod <- read.csv(unmod$datapath, sep=",", header=TRUE, stringsAsFactors=F)
   cat(file=stderr(), "Reached in unmod\n")
   return(unmod)
   
@@ -177,16 +177,15 @@ get_protSummary <- reactive({
 
 get_data <- eventReactive(input$proceed1, {
   show_modal_spinner()
+
   ev_maxq <- get_evidence()
   pg_maxq <- get_proteinGroups()
   an_maxq <- get_annot1()
-  
   raw.frag <- get_FragSummary()
   raw.pep <- get_peptideSummary()
   raw.pro <- get_protSummary()
   annot2 <- get_annot2()
   unmod <- get_global()
-  
   cat(file=stderr(), "Reached in get_data\n")
   
   cat(file=stderr(), paste("File type is",input$filetype,"\n"))
@@ -213,49 +212,56 @@ get_data <- eventReactive(input$proceed1, {
     
   }
   else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")){
-    mydata <- list("PTM" = input$data, "PROTEIN" = unmod)
+    data <- read.csv(input$data$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+    mydata <- list("PTM" = data, "PROTEIN" = unmod)
   }
   else {
     if(input$filetype=='spec' || input$filetype=='spmin'){
+      print("here123")
       infile <- input$data1
     }
     else if(input$filetype=='phil'){
+      print("one")
       #print(input$folder$datapath)
       extracted.files <- unzip(input$folder$datapath, list = TRUE)
       unzip(input$folder$datapath, list = FALSE)
       infile <- paste0("./", str_split(extracted.files$Name[1], "/")[[1]][[1]])
     }
     else{
+      print("two")
       infile <- input$data
     }
 
     
-    
-    if(input$filetype=='maxq'){
-      if(is.null(ev_maxq) || is.null(pg_maxq) || is.null(an_maxq) ) {
-        return(NULL)
-      }
-    }
-    else if(input$filetype=='ump'){
-      
-      if(is.null(raw.frag) || is.null(raw.pep) || is.null(raw.pro) || is.null(annot2)) {
-        return(NULL)
-      }
-      
-      
-    }
-    
-    else {
-      if(is.null(infile)) {
-        return(NULL)
-      }
-    }
+    # TODO: This code stops processing if a file is not uploaded correctly. 
+    #         ATM no error messages show and the load circle spins forever
+    # if(input$filetype=='maxq'){
+    #   print("three")
+    #   if(is.null(ev_maxq) || is.null(pg_maxq) || is.null(an_maxq) ) {
+    #     return(NULL)
+    #   }
+    # }
+    # else if(input$filetype=='ump'){
+    #   print("four")
+    #   if(is.null(raw.frag) || is.null(raw.pep) || is.null(raw.pro) || is.null(annot2)) {
+    #     return(NULL)
+    #   }
+    #   
+    #   
+    # } else {
+    #   print("five")
+    #   if(is.null(infile)) {
+    #     return(NULL)
+    #   }
+    # }
     
     
     if(input$filetype == '10col') {
+      print("sixz")
       mydata <- read.csv(infile$datapath, header = T, sep = input$sep)
     }
     else if(input$filetype == 'sky') {
+      print("seven")
       cat(file=stderr(), "Reached here in skyline\n")
       data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
       
@@ -284,6 +290,7 @@ get_data <- eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'maxq') {
+      print("eigeht")
       cat(file=stderr(), "Reached in maxq\n")
       if(input$DDA_DIA=="TMT"){
         mydata <- MaxQtoMSstatsTMTFormat(evidence=ev_maxq, 
@@ -302,6 +309,7 @@ get_data <- eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'prog') {
+      print('nince')
       cat(file=stderr(), "Reached in prog\n")
       data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
       
@@ -311,9 +319,8 @@ get_data <- eventReactive(input$proceed1, {
       colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] <- 'PeptideSequence'
     }
     else if(input$filetype == 'PD') {
-      
+      print('adsf')
       if(input$DDA_DIA=="TMT"){
-        print(infile$datapath)
         data <- read.delim(infile$datapath)
         mydata <- PDtoMSstatsTMTFormat(input = data, 
                                        annotation = get_annot(),
@@ -331,14 +338,17 @@ get_data <- eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'spec') {
-      data <- read_xls(infile$datapath, header = T)
+      print(infile$datapath)
+      data <- read.csv(infile$datapath, sep = "\t")
+      print("data load")
       mydata <- SpectronauttoMSstatsFormat(data,
                                            annotation = get_annot(),
                                            filter_with_Qvalue = TRUE, ## same as default
                                            qvalue_cutoff = 0.01, ## same as default
-                                           fewMeasurements="remove",
+                                           # fewMeasurements="remove",
                                            removeProtein_with1Feature = TRUE,
                                            use_log_file = FALSE)
+      print("spec processed")
       
     }
     else if(input$filetype == 'open') {
@@ -388,12 +398,14 @@ get_data <- eventReactive(input$proceed1, {
       mydata <- PhilosophertoMSstatsTMTFormat(path = infile, folder = TRUE, annotation = get_annot(),
                                               protein_id_col = input$which.proteinid,
                                               use_log_file = FALSE)
-      print("here2")
     }
+    print("why")
   }
-  if (!input$DDA_DIA %in% c("PTM", "PTM_TMT")){
-    mydata <- unique(as.data.frame(mydata))
-  }
+  ## Devon: no idea why this was ever being called. We don't need to unique our 
+  ##          converters and it adds alot of time.
+  # if (!input$DDA_DIA %in% c("PTM", "PTM_TMT")){
+  #   mydata <- unique(as.data.frame(mydata))
+  # }
   remove_modal_spinner()
   return(mydata)
 })
@@ -418,9 +430,12 @@ get_data_code <- eventReactive(input$calculate, {
                                        "use_log_file = FALSE)\n", sep = "")
     }
     
-  }
-  
-  else {
+  } else if (input$filetype == "msstats") {
+    codes = paste(codes, "ptm_data = read.csv(\'Enter PTM data file path here\')\n
+                          global_data = read.csv(\'Enter unmod data file path here\')\n
+                          data = list(PTM = input$data, PROTEIN = unmod)")
+
+  } else {
     
     if(input$filetype == '10col') {
       codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")\n", sep = "")
@@ -618,7 +633,6 @@ get_data_code <- eventReactive(input$calculate, {
 
 get_summary1 <- eventReactive(input$proceed1, {
   df <- get_data()
-  print("balls")
   annot_df <- get_annot()
   if (input$DDA_DIA != "PTM"){
     df <- df %>% filter(!Condition %in% c("Norm", "Empty"))
@@ -643,7 +657,7 @@ get_summary1 <- eventReactive(input$proceed1, {
     }
     
   } else if (input$DDA_DIA == "PTM"){
-    if (input$PTMTMT == TRUE){
+    if (input$PTMTMT == "Yes"){
       ptm_df = df$PTM
       unmod_df = df$PROTEIN
       ptm_df1 = ptm_df %>% summarise("Number of Conditions" = n_distinct(Condition),
@@ -658,7 +672,7 @@ get_summary1 <- eventReactive(input$proceed1, {
                                      "Number of Unmod Technical Replicates" = n_distinct(TechRepMixture))
       df = cbind(ptm_df1, unmod_df1)
     } else {
-      
+      print("TODO: Add LF")
     }
   } else{
     df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
@@ -686,6 +700,7 @@ get_summary1 <- eventReactive(input$proceed1, {
     else{
       df <- df1[,c(1,2,3,6,4,5)]
     }
+    print(df)
   }
   
   t_df <- as.data.frame(t(df))
@@ -694,49 +709,97 @@ get_summary1 <- eventReactive(input$proceed1, {
   colnames(t_df) <- c("", "value")
   t_df$value <- sub("\\.\\d+$", "", t_df$value)
   colnames(t_df) <- c("", "")
+  print(t_df)
   return(t_df)
 })
 
-get_summary2 <- eventReactive(input$proceed1, {
-  df <- get_data()
+get_summary2 = eventReactive(input$proceed1, {
+
+  df = get_data()
   if(input$DDA_DIA=="TMT"){
-    df <- df %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence, Charge, sep = '_'))
+    df = df %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence, Charge,
+                                           sep = '_'))
+  } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+    df_ptm = df$PTM %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence,
+                                                   Charge, sep = '_'))
+    df_prot = df$PROTEIN %>% mutate("FEATURES" = paste(ProteinName, 
+                                                       PeptideSequence,
+                                                       Charge, sep = '_'))
+  } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
+    df_ptm = df$PTM %>% mutate("FEATURES" = paste(PeptideSequence, 
+                                                   PrecursorCharge, 
+                                                   FragmentIon, 
+                                                   ProductCharge, sep = '_'))
+    df_prot = df$PROTEIN %>% mutate("FEATURES" = paste(PeptideSequence, 
+                                                        PrecursorCharge, 
+                                                        FragmentIon, 
+                                                        ProductCharge, 
+                                                        sep = '_'))
+  } else {
+    df = df %>% mutate("FEATURES" = paste(PeptideSequence, PrecursorCharge, 
+                                           FragmentIon, ProductCharge, 
+                                           sep = '_'))
   }
-  else{
-    df <- df %>% mutate("FEATURES" = paste(PeptideSequence, PrecursorCharge, FragmentIon, ProductCharge, sep = '_'))
+  
+  if (input$DDA_DIA != "PTM"){
+  
+    df1 = df %>% summarise("Number of Proteins" = n_distinct(ProteinName), 
+                            "Number of Peptides" = n_distinct(PeptideSequence),
+                            "Number of Features" = n_distinct(FEATURES),
+                            "Min_Intensity" = ifelse(!is.finite(min(Intensity, na.rm=T)),0,round(min(Intensity, na.rm=T),0)),
+                            "Max_Intensity" = ifelse(!is.finite(max(Intensity, na.rm=T)),0,
+                                                     round(max(Intensity, na.rm=T),0))) %>%
+      unite("Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
     
+    Peptides_Proteins <- df %>% group_by(ProteinName)  %>%
+      summarise(npep = n_distinct(PeptideSequence)) %>% summarize(Peptides_Proteins_min=min(npep),
+                                                                  Peptides_Proteins_max=max(npep))
+    
+    Features_Peptides <- df %>% group_by(PeptideSequence)  %>%
+      summarise(nfea = n_distinct(FEATURES)) %>% summarize(Features_Peptides_min=min(nfea),
+                                                           Features_Peptides_max=max(nfea))
+    
+    df1 <- cbind(df1,Features_Peptides,Peptides_Proteins) %>%
+      unite("Number of Features/Peptide",Features_Peptides_min:Features_Peptides_max,sep = " - ") %>%
+      unite("Number of Peptides/Protein",Peptides_Proteins_min:Peptides_Proteins_max, sep = " - ")
+    
+    df1 <- df1[,c(1,2,3,6,5,4)]
+  } else {
+    
+    df_ptm1 = df_ptm %>% summarise("Number of PTMs" = n_distinct(ProteinName), 
+                           "Number of PTM Features" = n_distinct(FEATURES),
+                           "Number of Features/PTM" = as.numeric(n_distinct(FEATURES) / n_distinct(PeptideSequence)),
+                           "Min_Intensity" = ifelse(!is.finite(
+                             min(Intensity, na.rm=T)), 0, 
+                             round(min(Intensity, na.rm=T),0)),
+                           "Max_Intensity" = ifelse(!is.finite(
+                             max(Intensity, na.rm=T)), 0, 
+                             round(max(Intensity, na.rm=T),0))) %>%
+      unite("PTM Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
+    # df_ptm1 = df_ptm1 %>% select(!Min_Intensity, !Max_Intensity)
+    
+    df_prot1 = df_prot %>% summarise("Number of Unmod Proteins" = n_distinct(ProteinName), 
+                                   "Number of Protein Peptides" = n_distinct(PeptideSequence),
+                                   "Number of Protein Features" = n_distinct(FEATURES),
+                                   "Number of Features/Peptide" = as.numeric(n_distinct(FEATURES) / n_distinct(PeptideSequence)),
+                                   "Number of Peptides/Protein" = as.numeric(n_distinct(PeptideSequence) / n_distinct(ProteinName)),
+                                   "Min_Intensity" = ifelse(!is.finite(
+                                     min(Intensity, na.rm=T)), 0, 
+                                     round(min(Intensity, na.rm=T),0)),
+                                   "Max_Intensity" = ifelse(!is.finite(
+                                     max(Intensity, na.rm=T)), 0, 
+                                     round(max(Intensity, na.rm=T),0))) %>%
+      unite("Protein Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
+    # df_prot1 = df_prot1 %>% select(!Min_Intensity, !Max_Intensity)
+    df1 = cbind(df_ptm1, df_prot1)
   }
-  
-  
-  
-  df1 <- df %>% summarise("Number of Proteins" = n_distinct(ProteinName), 
-                          "Number of Peptides" = n_distinct(PeptideSequence),
-                          "Number of Features" = n_distinct(FEATURES),
-                          "Min_Intensity" = ifelse(!is.finite(min(Intensity, na.rm=T)),0,round(min(Intensity, na.rm=T),0)),
-                          "Max_Intensity" = ifelse(!is.finite(max(Intensity, na.rm=T)),0,
-                                                   round(max(Intensity, na.rm=T),0))) %>%
-    unite("Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
-  
-  Peptides_Proteins <- df %>% group_by(ProteinName)  %>%
-    summarise(npep = n_distinct(PeptideSequence)) %>% summarize(Peptides_Proteins_min=min(npep),
-                                                                Peptides_Proteins_max=max(npep))
-  
-  Features_Peptides <- df %>% group_by(PeptideSequence)  %>%
-    summarise(nfea = n_distinct(FEATURES)) %>% summarize(Features_Peptides_min=min(nfea),
-                                                         Features_Peptides_max=max(nfea))
-  
-  df1 <- cbind(df1,Features_Peptides,Peptides_Proteins) %>%
-    unite("Number of Features/Peptide",Features_Peptides_min:Features_Peptides_max,sep = " - ") %>%
-    unite("Number of Peptides/Protein",Peptides_Proteins_min:Peptides_Proteins_max, sep = " - ")
-  
-  df1 <- df1[,c(1,2,3,6,5,4)]
-  
+
   t_df <- as.data.frame(t(df1))
   rownames(t_df) <- colnames(df1)
   t_df <- cbind(rownames(t_df), t_df)
   
   colnames(t_df) <- c("", "value")
-  t_df$value <- sub("\\.\\d+$", "", t_df$value)
+  # t_df$value <- sub("\\.\\d+$", "", t_df$value)
   
   colnames(t_df) <- c("", "")
   
@@ -751,7 +814,6 @@ onclick("proceed1", {
   shinyjs::show("summary_tables")
   
   ### outputs ###
-  
   get_summary <- reactive({
     if(is.null(get_data())) {
       return(NULL)
@@ -759,7 +821,6 @@ onclick("proceed1", {
     data1 <- get_data()
     data_summary <- Hmisc::describe(data1)
   })
-  
   output$template <- downloadHandler(
     filename <- function() {
       paste("templateannotation", "csv", sep=".")
@@ -770,7 +831,6 @@ onclick("proceed1", {
     },
     contentType = "csv"
   )
-  
   output$template1 <- downloadHandler(
     filename <- function() {
       paste("templateevidence", "txt", sep = ".")
@@ -781,11 +841,22 @@ onclick("proceed1", {
     },
     contentType = "txt"
   )
-  
   output$summary <- renderTable(
     {
       # req(get_data())
       head(get_data())
+    }, bordered = T
+  )
+  output$summary_ptm <- renderTable(
+    {
+      # req(get_data())
+      head(get_data()$PTM)
+    }, bordered = T
+  )
+  output$summary_prot <- renderTable(
+    {
+      # req(get_data())
+      head(get_data()$PROTEIN)
     }, bordered = T
   )
   
@@ -796,7 +867,6 @@ onclick("proceed1", {
 
     }, colnames = FALSE, bordered = T
   )
-  
   output$summary2 <-  renderTable(
     {
       req(get_data())
@@ -813,17 +883,11 @@ onclick("proceed1", {
   # observeEvent(get_data(),{
   #   shinyjs::enable("reset1")
   # })
-  
   onclick("proceed2", {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "DataProcessing")
   })
   
-  
   output$summary_tables <- renderUI({
-    
-    # conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-    #                  tags$br(),
-    #                  tags$h4("Calculation in progress...")),
     
     tagList(
       tags$head(
@@ -833,12 +897,23 @@ onclick("proceed1", {
       # conditionalPanel(
       #   condition = "input.DDA_DIA == 'PTM'",
       h4("Summary of experimental design"),
-      column(width=12, tableOutput('summary1'), style = "height:200px; overflow-y: scroll;overflow-x: scroll;"),
+      tableOutput('summary1'),
       tags$br(),
-      h4("Summary of dataset"),
-      column(width=12, tableOutput("summary2"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;"),
-      h4("Top 6 rows of the dataset"),
-      column(width=12, tableOutput("summary"), style = "height:250px; overflow-y: scroll;overflow-x: scroll;")
+      h4("Summary of dataset"), 
+      tableOutput("summary2"),
+      tags$br(),
+      conditionalPanel(condition = "input.DDA_DIA !== 'PTM'",
+                       h4("Top 6 rows of the dataset"),
+                       tableOutput("summary")
+      ),
+      conditionalPanel(condition = "input.DDA_DIA == 'PTM'",
+                       h4("Top 6 rows of the PTM dataset"),
+                       tableOutput("summary_ptm"),
+                       tags$br(),
+                       h4("Top 6 rows of the unmodified protein dataset"),
+                       tableOutput("summary_prot")
+      )
+                       
     )
     # ),
     # conditionalPanel(

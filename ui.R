@@ -10,6 +10,7 @@ library(ggplot2)
 library(tidyverse)
 library(data.table)
 library(MSstatsTMT)
+library(MSstatsPTM)
 library(knitr)
 library(readxl)
 

@@ -101,22 +101,22 @@ features <- function() {
 output$Which <- renderUI({
   if ((input$DDA_DIA!="TMT" && input$type2 == "QCPlot") || (input$DDA_DIA=="TMT" && input$type1 == "QCPlot")) {
     if((input$DDA_DIA=="SRM_PRM" && input$filetype=="sky")||(input$DDA_DIA=="DIA" && input$filetype=="ump")){
-      selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[2])))
+      selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()$PTM[2])))
     }
     else{
-      selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[1])))
+      selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()$PTM[1])))
     }
     
   }
   else {
-    selectizeInput("which", "Show plot for", choices = c("", unique(get_data()[1])))
+    selectizeInput("which", "Show plot for", choices = c("", unique(get_data()$PTM[1])))
   }
 })
 
 ######### functions ########
 
 lf_summarization_loop = function(data, busy_indicator = TRUE){
-  
+  print("here1")
   proteins = as.character(unique(data[, 'ProteinName']))
   
   if (busy_indicator){
@@ -126,36 +126,46 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
     update_val = 1/length(proteins)
     counter = 0
   }
-  
+  print("here2")
   ## Prepare MSstats for summarization
   peptides_dict = makePeptidesDictionary(as.data.table(unclass(data)), 
                                          toupper(input$norm))
+  print("here3")
   prep_input = MSstatsPrepareForDataProcess(data, as.numeric(input$log), NULL)
+  print("here4")
   prep_input = MSstatsNormalize(prep_input, input$norm, peptides_dict, input$names)
+  print("here5")
   prep_input = MSstatsMergeFractions(prep_input)
+  print("here6")
   prep_input = MSstatsHandleMissing(prep_input, "TMP", input$MBi,
                                     "NA", quantile())
+  print("here7")
   prep_input = MSstatsSelectFeatures(prep_input, "all", input$n_feat, 2)
+  print("here8")
   processed = getProcessed(prep_input)
+  print("here9")
   prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
                                               input$censInt, FALSE)
-  
+  print("here10")
   input_split = split(prep_input, prep_input$PROTEIN)
   summarized_results = vector("list", length(proteins))
-  
+  print("here11")
   ## Loop over proteins
   for (i in seq_along(proteins)){
-    
+    print("here12")
     temp_data = input_split[[i]]
+    print(head(temp_data))
+    print(nrow(temp_data))
     summarized_results[[i]] = MSstatsSummarizeSingleTMP(temp_data,
                                                         input$MBi, input$censInt, 
                                                         input$remove50)
-    
+    print("here13")
     ## Update progress bar
     if (busy_indicator){
       counter = counter + update_val
       update_modal_progress(counter)
     }
+    print("here14")
   }
   
   ## Summarization output
@@ -214,7 +224,6 @@ tmt_summarization_loop = function(data){
     show_modal_progress_line() # show the modal window
     update_val = 1/num_runs
     counter = 0
-    
     for (i in seq_len(num_runs)) {
       
       single_run = prep_input[MSRun == runs[i],
@@ -223,11 +232,11 @@ tmt_summarization_loop = function(data){
                                    BioReplicate, Intensity, IsotopeLabelType,
                                    Fraction = 1)]
       single_run = new("MSstatsValidated", single_run)
-      
+
       ## Make LF flow into a function and replace it here
       msstats_summary = lf_summarization_loop(single_run, FALSE)
       
-      feature_level_data = msstats_summary$FeatureLevelData 
+      feature_level_data = msstats_summary$FeatureLevelData
       msstats_cols = c("PROTEIN", "PEPTIDE", "originalRUN", "censored",
                        "predicted", "newABUNDANCE")
       msstats_cols = intersect(msstats_cols, colnames(feature_level_data))
@@ -302,7 +311,34 @@ preprocess_data = eventReactive(input$run, {
   
   ## Here we run the underlying functions for MSstats and MSstatsTMT 
   ## summarization. Done so we can loop over proteins and create a progress bar
-  if(input$DDA_DIA == "TMT"){
+  if (input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
+    # preprocessed =  MSstatsPTM::dataSummarizationPTM(input_data, 
+    #                                  logTrans = input$log,
+    #                                  normalization = input$norm,
+    #                                  normalization.PTM = input$norm,
+    #                                  n_top_feature = input$features_used,
+    #                                  n_top_feature.PTM = input$features_used,
+    #                                  MBimpute = input$censInt,
+    #                                  MBimpute.PTM = input$censInt)
+    preprocessed_ptm = lf_summarization_loop(input_data$PTM)
+    preprocessed_unmod = lf_summarization_loop(input_data$PROTEIN)
+    preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
+    
+  } else if(input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+    print(head(input_data$PTM))
+    print(head(input_data$PROTEIN))
+    # preprocessed = MSstatsPTM::dataSummarizationPTM_TMT(input_data, 
+    #                                  method = input$summarization,
+    #                                  reference_norm = input$reference_norm,
+    #                                  reference_norm.PTM = input$reference_norm,
+    #                                  remove_norm_channel = input$remove_norm_channel,
+    #                                  remove_empty_channel = input$remove_norm_channel
+    #                                  )
+    preprocessed_ptm = tmt_summarization_loop(input_data$PTM)
+    preprocessed_unmod = tmt_summarization_loop(input_data$PROTEIN)
+    preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
+    
+  } else if(input$DDA_DIA == "TMT"){
     
     ## Run MSstatsTMT summarization
     preprocessed = tmt_summarization_loop(input_data)
@@ -404,11 +440,18 @@ plotresult <- function(saveFile, protein, summary, original) {
                           address = path()
       )
       
-    }
-    
-    else{
+    } else if (input$DDA_DIA == "PTM"){
       
-      plot <- dataProcessPlots(data = preprocess_data(),
+      plot = dataProcessPlotsPTM(preprocess_data(),
+                                 type=input$type1,
+                                 which.PTM = protein,
+                                 summaryPlot = input$summ,
+                                 address = path()
+      )
+      
+    } else{
+      
+      plot = dataProcessPlots(data = preprocess_data(),
                                type=input$type2,
                                featureName = input$fname,
                                ylimUp = F,
@@ -479,9 +522,11 @@ output$caption <- renderText({
 
 observeEvent(input$run,{
   
-  if(input$DDA_DIA=="TMT"){
-    shinyjs::enable("prepr_csv")
-    shinyjs::enable("summ_csv")
+  if(input$DDA_DIA=="PTM"){
+    shinyjs::enable("prepr_csv_ptm")
+    shinyjs::enable("summ_csv_ptm")
+    shinyjs::enable("prepr_csv_prot")
+    shinyjs::enable("summ_csv_prot")
   } else {
     shinyjs::enable("prepr_csv")
     shinyjs::enable("summ_csv")
@@ -526,12 +571,48 @@ output$prepr_csv <- downloadHandler(
   }
 )
 
+output$prepr_csv_ptm <- downloadHandler(
+  filename = function() {
+    paste("PTM_Feature_level_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(preprocess_data()$PTM$FeatureLevelData, file, row.names = F)
+  }
+)
+
+output$prepr_csv_prot <- downloadHandler(
+  filename = function() {
+    paste("Protein_Feature_level_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(preprocess_data()$PROTEIN$FeatureLevelData, file, row.names = F)
+  }
+)
+
 output$summ_csv <- downloadHandler(
   filename = function() {
     paste("Protein_level_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
     write.csv(preprocess_data()$ProteinLevelData, file, row.names = F)
+  }
+)
+
+output$summ_csv_ptm <- downloadHandler(
+  filename = function() {
+    paste("PTM_level_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(preprocess_data()$PTM$ProteinLevelData, file, row.names = F)
+  }
+)
+
+output$summ_csv_prot <- downloadHandler(
+  filename = function() {
+    paste("Protein_level_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(preprocess_data()$PROTEIN$ProteinLevelData, file, row.names = F)
   }
 )
 
@@ -615,8 +696,22 @@ abundance <- eventReactive(input$update_results, {
                    type = input$typequant,
                    format = input$format,
                    use_log_file = FALSE)
-  }
-  else{
+  } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+    temp <- copy(preprocess_data())
+    setnames(temp$PTM$ProteinLevelData, 
+             c("Abundance", "Condition", "BioReplicate"), 
+             c("LogIntensities", "GROUP", "SUBJECT"))
+    abundant$results <- quantification(temp$PTM,
+                                       type = input$typequant,
+                                       format = input$format,
+                                       use_log_file = FALSE)
+  } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+    temp <- copy(preprocess_data())
+    abundant$results <-quantification(temp$PTM,
+                                      type = input$typequant,
+                                      format = input$format,
+                                      use_log_file = FALSE)
+  } else{
     temp <- copy(preprocess_data())
     abundant$results <-quantification(temp,
                    type = input$typequant,

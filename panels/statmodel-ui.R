@@ -141,9 +141,11 @@ statmodel = fluidPage(
              p("Please note if you want to plot more than one \
                           Volcano Plot comparison, you must save the results \
                           as a pdf."),
-             actionButton("viewresults", 
+             conditionalPanel(
+               condition = "input.DDA_DIA !== 'PTM'",
+              actionButton("viewresults", 
                           "View plot in browser (only for one \
-                                     comparison/protein)"),
+                                     comparison/protein)")),
              actionButton("plotresults", "Save plot results as pdf")
       )
     )
@@ -158,16 +160,19 @@ statmodel = fluidPage(
            tags$br(),
            )),
            uiOutput("matrix"),
-           # conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-           #                  tags$br(),
-           #                  tags$h4("Calculation in progress (it may take a while)...")),
-           uiOutput("table_results"),
-           tags$br(),
-           tags$br(),
-           # conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-           #                  tags$br(),
-           #                  tags$br(),
-           #                  tags$h4("Calculation in progress...")),
+           conditionalPanel(condition = "input.DDA_DIA=='PTM'",
+            tabsetPanel(
+              tabPanel("Adjusted PTM Results", 
+                       uiOutput("adj_table_results")),
+              tabPanel("Unadjusted PTM Results", 
+                       uiOutput("unadj_table_results")),
+              tabPanel("Protein Results", 
+                       uiOutput("prot_table_results"))
+              )
+           ),
+           conditionalPanel(condition = "input.DDA_DIA!=='PTM'",
+            uiOutput("table_results")
+           ),
            tags$br(),
            uiOutput("comparison_plots")
     ))
