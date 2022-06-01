@@ -300,7 +300,7 @@ get_data <- eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'spec') {
-      data <- read_xls(infile$datapath, header = T)
+      data <- read.csv(infile$datapath, sep = "\t")
       mydata <- SpectronauttoMSstatsFormat(data,
                                            annotation = get_annot(),
                                            filter_with_Qvalue = TRUE, ## same as default
