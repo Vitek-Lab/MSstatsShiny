@@ -282,8 +282,8 @@ get_data <- eventReactive(input$proceed1, {
     else if(input$filetype == 'PD') {
       
       if(input$DDA_DIA=="TMT"){
-        print(infile$datapath)
-        data <- read.delim(infile$datapath)
+
+        data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
         mydata <- PDtoMSstatsTMTFormat(input = data, 
                                        annotation = get_annot(),
                                        which.proteinid = input$which.proteinid, ## same as default
