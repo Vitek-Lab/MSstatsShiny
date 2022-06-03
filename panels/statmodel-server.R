@@ -181,7 +181,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | inp
       if(input$DDA_DIA=="TMT"){
         comp_list$dList <- c(isolate(comp_list$dList), paste(choices()[index], " vs ", input$group3, sep = ""))
       } else{
-        comp_list$dList <- c(isolate(comp_list$dList), paste("C",index, " vs ", input$group3, sep = ""))
+        comp_list$dList <- c(isolate(comp_list$dList), paste(choices()[index], " vs ", input$group3, sep = ""))
       }
       
       contrast$row <- matrix(row(), nrow=1)
@@ -205,7 +205,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | inp
           if(input$DDA_DIA=="TMT"){
             comp_list$dList <- c(isolate(comp_list$dList), paste(choices()[index], " vs ", choices()[index1], sep = ""))
           } else{
-            comp_list$dList <- c(isolate(comp_list$dList), paste("C",index, " vs ", "C",index1, sep = ""))
+            comp_list$dList <- c(isolate(comp_list$dList), paste(choices()[index], " vs ", choices()[index1], sep = ""))
           }
           contrast$row <- matrix(row(), nrow=1)
           contrast$row[index] = 1

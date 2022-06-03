@@ -217,18 +217,15 @@ get_data <- eventReactive(input$proceed1, {
   }
   else {
     if(input$filetype=='spec' || input$filetype=='spmin'){
-      print("here123")
       infile <- input$data1
     }
     else if(input$filetype=='phil'){
-      print("one")
       #print(input$folder$datapath)
       extracted.files <- unzip(input$folder$datapath, list = TRUE)
       unzip(input$folder$datapath, list = FALSE)
       infile <- paste0("./", str_split(extracted.files$Name[1], "/")[[1]][[1]])
     }
     else{
-      print("two")
       infile <- input$data
     }
 
@@ -236,20 +233,17 @@ get_data <- eventReactive(input$proceed1, {
     # TODO: This code stops processing if a file is not uploaded correctly. 
     #         ATM no error messages show and the load circle spins forever
     # if(input$filetype=='maxq'){
-    #   print("three")
     #   if(is.null(ev_maxq) || is.null(pg_maxq) || is.null(an_maxq) ) {
     #     return(NULL)
     #   }
     # }
     # else if(input$filetype=='ump'){
-    #   print("four")
     #   if(is.null(raw.frag) || is.null(raw.pep) || is.null(raw.pro) || is.null(annot2)) {
     #     return(NULL)
     #   }
     #   
     #   
     # } else {
-    #   print("five")
     #   if(is.null(infile)) {
     #     return(NULL)
     #   }
@@ -257,11 +251,9 @@ get_data <- eventReactive(input$proceed1, {
     
     
     if(input$filetype == '10col') {
-      print("sixz")
       mydata <- read.csv(infile$datapath, header = T, sep = input$sep)
     }
     else if(input$filetype == 'sky') {
-      print("seven")
       cat(file=stderr(), "Reached here in skyline\n")
       data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
       
@@ -290,12 +282,11 @@ get_data <- eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'maxq') {
-      print("eigeht")
       cat(file=stderr(), "Reached in maxq\n")
       if(input$DDA_DIA=="TMT"){
         mydata <- MaxQtoMSstatsTMTFormat(evidence=ev_maxq, 
                                          annotation=an_maxq,
-                                         proteinGroups=input$which.proteinid,
+                                         proteinGroups=pg_maxq,
                                          use_log_file = FALSE)
         
       }
@@ -309,7 +300,7 @@ get_data <- eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'prog') {
-      print('nince')
+
       cat(file=stderr(), "Reached in prog\n")
       data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
       
@@ -319,9 +310,8 @@ get_data <- eventReactive(input$proceed1, {
       colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] <- 'PeptideSequence'
     }
     else if(input$filetype == 'PD') {
-      print('adsf')
       if(input$DDA_DIA=="TMT"){
-        data <- read.delim(infile$datapath)
+        data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
         mydata <- PDtoMSstatsTMTFormat(input = data, 
                                        annotation = get_annot(),
                                        which.proteinid = input$which.proteinid, ## same as default
@@ -338,9 +328,8 @@ get_data <- eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'spec') {
-      print(infile$datapath)
+
       data <- read.csv(infile$datapath, sep = "\t")
-      print("data load")
       mydata <- SpectronauttoMSstatsFormat(data,
                                            annotation = get_annot(),
                                            filter_with_Qvalue = TRUE, ## same as default
@@ -348,8 +337,7 @@ get_data <- eventReactive(input$proceed1, {
                                            # fewMeasurements="remove",
                                            removeProtein_with1Feature = TRUE,
                                            use_log_file = FALSE)
-      print("spec processed")
-      
+
     }
     else if(input$filetype == 'open') {
       data <- read.csv(infile$datapath, header = T, sep = input$sep)
@@ -399,7 +387,6 @@ get_data <- eventReactive(input$proceed1, {
                                               protein_id_col = input$which.proteinid,
                                               use_log_file = FALSE)
     }
-    print("why")
   }
   ## Devon: no idea why this was ever being called. We don't need to unique our 
   ##          converters and it adds alot of time.
@@ -631,12 +618,14 @@ get_data_code <- eventReactive(input$calculate, {
   })
 
 
-get_summary1 <- eventReactive(input$proceed1, {
-  df <- get_data()
-  annot_df <- get_annot()
+get_summary1 = eventReactive(input$proceed1, {
+  df = get_data()
+  annot_df = get_annot()
+  
   if (input$DDA_DIA != "PTM"){
-    df <- df %>% filter(!Condition %in% c("Norm", "Empty"))
-    nf <- ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
+    df = as.data.frame(df)
+    df = df %>% filter(!Condition %in% c("Norm", "Empty"))
+    nf = ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
   }
   if(input$DDA_DIA=="TMT"){
     if(is.null(annot_df)){
@@ -672,7 +661,8 @@ get_summary1 <- eventReactive(input$proceed1, {
                                      "Number of Unmod Technical Replicates" = n_distinct(TechRepMixture))
       df = cbind(ptm_df1, unmod_df1)
     } else {
-      print("TODO: Add LF")
+      # TODO: Add PTM LF
+      print("LF PTM summary statistics not available.")
     }
   } else{
     df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
@@ -681,6 +671,7 @@ get_summary1 <- eventReactive(input$proceed1, {
                             "Number of MS runs" = n_distinct(Run)
     )
   }
+  
   if (input$DDA_DIA != "PTM"){
     df2 <- df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
       select("Condition_Run")
@@ -700,7 +691,6 @@ get_summary1 <- eventReactive(input$proceed1, {
     else{
       df <- df1[,c(1,2,3,6,4,5)]
     }
-    print(df)
   }
   
   t_df <- as.data.frame(t(df))
@@ -709,7 +699,6 @@ get_summary1 <- eventReactive(input$proceed1, {
   colnames(t_df) <- c("", "value")
   t_df$value <- sub("\\.\\d+$", "", t_df$value)
   colnames(t_df) <- c("", "")
-  print(t_df)
   return(t_df)
 })
 
@@ -717,6 +706,7 @@ get_summary2 = eventReactive(input$proceed1, {
 
   df = get_data()
   if(input$DDA_DIA=="TMT"){
+    df = as.data.frame(df)
     df = df %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence, Charge,
                                            sep = '_'))
   } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
@@ -736,6 +726,7 @@ get_summary2 = eventReactive(input$proceed1, {
                                                         ProductCharge, 
                                                         sep = '_'))
   } else {
+    df = as.data.frame(df)
     df = df %>% mutate("FEATURES" = paste(PeptideSequence, PrecursorCharge, 
                                            FragmentIon, ProductCharge, 
                                            sep = '_'))

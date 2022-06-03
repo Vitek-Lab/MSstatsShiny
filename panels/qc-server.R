@@ -60,13 +60,16 @@ quantile <- function() {
 output$features <- renderUI({
   req(get_data())
   max_feat <- reactive ({
-    if (nrow(unique(get_data()[1])) < 20) {
-      m_feat <- nrow(unique(get_data()[1]))
-    }
-    else
-    {
-      m_feat <- 20
-      }
+    ## Old code for only 20 features. Meena thought this should be all uniques
+    ## Need to fix this bc hard to be specific with slider.
+    # if (nrow(unique(get_data()[1])) < 20) {
+    #   m_feat <- nrow(unique(get_data()[1]))
+    # }
+    # else
+    # {
+    #   m_feat <- 20
+    #   }
+    m_feat <- nrow(unique(get_data()[1]))
     return(m_feat)
   })
   sliderInput("n_feat", "Number of top features to use", 1, as.numeric(max_feat()), 3)
@@ -86,15 +89,15 @@ observe ({
 #   return(n_feat)
 # }
 
-features <- function() {
-  if (input$features_used == "all_feat") {
-    n_feat <- "n_feat"
-  }
-  else {
-    n_feat <- "all_feat"
-  }
-  return(n_feat)
-}
+# features <- function() {
+#   if (input$features_used == "all") {
+#     n_feat <- "n_feat"
+#   }
+#   else {
+#     n_feat <- "all_feat"
+#   }
+#   return(n_feat)
+# }
 
 # which protein to plot (will add "all" for QCPlot)
 
@@ -116,7 +119,6 @@ output$Which <- renderUI({
 ######### functions ########
 
 lf_summarization_loop = function(data, busy_indicator = TRUE){
-  print("here1")
   proteins = as.character(unique(data[, 'ProteinName']))
   
   if (busy_indicator){
@@ -126,46 +128,32 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
     update_val = 1/length(proteins)
     counter = 0
   }
-  print("here2")
   ## Prepare MSstats for summarization
   peptides_dict = makePeptidesDictionary(as.data.table(unclass(data)), 
                                          toupper(input$norm))
-  print("here3")
   prep_input = MSstatsPrepareForDataProcess(data, as.numeric(input$log), NULL)
-  print("here4")
   prep_input = MSstatsNormalize(prep_input, input$norm, peptides_dict, input$names)
-  print("here5")
   prep_input = MSstatsMergeFractions(prep_input)
-  print("here6")
   prep_input = MSstatsHandleMissing(prep_input, "TMP", input$MBi,
                                     "NA", quantile())
-  print("here7")
-  prep_input = MSstatsSelectFeatures(prep_input, "all", input$n_feat, 2)
-  print("here8")
+  prep_input = MSstatsSelectFeatures(prep_input, input$features_used, input$n_feat, 2)
   processed = getProcessed(prep_input)
-  print("here9")
   prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
                                               input$censInt, FALSE)
-  print("here10")
   input_split = split(prep_input, prep_input$PROTEIN)
   summarized_results = vector("list", length(proteins))
-  print("here11")
+
   ## Loop over proteins
   for (i in seq_along(proteins)){
-    print("here12")
     temp_data = input_split[[i]]
-    print(head(temp_data))
-    print(nrow(temp_data))
     summarized_results[[i]] = MSstatsSummarizeSingleTMP(temp_data,
                                                         input$MBi, input$censInt, 
                                                         input$remove50)
-    print("here13")
     ## Update progress bar
     if (busy_indicator){
       counter = counter + update_val
       update_modal_progress(counter)
     }
-    print("here14")
   }
   
   ## Summarization output
@@ -325,8 +313,7 @@ preprocess_data = eventReactive(input$run, {
     preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
     
   } else if(input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
-    print(head(input_data$PTM))
-    print(head(input_data$PROTEIN))
+
     # preprocessed = MSstatsPTM::dataSummarizationPTM_TMT(input_data, 
     #                                  method = input$summarization,
     #                                  reference_norm = input$reference_norm,
