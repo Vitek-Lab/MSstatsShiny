@@ -248,7 +248,14 @@ get_data <- eventReactive(input$proceed1, {
         
       }
       else if(input$DDA_DIA=="SRM_PRM") {
-        mydata <- data
+        # mydata <- data
+        mydata <- SkylinetoMSstatsFormat(data,
+                                         annotation = get_annot(),
+                                         filter_with_Qvalue = TRUE, 
+                                         qvalue_cutoff = 0.01, 
+                                         fewMeasurements="remove", 
+                                         removeProtein_with1Feature = TRUE,
+                                         use_log_file = FALSE)
       }
       
     }
