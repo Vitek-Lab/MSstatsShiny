@@ -139,7 +139,7 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
   prep_input = MSstatsMergeFractions(prep_input)
   prep_input = MSstatsHandleMissing(prep_input, "TMP", input$MBi,
                                     "NA", quantile())
-  prep_input = MSstatsSelectFeatures(prep_input, "all", input$n_feat, 2)
+  prep_input = MSstatsSelectFeatures(prep_input, input$features_used, input$n_feat, 2)
   processed = getProcessed(prep_input)
   prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
                                               input$censInt, FALSE)
@@ -347,14 +347,11 @@ preprocess_data_code <- eventReactive(input$calculate, {
                             address = FALSE)\n", sep="")
   }
   else{
-    if (input$features_used == "all_feat"){
-      code_feat = "all"
+    if (input$features_used == "all"){
       code_n_feat = 'NULL'
-    } else if (input$features_used == "n_feat") {
-      code_feat = "topN"
+    } else if (input$features_used == "topN") {
       code_n_feat = input$n_feat
     } else {
-      code_feat = "highQuality"
       code_n_feat = 'NULL'
     }
     if (input$norm != 'globalStandards'){
@@ -369,7 +366,7 @@ preprocess_data_code <- eventReactive(input$calculate, {
                                normalization = \'", input$norm,"\',\t\t\t\t   
                                logTrans = ", as.numeric(input$log),",\t\t\t\t   
                                nameStandards = ", code_name, ",\t\t\t\t  
-                               featureSubset = \'", code_feat, "\',\t\t\t\t  
+                               featureSubset = \'", input$features_used, "\',\t\t\t\t  
                                n_top_feature = ", code_n_feat, ",\t\t\t\t  
                                summaryMethod=\"TMP\",
                                censoredInt=\'", input$censInt, "\',\t\t\t\t   
