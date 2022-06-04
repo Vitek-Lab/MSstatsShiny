@@ -105,7 +105,7 @@ observe ({
 output$Which <- renderUI({
   if ((input$DDA_DIA!="TMT" && input$type2 == "QCPlot") || (input$DDA_DIA=="TMT" && input$type1 == "QCPlot")) {
     if((input$DDA_DIA=="SRM_PRM" && input$filetype=="sky")||(input$DDA_DIA=="DIA" && input$filetype=="ump")){
-      selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[2])))
+      selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[1])))
     }
     else{
       selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[1])))
