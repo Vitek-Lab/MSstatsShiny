@@ -364,7 +364,6 @@ get_data <- eventReactive(input$proceed1, {
       mydata <- PhilosophertoMSstatsTMTFormat(path = infile, folder = TRUE, annotation = get_annot(),
                                               protein_id_col = input$which.proteinid,
                                               use_log_file = FALSE)
-      print("here2")
     }
   }
   mydata <- unique(as.data.frame(mydata))

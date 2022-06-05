@@ -6,7 +6,7 @@
 output$Names <- renderUI({
   if (input$standards == "Proteins") {
     if((input$DDA_DIA=="SRM_PRM" && input$filetype=="sky")||(input$DDA_DIA=="DIA" && input$filetype=="ump")){
-      selectizeInput("names", "choose standard", unique(get_data()[2]), multiple = T)
+      selectizeInput("names", "choose standard", unique(get_data()[1]), multiple = T)
     }
     else{
       selectizeInput("names", "choose standard", unique(get_data()[1]), multiple = T)
@@ -131,6 +131,13 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
     counter = 0
   }
   
+  if (input$features_used == "highQuality"){
+    rm_feat = TRUE
+  } else {
+    rm_feat = FALSE
+  }
+  
+  print(input$names)
   ## Prepare MSstats for summarization
   peptides_dict = makePeptidesDictionary(as.data.table(unclass(data)), 
                                          toupper(input$norm))
@@ -142,7 +149,7 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
   prep_input = MSstatsSelectFeatures(prep_input, input$features_used, input$n_feat, 2)
   processed = getProcessed(prep_input)
   prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
-                                              input$censInt, FALSE)
+                                              input$censInt, rm_feat)
   
   input_split = split(prep_input, prep_input$PROTEIN)
   summarized_results = vector("list", length(proteins))
@@ -354,18 +361,12 @@ preprocess_data_code <- eventReactive(input$calculate, {
     } else {
       code_n_feat = 'NULL'
     }
-    if (input$norm != 'globalStandards'){
-      code_name = "NULL"
-    } else {
-      ## TODO: This doesn't work if values are a vector
-      code_name = input$name
-    }
-    print(input$censInt)
+
     codes <- paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
     codes <- paste(codes, "summarized <- MSstats:::dataProcess(data,
                                normalization = \'", input$norm,"\',\t\t\t\t   
                                logTrans = ", as.numeric(input$log),",\t\t\t\t   
-                               nameStandards = ", code_name, ",\t\t\t\t  
+                               nameStandards = ", paste0("c('", paste(input$names, collapse = "', '"), "')"), ",\t\t\t\t  
                                featureSubset = \'", input$features_used, "\',\t\t\t\t  
                                n_top_feature = ", code_n_feat, ",\t\t\t\t  
                                summaryMethod=\"TMP\",

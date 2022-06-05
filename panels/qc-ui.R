@@ -120,13 +120,13 @@ sbp_params = sidebarPanel(
                                           title = "If unchecked the values set as cutoff for censored will be used")), 
                                    value = TRUE
                      )),
-    # cutoff for censored
-    conditionalPanel(condition = "input.censInt == 'NA' || input.censInt == '0'",
-                     selectInput("cutoff", "cutoff value for censoring", 
-                                 c("min value per feature"="minFeature", 
-                                   "min value per feature and run"="minFeatureNRun", 
-                                   "min value per run"="minRun"))),
-    
+    # # cutoff for censored
+    # conditionalPanel(condition = "input.censInt == 'NA' || input.censInt == '0'",
+    #                  selectInput("cutoff", "cutoff value for censoring", 
+    #                              c("min value per feature"="minFeature", 
+    #                                "min value per feature and run"="minFeatureNRun", 
+    #                                "min value per run"="minRun"))),
+    # 
     
     tags$hr(),
     tags$style(HTML('#run{background-color:orange}')),
