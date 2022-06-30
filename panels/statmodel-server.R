@@ -175,13 +175,18 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | inp
   }
   
   else if (input$def_comp == "all_one") {
+    print(choices())
     for (index in 1:length(choices())) {
       index3 <- reactive({which(choices() == input$group3)})
       if(index == index3()) next
       if(input$DDA_DIA=="TMT"){
-        comp_list$dList <- c(isolate(comp_list$dList), paste(choices()[index], " vs ", input$group3, sep = ""))
+        comp_list$dList <- c(isolate(comp_list$dList), 
+                             paste(choices()[index], " vs ", 
+                                   input$group3, sep = ""))
       } else{
-        comp_list$dList <- c(isolate(comp_list$dList), paste(choices()[index], " vs ", input$group3, sep = ""))
+        comp_list$dList <- c(isolate(comp_list$dList), 
+                             paste(choices()[index], " vs ", 
+                                   input$group3, sep = ""))
       }
       
       contrast$row <- matrix(row(), nrow=1)
@@ -203,9 +208,13 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | inp
         if (index == index1) next
         if (index < index1) {
           if(input$DDA_DIA=="TMT"){
-            comp_list$dList <- c(isolate(comp_list$dList), paste(choices()[index], " vs ", choices()[index1], sep = ""))
+            comp_list$dList <- c(isolate(comp_list$dList), 
+                                 paste(choices()[index], " vs ", 
+                                       choices()[index1], sep = ""))
           } else{
-            comp_list$dList <- c(isolate(comp_list$dList), paste(choices()[index], " vs ", choices()[index1], sep = ""))
+            comp_list$dList <- c(isolate(comp_list$dList), 
+                                 paste(choices()[index], " vs ", 
+                                       choices()[index1], sep = ""))
           }
           contrast$row <- matrix(row(), nrow=1)
           contrast$row[index] = 1
@@ -411,7 +420,7 @@ data_comparison_code <- eventReactive(input$calculate, {
     
     comp.mat <- matrix_build()
     
-    codes <- paste(codes, "\n# Create the contrat matrix\n", sep = "")
+    codes <- paste(codes, "\n# Create the contrast matrix\n", sep = "")
     codes <- paste(codes, "contrast.matrix <- NULL\n", sep = "")
     for(i in 1:nrow(comp.mat)){
       codes <- paste(codes, "comparison <- matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
@@ -487,6 +496,7 @@ SignificantProteins <- eventReactive(input$calculate,{
   } else {
     significant = with(data_comparison(), round_df(ComparisonResult[
       ComparisonResult$adj.pvalue < input$signif, ]))
+
   }
   return(significant)
 })
@@ -896,7 +906,7 @@ observeEvent(input$saveall1, {
 
 output$download_compar <- downloadHandler(
   filename = function() {
-    paste("data-", Sys.Date(), ".csv", sep="")
+    paste("test_result-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
     write.csv(data_comparison()$ComparisonResult, file)

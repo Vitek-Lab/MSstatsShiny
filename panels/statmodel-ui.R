@@ -115,6 +115,9 @@ statmodel = fluidPage(
                                 
                               conditionalPanel(
                                 condition = "input.typeplot == 'Heatmap'",
+                                h4("Note: Only one page will be shown in \
+                                   browser. To view all proteins please \
+                                   view this plot as a pdf."),
                                 selectInput("logp", 
                                             label = h5("Log transformation of adjusted p-value"),
                                             c("base 2" = "2", "base 10" = "10"), selected = "10"),
@@ -127,7 +130,7 @@ statmodel = fluidPage(
                                                0.1)),
 
                                 numericInput("nump", "Number of proteins \
-                                        in heatmap", 100, 1, 180, 1),
+                                        per page", 100, 1, 180, 1),
                                 selectInput("cluster", 
                                             label = h5("Cluster analysis", 
                                                        tipify(

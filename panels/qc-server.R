@@ -61,7 +61,7 @@ output$features <- renderUI({
   req(get_data())
   max_feat <- reactive ({
     ## Old code for only 20 features. Meena thought this should be all uniques
-    ## Need to fix this bc hard to be specific with slider.
+    ## TODO: Need to fix this bc hard to be specific with slider.
     # if (nrow(unique(get_data()[1])) < 20) {
     #   m_feat <- nrow(unique(get_data()[1]))
     # }
@@ -72,7 +72,7 @@ output$features <- renderUI({
     m_feat <- nrow(unique(get_data()[1]))
     return(m_feat)
   })
-  sliderInput("n_feat", "Number of top features to use", 1, as.numeric(max_feat()), 3)
+  sliderInput("n_feat", "Number of top features to use", 1, as.numeric(max_feat()), 1)
 })
 
 observe ({
@@ -90,11 +90,13 @@ observe ({
 # }
 
 # features <- function() {
-#   if (input$features_used == "all") {
-#     n_feat <- "n_feat"
+#   if (input$features_used == "all_feat") {
+#     n_feat = "all_feat"
+#     code_feat = "all"
 #   }
 #   else {
-#     n_feat <- "all_feat"
+#     n_feat = "n_feat"
+#     code_feat = "topN"
 #   }
 #   return(n_feat)
 # }
@@ -200,7 +202,7 @@ tmt_summarization_loop = function(data){
     num_runs = length(runs)
     
     data.table::setnames(prep_input, c("Run", "RunChannel", "Charge"),
-                         c("MSRun", "Run", "PrecursorCharge"))  
+                         c("MSRun", "Run", "PrecursorCharge"))
     prep_input[, FragmentIon := NA]
     prep_input[, ProductCharge := NA]
     prep_input[, IsotopeLabelType := "L"]
@@ -347,9 +349,14 @@ preprocess_data_code <- eventReactive(input$calculate, {
   if(input$DDA_DIA == "TMT"){
     
     codes <- paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
-    codes <- paste(codes, "summarized <- MSstatsTMT:::proteinSummarization(data, \'",input$summarization,"\',", 
-                   input$global_norm,",", input$reference_norm,",",
-                   input$remove_norm_channel,",", "TRUE, FALSE,",input$maxQC1,")\n", sep = "")
+    codes <- paste(codes, "summarized <- MSstatsTMT:::proteinSummarization(data, 
+                   method = '",input$summarization,"\',\t\t\t\t
+                   global_norm = ", input$global_norm,",\t\t\t\t 
+                   reference_norm = ", input$reference_norm,",\t\t\t\t
+                   remove_norm_channel  = ", input$remove_norm_channel,",\t\t\t\t
+                   remove_empty_channel = TRUE, \t\t\t\t 
+                   MBimpute = FALSE, \t\t\t\t
+                   maxQuantileforCensored = ", input$maxQC1,")\n", sep = "")
     codes <- paste(codes, "\n# use to create data summarization plots\n", sep = "")
     codes <- paste(codes, "dataProcessPlotsTMT(summarized,
                             type= \"Enter ProfilePlot or QCPlot Here\",
@@ -361,11 +368,30 @@ preprocess_data_code <- eventReactive(input$calculate, {
                             address = FALSE)\n", sep="")
   }
   else{
+    if (input$features_used == "all_feat"){
+      code_feat = "all"
+      code_n_feat = 'NULL'
+    } else if (input$features_used == "n_feat") {
+      code_feat = "topN"
+      code_n_feat = input$n_feat
+    } else {
+      code_feat = "highQuality"
+      code_n_feat = 'NULL'
+    }
+    if (input$norm != 'globalStandards'){
+      code_name = "NULL"
+    } else {
+      ## TODO: This doesn't work if values are a vector
+      code_name = input$name
+    }
+    print(input$censInt)
     codes <- paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
     codes <- paste(codes, "summarized <- MSstats:::dataProcess(data,
                                normalization = \'", input$norm,"\',\t\t\t\t   
                                logTrans = ", as.numeric(input$log),",\t\t\t\t   
-                               nameStandards = ", input$name, ",\t\t\t\t   
+                               nameStandards = ", code_name, ",\t\t\t\t  
+                               featureSubset = \'", code_feat, "\',\t\t\t\t  
+                               n_top_feature = ", code_n_feat, ",\t\t\t\t  
                                summaryMethod=\"TMP\",
                                censoredInt=\'", input$censInt, "\',\t\t\t\t   
                                MBimpute=", input$MBi, ",\t\t\t\t   
