@@ -5,13 +5,13 @@ sbp_params = sidebarPanel(
   
   # transformation
   
-  conditionalPanel(condition = "input.DDA_DIA == 'TMT'",
+  conditionalPanel(condition = "input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes'",
                    h4("1. Peptide level normalization", 
                       tipify(icon("question-circle"), 
                       title = "Global median normalization on peptide level data, equalizes medians across all the channels and runs")),
                    checkboxInput("global_norm", "Yes", value = T)),
   
-  conditionalPanel(condition = "input.DDA_DIA !== 'TMT'",
+  conditionalPanel(condition = "input.DDA_DIA !== 'TMT' && input.PTMTMT == 'No'",
                    radioButtons("log", 
                                 label= h4("1. Log transformation", 
                                           tipify(icon("question-circle"), 
@@ -21,7 +21,7 @@ sbp_params = sidebarPanel(
   
   tags$hr(),
   
-  conditionalPanel(condition = "input.DDA_DIA == 'TMT'",
+  conditionalPanel(condition = "input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes'",
                    selectInput("summarization", 
                                label = h4("2. Summarization method", 
                                           tipify(icon("question-circle"), 
@@ -31,7 +31,7 @@ sbp_params = sidebarPanel(
                                  "Log(Sum)" = "LogSum","Median" = "Median"), 
                                selected = "log")),
   
-  conditionalPanel(condition = "input.DDA_DIA == 'TMT' && input.summarization == 'msstats'",
+  conditionalPanel(condition = "(input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes') && input.summarization == 'msstats'",
                                 checkboxInput("null", label = p("Do not apply cutoff", 
                                               tipify(icon("question-circle"), 
                                               title = "Maximum quantile for deciding censored missing values, default is 0.999"))),
@@ -39,7 +39,7 @@ sbp_params = sidebarPanel(
   
   #normalisation
   
-  conditionalPanel(condition="input.DDA_DIA !== 'TMT'",
+  conditionalPanel(condition="input.DDA_DIA !== 'TMT' && input.PTMTMT !== 'Yes'",
                    selectInput("norm", 
                                label = h4("2. Normalisation", 
                                           tipify(icon("question-circle"), 
@@ -47,7 +47,7 @@ sbp_params = sidebarPanel(
                                c("none" = "FALSE", "equalize medians" = "equalizeMedians", 
                                  "quantile" = "quantile", "global standards" = "globalStandards"), 
                                selected = "equalizeMedians")),
-  conditionalPanel(condition = "input.DDA_DIA !== 'TMT' && input.norm == 'globalStandards'",
+  conditionalPanel(condition = "input.DDA_DIA !== 'TMT' && input.norm == 'globalStandards' && input.DDA_DIA !== PTM",
                    radioButtons("standards", "Choose type of standards", 
                                 c("Proteins", "Peptides")),
                    uiOutput("Names")
@@ -55,7 +55,7 @@ sbp_params = sidebarPanel(
   tags$hr(),
   
   conditionalPanel(
-    condition = "input.DDA_DIA === 'TMT'",
+    condition = "input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes'",
     h4("3. Local protein normalization",
        tipify(icon("question-circle"), 
               title = "Reference channel based normalization between MS runs on protein level data. Requires one reference channel in each MS run, annotated by ‘Norm’ in Condition column of annotation file")),
@@ -68,17 +68,17 @@ sbp_params = sidebarPanel(
  
   
   conditionalPanel(
-    condition = "input.DDA_DIA !== 'TMT'",
+    condition = "input.DDA_DIA !== 'TMT' || input.PTMTMT !== 'Yes'",
     
     # features
     
     #h4("3. Used features"),
     radioButtons("features_used",
                  label = h4("3. Used features"),
-                 c("Use all features" = "all_feat", "Use top N features" = "n_feat", 
-                   "Remove uninformative features & outliers" = "clean_features")),
+                 c("Use all features" = "all", "Use top N features" = "topN", 
+                   "Remove uninformative features & outliers" = "highQuality")),
     #checkboxInput("all_feat", "Use all features", value = TRUE),
-    conditionalPanel(condition = "input.features_used =='n_feat'",
+    conditionalPanel(condition = "input.features_used =='topN'",
                      uiOutput("features")),
     #uiOutput("features"),
     tags$hr(),
@@ -181,14 +181,14 @@ main = mainPanel(
     ),
     tabPanel("Summarization Plots",
              wellPanel(
-               conditionalPanel(condition = "input.DDA_DIA==='TMT'",
+               conditionalPanel(condition = "input.DDA_DIA=='TMT' || input.PTMTMT == 'Yes'",
                     selectInput("type1",
                                 label = h5("Select plot type", 
                                            tipify(icon("question-circle"), 
             title="For details on plotting options please see the Help tab.")), 
                                 c("Quality Control Plots"="QCPlot", 
                                   "Profile Plots"="ProfilePlot"))),
-               conditionalPanel(condition = "input.DDA_DIA!=='TMT'",
+               conditionalPanel(condition = "input.DDA_DIA!=='TMT' && input.PTMTMT !== 'Yes'",
                                 selectInput("type2",
                                         label = h5("Select plot type", 
                                                  tipify(icon("question-circle"), 
@@ -199,7 +199,7 @@ main = mainPanel(
                conditionalPanel(condition = "input.type1==='ProfilePlot' || input.type2==='ProfilePlot'",
                                 checkboxInput("summ", "Show plot with summary")
                                 ),
-               conditionalPanel(condition = "input.type2 === 'ProfilePlot' && input.DDA_DIA!='TMT' && !input.summ",
+               conditionalPanel(condition = "input.type2 === 'ProfilePlot' && input.DDA_DIA!=='TMT' && !input.summ",
                                 selectInput("fname",  
                                             label = h5("Feature legend", 
                                                        tipify(icon("question-circle"),
@@ -232,16 +232,21 @@ main = mainPanel(
              #                  tags$h4("Calculation in progress...")),
              #tags$div(id='download_buttons')
              tags$br(),
-             disabled(downloadButton("prepr_csv","Download .csv of feature level data")),
-             disabled(downloadButton("summ_csv","Download .csv of protein level data"))
-             
+             conditionalPanel(condition="input.DDA_DIA !== 'PTM'",
+                              disabled(downloadButton("prepr_csv","Download .csv of feature level data")),
+                              disabled(downloadButton("summ_csv","Download .csv of protein level data"))
+             ),
+             conditionalPanel(condition="input.DDA_DIA == 'PTM'",
+                              disabled(downloadButton("prepr_csv_ptm","Download .csv of PTM feature level data")),
+                              disabled(downloadButton("summ_csv_ptm","Download .csv of PTM level data")),
+                              tags$br(),
+                              disabled(downloadButton("prepr_csv_prot","Download .csv of unmod protein feature level data")),
+                              disabled(downloadButton("summ_csv_prot","Download .csv of protein level data"))
+             )
     )
     )
 )
   
-  
-  
-
 ########################################################################################
 
 qc = fluidPage(

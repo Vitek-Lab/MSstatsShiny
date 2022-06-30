@@ -10,6 +10,7 @@ library(ggplot2)
 library(tidyverse)
 library(data.table)
 library(MSstatsTMT)
+library(MSstatsPTM)
 library(knitr)
 library(readxl)
 
@@ -134,7 +135,7 @@ ui <- navbarPage(
   tabPanel("1. Data Uploading",value = "Uploaddata", icon = icon("send"), loadpage),
   tabPanel("2. Data Processing", value = "DataProcessing", icon = icon("gears"), qc),
   tabPanel("3. Statistical Inference", value = "StatsModel", icon = icon("magic"), statmodel),
-  tabPanel("4. Future experiments", value = "Future", icon = icon("flask"), expdes),
+  tabPanel("4. Future Experiments", value = "Future", icon = icon("flask"), expdes),
   # tabPanel("Download logfile", icon = icon("download"), report),
   navbarMenu("Help", icon = icon("ambulance"), 
     tabPanel("Shiny Help", help),
