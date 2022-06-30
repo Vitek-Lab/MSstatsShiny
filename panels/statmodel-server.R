@@ -3,9 +3,12 @@
 # choices of groups for contrast matrix
 
 choices <- reactive({
-  if(input$DDA_DIA=="TMT"){
+  if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+    levels(preprocess_data()$PTM$ProteinLevelData$Condition)
+  } else if(input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
+    levels(preprocess_data()$PTM$ProteinLevelData$GROUP)
+  } else if(input$DDA_DIA=="TMT"){
     levels(preprocess_data()$ProteinLevelData$Condition)
-    
   }
   else{
     levels(preprocess_data()$ProteinLevelData$GROUP)
@@ -347,13 +350,59 @@ tmt_model = function(data, contrast.matrix, busy_indicator = TRUE){
   
 }
 
+apply_adj = function(ptm_model, protein_model){
+  
+  ptm_model_site_sep = copy(ptm_model)
+  ## extract global protein name
+  ptm_model_site_sep = MSstatsPTM:::.extractProtein(ptm_model_site_sep, 
+                                                    protein_model)
+
+  ## adjustProteinLevel function can only compare one label at a time
+  comparisons = unique(ptm_model_site_sep[, Label])
+  
+  adjusted_model_list = list()
+  for (i in seq_len(length(comparisons))) {
+
+    temp_adjusted_model = MSstatsPTM:::.applyPtmAdjustment(comparisons[[i]],
+                                               ptm_model_site_sep,
+                                               protein_model)
+    adjusted_model_list[[i]] = temp_adjusted_model
+  }
+  
+  adjusted_models = rbindlist(adjusted_model_list)
+  
+  adjusted_models$GlobalProtein = adjusted_models$Protein
+  adjusted_models$Protein = adjusted_models$Site
+  adjusted_models[, Site := NULL]
+  
+  return(adjusted_models)
+}
+
 data_comparison <- eventReactive(input$calculate, {
   
   input_data = preprocess_data()
   contrast.matrix = matrix_build()
   
   print(matrix_build())
-  if(input$DDA_DIA=="TMT"){
+  if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+    model_ptm = tmt_model(input_data$PTM, contrast.matrix)
+    model_protein = tmt_model(input_data$PROTEIN, contrast.matrix)
+    model_adj = apply_adj(model_ptm$ComparisonResult,
+                          model_protein$ComparisonResult)
+    model = list('PTM.Model' = model_ptm$ComparisonResult, 
+                 'PROTEIN.Model' = model_protein$ComparisonResult,
+                'ADJUSTED.Model' = model_adj)
+
+  } else if(input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
+    model_ptm = lf_model(input_data$PTM, contrast.matrix)
+    model_protein = lf_model(input_data$PROTEIN, contrast.matrix)
+    model_adj = apply_adj(model_ptm$ComparisonResult,
+                          model_protein$ComparisonResult)
+    model = list('PTM.Model' = model_ptm$ComparisonResult, 
+                 'PROTEIN.Model' = model_protein$ComparisonResult,
+                 'ADJUSTED.Model' = model_adj)
+    
+  } else if(input$DDA_DIA=="TMT"){
     model <- tmt_model(input_data, contrast.matrix)
   }
   else{
@@ -427,19 +476,29 @@ round_df <- function(df) {
 }
 
 SignificantProteins <- eventReactive(input$calculate,{
-  if(input$DDA_DIA=="TMT"){
-    data_comp <- data_comparison()
-    significant$result <- data_comp$ComparisonResult[
-      (data_comp$ComparisonResult$adj.pvalue < input$signif) & 
-        (!is.na(data_comp$ComparisonResult$adj.pvalue)), ]
+  if (input$DDA_DIA == "PTM"){
+    data_comp = data_comparison()
+    sig_unadj = data_comp$PTM.Model[
+      data_comp$PTM.Model$adj.pvalue < input$signif]
+    sig_prot = data_comp$PROTEIN.Model[
+      data_comp$PROTEIN.Model$adj.pvalue < input$signif]
+    sig_adj = data_comp$ADJUSTED.Model[
+      data_comp$ADJUSTED.Model$adj.pvalue < input$signif]
+    significant = list(PTM.Model=sig_unadj, 
+                       PROTEIN.Model=sig_prot, 
+                       ADJUSTED.Model=sig_adj)
+
+  } else if(input$DDA_DIA=="TMT"){
+    data_comp = data_comparison()
+    significant = data_comp$ComparisonResult[
+      data_comp$ComparisonResult$adj.pvalue < input$signif, ]
     
   } else {
-    significant$result <- with(data_comparison(),
-                               round_df(ComparisonResult[
-                                 (ComparisonResult$adj.pvalue < input$signif) & 
-                                   (!is.na(ComparisonResult$adj.pvalue)), ]))
+    significant = with(data_comparison(), round_df(ComparisonResult[
+      ComparisonResult$adj.pvalue < input$signif, ]))
+
   }
-  return(significant$result)
+  return(significant)
 })
 
 # comparison plots
@@ -452,14 +511,14 @@ SignificantProteins <- eventReactive(input$calculate,{
 #     group_comparison(TRUE)
 #   }
 # })
-# 
+#
 # observeEvent(input$viewresults, {
 #   if(input$typeplot != "ComparisonPlot") {
 #     group_comparison(TRUE)
 #   }
 #   else {
 #     group_comparison(TRUE)
-#   } 
+#   }
 # })
 
 group_comparison <- function(saveFile1, pdf) {
@@ -476,7 +535,18 @@ group_comparison <- function(saveFile1, pdf) {
     return(path1_id)
   }
   
-  if(input$DDA_DIA=="TMT"){
+  if (input$DDA_DIA=="PTM"){
+    plot1 = groupComparisonPlotsPTM(data_comparison(),
+                            input$typeplot,
+                            sig=input$sig,
+                            FCcutoff=input$FC,
+                            logBase.pvalue=as.integer(input$logp),
+                            ProteinName = input$pname,
+                            which.Comparison = input$whichComp,
+                            address = path1())
+    
+    
+  } else if(input$DDA_DIA=="TMT"){
     
     plot1 <- groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                    type=input$typeplot,
@@ -607,11 +677,11 @@ output$table <-  renderDataTable({
 }, rownames = T)
 
 # table of significant proteins
-
 output$table_results <- renderUI({
   req(data_comparison())
   req(SignificantProteins())
-  if (is.null(significant$result)) {
+  
+  if (is.null(significant)) {
 
     tagList(
       tags$br())
@@ -626,9 +696,69 @@ output$table_results <- renderUI({
       downloadButton("download_signif", "Download significant proteins")
       
     )
-    
   }
-  
+})
+
+output$adj_table_results <- renderUI({
+  req(data_comparison())
+  req(SignificantProteins())
+  significant = SignificantProteins()
+  print(significant$ADJUSTED.Model)
+  if (is.null(significant$ADJUSTED.Model)) {
+    print(TRUE)
+    tagList(
+      tags$br())
+  } else {
+    tagList(
+      tags$br(),
+      h2("Adjusted PTM Modeling Results"),
+      h5("There are ",textOutput("number_adj", inline = TRUE),"significant PTMs"),
+      tags$br(),
+      dataTableOutput("adj_significant"),
+      downloadButton("download_compar_adj", "Download all modeling results"),
+      downloadButton("download_signif_adj", "Download significant PTMs")
+    )
+  }
+})
+
+output$unadj_table_results <- renderUI({
+  req(data_comparison())
+  req(SignificantProteins())
+  significant = SignificantProteins()
+  if (is.null(significant$PTM.Model)) {
+    tagList(
+      tags$br())
+  } else {
+    tagList(
+      tags$br(),
+      h2("Unadjusted PTM Modeling Results"),
+      h5("There are ",textOutput("number_unadj", inline = TRUE),"significant PTMs"),
+      tags$br(),
+      dataTableOutput("unadj_significant"),
+      downloadButton("download_compar_unadj", "Download all modeling results"),
+      downloadButton("download_signif_unadj", "Download significant PTMs")
+    )
+  }
+})
+
+output$prot_table_results <- renderUI({
+  req(data_comparison())
+  req(SignificantProteins())
+  significant = SignificantProteins()
+  if (is.null(significant$PTM.Model)) {
+    tagList(
+      tags$br())
+  } else {
+    tagList(
+      tags$br(),
+      h2("Protein Modeling Results"),
+      h5("There are ",textOutput("number_prot", inline = TRUE),"significant proteins"),
+      tags$br(),
+      dataTableOutput("prot_significant"),
+      downloadButton("download_compar_prot", "Download all modeling results"),
+      downloadButton("download_signif_prot", "Download significant proteins")
+    )
+  }
 })
 
 output$significant <- renderDataTable({
@@ -636,10 +766,38 @@ output$significant <- renderDataTable({
 }, rownames = F
 )
 
+output$adj_significant <- renderDataTable({
+  SignificantProteins()$ADJUSTED.Model
+}, rownames = F
+)
+
+output$unadj_significant <- renderDataTable({
+  SignificantProteins()$PTM.Model
+}, rownames = F
+)
+
+output$prot_significant <- renderDataTable({
+  SignificantProteins()$PROTEIN.Model
+}, rownames = F
+)
+
+
 # number of significant proteins
 
 output$number <- renderText({
   nrow(SignificantProteins())
+})
+
+output$number_adj <- renderText({
+  nrow(SignificantProteins()$ADJUSTED.Model)
+})
+
+output$number_unadj <- renderText({
+  nrow(SignificantProteins()$PTM.Model)
+})
+
+output$number_prot <- renderText({
+  nrow(SignificantProteins()$PROTEIN.Model)
 })
 
 # plot in browser 
@@ -752,7 +910,30 @@ output$download_compar <- downloadHandler(
   },
   content = function(file) {
     write.csv(data_comparison()$ComparisonResult, file)
-    
+  }
+)
+output$download_compar_adj <- downloadHandler(
+  filename = function() {
+    paste("adj_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(data_comparison()$ADJUSTED.Model, file)
+  }
+)
+output$download_compar_unadj <- downloadHandler(
+  filename = function() {
+    paste("unadj_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(data_comparison()$PTM.Model, file)
+  }
+)
+output$download_compar_prot <- downloadHandler(
+  filename = function() {
+    paste("prot_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(data_comparison()$PROTEIN.Model, file)
   }
 )
 
@@ -771,6 +952,30 @@ output$download_signif <- downloadHandler(
   },
   content = function(file) {
     write.csv(SignificantProteins(), file)
+  }
+)
+output$download_signif_adj <- downloadHandler(
+  filename = function() {
+    paste("adj_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(SignificantProteins()$ADJUSTED.Model, file)
+  }
+)
+output$download_signif_unadj <- downloadHandler(
+  filename = function() {
+    paste("unadj_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(SignificantProteins()$PTM.Model, file)
+  }
+)
+output$download_signif_prot <- downloadHandler(
+  filename = function() {
+    paste("prot_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(SignificantProteins()$PROTEIN.Model, file)
   }
 )
 

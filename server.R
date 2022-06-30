@@ -1,4 +1,3 @@
-options(shiny.maxRequestSize=2000*1024^2)
 library(shiny)
 library(MSstats)
 library(shinyBS)
@@ -29,7 +28,7 @@ xy_str <- function(e) {
 
 
 shinyServer(function(input, output, session) {
-  options(shiny.maxRequestSize=350*1024^2) 
+  options(shiny.maxRequestSize=10000*1024^2) 
   session$allowReconnect(TRUE)
   observe({
     toggleClass(condition = TRUE,
