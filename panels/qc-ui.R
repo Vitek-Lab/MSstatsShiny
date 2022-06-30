@@ -8,14 +8,14 @@ sbp_params = sidebarPanel(
   conditionalPanel(condition = "input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes'",
                    h4("1. Peptide level normalization", 
                       tipify(icon("question-circle"), 
-                      title = "Global median normalization on peptide level data, equalizes medians across all the channels and runs")),
+                             title = "Global median normalization on peptide level data, equalizes medians across all the channels and runs")),
                    checkboxInput("global_norm", "Yes", value = T)),
   
   conditionalPanel(condition = "input.DDA_DIA !== 'TMT' && input.PTMTMT == 'No'",
                    radioButtons("log", 
                                 label= h4("1. Log transformation", 
                                           tipify(icon("question-circle"), 
-                   title = "Logarithmic transformation applied to the Intensity column")), 
+                                                 title = "Logarithmic transformation applied to the Intensity column")), 
                                 c(log2 = "2", log10 = "10"))),
   
   
@@ -32,10 +32,10 @@ sbp_params = sidebarPanel(
                                selected = "log")),
   
   conditionalPanel(condition = "(input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes') && input.summarization == 'msstats'",
-                                checkboxInput("null", label = p("Do not apply cutoff", 
-                                              tipify(icon("question-circle"), 
-                                              title = "Maximum quantile for deciding censored missing values, default is 0.999"))),
-                                numericInput("maxQC", NULL, 0.999, 0.000, 1.000, 0.001)),
+                   checkboxInput("null", label = p("Do not apply cutoff", 
+                                                   tipify(icon("question-circle"), 
+                                                          title = "Maximum quantile for deciding censored missing values, default is 0.999"))),
+                   numericInput("maxQC", NULL, 0.999, 0.000, 1.000, 0.001)),
   
   #normalisation
   
@@ -65,7 +65,7 @@ sbp_params = sidebarPanel(
     checkboxInput("remove_norm_channel", "Remove normalization channel", value = T)
     
   ),
- 
+  
   
   conditionalPanel(
     condition = "input.DDA_DIA !== 'TMT' || input.PTMTMT !== 'Yes'",
@@ -116,16 +116,16 @@ sbp_params = sidebarPanel(
     conditionalPanel(condition = "input.censInt == 'NA' || input.censInt == '0'",
                      checkboxInput("MBi", 
                                    label = p("Model based imputation", 
-                                   tipify(icon("question-circle"), 
-                                          title = "If unchecked the values set as cutoff for censored will be used")), 
+                                             tipify(icon("question-circle"), 
+                                                    title = "If unchecked the values set as cutoff for censored will be used")), 
                                    value = TRUE
                      )),
-    # cutoff for censored
-    conditionalPanel(condition = "input.censInt == 'NA' || input.censInt == '0'",
-                     selectInput("cutoff", "cutoff value for censoring", 
-                                 c("min value per feature"="minFeature", 
-                                   "min value per feature and run"="minFeatureNRun", 
-                                   "min value per run"="minRun"))),
+    # # cutoff for censored
+    # conditionalPanel(condition = "input.censInt == 'NA' || input.censInt == '0'",
+    #                  selectInput("cutoff", "cutoff value for censoring", 
+    #                              c("min value per feature"="minFeature", 
+    #                                "min value per feature and run"="minFeatureNRun", 
+    #                                "min value per run"="minRun"))),
     
     
     tags$hr(),
@@ -149,9 +149,9 @@ sbp_params = sidebarPanel(
   width = 3
 )
 
-  
+
 ### main panel ###  
-  
+
 main = mainPanel(
   
   h3("Please run protein summarization in the side panel."),
@@ -173,37 +173,37 @@ main = mainPanel(
                  actionButton("update_results", "Update Summarized Results"),
                  downloadButton("download_summary", "Download")
                )),
-               #column(7,
-                      h4("Table of abundance"),
-                      uiOutput("abundance")
-               #)
+             #column(7,
+             h4("Table of abundance"),
+             uiOutput("abundance")
+             #)
              #)
     ),
     tabPanel("Summarization Plots",
              wellPanel(
                conditionalPanel(condition = "input.DDA_DIA=='TMT' || input.PTMTMT == 'Yes'",
-                    selectInput("type1",
-                                label = h5("Select plot type", 
-                                           tipify(icon("question-circle"), 
-            title="For details on plotting options please see the Help tab.")), 
-                                c("Quality Control Plots"="QCPlot", 
-                                  "Profile Plots"="ProfilePlot"))),
+                                selectInput("type1",
+                                            label = h5("Select plot type", 
+                                                       tipify(icon("question-circle"), 
+                                                              title="For details on plotting options please see the Help tab.")), 
+                                            c("Quality Control Plots"="QCPlot", 
+                                              "Profile Plots"="ProfilePlot"))),
                conditionalPanel(condition = "input.DDA_DIA!=='TMT' && input.PTMTMT !== 'Yes'",
                                 selectInput("type2",
-                                        label = h5("Select plot type", 
-                                                 tipify(icon("question-circle"), 
-            title="For details on plotting options please see the Help tab.")), 
-                                        c("Quality Control Plots"="QCPlot", 
-                                          "Profile Plots"="ProfilePlot",
-                                          "Condition Plots"="ConditionPlot"))),
+                                            label = h5("Select plot type", 
+                                                       tipify(icon("question-circle"), 
+                                                              title="For details on plotting options please see the Help tab.")), 
+                                            c("Quality Control Plots"="QCPlot", 
+                                              "Profile Plots"="ProfilePlot",
+                                              "Condition Plots"="ConditionPlot"))),
                conditionalPanel(condition = "input.type1==='ProfilePlot' || input.type2==='ProfilePlot'",
                                 checkboxInput("summ", "Show plot with summary")
-                                ),
+               ),
                conditionalPanel(condition = "input.type2 === 'ProfilePlot' && input.DDA_DIA!=='TMT' && !input.summ",
                                 selectInput("fname",  
                                             label = h5("Feature legend", 
                                                        tipify(icon("question-circle"),
-                                    title = "Type of legend to use in plot")), 
+                                                              title = "Type of legend to use in plot")), 
                                             c("Transition level"="Transition", 
                                               "Peptide level"="Peptide", 
                                               "No feature legend"="NA"))
@@ -223,7 +223,7 @@ main = mainPanel(
              #                  tags$br(),
              #                  tags$h4("Calculation in progress...")),
              uiOutput("showplot")
-             ),
+    ),
     tabPanel("Download Data", 
              #verbatimTextOutput('effect'),
              # conditionalPanel(condition="$('html').hasClass('shiny-busy')",
@@ -244,9 +244,9 @@ main = mainPanel(
                               disabled(downloadButton("summ_csv_prot","Download .csv of protein level data"))
              )
     )
-    )
+  )
 )
-  
+
 ########################################################################################
 
 qc = fluidPage(
@@ -277,26 +277,25 @@ qc = fluidPage(
   column(width = 8,
          main,
          uiOutput('submit.button'),
-  #        tags$head(tags$style(type="text/css", "
-  #          #loadmessage {
-  #            position: bottomright;
-  #            top: 0px;
-  #            left: 0px;
-  #            width: 300px;
-  #            padding: 50px;
-  #            margin: 20px;
-  #            border: 15px solid navy;
-  #            text-align: center;
-  #            font-weight: bold;
-  #            font-size: 200%;
-  #            color: #000000;
-  #            background-color: lightgrey;
-  #            z-index: 105;
-  #          }
-  # ")),
-  #        shinyalert(conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-  #                         tags$div("Summarizing Data...",id="loadmessage")
-  #        )),
- )
-        
+         #        tags$head(tags$style(type="text/css", "
+         #          #loadmessage {
+         #            position: bottomright;
+         #            top: 0px;
+         #            left: 0px;
+         #            width: 300px;
+         #            padding: 50px;
+         #            margin: 20px;
+         #            border: 15px solid navy;
+         #            text-align: center;
+         #            font-weight: bold;
+         #            font-size: 200%;
+         #            color: #000000;
+         #            background-color: lightgrey;
+         #            z-index: 105;
+         #          }
+         # ")),
+         #        shinyalert(conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+         #                         tags$div("Summarizing Data...",id="loadmessage")
+         #        )),
+  )
 )

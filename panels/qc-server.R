@@ -1,4 +1,3 @@
-
 ######## UI ########
 
 # standards name
@@ -121,6 +120,7 @@ output$Which <- renderUI({
 ######### functions ########
 
 lf_summarization_loop = function(data, busy_indicator = TRUE){
+  
   proteins = as.character(unique(data[, 'ProteinName']))
   
   if (busy_indicator){
@@ -130,6 +130,13 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
     update_val = 1/length(proteins)
     counter = 0
   }
+  
+  if (input$features_used == "highQuality"){
+    rm_feat = TRUE
+  } else {
+    rm_feat = FALSE
+  }
+  
   ## Prepare MSstats for summarization
   peptides_dict = makePeptidesDictionary(as.data.table(unclass(data)), 
                                          toupper(input$norm))
@@ -141,16 +148,19 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
   prep_input = MSstatsSelectFeatures(prep_input, input$features_used, input$n_feat, 2)
   processed = getProcessed(prep_input)
   prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
-                                              input$censInt, FALSE)
+                                              input$censInt, rm_feat)
+  
   input_split = split(prep_input, prep_input$PROTEIN)
   summarized_results = vector("list", length(proteins))
-
+  
   ## Loop over proteins
   for (i in seq_along(proteins)){
+    
     temp_data = input_split[[i]]
     summarized_results[[i]] = MSstatsSummarizeSingleTMP(temp_data,
                                                         input$MBi, input$censInt, 
                                                         input$remove50)
+    
     ## Update progress bar
     if (busy_indicator){
       counter = counter + update_val
@@ -214,6 +224,7 @@ tmt_summarization_loop = function(data){
     show_modal_progress_line() # show the modal window
     update_val = 1/num_runs
     counter = 0
+    
     for (i in seq_len(num_runs)) {
       
       single_run = prep_input[MSRun == runs[i],
@@ -222,7 +233,7 @@ tmt_summarization_loop = function(data){
                                    BioReplicate, Intensity, IsotopeLabelType,
                                    Fraction = 1)]
       single_run = new("MSstatsValidated", single_run)
-
+      
       ## Make LF flow into a function and replace it here
       msstats_summary = lf_summarization_loop(single_run, FALSE)
       
@@ -302,27 +313,13 @@ preprocess_data = eventReactive(input$run, {
   ## Here we run the underlying functions for MSstats and MSstatsTMT 
   ## summarization. Done so we can loop over proteins and create a progress bar
   if (input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
-    # preprocessed =  MSstatsPTM::dataSummarizationPTM(input_data, 
-    #                                  logTrans = input$log,
-    #                                  normalization = input$norm,
-    #                                  normalization.PTM = input$norm,
-    #                                  n_top_feature = input$features_used,
-    #                                  n_top_feature.PTM = input$features_used,
-    #                                  MBimpute = input$censInt,
-    #                                  MBimpute.PTM = input$censInt)
+
     preprocessed_ptm = lf_summarization_loop(input_data$PTM)
     preprocessed_unmod = lf_summarization_loop(input_data$PROTEIN)
     preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
     
   } else if(input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
 
-    # preprocessed = MSstatsPTM::dataSummarizationPTM_TMT(input_data, 
-    #                                  method = input$summarization,
-    #                                  reference_norm = input$reference_norm,
-    #                                  reference_norm.PTM = input$reference_norm,
-    #                                  remove_norm_channel = input$remove_norm_channel,
-    #                                  remove_empty_channel = input$remove_norm_channel
-    #                                  )
     preprocessed_ptm = tmt_summarization_loop(input_data$PTM)
     preprocessed_unmod = tmt_summarization_loop(input_data$PROTEIN)
     preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
@@ -331,16 +328,16 @@ preprocess_data = eventReactive(input$run, {
     
     ## Run MSstatsTMT summarization
     preprocessed = tmt_summarization_loop(input_data)
-
+    
   } else {
     
     ## Run LF MSstats summarization
     preprocessed = lf_summarization_loop(input_data)
-
+    
   }
-
+  
   return(preprocessed)
-  })
+})
 
 preprocess_data_code <- eventReactive(input$calculate, { 
   
@@ -368,29 +365,20 @@ preprocess_data_code <- eventReactive(input$calculate, {
                             address = FALSE)\n", sep="")
   }
   else{
-    if (input$features_used == "all_feat"){
-      code_feat = "all"
+    if (input$features_used == "all"){
       code_n_feat = 'NULL'
-    } else if (input$features_used == "n_feat") {
-      code_feat = "topN"
+    } else if (input$features_used == "topN") {
       code_n_feat = input$n_feat
     } else {
-      code_feat = "highQuality"
       code_n_feat = 'NULL'
     }
-    if (input$norm != 'globalStandards'){
-      code_name = "NULL"
-    } else {
-      ## TODO: This doesn't work if values are a vector
-      code_name = input$name
-    }
-    print(input$censInt)
+    
     codes <- paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
     codes <- paste(codes, "summarized <- MSstats:::dataProcess(data,
                                normalization = \'", input$norm,"\',\t\t\t\t   
                                logTrans = ", as.numeric(input$log),",\t\t\t\t   
-                               nameStandards = ", code_name, ",\t\t\t\t  
-                               featureSubset = \'", code_feat, "\',\t\t\t\t  
+                               nameStandards = ", paste0("c('", paste(input$names, collapse = "', '"), "')"), ",\t\t\t\t  
+                               featureSubset = \'", input$features_used, "\',\t\t\t\t  
                                n_top_feature = ", code_n_feat, ",\t\t\t\t  
                                summaryMethod=\"TMP\",
                                censoredInt=\'", input$censInt, "\',\t\t\t\t   
@@ -409,14 +397,6 @@ preprocess_data_code <- eventReactive(input$calculate, {
   
   return(codes)
 })
-
-
-
-# plot data
-# onclick("run", {
-#   preprocess_data()
-# })
-
 
 plotresult <- function(saveFile, protein, summary, original) {
   if (input$which != "") {
@@ -465,26 +445,26 @@ plotresult <- function(saveFile, protein, summary, original) {
     } else{
       
       plot = dataProcessPlots(data = preprocess_data(),
-                               type=input$type2,
-                               featureName = input$fname,
-                               ylimUp = F,
-                               ylimDown = F,
-                               scale = input$cond_scale,
-                               interval = input$interval,
-                               #              x.axis.size = input_xsize,
-                               #              y.axis.size = input_ysize,
-                               #              t.axis.size = input_tsize,
-                               #              text.angle = input_tangle,
-                               #              legend.size = input_legend,
-                               #              dot.size.profile = input_dot_prof,
-                               #              dot.size.condition = input_dot_cond,
-                               #              width = input_width,
-                               #              height = input_height,
-                               which.Protein = protein,
-                               originalPlot = original,
-                               summaryPlot = input$summ,
-                               save_condition_plot_result = FALSE,
-                               address = path()
+                              type=input$type2,
+                              featureName = input$fname,
+                              ylimUp = F,
+                              ylimDown = F,
+                              scale = input$cond_scale,
+                              interval = input$interval,
+                              #              x.axis.size = input_xsize,
+                              #              y.axis.size = input_ysize,
+                              #              t.axis.size = input_tsize,
+                              #              text.angle = input_tangle,
+                              #              legend.size = input_legend,
+                              #              dot.size.profile = input_dot_prof,
+                              #              dot.size.condition = input_dot_cond,
+                              #              width = input_width,
+                              #              height = input_height,
+                              which.Protein = protein,
+                              originalPlot = original,
+                              summaryPlot = input$summ,
+                              save_condition_plot_result = FALSE,
+                              address = path()
       )
       
     }
@@ -631,38 +611,38 @@ output$summ_csv_prot <- downloadHandler(
 
 # download/view plots
 
- observeEvent(input$saveone, {
-   path <- plotresult(TRUE, input$which, FALSE, TRUE)
-   if (input$type1 == "ProfilePlot" || input$type2 == "ProfilePlot") {
-     js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
-   else if (input$type2 == "ConditionPlot") {
-     js <- paste("window.open('", path, "ConditionPlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
-   else if (input$type1 == "QCPlot" || input$type2 == "QCPlot") {
-     js <- paste("window.open('", path, "QCPlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
- })
-   
- observeEvent(input$saveall, {
-   path <- plotresult(TRUE, "all", FALSE, TRUE)
-   if (input$type1 == "ProfilePlot" || input$type2 == "ProfilePlot") {
-     js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
-   else if (input$type2 == "ConditionPlot") {
-     js <- paste("window.open('", path, "ConditionPlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
-   else if (input$type1 == "QCPlot" || input$type2 == "QCPlot") {
-     js <- paste("window.open('", path, "QCPlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
- })
- 
+observeEvent(input$saveone, {
+  path <- plotresult(TRUE, input$which, FALSE, TRUE)
+  if (input$type1 == "ProfilePlot" || input$type2 == "ProfilePlot") {
+    js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+  else if (input$type2 == "ConditionPlot") {
+    js <- paste("window.open('", path, "ConditionPlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+  else if (input$type1 == "QCPlot" || input$type2 == "QCPlot") {
+    js <- paste("window.open('", path, "QCPlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+})
+
+observeEvent(input$saveall, {
+  path <- plotresult(TRUE, "all", FALSE, TRUE)
+  if (input$type1 == "ProfilePlot" || input$type2 == "ProfilePlot") {
+    js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+  else if (input$type2 == "ConditionPlot") {
+    js <- paste("window.open('", path, "ConditionPlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+  else if (input$type1 == "QCPlot" || input$type2 == "QCPlot") {
+    js <- paste("window.open('", path, "QCPlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+})
+
 output$showplot <- renderUI({
   tagList(
     plotOutput("theplot"),
@@ -674,8 +654,8 @@ output$showplot <- renderUI({
                      bsTooltip(id = "saveone", title = "Open plot as pdf. \
                                Popups must be enabled", placement = "bottom", 
                                trigger = "hover")
-                     )
     )
+  )
 })
 
 theplot <- reactive({
@@ -706,9 +686,9 @@ abundance <- eventReactive(input$update_results, {
              c("Abundance", "Condition", "BioReplicate"), 
              c("LogIntensities", "GROUP", "SUBJECT"))
     abundant$results <- quantification(temp,
-                   type = input$typequant,
-                   format = input$format,
-                   use_log_file = FALSE)
+                                       type = input$typequant,
+                                       format = input$format,
+                                       use_log_file = FALSE)
   } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
     temp <- copy(preprocess_data())
     setnames(temp$PTM$ProteinLevelData, 
@@ -727,9 +707,9 @@ abundance <- eventReactive(input$update_results, {
   } else{
     temp <- copy(preprocess_data())
     abundant$results <-quantification(temp,
-                   type = input$typequant,
-                   format = input$format,
-                   use_log_file = FALSE)
+                                      type = input$typequant,
+                                      format = input$format,
+                                      use_log_file = FALSE)
   }
   
   return(abundant$results)
@@ -748,7 +728,7 @@ output$abundance <- renderUI({
   } else {
     tagList(
       dataTableOutput("abundanceTable") )
-    }
+  }
 })
 output$abundanceTable <- renderDataTable(abundance())
 
@@ -779,4 +759,3 @@ output$download_summary <- downloadHandler(
 observeEvent(input$proceed4, {
   updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
 })
-
