@@ -83,7 +83,7 @@ sbp_load = sidebarPanel(
                    h4("5. TMT Experiment"),
                    radioButtons("PTMTMT", tipify(icon("question-circle"),
                                                  title = "Indicate if experiment was processed using TMT labeling"),
-                                c(Yes='Yes', No='No'),
+                                c(No='No', Yes='Yes'),
                                 inline=T)),
   conditionalPanel(
     condition = "input.filetype == 'maxq'",

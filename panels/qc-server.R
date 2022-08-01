@@ -104,16 +104,27 @@ observe ({
 
 output$Which <- renderUI({
   if ((input$DDA_DIA!="TMT" && input$type2 == "QCPlot") || (input$DDA_DIA=="TMT" && input$type1 == "QCPlot")) {
-    if((input$DDA_DIA=="SRM_PRM" && input$filetype=="sky")||(input$DDA_DIA=="DIA" && input$filetype=="ump")){
-      selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()$PTM[2])))
+    if (input$DDA_DIA == "PTM"){
+      if((input$DDA_DIA=="SRM_PRM" && input$filetype=="sky")||(input$DDA_DIA=="DIA" && input$filetype=="ump")){
+        selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()$PTM[2])))
+      }
+      else{
+        selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()$PTM[1])))
+      }
+    } else {
+      if((input$DDA_DIA=="SRM_PRM" && input$filetype=="sky")||(input$DDA_DIA=="DIA" && input$filetype=="ump")){
+        selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[2])))
+      }
+      else{
+        selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[1])))
+      }
     }
-    else{
-      selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()$PTM[1])))
+  } else {
+    if (input$DDA_DIA == "PTM"){
+      selectizeInput("which", "Show plot for", choices = c("", unique(get_data()$PTM[1])))
+    } else {
+      selectizeInput("which", "Show plot for", choices = c("", unique(get_data()[1])))
     }
-    
-  }
-  else {
-    selectizeInput("which", "Show plot for", choices = c("", unique(get_data()$PTM[1])))
   }
 })
 
@@ -411,7 +422,7 @@ plotresult <- function(saveFile, protein, summary, original) {
       }
       return (path_id)
     }
-    
+
     if(input$DDA_DIA == "TMT"){
       
       dataProcessPlotsTMT(preprocess_data(),
@@ -698,7 +709,7 @@ abundance <- eventReactive(input$update_results, {
                                        type = input$typequant,
                                        format = input$format,
                                        use_log_file = FALSE)
-  } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+  } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
     temp <- copy(preprocess_data())
     abundant$results <-quantification(temp$PTM,
                                       type = input$typequant,
