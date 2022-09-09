@@ -1,0 +1,58 @@
+---
+title: "MSstatsShiny Launch Instructions"
+author: "Devon Kohler (<kohler.d@northeastern.edu>)"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MSstatsPTM LabelFree Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width=8, 
+  fig.height=8
+)
+```
+
+This Vignette goes over how to launch the `MSstatsShiny` R shiny application. 
+
+## Installation
+
+To install this package, start R (version "4.0") and enter:
+
+``` {r, eval = FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("MSstatsShiny")
+```
+
+```{r, message=FALSE, warning=FALSE}
+library(MSstatsShiny)
+```
+
+## 1. Launch Function
+
+After installation, running the application is as simple as executing a single 
+command.
+
+```{r, eval = FALSE, message=FALSE, warning=FALSE}
+launch_MSstatsShiny()
+```
+
+Once this command is executed, the application will automatically start up in a 
+different window. You can still view any warnings or errors in the R console 
+where you ran the function. This can be helpful when debugging.
+
+## 2. Cloud Version
+
+`MSstatsShiny` is also available on the cloud at \url{www.msstatsshiny.com}. Due
+to RAM constraints, the cloud version of the application is limited to files 
+under 250 MB. Any larger files should be processed in a local instance of the 
+application.
+

@@ -1,0 +1,29 @@
+Package: MSstatsShiny
+Type: Package
+Title: Statistical Characterization of Post-translational Modifications
+Version: 0.99.0
+Date: 2022-09-09
+Description: MSstatsShiny is an R-Shiny graphical user interface (GUI) 
+  integrated with the R packages MSstats, MSstatsTMT, and MSstatsPTM. It 
+  provides a point and click end-to-end analysis pipeline applicable to a wide 
+  variety of experimental designs, including data-dependedent acquisitions (DDA)
+  which are label-free or tandem mass tag (TMT)-based, as well as DIA, SRM, and 
+  PRM acquisitions and those targeting post-translational modifications (PTMs). 
+  The application automatically saves users selections and builds an R script 
+  that recreates their analysis, supporting reproducible data analysis.
+Authors@R: c(
+    person("Devon", "Kohler", email = "kohler.d@northeastern.edu", role = c("aut", "cre")),
+    person("Olga", "Vitek", email = "o.vitek@northeastern.edu", role = "aut"))
+License: Artistic-2.0
+Depends: R (>= 4.2)
+Imports: shiny, shinyBS, shinyjs, shinybusy, tidyverse, data.table, MSstats, 
+  MSstatsTMT, MSstatsPTM, knitr, readxl, gplots, marray, ggrepel, plotly, 
+  Biobase, biomaRt, uuid
+Suggests: rmarkdown, tinytest
+VignetteBuilder: knitr
+biocViews: ImmunoOncology, MassSpectrometry, Proteomics, Software, 
+  DifferentialExpression, OneChannel, TwoChannel, Normalization, QualityControl
+BugReports: https://github.com/Vitek-Lab/MSstatsPTM/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.1
