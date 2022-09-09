@@ -52,7 +52,7 @@ observe({
     shinyjs::runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
     shinyjs::enable("filetype")
     shinyjs::disable(selector = "[type=radio][value=sky]")
-    shinyjs::disable(selector = "[type=radio][value=maxq]")
+    # shinyjs::disable(selector = "[type=radio][value=maxq]") ## MaxQ converter available for PTM
     shinyjs::disable(selector = "[type=radio][value=prog]")
     shinyjs::disable(selector = "[type=radio][value=PD]")
     shinyjs::disable(selector = "[type=radio][value=openms]")
@@ -110,12 +110,34 @@ get_annot2 <- reactive({
   
 })
 
+get_annot3 <- reactive({
+  annot3 <- input$annot3
+  if(is.null(input$annot3)) {
+    return(NULL)
+  }
+  annot3<-read.delim(annot3$datapath)
+  cat(file=stderr(), "Reached in ump annot\n")
+  return(annot3)
+  
+})
+
 get_evidence <- reactive({
   evidence <- input$evidence
   if(is.null(input$evidence)) {
     return(NULL)
   }
   evidence <- read.table(evidence$datapath, sep="\t", header=TRUE)
+  cat(file=stderr(), "Reached in evidence\n")
+  return(evidence)
+  
+})
+
+get_evidence2 <- reactive({
+  evidence2 <- input$evidence2
+  if(is.null(input$evidence2)) {
+    return(NULL)
+  }
+  evidence2 <- read.delim(evidence2$datapath)
   cat(file=stderr(), "Reached in evidence\n")
   return(evidence)
   
@@ -139,6 +161,16 @@ get_proteinGroups <- reactive({
   pGroup<-read.table(pGroup$datapath, sep="\t", header=TRUE)
   cat(file=stderr(), "Reached in proteins_group\n")
   return(pGroup)
+})
+
+get_proteinGroups2 <- reactive({
+  pGroup2 <- input$pGroup2
+  if(is.null(input$pGroup2)) {
+    return(NULL)
+  }
+  pGroup2<-read.delim(pGroup2$datapath)
+  cat(file=stderr(), "Reached in proteins_group\n")
+  return(pGroup2)
 })
 
 get_FragSummary <- reactive({
@@ -171,20 +203,32 @@ get_protSummary <- reactive({
   
 })
 
+get_maxq_ptm_sites = reactive({
+  maxq_ptm_sites <- input$maxq_ptm_sites
+  if(is.null(input$maxq_ptm_sites)) {
+    return(NULL)
+  }
+  maxq_ptm_sites <- read.delim(maxq_ptm_sites$datapath)
+  cat(file=stderr(), "Reached in maxq_ptm_sites\n")
+  return(maxq_ptm_sites)
+  
+})
+
 
 get_data <- eventReactive(input$proceed1, {
   show_modal_spinner()
   ev_maxq <- get_evidence()
   pg_maxq <- get_proteinGroups()
-  an_maxq <- get_annot1()
-  ev_maxq <- get_evidence()
-  pg_maxq <- get_proteinGroups()
+  ev_maxq2 <- get_evidence2()
+  pg_maxq2 <- get_proteinGroups2()
   an_maxq <- get_annot1()
   raw.frag <- get_FragSummary()
   raw.pep <- get_peptideSummary()
   raw.pro <- get_protSummary()
   annot2 <- get_annot2()
+  annot3 <- get_annot3()
   unmod <- get_global()
+  ptm_sites_data = get_maxq_ptm_sites()
 
   cat(file=stderr(), "Reached in get_data\n")
   
@@ -212,8 +256,24 @@ get_data <- eventReactive(input$proceed1, {
     
   }
   else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")){
-    data <- read.csv(input$data$datapath, header = T, sep = input$sep, stringsAsFactors=F)
-    mydata <- list("PTM" = data, "PROTEIN" = unmod)
+    if (input$filetype == 'maxq') {
+      
+      mydata <- MaxQtoMSstatsPTMFormat(ptm_sites_data,
+                                       annot3,
+                                       evidence=ev_maxq2, 
+                                       proteinGroups=pg_maxq2,
+                                       annotation.prot =annot3,
+                                       mod.num = input$mod.num,
+                                       TMT.keyword = input$TMT.keyword,
+                                       ptm.keyword = input$PTM.keyword)
+      print("Yes")
+      mydata$PROTEIN = as.data.table(mydata$PROTEIN)
+      print("No")
+
+    } else {
+      data <- read.csv(input$data$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+      mydata <- list("PTM" = data, "PROTEIN" = unmod)
+    }
   }
 
   else {
