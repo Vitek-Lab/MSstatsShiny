@@ -6,10 +6,14 @@
 #' @export
 #' @importFrom shiny runApp
 #' @return Running Shiny Application
+#' 
+#' @param launch_app One of TRUE or FALSE indicating wheter or not to run 
+#' application. Default is TRUE.
 #' @examples
 #' 
-#' #launch_MSstatsShiny()
-launch_MSstatsShiny = function(){
+#' launch_MSstatsShiny(launch_app=FALSE)
+#' 
+launch_MSstatsShiny = function(launch_app=TRUE){
   
   appDir <- system.file("MSstatsShiny", package = "MSstatsShiny")
   if (appDir == "") {
@@ -17,6 +21,8 @@ launch_MSstatsShiny = function(){
          call. = FALSE)
   }
   
-  runApp(appDir, display.mode = "normal")
+  if (launch_app){
+    runApp(appDir, display.mode = "normal")
+  }
   
 }
