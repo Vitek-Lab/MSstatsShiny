@@ -6,7 +6,7 @@ observe({
     sample_x = TRUE
     }
   else {
-    sample_x <- input$nsample
+    sample_x = input$nsample
     shinyjs::enable("nsample")
   }
    
@@ -15,13 +15,13 @@ observe({
     power_x = TRUE
     }
   else {
-    power_x <- input$power
+    power_x = input$power
     shinyjs::enable("power")
   }
-  FDR_x <- input$FDR
-  FCR_x <- input$desirFC
-  future_exp <- function(){
-    exp <- designSampleSize(data=data_comparison()$FittedModel,
+  FDR_x = input$FDR
+  FCR_x = input$desirFC
+  future_exp = function(){
+    exp = designSampleSize(data=data_comparison()$FittedModel,
                             desiredFC = input$desirFC,
                             FDR = FDR_x,
                             numSample = sample_x,
@@ -30,13 +30,13 @@ observe({
   
 #  plot output
   
-  output$result_plot <- renderPlot({
+  output$result_plot = renderPlot({
     designSampleSizePlots(future_exp())
   })
  
   #download
    
-  output$download_future <- downloadHandler(
+  output$download_future = downloadHandler(
     filename = "future_exp.pdf",
     content = function(file) {
       pdf(file)
@@ -46,7 +46,7 @@ observe({
   
 # hover
   
-  output$info <- renderText({
+  output$info = renderText({
     paste0(
       "hover: ", xy_str(input$plot_hover)
     )

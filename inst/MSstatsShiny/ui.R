@@ -19,11 +19,11 @@ if (FALSE) require("V8")
 
 # Global functions #
 
-radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hover", options = NULL){
+radioTooltip = function(id, choice, title, placement = "bottom", trigger = "hover", options = NULL){
   
   options = shinyBS:::buildTooltipOrPopoverOptionsList(title, placement, trigger, options)
   options = paste0("{'", paste(names(options), options, sep = "': '", collapse = "', '"), "'}")
-  bsTag <- shiny::tags$script(shiny::HTML(paste0("
+  bsTag = shiny::tags$script(shiny::HTML(paste0("
                                                  $(document).ready(function() {
                                                  setTimeout(function() {
                                                  $('input', $('#", id, "')).each(function(){
@@ -39,36 +39,13 @@ radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hov
   htmltools::attachDependencies(bsTag, shinyBS:::shinyBSDep)
 }
 
-
-# shinyjs.disableTab = function() {
-#   vartabs = $('tablist').find('li:not(.active) a');
-#   tabs.bind('click.tab', function(e) {
-#     e.preventDefault();
-#     return false;
-#   });
-#   tabs.addClass('disabled');
-# }
-# 
-# shinyjs.enableTab = function(param) {
-#   vartabs = $('tablist').find('li:not(.active):nth-child(' + param + ') a');
-#   tab.unbind('click.tab');
-#   tab.removeClass('disabled');
-# }
-
-
-
  ####################################
 
 source("panels/home-ui.R", local = T)
 source("panels/loadpage-ui.R", local = T)
-# source("panels/pipeline-ui.R", local = T)
 source("panels/qc-ui.R", local = T)
 source("panels/statmodel-ui.R", local = T)
-# 
 source("panels/expdes-ui.R", local = T)
-# #source("panels/analysis-ui.R", local = T)
-# #source("panels/clust-ui.R", local = T)
-# source("panels/report-ui.R", local = T)
 source("panels/help-ui.R", local = T)
 source("panels/msstats_help-ui.R", local = T)
 source("panels/msstatstmt_help-ui.R", local = T)
@@ -95,10 +72,10 @@ shinyjs.enableTab = function(value) {
 '
 
 if(!exists('currentTab') || is.null(currentTab)){
-  currentTab <- "Homepage"
+  currentTab = "Homepage"
 }
 
-css <- "
+css = "
 .disabled {
 background: #eee !important;
 cursor: default !important;
@@ -106,8 +83,8 @@ color: black !important;
 }
 "
 
-ui <- navbarPage(
-  title = "MSstats-Shiny",
+ui = navbarPage(
+  title = "MSstatsShiny",
   id = "tablist",
   selected = currentTab,
   
@@ -129,7 +106,6 @@ ui <- navbarPage(
   
   
   tabPanel("Homepage", icon = icon("home"), home),
-  # tabPanel("Run Pipeline", icon = icon("running"), pipeline),
   tabPanel("1. Data Uploading",value = "Uploaddata", icon = icon("send"), loadpage),
   tabPanel("2. Data Processing", value = "DataProcessing", icon = icon("gears"), qc),
   tabPanel("3. Statistical Inference", value = "StatsModel", icon = icon("magic"), statmodel),
@@ -142,7 +118,7 @@ ui <- navbarPage(
     ),
   inverse = T,
   collapsible = T,
-  windowTitle = "Shiny-MSstats"
+  windowTitle = "MSstatsShiny"
 )
 
 shinyUI(ui)

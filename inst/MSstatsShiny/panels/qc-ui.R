@@ -181,25 +181,14 @@ main = mainPanel(
     ),
     tabPanel("Summarization Plots",
              wellPanel(
-               conditionalPanel(condition = "input.DDA_DIA=='TMT' || input.PTMTMT == 'Yes'",
                                 selectInput("type1",
                                             label = h5("Select plot type", 
                                                        tipify(icon("question-circle"), 
                                                               title="For details on plotting options please see the Help tab.")), 
                                             c("Quality Control Plots"="QCPlot", 
-                                              "Profile Plots"="ProfilePlot"))),
-               conditionalPanel(condition = "input.DDA_DIA!=='TMT' && input.PTMTMT !== 'Yes'",
-                                selectInput("type2",
-                                            label = h5("Select plot type", 
-                                                       tipify(icon("question-circle"), 
-                                                              title="For details on plotting options please see the Help tab.")), 
-                                            c("Quality Control Plots"="QCPlot", 
-                                              "Profile Plots"="ProfilePlot",
-                                              "Condition Plots"="ConditionPlot"))),
-               conditionalPanel(condition = "input.type1==='ProfilePlot' || input.type2==='ProfilePlot'",
-                                checkboxInput("summ", "Show plot with summary")
-               ),
-               conditionalPanel(condition = "input.type2 === 'ProfilePlot' && input.DDA_DIA!=='TMT' && !input.summ",
+                                              "Profile Plots"="ProfilePlot")),
+               conditionalPanel(condition = "input.type1 === 'ProfilePlot'",
+                                checkboxInput("summ", "Show plot with summary"),
                                 selectInput("fname",  
                                             label = h5("Feature legend", 
                                                        tipify(icon("question-circle"),
@@ -207,14 +196,9 @@ main = mainPanel(
                                             c("Transition level"="Transition", 
                                               "Peptide level"="Peptide", 
                                               "No feature legend"="NA"))
+                                
                ),
-               conditionalPanel(condition = "input.type2 == 'ConditionPlot'",
-                                checkboxInput("cond_scale", "Scale conditional level at x-axis (unequal space at x-axis)", 
-                                              value = FALSE),
-                                radioButtons("interval", "width of error bar",
-                                             c("use Confidence Interval"="CI",
-                                               "use Standard Deviation"="SD"))
-               ),
+
                uiOutput("Which"),
                tags$br()
              ),
@@ -254,24 +238,7 @@ qc = fluidPage(
   use_busy_spinner(spin = "fading-circle"),
   tags$style(HTML('#proceed6{background-color:orange}')),
   headerPanel("Process and quantify data"),
-  p("Processing of the label-free data is performed through: (i) Log transformation, \
-    (ii) Normalization, (iii) Feature selection, (iv) Imputation for censored \
-    missing values, (v) Run-level summarization. Please choose the preprocessing \
-    parameters in the side panel and then Run. More information on the quantification step can be found ", 
-    a("here", href="https://rdrr.io/bioc/MSstats/man/dataProcess.html", target="_blank"), 
-    "for label free"),
-  p("Processing (Protein summarization) of the isobaric labeling data is performed through:  \ 
-  (i) Log transformation, (ii) Feature-level global normalization, (iii) Imputation  \ 
-  for censored missing values, (iv) Protein-level local normalization, (v) Channel-level \
-  summarization. Please choose the summarization parameters in the side panel and then Run. \
-    More information on the quantification step can be found ", 
-    a("here", href="https://rdrr.io/bioc/MSstatsTMT/man/proteinSummarization.html", target="_blank"),
-    " for TMT."),
-  p("Quality of data can be assessed in the plot tab of the main panel."),
-  p("Quantification data will be used to build a statistical model \
-     to evaluate the changes in protein expression."),
-  p("You must upload your data in the `Upload data` tab before completing \
-    this step"),
+  p("Feature summarization and missing value imputation. Includes options for vizualizing summarization through data tables and multiple plots. All outputs are available to download in 'csv' format."),
   tags$br(),
   sbp_params,
   column(width = 8,

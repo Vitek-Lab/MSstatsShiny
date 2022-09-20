@@ -32,7 +32,8 @@ input$DDA_DIA = "LF"
 
 ## Test that calculation is correct
 data("dia_skyline_summarized", package = "MSstatsShiny")
-summarization_lf_test = lf_summarization_loop(testdata, busy_indicator = FALSE)
+summarization_lf_test = lf_summarization_loop(testdata, input, 
+                                              busy_indicator = FALSE)
 expect_equal(dia_skyline_summarized, summarization_lf_test)
 
 ## Test modeling function
@@ -50,8 +51,8 @@ expect_equal(dia_skyline_model, model_lf_test)
 data(raw.pd, package = "MSstatsTMT")
 data(annotation.pd, package = "MSstatsTMT")
 
-testdata <- MSstatsTMT::PDtoMSstatsTMTFormat(input = raw.pd, 
-                               annotation = annotation.pd,
+testdata <- MSstatsTMT::PDtoMSstatsTMTFormat(raw.pd, 
+                               annotation.pd,
                                use_log_file = FALSE
 )
 
@@ -75,19 +76,21 @@ input$global_norm = TRUE
 input$reference_norm = TRUE
 input$remove_norm_channel = TRUE
 input$maxQC1 = NULL
+input$moderated = FALSE
 
 ## Test that calculation is correct
-summarization_tmt_test = tmt_summarization_loop(testdata, busy_indicator = FALSE)
+summarization_tmt_test = tmt_summarization_loop(testdata, input, 
+                                                busy_indicator = FALSE)
 data("tmt_pd_summarized", package = "MSstatsShiny")
-expect_equal(summarization_tmt_test, tmt_pd_summarized)
+expect_equal(summarization_tmt_test$ProteinLevelData, 
+             tmt_pd_summarized$ProteinLevelData)
 
 ## Test modeling function
 comparison=matrix(c(-1,0,0,1),nrow=1)
 row.names(comparison) = "1-0.125"
 colnames(comparison) = c("0.125", "0.5", "0.667", "1")
-input$moderated = FALSE
 
-model_tmt_test = tmt_model(summarization_tmt_test, comparison, 
+model_tmt_test = tmt_model(summarization_tmt_test, input, comparison, 
                          busy_indicator = FALSE)
 data("tmt_pd_model", package = "MSstatsShiny")
 expect_equal(tmt_pd_model$ComparisonResult, model_tmt_test$ComparisonResult)

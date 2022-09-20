@@ -6,6 +6,14 @@
 \usage{
 lf_model(data, contrast.matrix, busy_indicator = TRUE)
 }
+\arguments{
+\item{data}{summarized data from output of MSstats summarization function.}
+
+\item{contrast.matrix}{contrast matrix specifying which conditions should be compared}
+
+\item{busy_indicator}{Boolean indicator indicating whether or not to display
+shiny waiting indicator.}
+}
 \value{
 list of LF modeling results
 }
@@ -13,6 +21,8 @@ list of LF modeling results
 Main LF function to model MSstatsShiny data.
 }
 \examples{
-#lf_model(NULL)
+data("dia_skyline_model")
+names(dia_skyline_model)
+head(dia_skyline_model$ComparisonResult)
 
 }

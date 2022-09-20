@@ -56,3 +56,10 @@ to RAM constraints, the cloud version of the application is limited to files
 under 250 MB. Any larger files should be processed in a local instance of the 
 application.
 
+## 3. Session Info
+
+```{r}
+sessioninfo::session_info()
+```
+
+

@@ -4,7 +4,15 @@
 \alias{tmt_summarization_loop}
 \title{Main TMT summarization calculation function for MSstatsShiny application}
 \usage{
-tmt_summarization_loop(data, busy_indicator = TRUE)
+tmt_summarization_loop(data, input, busy_indicator = TRUE)
+}
+\arguments{
+\item{data}{Data converted into MSstats format.}
+
+\item{input}{options for data processing input by the user}
+
+\item{busy_indicator}{Boolean indicator indicating whether or not to display
+shiny waiting indicator.}
 }
 \value{
 list of TMT summarization results
@@ -13,5 +21,8 @@ list of TMT summarization results
 Main TMT function to calculate MSstatsShiny results.
 }
 \examples{
-NULL
+data("tmt_pd_summarized")
+names(tmt_pd_summarized)
+head(tmt_pd_summarized$ProteinLevelData)
+
 }

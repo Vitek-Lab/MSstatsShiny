@@ -1,11 +1,8 @@
 help = fluidPage(
   h4(HTML('<b>General Documentation</b>')),
   tags$br(),
-  p("This web application is based on the R package MSstats and MSstatsTMT.  It \
-    does not require any software from the user, only a web browser to access \
-    it.  The data accepted by the application can be derived from labelled SRM \
-    (Selected Reaction Monitoring) experiments or label-free DDA (Data \
-    Dependent Acquisition) or DIA (Data Independent Acquisition). " ),
+  p("This application is based on the R packages MSstats, MSstatsTMT, and \
+  MSstatsPTM." ),
   tags$br(),
   h5(HTML('<b>Tab: Upload Data</b>')),
   p("MSstats takes input data in a tabular .csv format derived from any \
@@ -55,7 +52,6 @@ help = fluidPage(
   tags$ul(
     tags$li("QC plot: to visualise systematic biases between runs and to view the effects of normalisation"),
     tags$li("Profile plot: to identify potential sources of variation (individual measurements per protein and summarised data) and show missing data"),
-    tags$li("Condition plot: to visualise potential differences in protein intensities between conditions (shown with arbitrary confidence interval or standard deviation bars).")
   ),
   tags$br(),
   h5(HTML('<b>Tab : Statistical Model</b>')),
@@ -69,8 +65,8 @@ help = fluidPage(
   tags$br(),
   p("The results of the group comparisons may be visualised with:"),
   tags$ul(
-    tags$li("Vulcano plot: to show the comparison between groups and the significance of the difference (adjusted p-value on the y axis): in red are the unregulated proteins, in blue the down regulated ones.  An horizontal line signals the false discovery rate cutoff (proteins above the line are statistically significant).  Each comparison has its own plot."),
-    tags$li("Heat map: to view the patterns of regulation of proteins (rows) in the comparisons (columns).  Max 180 proteins will be shown for heat map.  "),
+    tags$li("Volcano plot: to show the comparison between groups and the significance of the difference (adjusted p-value on the y axis): in red are the unregulated proteins, in blue the down regulated ones.  An horizontal line signals the false discovery rate cutoff (proteins above the line are statistically significant).  Each comparison has its own plot."),
+    tags$li("Heatmap: to view the patterns of regulation of proteins (rows) in the comparisons (columns).  Max 180 proteins will be shown for heat map.  "),
     tags$li("Comparison plot: to show log-fold changes in the different comparisons for each protein.")
   ),
   tags$br(),

@@ -4,7 +4,17 @@
 \alias{tmt_model}
 \title{Main TMT modeling function for MSstatsShiny application}
 \usage{
-tmt_model(data, contrast.matrix, busy_indicator = TRUE)
+tmt_model(data, input, contrast.matrix, busy_indicator = TRUE)
+}
+\arguments{
+\item{data}{summarized data from output of MSstats summarization function.}
+
+\item{input}{options for data processing input by the user}
+
+\item{contrast.matrix}{contrast matrix specifying which conditions should be compared}
+
+\item{busy_indicator}{Boolean indicator indicating whether or not to display
+shiny waiting indicator.}
 }
 \value{
 list of TMT modeling results
@@ -13,6 +23,8 @@ list of TMT modeling results
 Main TMT function to model MSstatsShiny data.
 }
 \examples{
-#tmt_model(NULL)
+data("tmt_pd_model")
+names(tmt_pd_model)
+head(tmt_pd_model$ComparisonResult)
 
 }

@@ -17,7 +17,7 @@ if (FALSE) require("V8")
 
 ###### global functions ###########
 
-xy_str <- function(e) {
+xy_str = function(e) {
   if(is.null(e)) return("NULL\n")
   paste0("x=", round(e$x, 1), " y=", round(e$y, 1), "\n")
 }
@@ -71,19 +71,19 @@ shinyServer(function(input, output, session) {
   # # report
   # source("panels/report-server.R", local = T)
   
-  statmodel<- reactiveFileReader(1000, session, "panels/statmodel-ui.R", source)
-  output$statmodel <- renderUI(statmodel())
+  statmodel= reactiveFileReader(1000, session, "panels/statmodel-ui.R", source)
+  output$statmodel = renderUI(statmodel())
  
   observe({
-    # currentTab <- input$tablist
+    # currentTab = input$tablist
     # updateTabsetPanel(session = session, inputId = "tablist", selected = currentTab)
     
-    if(input$DDA_DIA=="TMT"){
+    if(input$DDA_DIA %in% c("TMT", "PTM")){
       hideTab(inputId = "tablist", target = "PQ")
       hideTab(inputId = "tablist", target = "Future")
     }
     
-    if(input$DDA_DIA!="TMT"){
+    if(!(input$DDA_DIA %in% c("TMT", "PTM"))){
       showTab(inputId = "tablist", target = "PQ")
       showTab(inputId = "tablist", target = "Future")
     }

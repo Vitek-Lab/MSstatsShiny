@@ -4,7 +4,15 @@
 \alias{lf_summarization_loop}
 \title{Main LF calculation summarization function for MSstatsShiny application}
 \usage{
-lf_summarization_loop(data, busy_indicator = TRUE)
+lf_summarization_loop(data, input, busy_indicator = TRUE)
+}
+\arguments{
+\item{data}{Data converted into MSstats format.}
+
+\item{input}{options for data processing input by the user}
+
+\item{busy_indicator}{Boolean indicator indicating whether or not to display
+shiny waiting indicator.}
 }
 \value{
 list of LF Summarization results
@@ -13,6 +21,8 @@ list of LF Summarization results
 Main LF function to calculate MSstatsShiny results.
 }
 \examples{
+data("example_dia_skyline")
+data("example_skyline_annotation")
 testdata = MSstats::SkylinetoMSstatsFormat(example_dia_skyline,
                                             annotation = example_skyline_annotation,
                                             filter_with_Qvalue = TRUE, 
@@ -37,6 +47,6 @@ input$null = FALSE
 input$null1 = FALSE
 input$DDA_DIA = "LF"
 
-lf_summarization_loop(testdata, busy_indicator=FALSE))
+lf_summarization_loop(testdata, input, busy_indicator=FALSE)
 
 }

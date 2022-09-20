@@ -19,6 +19,7 @@ run automatically.
 }
 \examples{
 
+## To run app set launch_app=TRUE
 launch_MSstatsShiny(launch_app=FALSE)
 
 }

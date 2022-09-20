@@ -11,11 +11,12 @@
 #' application. Default is TRUE.
 #' @examples
 #' 
+#' ## To run app set launch_app=TRUE
 #' launch_MSstatsShiny(launch_app=FALSE)
 #' 
 launch_MSstatsShiny = function(launch_app=TRUE){
   
-  appDir <- system.file("MSstatsShiny", package = "MSstatsShiny")
+  appDir = system.file("MSstatsShiny", package = "MSstatsShiny")
   if (appDir == "") {
     stop("Could not find application folder. Try re-installing `MSstatsShiny`.", 
          call. = FALSE)

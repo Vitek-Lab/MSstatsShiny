@@ -251,8 +251,8 @@ data_comparison = eventReactive(input$calculate, {
   
   print(matrix_build())
   if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
-    model_ptm = tmt_model(input_data$PTM, contrast.matrix)
-    model_protein = tmt_model(input_data$PROTEIN, contrast.matrix)
+    model_ptm = tmt_model(input_data$PTM, input, contrast.matrix)
+    model_protein = tmt_model(input_data$PROTEIN, input, contrast.matrix)
     model_adj = apply_adj(model_ptm$ComparisonResult,
                           model_protein$ComparisonResult)
     model = list('PTM.Model' = model_ptm$ComparisonResult, 
@@ -269,7 +269,7 @@ data_comparison = eventReactive(input$calculate, {
                  'ADJUSTED.Model' = model_adj)
     
   } else if(input$DDA_DIA=="TMT"){
-    model = tmt_model(input_data, contrast.matrix)
+    model = tmt_model(input_data, input, contrast.matrix)
   }
   else{
     model = lf_model(input_data, contrast.matrix)
@@ -281,53 +281,57 @@ data_comparison = eventReactive(input$calculate, {
 data_comparison_code = eventReactive(input$calculate, { 
   
   codes = preprocess_data_code()
+  comp.mat = matrix_build()
+  
+  codes = paste(codes, "\n# Create the contrast matrix\n", sep = "")
+  codes = paste(codes, "contrast.matrix = NULL\n", sep = "")
+  for(i in 1:nrow(comp.mat)){
+    codes = paste(codes, "comparison = matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
+    codes = paste(codes, "contrast.matrix = rbind(contrast.matrix, comparison)\n", sep = "")
+    
+  }
+  
+  codes = paste(codes, "row.names(contrast.matrix)=c(\"", paste(row.names(comp.mat), collapse='","'),"\")\n", sep = "")
+  codes = paste(codes, "colnames(contrast.matrix)=c(\"", paste(colnames(comp.mat), collapse='","'),"\")\n", sep = "")
   
   if(input$DDA_DIA == "TMT"){
-    
-    comp.mat = matrix_build()
-    
-    codes = paste(codes, "\n# Create the contrast matrix\n", sep = "")
-    codes = paste(codes, "contrast.matrix = NULL\n", sep = "")
-    for(i in 1:nrow(comp.mat)){
-      codes = paste(codes, "comparison = matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
-      codes = paste(codes, "contrast.matrix = rbind(contrast.matrix, comparison)\n", sep = "")
-      
-    }
-    
-    codes = paste(codes, "row.names(contrast.matrix)=c(\"", paste(row.names(comp.mat), collapse='","'),"\")\n", sep = "")
-    codes = paste(codes, "colnames(contrast.matrix)=c(\"", paste(colnames(comp.mat), collapse='","'),"\")\n", sep = "")
-
     codes = paste(codes, "\n# Model-based comparison\n", sep = "")
-    codes = paste(codes,"model = MSstatsTMT:::groupComparisonTMT(summarized,
+    codes = paste(codes,"model = MSstatsTMT::groupComparisonTMT(summarized,
                    contrast.matrix = contrast.matrix,
                    moderated = ", input$moderated,",\t\t\t\t   
                    adj.method = \"BH\",
                    remove_norm_channel = TRUE,
                    remove_empty_channel = TRUE
                    )\n", sep = "")
+  } else if (input$DDA_DIA == "PTM"){
+    if (input$PTMTMT == "Yes"){
+      dt = "TMT"
+    } else {
+      dt = "LabelFree"
+    }
+    codes = paste(codes, "\n# Model-based comparison\n", sep = "")
+    codes = paste(codes,"model = MSstatsPTM::groupComparisonPTM(summarized, '", 
+                  dt, "', \t\t\t\t   
+                  contrast.matrix = contrast.matrix)\n", sep = "")
   }
   else{
-    comp.mat = matrix_build()
-    codes = paste(codes, "\n# Create the contrat matrix\n", sep = "")
-    codes = paste(codes, "contrast.matrix = NULL\n", sep = "")
-    for(i in 1:nrow(comp.mat)){
-      codes = paste(codes, "comparison = matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
-      codes = paste(codes, "contrast.matrix = rbind(contrast.matrix, comparison)\n", sep = "")
-      
-    }
-    
-    codes = paste(codes, "row.names(contrast.matrix)=c(\"", paste(row.names(comp.mat), collapse='","'),"\")\n", sep = "")
-    codes = paste(codes, "colnames(contrast.matrix)=c(\"", paste(colnames(comp.mat), collapse='","'),"\")\n", sep = "")
-    
+
     codes = paste(codes, "\n# Model-based comparison\n", sep = "")
-    codes = paste(codes,"model = MSstats:::groupComparison(contrast.matrix, summarized)\n", sep = "")
+    codes = paste(codes,"model = MSstats::groupComparison(contrast.matrix, summarized)\n", sep = "")
   }
-  
-  codes = paste(codes, "groupComparisonPlots(data=model$ComparisonResult,
-                         type=\"Enter VolcanoPlot, Heatmap, or ComparisonPlot\",
-                         which.Comparison=\"all\",
-                         which.Protein=\"all\",
-                         address=\"\")\n", sep="")
+  if (input$DDA_DIA == "PTM"){
+    codes = paste(codes, "groupComparisonPlotsPTM(data=model,
+                           type=\"Enter VolcanoPlot, Heatmap, or ComparisonPlot\",
+                           which.Comparison=\"all\",
+                           which.PTM=\"all\",
+                           address=\"\")\n", sep="")
+  } else {
+    codes = paste(codes, "groupComparisonPlots(data=model$ComparisonResult,
+                           type=\"Enter VolcanoPlot, Heatmap, or ComparisonPlot\",
+                           which.Comparison=\"all\",
+                           which.Protein=\"all\",
+                           address=\"\")\n", sep="")
+  }
   
   return(codes)
 })

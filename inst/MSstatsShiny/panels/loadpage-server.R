@@ -75,8 +75,8 @@ observeEvent(input$filetype,{
 
 ### functions ###
 
-get_annot <- eventReactive(input$proceed1, {
-  annot <- input$annot
+get_annot = eventReactive(input$proceed1, {
+  annot = input$annot
   if(is.null(annot)) {
     return(NULL)
   }
@@ -84,150 +84,150 @@ get_annot <- eventReactive(input$proceed1, {
   {
     return(MSstatsTMT::annotation.pd)
   }
-  annot_file <- read.csv(annot$datapath)
+  annot_file = read.csv(annot$datapath)
   return(annot_file)
 })
 
-get_annot1 <- reactive({
-  annot1 <- input$annot1
+get_annot1 = reactive({
+  annot1 = input$annot1
   if(is.null(input$annot1)) {
     return(NULL)
   }
-  annot1<-read.csv(annot1$datapath, header = T)
+  annot1=read.csv(annot1$datapath, header = T)
   cat(file=stderr(), "Reached in maxq annot\n")
   return(annot1)
   
 })
 
-get_annot2 <- reactive({
-  annot1 <- input$annot2
+get_annot2 = reactive({
+  annot1 = input$annot2
   if(is.null(input$annot2)) {
     return(NULL)
   }
-  annot2<-read.csv(annot1$datapath, header = T)
+  annot2=read.csv(annot1$datapath, header = T)
   cat(file=stderr(), "Reached in ump annot\n")
   return(annot2)
   
 })
 
-get_annot3 <- reactive({
-  annot3 <- input$annot3
+get_annot3 = reactive({
+  annot3 = input$annot3
   if(is.null(input$annot3)) {
     return(NULL)
   }
-  annot3<-read.delim(annot3$datapath)
+  annot3=read.delim(annot3$datapath)
   cat(file=stderr(), "Reached in ump annot\n")
   return(annot3)
   
 })
 
-get_evidence <- reactive({
-  evidence <- input$evidence
+get_evidence = reactive({
+  evidence = input$evidence
   if(is.null(input$evidence)) {
     return(NULL)
   }
-  evidence <- read.table(evidence$datapath, sep="\t", header=TRUE)
+  evidence = read.table(evidence$datapath, sep="\t", header=TRUE)
   cat(file=stderr(), "Reached in evidence\n")
   return(evidence)
   
 })
 
-get_evidence2 <- reactive({
-  evidence2 <- input$evidence2
+get_evidence2 = reactive({
+  evidence2 = input$evidence2
   if(is.null(input$evidence2)) {
     return(NULL)
   }
-  evidence2 <- read.delim(evidence2$datapath)
+  evidence2 = read.delim(evidence2$datapath)
   cat(file=stderr(), "Reached in evidence\n")
-  return(evidence)
+  return(evidence2)
   
 })
 
-get_global <- reactive({
-  unmod <- input$unmod
+get_global = reactive({
+  unmod = input$unmod
   if(is.null(input$unmod)) {
     return(NULL)
   }
-  unmod <- read.csv(unmod$datapath, sep=",", header=TRUE, stringsAsFactors=F)
+  unmod = read.csv(unmod$datapath, sep=",", header=TRUE, stringsAsFactors=F)
   cat(file=stderr(), "Reached in unmod\n")
   return(unmod)
   
 })
-get_proteinGroups <- reactive({
-  pGroup <- input$pGroup
+get_proteinGroups = reactive({
+  pGroup = input$pGroup
   if(is.null(input$pGroup)) {
     return(NULL)
   }
-  pGroup<-read.table(pGroup$datapath, sep="\t", header=TRUE)
+  pGroup=read.table(pGroup$datapath, sep="\t", header=TRUE)
   cat(file=stderr(), "Reached in proteins_group\n")
   return(pGroup)
 })
 
-get_proteinGroups2 <- reactive({
-  pGroup2 <- input$pGroup2
+get_proteinGroups2 = reactive({
+  pGroup2 = input$pGroup2
   if(is.null(input$pGroup2)) {
     return(NULL)
   }
-  pGroup2<-read.delim(pGroup2$datapath)
+  pGroup2=read.delim(pGroup2$datapath)
   cat(file=stderr(), "Reached in proteins_group\n")
   return(pGroup2)
 })
 
-get_FragSummary <- reactive({
-  fragSummary <- input$fragSummary
+get_FragSummary = reactive({
+  fragSummary = input$fragSummary
   if(is.null(input$fragSummary)) {
     return(NULL)
   }
-  fragSummary <- read.table(fragSummary$datapath, sep="\t", header=TRUE)
+  fragSummary = read.table(fragSummary$datapath, sep="\t", header=TRUE)
   return(fragSummary)
   
 })
 
-get_peptideSummary <- reactive({
-  peptideSummary <- input$peptideSummary
+get_peptideSummary = reactive({
+  peptideSummary = input$peptideSummary
   if(is.null(input$peptideSummary)) {
     return(NULL)
   }
-  peptideSummary <- read.table(peptideSummary$datapath, sep="\t", header=TRUE)
+  peptideSummary = read.table(peptideSummary$datapath, sep="\t", header=TRUE)
   return(peptideSummary)
   
 })
 
-get_protSummary <- reactive({
-  protSummary <- input$protSummary
+get_protSummary = reactive({
+  protSummary = input$protSummary
   if(is.null(input$protSummary)) {
     return(NULL)
   }
-  protSummary <- read.table(protSummary$datapath, sep="\t", header=TRUE)
+  protSummary = read.table(protSummary$datapath, sep="\t", header=TRUE)
   return(protSummary)
   
 })
 
 get_maxq_ptm_sites = reactive({
-  maxq_ptm_sites <- input$maxq_ptm_sites
+  maxq_ptm_sites = input$maxq_ptm_sites
   if(is.null(input$maxq_ptm_sites)) {
     return(NULL)
   }
-  maxq_ptm_sites <- read.delim(maxq_ptm_sites$datapath)
+  maxq_ptm_sites = read.delim(maxq_ptm_sites$datapath)
   cat(file=stderr(), "Reached in maxq_ptm_sites\n")
   return(maxq_ptm_sites)
   
 })
 
 
-get_data <- eventReactive(input$proceed1, {
+get_data = eventReactive(input$proceed1, {
   show_modal_spinner()
-  ev_maxq <- get_evidence()
-  pg_maxq <- get_proteinGroups()
-  ev_maxq2 <- get_evidence2()
-  pg_maxq2 <- get_proteinGroups2()
-  an_maxq <- get_annot1()
-  raw.frag <- get_FragSummary()
-  raw.pep <- get_peptideSummary()
-  raw.pro <- get_protSummary()
-  annot2 <- get_annot2()
-  annot3 <- get_annot3()
-  unmod <- get_global()
+  ev_maxq = get_evidence()
+  pg_maxq = get_proteinGroups()
+  ev_maxq2 = get_evidence2()
+  pg_maxq2 = get_proteinGroups2()
+  an_maxq = get_annot1()
+  raw.frag = get_FragSummary()
+  raw.pep = get_peptideSummary()
+  raw.pro = get_protSummary()
+  annot2 = get_annot2()
+  annot3 = get_annot3()
+  unmod = get_global()
   ptm_sites_data = get_maxq_ptm_sites()
 
   cat(file=stderr(), "Reached in get_data\n")
@@ -238,56 +238,62 @@ get_data <- eventReactive(input$proceed1, {
   }
   if(input$filetype == 'sample') {
     if(input$DDA_DIA == "SRM_PRM") {
-      mydata <- SRM_yeast
+      mydata = SRM_yeast
     }
     else if(input$DDA_DIA == "DDA") {
-      mydata <- DDARawData
+      mydata = DDARawData
     }
     else if(input$DDA_DIA == "DIA"){
-      mydata <- read.csv("dataset.csv", header = T, sep = ";")
+      mydata = read.csv("dataset.csv", header = T, sep = ";")
     }
     else if(input$DDA_DIA == "TMT"){
-      mydata <- PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd, 
+      mydata = PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd, 
                                      annotation = MSstatsTMT::annotation.pd,
                                      which.proteinid = input$which.proteinid, #"Protein.Accessions"
                                      use_log_file = FALSE
       )
     }
-    
+    else if (input$DDA_DIA == "PTM"){
+      if (input$PTMTMT == "No"){
+        mydata = MSstatsPTM::raw.input
+      } else {
+        mydata = MSstatsPTM::raw.input.tmt
+      }
+    }
   }
   else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")){
     if (input$filetype == 'maxq') {
-      
-      mydata <- MaxQtoMSstatsPTMFormat(ptm_sites_data,
-                                       annot3,
-                                       evidence=ev_maxq2, 
-                                       proteinGroups=pg_maxq2,
-                                       annotation.prot =annot3,
-                                       mod.num = input$mod.num,
-                                       TMT.keyword = input$TMT.keyword,
-                                       ptm.keyword = input$PTM.keyword)
-      print("Yes")
+      print(head(ev_maxq2))
+      mydata = MSstatsPTM::MaxQtoMSstatsPTMFormat(ptm_sites_data,
+                                      annot3,
+                                      evidence=ev_maxq2, 
+                                      proteinGroups=pg_maxq2,
+                                      annotation.prot=annot3,
+                                      mod.num=input$mod.num,
+                                      TMT.keyword=input$TMT.keyword,
+                                      ptm.keyword=input$PTM.keyword)
       mydata$PROTEIN = as.data.table(mydata$PROTEIN)
-      print("No")
 
     } else {
-      data <- read.csv(input$data$datapath, header = T, sep = input$sep, stringsAsFactors=F)
-      mydata <- list("PTM" = data, "PROTEIN" = unmod)
+      data = read.csv(input$data$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+      mydata = list("PTM" = data, "PROTEIN" = unmod)
     }
   }
-
+  else if (input$filetype == "msstats"){
+    mydata = read.csv(input$data$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+  }
   else {
     if(input$filetype=='spec' || input$filetype=='spmin'){
-      infile <- input$data1
+      infile = input$data1
     }
     else if(input$filetype=='phil'){
       #print(input$folder$datapath)
-      extracted.files <- unzip(input$folder$datapath, list = TRUE)
+      extracted.files = unzip(input$folder$datapath, list = TRUE)
       unzip(input$folder$datapath, list = FALSE)
-      infile <- paste0("./", str_split(extracted.files$Name[1], "/")[[1]][[1]])
+      infile = paste0("./", str_split(extracted.files$Name[1], "/")[[1]][[1]])
     }
     else{
-      infile <- input$data
+      infile = input$data
     }
     
     
@@ -311,23 +317,23 @@ get_data <- eventReactive(input$proceed1, {
     # }
     
     if(input$filetype == '10col') {
-      mydata <- read.csv(infile$datapath, header = T, sep = input$sep)
+      mydata = read.csv(infile$datapath, header = T, sep = input$sep)
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
-      data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+      data = read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
       
       if(input$DDA_DIA=="DDA" ){
-        data <- data[which(data$Fragment.Ion %in% c( "precursor", "precursor [M+1]","precursor [M+2]")), ]
+        data = data[which(data$Fragment.Ion %in% c( "precursor", "precursor [M+1]","precursor [M+2]")), ]
         
-        mydata <- SkylinetoMSstatsFormat(data,
+        mydata = SkylinetoMSstatsFormat(data,
                                          annotation = get_annot(),
                                          fewMeasurements="remove",
                                          removeProtein_with1Feature = input$remove,
                                          use_log_file = FALSE)
       }
       else if(input$DDA_DIA=="DIA"){
-        mydata <- SkylinetoMSstatsFormat(data,
+        mydata = SkylinetoMSstatsFormat(data,
                                          annotation = get_annot(),
                                          filter_with_Qvalue = TRUE, 
                                          qvalue_cutoff = 0.01, 
@@ -337,8 +343,8 @@ get_data <- eventReactive(input$proceed1, {
         
       }
       else if(input$DDA_DIA=="SRM_PRM") {
-        # mydata <- data
-        mydata <- SkylinetoMSstatsFormat(data,
+        # mydata = data
+        mydata = SkylinetoMSstatsFormat(data,
                                          annotation = get_annot(),
                                          filter_with_Qvalue = TRUE, 
                                          qvalue_cutoff = 0.01, 
@@ -351,14 +357,14 @@ get_data <- eventReactive(input$proceed1, {
     else if(input$filetype == 'maxq') {
       cat(file=stderr(), "Reached in maxq\n")
       if(input$DDA_DIA=="TMT"){
-        mydata <- MaxQtoMSstatsTMTFormat(evidence=ev_maxq, 
+        mydata = MaxQtoMSstatsTMTFormat(evidence=ev_maxq, 
                                          annotation=an_maxq,
                                          proteinGroups=pg_maxq,
                                          use_log_file = FALSE)
         
       }
       else{
-        mydata <- MaxQtoMSstatsFormat(evidence= ev_maxq, annotation= an_maxq, proteinGroups= pg_maxq,
+        mydata = MaxQtoMSstatsFormat(evidence= ev_maxq, annotation= an_maxq, proteinGroups= pg_maxq,
                                       useUniquePeptide = TRUE,
                                       summaryforMultipleRows = max,
                                       removeProtein_with1Peptide=input$remove,
@@ -368,37 +374,37 @@ get_data <- eventReactive(input$proceed1, {
     }
     else if(input$filetype == 'prog') {
       cat(file=stderr(), "Reached in prog\n")
-      data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+      data = read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
       
-      mydata <- ProgenesistoMSstatsFormat(data, annotation = get_annot(), 
+      mydata = ProgenesistoMSstatsFormat(data, annotation = get_annot(), 
                                           removeProtein_with1Peptide = TRUE,
                                           use_log_file = FALSE)
-      colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] <- 'PeptideSequence'
+      colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] = 'PeptideSequence'
     }
     else if(input$filetype == 'PD') {
       
       if(input$DDA_DIA=="TMT"){
 
-        data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
-        mydata <- PDtoMSstatsTMTFormat(input = data, 
+        data = read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+        mydata = PDtoMSstatsTMTFormat(input = data, 
                                        annotation = get_annot(),
                                        which.proteinid = input$which.proteinid, ## same as default
                                        use_log_file = FALSE
         )
       }
       else{
-        data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
-        mydata <- PDtoMSstatsFormat(data, annotation = get_annot(), 
+        data = read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+        mydata = PDtoMSstatsFormat(data, annotation = get_annot(), 
                                     removeProtein_with1Peptide = input$remove,
                                     use_log_file = FALSE)
-        colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] <- 'PeptideSequence'
+        colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] = 'PeptideSequence'
       }
       
     }
     else if(input$filetype == 'spec') {
 
-      data <- read.csv(infile$datapath, sep = "\t")
-      mydata <- SpectronauttoMSstatsFormat(data,
+      data = read.csv(infile$datapath, sep = "\t")
+      mydata = SpectronauttoMSstatsFormat(data,
                                            annotation = get_annot(),
                                            filter_with_Qvalue = TRUE, ## same as default
                                            qvalue_cutoff = 0.01, ## same as default
@@ -407,8 +413,8 @@ get_data <- eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'open') {
-      data <- read.csv(infile$datapath, header = T, sep = input$sep)
-      mydata <-OpenSWATHtoMSstatsFormat(data,
+      data = read.csv(infile$datapath, header = T, sep = input$sep)
+      mydata =OpenSWATHtoMSstatsFormat(data,
                                         annotation = get_annot(),
                                         filter_with_mscore = TRUE, ## same as default
                                         mscore_cutoff = 0.01, ## same as default
@@ -418,14 +424,14 @@ get_data <- eventReactive(input$proceed1, {
     }
     else if(input$filetype == 'openms') {
       if(input$DDA_DIA=="TMT"){
-        data <- read.csv(infile$datapath, header = T, sep = input$sep)
-        mydata <- OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)
+        data = read.csv(infile$datapath, header = T, sep = input$sep)
+        mydata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)
         
       }
       else{
-        data <- read.csv(infile$datapath, header = T, sep = input$sep)
+        data = read.csv(infile$datapath, header = T, sep = input$sep)
         unique(data[, c('Run', 'BioReplicate', 'Condition')])
-        mydata <-OpenMStoMSstatsFormat(data,
+        mydata =OpenMStoMSstatsFormat(data,
                                        removeProtein_with1Feature=TRUE,
                                        use_log_file = FALSE)
         
@@ -433,9 +439,9 @@ get_data <- eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'ump') {
-      #data <- read.csv(infile$datapath, header = T, sep = input$sep)
+      #data = read.csv(infile$datapath, header = T, sep = input$sep)
       #unique(data[, c('Run', 'BioReplicate', 'Condition')])
-      mydata <- DIAUmpiretoMSstatsFormat(raw.frag, raw.pep, raw.pro,
+      mydata = DIAUmpiretoMSstatsFormat(raw.frag, raw.pep, raw.pro,
                                          annot2,
                                          useSelectedFrag = TRUE,
                                          useSelectedPep = FALSE,
@@ -443,12 +449,12 @@ get_data <- eventReactive(input$proceed1, {
                                          use_log_file = FALSE)
     }
     else if(input$filetype == 'spmin') {
-      data <- read.csv(infile$datapath, sep="\t")
-      mydata <- SpectroMinetoMSstatsTMTFormat(data, get_annot(),
+      data = read.csv(infile$datapath, sep="\t")
+      mydata = SpectroMinetoMSstatsTMTFormat(data, get_annot(),
                                               use_log_file = FALSE)
     }
     else if(input$filetype == 'phil') {
-      mydata <- PhilosophertoMSstatsTMTFormat(path = infile, folder = TRUE, annotation = get_annot(),
+      mydata = PhilosophertoMSstatsTMTFormat(path = infile, folder = TRUE, annotation = get_annot(),
                                               protein_id_col = input$which.proteinid,
                                               use_log_file = FALSE)
     }
@@ -457,53 +463,67 @@ get_data <- eventReactive(input$proceed1, {
   return(mydata)
 })
 
-get_data_code <- eventReactive(input$calculate, { 
-  codes <- ""
-  codes <- paste(codes, "\n# Read data\n", sep = "")
+get_data_code = eventReactive(input$calculate, { 
+  codes = ""
+  codes = paste(codes, "\n# Load Packages
+library(MSstats)
+library(MSstatsTMT)
+library(MSstatsPTM)\n", sep = "")
+  codes = paste(codes, "\n# Package versions\n# MSstats version ", packageVersion("MSstats"),
+                "\n# MSstatsTMT version ", packageVersion("MSstatsTMT"), 
+                "\n# MSstatsPTM version ", packageVersion("MSstatsPTM"), sep = "")
+  codes = paste(codes, "\n\n# Read data\n", sep = "")
   if(input$filetype == 'sample') {
     if(input$DDA_DIA == "SRM_PRM") {
-      codes <- paste(codes, "data <- SRM_yeast\n", sep = "")
+      codes = paste(codes, "data = SRM_yeast\n", sep = "")
     }
     else if(input$DDA_DIA == "DDA") {
-      codes <- paste(codes, "data <- DDARawData\n", sep = "")
+      codes = paste(codes, "data = DDARawData\n", sep = "")
     }
     else if(input$DDA_DIA == "DIA"){
-      codes <- paste(codes, "data <- read.csv(\"dataset.csv\", header = T, sep = \";\")\n", sep = "")
+      codes = paste(codes, "data = read.csv(\"dataset.csv\", header = T, sep = \";\")\n", sep = "")
     }
     else if(input$DDA_DIA == "TMT"){
-      codes <- paste(codes, "data <- PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd,
+      codes = paste(codes, "data = PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd,
                                        annotation = MSstatsTMT::annotation.pd,
                                        which.proteinid =\'", input$which.proteinid,"\',\n\t\t\t\t       ",
                      "use_log_file = FALSE)\n", sep = "")
+    } else if (input$DDA_DIA == "PTM") {
+      if (input$PTMTMT == "Yes"){
+        codes = paste(codes, "data = MSstatsPTM::raw.input.tmt\n", sep = "")
+      } else if (input$PTMTMT == "No"){
+        codes = paste(codes, "data = MSstatsPTM::raw.input\n", sep = "")
+      }
     }
     
   } else if (input$filetype == "msstats") {
-    codes = paste(codes, "ptm_data = read.csv(\'Enter PTM data file path here\')\n
-                          global_data = read.csv(\'Enter unmod data file path here\')\n
-                          data = list(PTM = input$data, PROTEIN = unmod)")
-    
+    if (input$DDA_DIA == "PTM") {
+      codes = paste(codes, "ptm_data = read.csv(\'Enter PTM data file path here\')\nglobal_data = read.csv(\'Enter unmod data file path here\')\ndata = list(PTM = input$data, PROTEIN = unmod)\n")
+    } else {
+      codes = paste(codes, "data = read.csv(\'Enter MSstats formatted data file path here\')\n")
+    }
   } else {
   
     if(input$filetype == '10col') {
-      codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")\n", sep = "")
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")\n", sep = "")
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
-      codes <- paste(codes, "data <- read.csv(\"insert your MSstats report from Skyline filepath\", header = T, sep = \",\", stringsAsFactors=F)\n", sep = "")
+      codes = paste(codes, "data = read.csv(\"insert your MSstats report from Skyline filepath\", header = T, sep = \",\", stringsAsFactors=F)\n", sep = "")
       
       if(input$DDA_DIA=="DDA" ){
-        codes <- paste(codes, "data <- data[which(data$Fragment.Ion %in% c( \"precursor\", \"precursor [M+1]\",\"precursor [M+2]\")), ]\nannot_file <- read.csv(\"insert your annotation filepath\")\n", sep = "")
-        codes <- paste(codes, "data <- SkylinetoMSstatsFormat(data,\n\t\t\t\t        annotation = annot_file,\n\t\t\t\t        fewMeasurements=\"remove\",\n\t\t\t\t        removeProtein_with1Feature = ", 
+        codes = paste(codes, "data = data[which(data$Fragment.Ion %in% c( \"precursor\", \"precursor [M+1]\",\"precursor [M+2]\")), ]\nannot_file = read.csv(\"insert your annotation filepath\")\n", sep = "")
+        codes = paste(codes, "data = SkylinetoMSstatsFormat(data,\n\t\t\t\t        annotation = annot_file,\n\t\t\t\t        fewMeasurements=\"remove\",\n\t\t\t\t        removeProtein_with1Feature = ", 
                        input$remove,",\n\t\t\t\t       ", "use_log_file = FALSE)\n", sep = "")
         
       }
       else if(input$DDA_DIA=="DIA"){
         
-        codes <- paste(codes, "annot_file <- read.csv(\"insert your annotation filepath\")\n"
+        codes = paste(codes, "annot_file = read.csv(\"insert your annotation filepath\")\n"
                        , sep = "")
 
         
-        codes <- paste(codes, "data <- SkylinetoMSstatsFormat(data,
+        codes = paste(codes, "data = SkylinetoMSstatsFormat(data,
                                        annotation = annot_file,
                                        filter_with_Qvalue = TRUE, 
                                        qvalue_cutoff = 0.01,
@@ -514,48 +534,46 @@ get_data_code <- eventReactive(input$calculate, {
       }
 
       # else if(input$DDA_DIA=="SRM_PRM") {
-      #   mydata <- data
+      #   mydata = data
       # }
       
     }
     else if(input$filetype == 'maxq') {
       cat(file=stderr(), "Reached in maxq\n")
-      codes <- paste(codes, "an_maxq <- read.csv(\"insert your annotation filepath\")
-                       ev_maxq <- read.table(\"insert your evidence.txt filepath\",sep=\"\t\", header=TRUE)
-                       pg_maxq <- read.table(\"insert your proteinGroups.txt filepath\",sep=\"\t\", header=TRUE)\n"
+      codes = paste(codes, "an_maxq = read.csv(\"insert your annotation filepath\")\n ev_maxq = read.table(\"insert your evidence.txt filepath\",sep=\"\t\", header=TRUE)\n pg_maxq = read.table(\"insert your proteinGroups.txt filepath\",sep=\"\t\", header=TRUE)\n"
                      , sep = "")
       if(input$DDA_DIA=="TMT"){
         
-        codes <- paste(codes, "data <- MaxQtoMSstatsTMTFormat(evidence=ev_maxq, 
+        codes = paste(codes, "data = MaxQtoMSstatsTMTFormat(evidence=ev_maxq, 
                                          annotation=an_maxq,
                                          proteinGroups=\'", input$which.proteinid,"\',\n\t\t\t\t       ",
                        "use_log_file = FALSE)\n", sep = "")
-      }
-      else{
-        
-        codes <- paste(codes, "data <- MaxQtoMSstatsFormat(evidence=ev_maxq, 
+      } else if (input$DDA_DIA=="PTM"){
+        codes = paste(codes, "sites.data = read.csv(\"insert your PTM site data filepath\")\n data = MaxQtoMSstatsPTMFormat(sites.data, an_maxq, ev_maxq, pg_maxq, an_maxq)\n",
+                      sep="")
+      } else {
+        codes = paste(codes, "data = MaxQtoMSstatsFormat(evidence=ev_maxq, 
                                          annotation=an_maxq,
                                          proteinGroups= pg_maxq,
                                          useUniquePeptide = TRUE,
                                          removeProtein_with1Peptide=", input$remove,",\n\t\t\t\t       ",
                        "use_log_file = FALSE)\n", sep = "")
-        
       }
       
     }
     else if(input$filetype == 'prog') {
       cat(file=stderr(), "Reached in prog\n")
       
-      codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
-                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
+                       annot_file = read.csv(\"insert your annotation filepath\")\n"
                      , sep = "")
       
-      codes <- paste(codes, "data <- ProgenesistoMSstatsFormat(input = data,
+      codes = paste(codes, "data = ProgenesistoMSstatsFormat(input = data,
                                        annotation = annot_file,
                                        removeProtein_with1Peptide = TRUE,
                                        use_log_file = FALSE)\n", sep = "")
       
-      codes <- paste(codes, "colnames(data)[colnames(data) == \'PeptideModifiedSequence\'] <- \'PeptideSequence\'\n", sep = "")
+      codes = paste(codes, "colnames(data)[colnames(data) == \'PeptideModifiedSequence\'] = \'PeptideSequence\'\n", sep = "")
       
       
     }
@@ -563,39 +581,39 @@ get_data_code <- eventReactive(input$calculate, {
       
       if(input$DDA_DIA=="TMT"){
         
-        codes <- paste(codes, "data <- read.delim(\"insert your quantification dataset filepath\")
-                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
+        codes = paste(codes, "data = read.delim(\"insert your quantification dataset filepath\")
+                       annot_file = read.csv(\"insert your annotation filepath\")\n"
                        , sep = "")
         
         
-        codes <- paste(codes, "data <- PDtoMSstatsTMTFormat(input = data,
+        codes = paste(codes, "data = PDtoMSstatsTMTFormat(input = data,
                                        annotation = annot_file,
                                        which.proteinid =\'", input$which.proteinid,"\',\n\t\t\t\t       ",
                        "use_log_file = FALSE)\n", sep = "")
         
       }
       else{
-        codes <- paste(codes, "data <- read.delim(\"insert your quantification dataset filepath\")
-                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
+        codes = paste(codes, "data = read.delim(\"insert your quantification dataset filepath\")
+                       annot_file = read.csv(\"insert your annotation filepath\")\n"
                        , sep = "")
         
-        codes <- paste(codes, "data <- PDtoMSstatsFormat(data,
+        codes = paste(codes, "data = PDtoMSstatsFormat(data,
                                        annotation = annot_file,
                                        removeProtein_with1Peptide = ", input$remove,",\n\t\t\t\t       ",
                        "use_log_file = FALSE)\n", sep = "")
         
-        codes <- paste(codes, "colnames(data)[colnames(data) == \'PeptideModifiedSequence\'] <- \'PeptideSequence\'\n", sep = "")
+        codes = paste(codes, "colnames(data)[colnames(data) == \'PeptideModifiedSequence\'] = \'PeptideSequence\'\n", sep = "")
         
       }
       
     }
     else if(input$filetype == 'spec') {
       
-      codes <- paste(codes, "data <- read_xls(\"insert your MSstats scheme output from Spectronaut filepath\", header = T)
-                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "data = read_xls(\"insert your MSstats scheme output from Spectronaut filepath\", header = T)
+                       annot_file = read.csv(\"insert your annotation filepath\")\n"
                      , sep = "")
       
-      codes <- paste(codes, "data <- SpectronauttoMSstatsFormat(data,
+      codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
                                        annotation = annot_file,
                                        filter_with_Qvalue = TRUE, ## same as default
                                        qvalue_cutoff = 0.01, ## same as default
@@ -605,11 +623,11 @@ get_data_code <- eventReactive(input$calculate, {
     }
     else if(input$filetype == 'open') {
       
-      codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
-                       annot_file <- read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
+                       annot_file = read.csv(\"insert your annotation filepath\")\n"
                      , sep = "")
       
-      codes <- paste(codes, "data <- OpenSWATHtoMSstatsFormat(data,
+      codes = paste(codes, "data = OpenSWATHtoMSstatsFormat(data,
                                        annotation = annot_file,
                                        filter_with_Qvalue = TRUE, ## same as default
                                        mscore_cutoff = 0.01, ## same as default
@@ -621,23 +639,23 @@ get_data_code <- eventReactive(input$calculate, {
     else if(input$filetype == 'openms') {
       if(input$DDA_DIA=="TMT"){
         
-        codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
-                       data <- OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)\n"
+        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
+                       data = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)\n"
                        , sep = "")
 
       }
       else{
         
-        codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
+        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
                         unique(data[, c('Run', 'BioReplicate', 'Condition')])
-                        data <- OpenMStoMSstatsFormat(data, removeProtein_with1Feature=TRUE, use_log_file = FALSE)\n"
+                        data = OpenMStoMSstatsFormat(data, removeProtein_with1Feature=TRUE, use_log_file = FALSE)\n"
                        , sep = "")
         
       }
     }
     # else if(input$filetype == 'ump') {
     #   
-    #   mydata <- DIAUmpiretoMSstatsFormat(raw.frag, raw.pep, raw.pro,
+    #   mydata = DIAUmpiretoMSstatsFormat(raw.frag, raw.pep, raw.pro,
     #                                      annot2,
     #                                      useSelectedFrag = TRUE,
     #                                      useSelectedPep = FALSE,
@@ -647,18 +665,18 @@ get_data_code <- eventReactive(input$calculate, {
     # }
     else if(input$filetype == 'spmin') {
       
-      codes <- paste(codes, "data <- read.csv(\"insert your quantification dataset filepath\", header = T, sep = \"\t\")
-                       annot_file <- read.csv(\"insert your annotation filepath\")
-                    data <- SpectroMinetoMSstatsTMTFormat(data, annot_file,
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = \"\t\")
+                       annot_file = read.csv(\"insert your annotation filepath\")
+                    data = SpectroMinetoMSstatsTMTFormat(data, annot_file,
                                               use_log_file = FALSE)"
                      , sep = "")
     }
     else if(input$filetype == 'phil') {
       
-      codes <- paste(codes,"annot_file <- read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes,"annot_file = read.csv(\"insert your annotation filepath\")\n"
                      , sep = "")
       
-      codes <- paste(codes, "data <- PhilosophertoMSstatsTMTFormat((path = \"insert your folder path\",
+      codes = paste(codes, "data = PhilosophertoMSstatsTMTFormat((path = \"insert your folder path\",
                                        folder = TRUE,
                                        annotation = annot_file,
                                        protein_id_col =\'", input$which.proteinid,"\',\n\t\t\t\t       ",
@@ -666,7 +684,7 @@ get_data_code <- eventReactive(input$calculate, {
     }
   }
   
-  codes <- paste(codes,"data <- unique(as.data.frame(data))\n"
+  codes = paste(codes,"data = unique(as.data.frame(data))\n"
                  , sep = "")  
   return(codes)
   
@@ -683,15 +701,15 @@ get_summary1 = eventReactive(input$proceed1, {
 
   if(input$DDA_DIA=="TMT"){
     if(is.null(annot_df)){
-      df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
+      df1 = df %>% summarise("Number of Conditions" = n_distinct(Condition),
                               "Number of Biological Replicates" = n_distinct(BioReplicate),
                               "Number of Mixtures" = n_distinct(Mixture),
                               "Number of Fractions" = nf,
                               "Number of MS runs" = n_distinct(Run),
                               "Number of Technical Replicates" = n_distinct(TechRepMixture))
     } else {
-      annot_df <- annot_df %>% filter(!Condition %in% c("Norm", "Empty"))
-      df1 <- annot_df %>% summarise("Number of Conditions" = n_distinct(Condition),
+      annot_df = annot_df %>% filter(!Condition %in% c("Norm", "Empty"))
+      df1 = annot_df %>% summarise("Number of Conditions" = n_distinct(Condition),
                                     "Number of Biological Replicates" = n_distinct(BioReplicate),
                                     "Number of Mixtures" = n_distinct(Mixture),
                                     "Number of Fractions" = n_distinct(Fraction),
@@ -715,12 +733,18 @@ get_summary1 = eventReactive(input$proceed1, {
         "Number of Unmod Technical Replicates" = n_distinct(TechRepMixture))
       df = cbind(ptm_df1, unmod_df1)
     } else {
-      # TODO: Add PTM LF
-      print("LF PTM summary statistics not available.")
+      ptm_df = df$PTM
+      unmod_df = df$PROTEIN
+      ptm_df1 = ptm_df %>% summarise("Number of Conditions" = n_distinct(Condition),
+                             "Number of PTM Biological Replicates" = n_distinct(BioReplicate),
+                             "Number of PTM MS runs" = n_distinct(Run)) 
+      unmod_df1 = unmod_df %>% summarise("Number of Unmod Conditions" = n_distinct(Condition),
+                                         "Number of Unmod Biological Replicates" = n_distinct(BioReplicate),
+                                         "Number of Unmod MS runs" = n_distinct(Run)) 
+      df = cbind(ptm_df1, unmod_df1)
     }
-
-  } else{
-    df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
+  } else {
+    df1 = df %>% summarise("Number of Conditions" = n_distinct(Condition),
                             "Number of Biological Replicates" = n_distinct(BioReplicate),
                             "Number of Fractions" = nf,
                             "Number of MS runs" = n_distinct(Run)
@@ -728,33 +752,33 @@ get_summary1 = eventReactive(input$proceed1, {
   }
 
   if (input$DDA_DIA != "PTM"){
-    df2 <- df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
+    df2 = df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
       select("Condition_Run")
-    df3 <- df %>% group_by(Run, BioReplicate) %>% summarise("BioReplicate_Run" = n()) %>% ungroup() %>%
+    df3 = df %>% group_by(Run, BioReplicate) %>% summarise("BioReplicate_Run" = n()) %>% ungroup() %>%
       select("BioReplicate_Run")
     
-    df1 <- head(df1,1)
-    df2 <- head(df2,1)
-    df3 <- head(df3,1)
+    df1 = head(df1,1)
+    df2 = head(df2,1)
+    df3 = head(df3,1)
     
     if(input$DDA_DIA !="TMT"){
-      df1 <- cbind(df1,df2,df3) %>%
+      df1 = cbind(df1,df2,df3) %>%
         mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
         select(-Condition_Run,-BioReplicate_Run)
-      df <- df1[,c(1,2,5,3,4)]
+      df = df1[,c(1,2,5,3,4)]
     }
     else{
-      df <- df1[,c(1,2,3,6,4,5)]
+      df = df1[,c(1,2,3,6,4,5)]
     }
 
   }
   
-  t_df <- as.data.frame(t(df))
-  rownames(t_df) <- colnames(df)
-  t_df <- cbind(rownames(t_df), t_df)
-  colnames(t_df) <- c("", "value")
-  t_df$value <- sub("\\.\\d+$", "", t_df$value)
-  colnames(t_df) <- c("", "")
+  t_df = as.data.frame(t(df))
+  rownames(t_df) = colnames(df)
+  t_df = cbind(rownames(t_df), t_df)
+  colnames(t_df) = c("", "value")
+  t_df$value = sub("\\.\\d+$", "", t_df$value)
+  colnames(t_df) = c("", "")
   return(t_df)
 })
 
@@ -798,19 +822,19 @@ get_summary2 = eventReactive(input$proceed1, {
                                                     round(max(Intensity, na.rm=T),0))) %>%
       unite("Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
     
-    Peptides_Proteins <- df %>% group_by(ProteinName)  %>%
+    Peptides_Proteins = df %>% group_by(ProteinName)  %>%
       summarise(npep = n_distinct(PeptideSequence)) %>% summarize(Peptides_Proteins_min=min(npep),
                                                                   Peptides_Proteins_max=max(npep))
     
-    Features_Peptides <- df %>% group_by(PeptideSequence)  %>%
+    Features_Peptides = df %>% group_by(PeptideSequence)  %>%
       summarise(nfea = n_distinct(FEATURES)) %>% summarize(Features_Peptides_min=min(nfea),
                                                            Features_Peptides_max=max(nfea))
     
-    df1 <- cbind(df1,Features_Peptides,Peptides_Proteins) %>%
+    df1 = cbind(df1,Features_Peptides,Peptides_Proteins) %>%
       unite("Number of Features/Peptide",Features_Peptides_min:Features_Peptides_max,sep = " - ") %>%
       unite("Number of Peptides/Protein",Peptides_Proteins_min:Peptides_Proteins_max, sep = " - ")
     
-    df1 <- df1[,c(1,2,3,6,5,4)]
+    df1 = df1[,c(1,2,3,6,5,4)]
   } else {
     
     df_ptm1 = df_ptm %>% summarise("Number of PTMs" = n_distinct(ProteinName), 
@@ -842,16 +866,16 @@ get_summary2 = eventReactive(input$proceed1, {
   }
   
 
-  t_df <- as.data.frame(t(df1))
-  rownames(t_df) <- colnames(df1)
-  t_df <- cbind(rownames(t_df), t_df)
+  t_df = as.data.frame(t(df1))
+  rownames(t_df) = colnames(df1)
+  t_df = cbind(rownames(t_df), t_df)
   
-  colnames(t_df) <- c("", "value")
-  # t_df$value <- sub("\\.\\d+$", "", t_df$value)
+  colnames(t_df) = c("", "value")
+  # t_df$value = sub("\\.\\d+$", "", t_df$value)
 
-  colnames(t_df) <- c("", "")
+  colnames(t_df) = c("", "")
   
-  #t_df <- get_summary2()
+  #t_df = get_summary2()
   
   return(t_df)
 })
@@ -862,49 +886,49 @@ onclick("proceed1", {
   shinyjs::show("summary_tables")
   
   ### outputs ###
-  get_summary <- reactive({
+  get_summary = reactive({
     if(is.null(get_data())) {
       return(NULL)
     }
-    data1 <- get_data()
-    data_summary <- Hmisc::describe(data1)
+    data1 = get_data()
+    data_summary = Hmisc::describe(data1)
   })
 
-  output$template <- downloadHandler(
-    filename <- function() {
+  output$template = downloadHandler(
+    filename = function() {
       paste("templateannotation", "csv", sep=".")
     },
     
-    content <- function(file) {
+    content = function(file) {
       file.copy("templateannotation.csv", file)
     },
     contentType = "csv"
   )
 
-  output$template1 <- downloadHandler(
-    filename <- function() {
+  output$template1 = downloadHandler(
+    filename = function() {
       paste("templateevidence", "txt", sep = ".")
     },
     
-    content <- function(file) {
+    content = function(file) {
       file.copy("templateevidence.txt", file)
     },
     contentType = "txt"
   )
 
-  output$summary <- renderTable(
+  output$summary = renderTable(
     {
       # req(get_data())
       head(get_data())
     }, bordered = T
   )
-  output$summary_ptm <- renderTable(
+  output$summary_ptm = renderTable(
     {
       # req(get_data())
       head(get_data()$PTM)
     }, bordered = T
   )
-  output$summary_prot <- renderTable(
+  output$summary_prot = renderTable(
     {
       # req(get_data())
       head(get_data()$PROTEIN)
@@ -912,7 +936,7 @@ onclick("proceed1", {
   )
 
   
-  output$summary1 <-  renderTable(
+  output$summary1 =  renderTable(
     {
       req(get_data())
       get_summary1()
@@ -920,7 +944,7 @@ onclick("proceed1", {
     }, colnames = FALSE, bordered = T
   )
 
-  output$summary2 <-  renderTable(
+  output$summary2 =  renderTable(
     {
       req(get_data())
       get_summary2()
@@ -941,7 +965,7 @@ onclick("proceed1", {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "DataProcessing")
   })
   
-  output$summary_tables <- renderUI({
+  output$summary_tables = renderUI({
 
     tagList(
       tags$head(

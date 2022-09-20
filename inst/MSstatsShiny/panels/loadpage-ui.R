@@ -9,8 +9,8 @@ sbp_load = sidebarPanel(
   # selection for DIA DDA or SRM/PRM
   
   radioButtons("DDA_DIA",
-               label = h4("1. Type of Acquisition", tipify(icon("question-circle"), 
-                          title = "Select the acquisition type used in your experiment")),
+               label = h4("1. Experimental Design", tipify(icon("question-circle"), 
+                          title = "DDA/DIA/SRM/PRM are used for label-free preparation. PTM can either by label-free or TMT.")),
                c("DDA" = "DDA", "DIA" = "DIA", "SRM/PRM" = "SRM_PRM", 
                  "DDA/TMT"="TMT", "PTM"="PTM")),
   
@@ -31,6 +31,14 @@ sbp_load = sidebarPanel(
   #              title = "check msstats.org to find the required format", 
   #              placement = "right", trigger = "hover"),
   tags$hr(),
+  conditionalPanel(
+    condition = "input.filetype == 'sample' && input.DDA_DIA == 'PTM'",
+    h4("5. TMT Experiment"),
+    radioButtons("PTMTMT", tipify(icon("question-circle"),
+                                  title = "Indicate whether to use a label free or TMT sample experiment"),
+                 c(No='No', Yes='Yes'),
+                 inline=T)
+  ),
   conditionalPanel(
   condition = "input.filetype =='10col' || input.filetype =='prog' || input.filetype =='PD' || input.filetype =='open'||
                    input.filetype =='openms' || input.filetype =='spmin'",
@@ -200,18 +208,10 @@ loadpage = fluidPage(
     depend on the spectral processing tool used. Generally the raw data and an \
     annotation file are needed. The output of this step is your experimental \
     data processed in MSstats format."),
-  # p("Additionally, you can format the data on your own, and select the `MSstats required format`\
-  #    option under `Type of File`. For an example of what MSstats format is \
-  #   please select the `Example dataset` option."),
-  p("PTM data must be preformatted into MSstats format. For information on how \
+  p("PTM data must be processed using MaxQuant or preformatted into MSstats format. For information on how \
   to format your data please see the MSstatsPTM ", 
     a("documentation", href="https://www.bioconductor.org/packages/release/bioc/vignettes/MSstatsPTM/inst/doc/MSstatsPTM_LabelFree_Workflow.html",
     target="_blank")),
-  p("For more information on the type of dataset accepted by Shiny-MSstats please check the ",
-    a("documentation ", href="https://bioconductor.org/packages/devel/bioc/vignettes/MSstats/inst/doc/MSstats.html", target="_blank"), 
-    "for label free and ",
-    a("documentation", href="https://bioconductor.org/packages/devel/bioc/vignettes/MSstatsTMT/inst/doc/MSstatsTMT.html", target="_blank"),
-    " for TMT."),
   tags$br(),
   conditionalPanel(
     condition = "input.filetype == 'sample' && input.DDA_DIA == 'DDA'",

@@ -8,7 +8,7 @@
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom marray maPalette
 
-groupComparisonPlots2 <- function(data=data,
+groupComparisonPlots2 = function(data=data,
                                  type=type,
                                  sig=0.05,
                                  FCcutoff=FALSE,
@@ -33,38 +33,38 @@ groupComparisonPlots2 <- function(data=data,
                                  savePDF=FALSE) {
   
   ## save process output in each step
-  allfiles <- list.files()
-  filenaming <- "msstats"
+  allfiles = list.files()
+  filenaming = "msstats"
   
   if (length(grep(filenaming,allfiles)) == 0) {
     
-    finalfile <- "msstats.log"
-    processout <- NULL
+    finalfile = "msstats.log"
+    processout = NULL
     
   } else {
     
-    num <- 0
-    finalfile <- "msstats.log"
+    num = 0
+    finalfile = "msstats.log"
     
     while(is.element(finalfile, allfiles)) {
-      num <- num + 1
-      lastfilename <- finalfile ## in order to rea
-      finalfile <- paste(paste(filenaming, num, sep="-"), ".log", sep="")
+      num = num + 1
+      lastfilename = finalfile ## in order to rea
+      finalfile = paste(paste(filenaming, num, sep="-"), ".log", sep="")
     }
     
-    finalfile <- lastfilename
-    processout <- as.matrix(read.table(finalfile, header=TRUE, sep="\t"))
+    finalfile = lastfilename
+    processout = as.matrix(read.table(finalfile, header=TRUE, sep="\t"))
   }	
   
-  processout <- rbind(processout, as.matrix(c(" ", " ", "MSstats - groupComparisonPlots function", " "), ncol=1))
+  processout = rbind(processout, as.matrix(c(" ", " ", "MSstats - groupComparisonPlots function", " "), ncol=1))
   
   
   ## make upper letter
-  type <- toupper(type)
+  type = toupper(type)
   
   if (length(setdiff(type, c("HEATMAP", "VOLCANOPLOT", "COMPARISONPLOT"))) != 0) {
     
-    processout <- rbind(processout, c(paste("Input for type=", type, ". However,'type' should be one of \"Heatmap\", \"VolcanoPlot\",\"ComparisonPlot\".", sep="")))
+    processout = rbind(processout, c(paste("Input for type=", type, ". However,'type' should be one of \"Heatmap\", \"VolcanoPlot\",\"ComparisonPlot\".", sep="")))
     write.table(processout, file=finalfile, row.names=FALSE)
     
     stop(paste("Input for type=", type, ". However,'type' should be one of \"Heatmap\", \"VolcanoPlot\",\"ComparisonPlot\".", sep=""))
@@ -72,7 +72,7 @@ groupComparisonPlots2 <- function(data=data,
   
   ## check logBase.pvalue is 2,10 or not
   if (logBase.pvalue != 2 & logBase.pvalue != 10) {
-    processout <- rbind(processout, c("ERROR : (-) Logarithm transformation for adjusted p-values : log2 or log10 only - stop"))
+    processout = rbind(processout, c("ERROR : (-) Logarithm transformation for adjusted p-values : log2 or log10 only - stop"))
     write.table(processout, file=finalfile, row.names=FALSE)
     
     stop("Only -log2 or -log10 for logarithm transformation for adjusted p-values are posssible.\n")
@@ -82,12 +82,12 @@ groupComparisonPlots2 <- function(data=data,
     ## check which.comparison is name of comparison
     if (is.character(which.Comparison)) {
       
-      temp.name <- which.Comparison
+      temp.name = which.Comparison
       
       ## message if name of comparison is wrong.
       if (length(setdiff(temp.name, unique(data$Label))) > 0) {
         
-        processout <- rbind(processout, paste("Please check labels of comparions. Result does not have this comparison. -", paste(temp.name, collapse=", "), sep=" "))
+        processout = rbind(processout, paste("Please check labels of comparions. Result does not have this comparison. -", paste(temp.name, collapse=", "), sep=" "))
         write.table(processout, file=finalfile, row.names=FALSE)
         
         stop(paste("Please check labels of comparions. Result does not have this comparison. -", paste(temp.name, collapse=", "), sep=" "))
@@ -97,7 +97,7 @@ groupComparisonPlots2 <- function(data=data,
     ## check which.comparison is order number of comparison
     if (is.numeric(which.Comparison)) {
       
-      temp.name <- levels(data$Label)[which.Comparison]
+      temp.name = levels(data$Label)[which.Comparison]
       
       ## message if name of comparison is wrong.
       if (length(levels(data$Label))<max(which.Comparison)) {
@@ -106,14 +106,14 @@ groupComparisonPlots2 <- function(data=data,
     }  
     
     ## use only assigned proteins
-    data <- data[which(data$Label %in% temp.name), ]
+    data = data[which(data$Label %in% temp.name), ]
     
-    data$Protein <- factor(data$Protein)
-    data$Label <- factor(data$Label)
+    data$Protein = factor(data$Protein)
+    data$Label = factor(data$Label)
   } else {
     
-    data$Protein <- factor(data$Protein)
-    data$Label <- factor(data$Label)
+    data$Protein = factor(data$Protein)
+    data$Label = factor(data$Label)
   }
   
   
@@ -134,132 +134,132 @@ groupComparisonPlots2 <- function(data=data,
     }
     
     if (logBase.pvalue == 2) {
-      y.limUp  <- 30
+      y.limUp  = 30
     }
     
     if (logBase.pvalue == 10) {
-      y.limUp  <- 10
+      y.limUp  = 10
     }
     
-    if (is.numeric(ylimUp)) y.limUp <- ylimUp 
+    if (is.numeric(ylimUp)) y.limUp = ylimUp 
     
     ## when NA, change it
-    #data$adj.pvalue[is.na(data$adj.pvalue)] <- 1 ## missing will be grey
+    #data$adj.pvalue[is.na(data$adj.pvalue)] = 1 ## missing will be grey
     
     if (logBase.pvalue == 2) {
-      data$adj.pvalue[data$adj.pvalue<2^(-y.limUp)] <- 2^(-y.limUp)
+      data$adj.pvalue[data$adj.pvalue<2^(-y.limUp)] = 2^(-y.limUp)
     }
     
     if (logBase.pvalue == 10) {
-      data$adj.pvalue[data$adj.pvalue<10^(-y.limUp)] <- 10^(-y.limUp)
+      data$adj.pvalue[data$adj.pvalue<10^(-y.limUp)] = 10^(-y.limUp)
     }
     
     
     ## if FCcutoff is assigned, make p-value insignificant.
     if (is.numeric(FCcutoff)) {
       if (colnames(data)[3] == "log2FC") {
-        data$adj.pvalue[data[, 3] < log2(FCcutoff) & data[, 3] > (-log2(FCcutoff)) ] <- 1
+        data$adj.pvalue[data[, 3] < log2(FCcutoff) & data[, 3] > (-log2(FCcutoff)) ] = 1
       }
       if (colnames(data)[3] == "log10FC") {
-        data$adj.pvalue[data[, 3] < log10(FCcutoff) & data[, 3] > (-log10(FCcutoff))] <- 1
+        data$adj.pvalue[data[, 3] < log10(FCcutoff) & data[, 3] > (-log10(FCcutoff))] = 1
       }
     }
     
-    final <- NULL
+    final = NULL
     
     ## based on p-value
     for (i in 1:nlevels(data$Label)) {
       
-      sub <- data[data$Label == levels(data$Label)[i], ]
+      sub = data[data$Label == levels(data$Label)[i], ]
       
       if (logBase.pvalue==2) {
-        temp <-  -log2(sub$adj.pvalue)*sign(sub[,3])
+        temp =  -log2(sub$adj.pvalue)*sign(sub[,3])
       }
       
       if (logBase.pvalue==10) {
-        temp <-  -log10(sub$adj.pvalue)*sign(sub[,3])
+        temp =  -log10(sub$adj.pvalue)*sign(sub[,3])
       }
       
-      final <- data.frame(cbind(final,temp))
+      final = data.frame(cbind(final,temp))
     }
     
-    obj <- final
-    data$Protein <- factor(data$Protein)
-    rownames(obj) <- levels(data$Protein)
-    colnames(obj) <- levels(data$Label)
+    obj = final
+    data$Protein = factor(data$Protein)
+    rownames(obj) = levels(data$Protein)
+    colnames(obj) = levels(data$Label)
     
     ## remove if whole rows or columns are NA
-    obj <- obj[rowSums(!is.na(obj)) != 0, colSums(!is.na(obj)) != 0]
+    obj = obj[rowSums(!is.na(obj)) != 0, colSums(!is.na(obj)) != 0]
     
     ## clustering for order
-    tempobj <- obj
-    tempobj[is.na(tempobj)] <- 50
+    tempobj = obj
+    tempobj[is.na(tempobj)] = 50
     
     if (toupper(clustering) == 'PROTEIN') {
-      obj <- obj[hclust(dist(tempobj), method="ward.D")$order, ]
+      obj = obj[hclust(dist(tempobj), method="ward.D")$order, ]
     }
     if (toupper(clustering) == 'COMPARISON') {
-      obj <- obj[, hclust(dist(t(tempobj)), method="ward.D")$order]
+      obj = obj[, hclust(dist(t(tempobj)), method="ward.D")$order]
     }
     if (toupper(clustering) == 'BOTH') {
-      obj <- obj[hclust(dist(tempobj), method="ward.D")$order, hclust(dist(t(tempobj)), method="ward.D")$order]
+      obj = obj[hclust(dist(tempobj), method="ward.D")$order, hclust(dist(t(tempobj)), method="ward.D")$order]
     }
     if (toupper(clustering) == 'NONE') {
-      obj <- obj
+      obj = obj
     }
     
     rm(tempobj)
     
     ## change the order
-    #obj$id <- seq(1:nrow(obj))
-    #obj <- obj[order(obj$id,decreasing=TRUE),]
-    #obj <- subset(obj, select=-c(id))
+    #obj$id = seq(1:nrow(obj))
+    #obj = obj[order(obj$id,decreasing=TRUE),]
+    #obj = subset(obj, select=-c(id))
     
     ## color scale
-    blue.red.18  <-  maPalette(low = "blue", high = "red", mid = "black", k = 12)
-    my.colors  <- blue.red.18
-    #my.colors[my.colors=="#FFFFFF"] <- "gold"
-    my.colors <- c(my.colors,"grey") ## for NA
+    blue.red.18  =  maPalette(low = "blue", high = "red", mid = "black", k = 12)
+    my.colors  = blue.red.18
+    #my.colors[my.colors=="#FFFFFF"] = "gold"
+    my.colors = c(my.colors,"grey") ## for NA
     
     ## color scale is fixed with log 10 based. then change break for log 2 based
-    up <- 10 
+    up = 10 
     
-    temp <- 10^(-sort(ceiling(seq(2, up, length=10)[c(1, 2, 3, 5, 10)]), decreasing = TRUE))
-    breaks <- c(temp,sig)
+    temp = 10^(-sort(ceiling(seq(2, up, length=10)[c(1, 2, 3, 5, 10)]), decreasing = TRUE))
+    breaks = c(temp,sig)
     
     if (logBase.pvalue == 10) {
       
-      neg.breaks  <-  log(breaks, 10)
-      my.breaks   <-  c(neg.breaks, 0, -neg.breaks[6:1], 101)	
+      neg.breaks  =  log(breaks, 10)
+      my.breaks   =  c(neg.breaks, 0, -neg.breaks[6:1], 101)	
       
     } else if(logBase.pvalue == 2) {
       
-      neg.breaks  <-  log(breaks, 2)
-      my.breaks   <-  c(neg.breaks, 0, -neg.breaks[6:1], 101)	
+      neg.breaks  =  log(breaks, 2)
+      my.breaks   =  c(neg.breaks, 0, -neg.breaks[6:1], 101)	
       
     }
     
     ## draw color key
-    blocks <- c(-breaks, 1, breaks[6:1])
-    x.at <- seq(-0.05, 1.05, length.out=13)
+    blocks = c(-breaks, 1, breaks[6:1])
+    x.at = seq(-0.05, 1.05, length.out=13)
     
     ## maximum number of proteins per heatmap
-    namepro <- rownames(obj)
-    totalpro <- length(namepro)
-    numheatmap <- totalpro %/% numProtein +1
+    namepro = rownames(obj)
+    totalpro = length(namepro)
+    numheatmap = totalpro %/% numProtein +1
     
     
     ## If there are the file with the same name, add next numbering at the end of file name
     if (address != FALSE) {
-      allfiles <- list.files()
+      allfiles = list.files()
       
-      num <- 0
-      filenaming <- paste(address, "Heatmap", sep="")
-      finalfile <- paste(address, "Heatmap.pdf", sep="")
+      num = 0
+      filenaming = paste(address, "Heatmap", sep="")
+      finalfile = paste(address, "Heatmap.pdf", sep="")
       
       while(is.element(finalfile, allfiles)) {
-        num <- num + 1
-        finalfile <- paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
+        num = num + 1
+        finalfile = paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
       }	
       
       pdf(finalfile, width=width, height=height)
@@ -281,9 +281,9 @@ groupComparisonPlots2 <- function(data=data,
       
       ## get the number proteins needed
       if (j != numheatmap) {
-        tempobj <- obj[((j-1) * numProtein + 1):(j * numProtein), ]
+        tempobj = obj[((j-1) * numProtein + 1):(j * numProtein), ]
       } else {
-        tempobj <- obj[((j-1) * numProtein + 1):nrow(obj), ]
+        tempobj = obj[((j-1) * numProtein + 1):nrow(obj), ]
       }
       
       par(oma=c(3,0,0,4))
@@ -327,126 +327,126 @@ groupComparisonPlots2 <- function(data=data,
     
     ## If there are the file with the same name, add next numbering at the end of file name		
     if (address != FALSE) {
-      allfiles <- list.files()
+      allfiles = list.files()
       
-      num <- 0
-      filenaming <- paste(address, "VolcanoPlot", sep="")
-      finalfile <- paste(address, "VolcanoPlot.pdf", sep="")
+      num = 0
+      filenaming = paste(address, "VolcanoPlot", sep="")
+      finalfile = paste(address, "VolcanoPlot.pdf", sep="")
       
       while(is.element(finalfile, allfiles)) {
-        num <- num + 1
-        finalfile <- paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
+        num = num + 1
+        finalfile = paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
       }	
       
       pdf(finalfile, width=width, height=height)
     }
     
     if (logBase.pvalue == 2) {
-      y.limUp  <- 30
+      y.limUp  = 30
     }
     
     if (logBase.pvalue == 10) {
-      y.limUp  <- 10
+      y.limUp  = 10
     }
     
-    if (is.numeric(ylimUp)) y.limUp <- ylimUp 
+    if (is.numeric(ylimUp)) y.limUp = ylimUp 
     
     ## remove the result, NA
-    data <- data[!is.na(data$adj.pvalue),]
+    data = data[!is.na(data$adj.pvalue),]
     
     ## group for coloring dots
     if (!FCcutoff) {  
-      data[data$adj.pvalue >= sig, "colgroup"] <- "black"
-      data[data$adj.pvalue < sig & data[[3]] > 0, "colgroup"] <- "red"
-      data[data$adj.pvalue < sig & data[[3]] < 0, "colgroup"] <- "blue" 
+      data[data$adj.pvalue >= sig, "colgroup"] = "black"
+      data[data$adj.pvalue < sig & data[[3]] > 0, "colgroup"] = "red"
+      data[data$adj.pvalue < sig & data[[3]] < 0, "colgroup"] = "blue" 
     }
     
     if (is.numeric(FCcutoff)) {
-      data$colgroup <- "black"
+      data$colgroup = "black"
       
       if (colnames(data)[3] == "log2FC") {
-        data[data$adj.pvalue < sig & data[[3]] > log2(FCcutoff), "colgroup"] <- "red"
-        data[data$adj.pvalue < sig & data[[3]] < (-log2(FCcutoff)), "colgroup"] <- "blue"
+        data[data$adj.pvalue < sig & data[[3]] > log2(FCcutoff), "colgroup"] = "red"
+        data[data$adj.pvalue < sig & data[[3]] < (-log2(FCcutoff)), "colgroup"] = "blue"
       }
       
       if (colnames(data)[3] == "log10FC") {
-        data[data$adj.pvalue < sig & data[[3]] > log10(FCcutoff), "colgroup"] <- "red"
-        data[data$adj.pvalue < sig & data[[3]] < (-log10(FCcutoff)), "colgroup"] <- "blue"
+        data[data$adj.pvalue < sig & data[[3]] > log10(FCcutoff), "colgroup"] = "red"
+        data[data$adj.pvalue < sig & data[[3]] < (-log10(FCcutoff)), "colgroup"] = "blue"
       }
     }
     
-    data$colgroup <- factor(data$colgroup, levels=c("black", "blue", "red"))
+    data$colgroup = factor(data$colgroup, levels=c("black", "blue", "red"))
     
     ## for multiple volcano plots, 
     for(i in 1:nlevels(data$Label)) {
       
-      sub <- data[data$Label == levels(data$Label)[i], ]
+      sub = data[data$Label == levels(data$Label)[i], ]
       
       if (logBase.pvalue == 2) {
-        sub$adj.pvalue[sub$adj.pvalue < 2^(-y.limUp)] <- 2^(-y.limUp)
+        sub$adj.pvalue[sub$adj.pvalue < 2^(-y.limUp)] = 2^(-y.limUp)
       }
       
       if (logBase.pvalue == 10) {
-        sub$adj.pvalue[sub$adj.pvalue < 10^(-y.limUp)] <- 10^(-y.limUp)
+        sub$adj.pvalue[sub$adj.pvalue < 10^(-y.limUp)] = 10^(-y.limUp)
       }
       
-      sub <- as.data.frame(sub)
+      sub = as.data.frame(sub)
       
       ## ylimUp
       if (logBase.pvalue == 2) {
-        y.limup <- ceiling(max(-log2(sub[!is.na(sub$adj.pvalue), "adj.pvalue"])))
+        y.limup = ceiling(max(-log2(sub[!is.na(sub$adj.pvalue), "adj.pvalue"])))
         if (y.limup < (-log2(sig))) {
-          y.limup <- (-log2(sig) + 1) ## for too small y.lim
+          y.limup = (-log2(sig) + 1) ## for too small y.lim
         }
       }
       
       if (logBase.pvalue == 10) {
-        y.limup <- ceiling(max(-log10(sub[!is.na(sub$adj.pvalue), "adj.pvalue"])))
+        y.limup = ceiling(max(-log10(sub[!is.na(sub$adj.pvalue), "adj.pvalue"])))
         if (y.limup < (-log10(sig))) {
-          y.limup <- (-log10(sig) + 1) ## for too small y.lim
+          y.limup = (-log10(sig) + 1) ## for too small y.lim
         }
       }
       
       ## ylimDown
-      y.limdown <- 0 ## default is zero
+      y.limdown = 0 ## default is zero
       if (is.numeric(ylimDown)) {
-        y.limdown <- ylimDown
+        y.limdown = ylimDown
       }
       
       ## x.lim
-      x.lim <- ceiling(max(abs(sub[!is.na(sub[, 3]) & abs(sub[, 3]) != Inf , 3]))) ## log2FC or log10FC
+      x.lim = ceiling(max(abs(sub[!is.na(sub[, 3]) & abs(sub[, 3]) != Inf , 3]))) ## log2FC or log10FC
       if (x.lim < 3) {
-        x.lim <- 3
+        x.lim = 3
       }
       if (is.numeric(xlimUp)) {
-        x.lim <- xlimUp
+        x.lim = xlimUp
       }
       
       ## for assigning x in ggplot2
-      subtemp <- sub
-      colnames(subtemp)[3] <- "logFC"
+      subtemp = sub
+      colnames(subtemp)[3] = "logFC"
       
       if (logBase.pvalue == 2) {
-        subtemp$log2adjp <- (-log2(subtemp$adj.pvalue))
+        subtemp$log2adjp = (-log2(subtemp$adj.pvalue))
       }
       
       if (logBase.pvalue == 10) {
-        subtemp$log10adjp <- (-log10(subtemp$adj.pvalue))
+        subtemp$log10adjp = (-log10(subtemp$adj.pvalue))
       }
       
       ## for x limit for inf or -inf
-      subtemp$newlogFC <- subtemp$logFC
-      subtemp[!is.na(subtemp$issue) & subtemp$issue == "oneConditionMissing" & subtemp$logFC == Inf, "newlogFC"] <- (x.lim - 0.2)
-      subtemp[!is.na(subtemp$issue) & subtemp$issue == "oneConditionMissing" & subtemp$logFC == (-Inf), "newlogFC"] <- (x.lim - 0.2) *(-1)
+      subtemp$newlogFC = subtemp$logFC
+      subtemp[!is.na(subtemp$issue) & subtemp$issue == "oneConditionMissing" & subtemp$logFC == Inf, "newlogFC"] = (x.lim - 0.2)
+      subtemp[!is.na(subtemp$issue) & subtemp$issue == "oneConditionMissing" & subtemp$logFC == (-Inf), "newlogFC"] = (x.lim - 0.2) *(-1)
       
       ## add (*) in Protein name for Inf or -Inf
-      subtemp$Protein <- as.character(subtemp$Protein)
-      subtemp[!is.na(subtemp$issue) & subtemp$issue == "oneConditionMissing", "Protein"] <- paste("*", subtemp[!is.na(subtemp$issue) & subtemp$issue == "oneConditionMissing", "Protein"], sep="")
+      subtemp$Protein = as.character(subtemp$Protein)
+      subtemp[!is.na(subtemp$issue) & subtemp$issue == "oneConditionMissing", "Protein"] = paste("*", subtemp[!is.na(subtemp$issue) & subtemp$issue == "oneConditionMissing", "Protein"], sep="")
       
       
       ## Plotting
       if (logBase.pvalue == 2) {
-        ptemp <- ggplot(aes_string(x='logFC', y='log2adjp', color='colgroup', label='Protein'), data=subtemp)+
+        ptemp = ggplot(aes_string(x='logFC', y='log2adjp', color='colgroup', label='Protein'), data=subtemp)+
           geom_point(size=dot.size)+
           scale_colour_manual(values=c("gray65", "blue", "red"), 
                               limits=c("black", "blue", "red"), 
@@ -458,7 +458,7 @@ groupComparisonPlots2 <- function(data=data,
       }
       
       if (logBase.pvalue == 10) {
-        ptemp <- ggplot(aes_string(x='logFC', y='log10adjp', color='colgroup', label='Protein'), data=subtemp)+
+        ptemp = ggplot(aes_string(x='logFC', y='log10adjp', color='colgroup', label='Protein'), data=subtemp)+
           geom_point(size=dot.size)+
           scale_colour_manual(values=c("gray65", "blue", "red"), 
                               limits=c("black", "blue", "red"), 
@@ -472,10 +472,10 @@ groupComparisonPlots2 <- function(data=data,
       
       ## x-axis labeling
       if (colnames(sub)[3] == "log2FC") {
-        ptemp <- ptemp+scale_x_continuous('Log2 fold change', limits=c(-x.lim, x.lim))
+        ptemp = ptemp+scale_x_continuous('Log2 fold change', limits=c(-x.lim, x.lim))
       }
       if (colnames(sub)[3] == "log10FC") {
-        ptemp <- ptemp+scale_x_continuous('Log10 fold change', limits=c(-x.lim, x.lim))
+        ptemp = ptemp+scale_x_continuous('Log10 fold change', limits=c(-x.lim, x.lim))
       }
       
       ## add protein name
@@ -485,20 +485,20 @@ groupComparisonPlots2 <- function(data=data,
           
         } else {
           
-          ptemp <- ptemp + geom_text_repel(data=subtemp[subtemp$colgroup != "black", ], aes(label=Protein), size=text.size, col='black')
+          ptemp = ptemp + geom_text_repel(data=subtemp[subtemp$colgroup != "black", ], aes(label=Protein), size=text.size, col='black')
         }
       } 
       
       ## For legend of linetype for cutoffs
       ## first assign line type
-      ltypes <- c("type1"="twodash", "type2"="dotted")
+      ltypes = c("type1"="twodash", "type2"="dotted")
       
       ## cutoff lines, FDR only
       if (!FCcutoff) { 
         if (logBase.pvalue == 2) {
-          sigcut <- data.frame(Protein='sigline', logFC=seq(-x.lim, x.lim, length.out=20), log2adjp=(-log2(sig)), line='twodash')
+          sigcut = data.frame(Protein='sigline', logFC=seq(-x.lim, x.lim, length.out=20), log2adjp=(-log2(sig)), line='twodash')
           
-          pfinal <- ptemp + geom_line(data=sigcut, aes_string(x='logFC', y='log2adjp', linetype='line'), 
+          pfinal = ptemp + geom_line(data=sigcut, aes_string(x='logFC', y='log2adjp', linetype='line'), 
                                       colour="darkgrey", 
                                       size=0.6, 
                                       show.legend=TRUE)+
@@ -510,9 +510,9 @@ groupComparisonPlots2 <- function(data=data,
         }
         
         if (logBase.pvalue == 10) {
-          sigcut <- data.frame(Protein='sigline', logFC=seq(-x.lim, x.lim, length.out=20), log10adjp=(-log10(sig)), line='twodash')
+          sigcut = data.frame(Protein='sigline', logFC=seq(-x.lim, x.lim, length.out=20), log10adjp=(-log10(sig)), line='twodash')
           
-          pfinal <- ptemp + geom_line(data=sigcut, aes_string(x='logFC', y='log10adjp', linetype='line'), 
+          pfinal = ptemp + geom_line(data=sigcut, aes_string(x='logFC', y='log10adjp', linetype='line'), 
                                       colour="darkgrey", 
                                       size=0.6, 
                                       show.legend=TRUE)+
@@ -529,21 +529,21 @@ groupComparisonPlots2 <- function(data=data,
           if (logBase.pvalue == 2) {
             
             ## three different lines
-            sigcut <- data.frame(Protein='sigline', 
+            sigcut = data.frame(Protein='sigline', 
                                  logFC=seq(-x.lim, x.lim, length.out=10), 
                                  log2adjp=(-log2(sig)), 
                                  line='twodash')
-            FCcutpos <- data.frame(Protein='sigline', 
+            FCcutpos = data.frame(Protein='sigline', 
                                    logFC=log2(FCcutoff), 
                                    log2adjp=seq(y.limdown, y.limup, length.out=10), 
                                    line='dotted')
-            FCcutneg <- data.frame(Protein='sigline', 
+            FCcutneg = data.frame(Protein='sigline', 
                                    logFC=(-log2(FCcutoff)), 
                                    log2adjp=seq(y.limdown, y.limup, length.out=10), 
                                    line='dotted')
             
             ## three lines, with order color first and then assign linetype manual
-            pfinal <- ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log2adjp', linetype='line'), 
+            pfinal = ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log2adjp', linetype='line'), 
                                       colour="darkgrey", 
                                       size=0.6, 
                                       show.legend=TRUE)+
@@ -562,20 +562,20 @@ groupComparisonPlots2 <- function(data=data,
           if (logBase.pvalue == 10) {
             
             ## three different lines
-            sigcut <- data.frame(Protein='sigline', 
+            sigcut = data.frame(Protein='sigline', 
                                  logFC=seq(-x.lim, x.lim, length.out=10), 
                                  log10adjp=(-log10(sig)), line='twodash')
-            FCcutpos <- data.frame(Protein='sigline', 
+            FCcutpos = data.frame(Protein='sigline', 
                                    logFC=log2(FCcutoff), 
                                    log10adjp=seq(y.limdown, y.limup, length.out=10), 
                                    line='dotted')
-            FCcutneg <- data.frame(Protein='sigline', 
+            FCcutneg = data.frame(Protein='sigline', 
                                    logFC=(-log2(FCcutoff)), 
                                    log10adjp=seq(y.limdown, y.limup, length.out=10), 
                                    line='dotted')
             
             ## three lines, with order color first and then assign linetype manual
-            pfinal <- ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log10adjp', linetype='line'), 
+            pfinal = ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log10adjp', linetype='line'), 
                                       colour="darkgrey", 
                                       size=0.6, 
                                       show.legend=TRUE)+
@@ -597,21 +597,21 @@ groupComparisonPlots2 <- function(data=data,
           if (logBase.pvalue == 2) {
             
             ## three different lines
-            sigcut <- data.frame(Protein='sigline', 
+            sigcut = data.frame(Protein='sigline', 
                                  logFC=seq(-x.lim, x.lim, length.out=10), 
                                  log2adjp=(-log2(sig)), 
                                  line='twodash')
-            FCcutpos <- data.frame(Protein='sigline', 
+            FCcutpos = data.frame(Protein='sigline', 
                                    logFC=log10(FCcutoff), 
                                    log2adjp=seq(y.limdown, y.limup, length.out=10), 
                                    line='dotted')
-            FCcutneg <- data.frame(Protein='sigline', 
+            FCcutneg = data.frame(Protein='sigline', 
                                    logFC=(-log10(FCcutoff)), 
                                    log2adjp=seq(y.limdown, y.limup, length.out=10), 
                                    line='dotted')
             
             ## three lines, with order color first and then assign linetype manual
-            pfinal <- ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log2adjp', linetype='line'), 
+            pfinal = ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log2adjp', linetype='line'), 
                                       colour="darkgrey", 
                                       size=0.6, 
                                       show.legend=TRUE)+
@@ -631,21 +631,21 @@ groupComparisonPlots2 <- function(data=data,
           if (logBase.pvalue == 10) {
             
             ## three different lines
-            sigcut <- data.frame(Protein='sigline', 
+            sigcut = data.frame(Protein='sigline', 
                                  logFC=seq(-x.lim, x.lim, length.out=10), 
                                  log10adjp=(-log10(sig)), 
                                  line='twodash')
-            FCcutpos <- data.frame(Protein='sigline', 
+            FCcutpos = data.frame(Protein='sigline', 
                                    logFC=log10(FCcutoff), 
                                    log10adjp=seq(y.limdown, y.limup, length.out=10), 
                                    line='dotted')
-            FCcutneg <- data.frame(Protein='sigline', 
+            FCcutneg = data.frame(Protein='sigline', 
                                    logFC=(-log10(FCcutoff)), 
                                    log10adjp=seq(y.limdown, y.limup, length.out=10), 
                                    line='dotted')
             
             ## three lines, with order color first and then assign linetype manual
-            pfinal <- ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log10adjp', linetype='line'), 
+            pfinal = ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log10adjp', linetype='line'), 
                                       colour="darkgrey", 
                                       size=0.6, 
                                       show.legend=TRUE)+
@@ -664,7 +664,7 @@ groupComparisonPlots2 <- function(data=data,
         }
       }
       
-      pfinal <- pfinal+theme(
+      pfinal = pfinal+theme(
         panel.background = element_rect(fill='white', colour="black"),
         panel.grid.minor = element_blank(),
         axis.text.x = element_text(size=x.axis.size, colour="black"),
@@ -694,8 +694,8 @@ groupComparisonPlots2 <- function(data=data,
   #######################
   if (type == "COMPARISONPLOT") {
     
-    datatemp <- data[!is.na(data$adj.pvalue), ]
-    datatemp$Protein <- factor(datatemp$Protein)
+    datatemp = data[!is.na(data$adj.pvalue), ]
+    datatemp$Protein = factor(datatemp$Protein)
     
     ## choose comparison to draw plots
     if ( address == FALSE ){ ## here I used != FALSE, instead of !address. Because address can be logical or characters.
@@ -710,7 +710,7 @@ groupComparisonPlots2 <- function(data=data,
     if (which.Protein != "all") {
       ## check which.Protein is name of Protein
       if (is.character(which.Protein)) {
-        temp.name <- which.Protein
+        temp.name = which.Protein
         
         ## message if name of Protein is wrong.
         if (length(setdiff(temp.name,unique(datatemp$Protein)))>0) {
@@ -720,7 +720,7 @@ groupComparisonPlots2 <- function(data=data,
       
       ## check which.Protein is order number of Protein
       if (is.numeric(which.Protein)) {
-        temp.name <- levels(datatemp$Protein)[which.Protein]
+        temp.name = levels(datatemp$Protein)[which.Protein]
         
         ## message if name of Protein is wrong.
         if (length(levels(datatemp$Protein)) < max(which.Protein)) {
@@ -729,22 +729,22 @@ groupComparisonPlots2 <- function(data=data,
       }
       
       ## use only assigned proteins
-      datatemp <- datatemp[which(datatemp$Protein %in% temp.name), ]
-      datatemp$Protein <- factor(datatemp$Protein)
+      datatemp = datatemp[which(datatemp$Protein %in% temp.name), ]
+      datatemp$Protein = factor(datatemp$Protein)
       
     }
     
     ## If there are the file with the same name, add next numbering at the end of file name		
     if (address!=FALSE) {
-      allfiles <- list.files()
+      allfiles = list.files()
       
-      num <- 0
-      filenaming <- paste(address, "ComparisonPlot", sep="")
-      finalfile <- paste(address, "ComparisonPlot.pdf", sep="")
+      num = 0
+      filenaming = paste(address, "ComparisonPlot", sep="")
+      finalfile = paste(address, "ComparisonPlot.pdf", sep="")
       
       while(is.element(finalfile, allfiles)) {
-        num <- num+1
-        finalfile <- paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
+        num = num+1
+        finalfile = paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
       }	
       
       pdf(finalfile, width=width, height=height)
@@ -752,29 +752,29 @@ groupComparisonPlots2 <- function(data=data,
     
     for (i in 1:nlevels(datatemp$Protein)) {
       
-      sub <- datatemp[datatemp$Protein==levels(datatemp$Protein)[i], ] 		
-      #sub$ciw <- qt(1-sig/2,sub$DF)*sub$SE
+      sub = datatemp[datatemp$Protein==levels(datatemp$Protein)[i], ] 		
+      #sub$ciw = qt(1-sig/2,sub$DF)*sub$SE
       ## adjust for multiple comparison within protein
-      sub$ciw <- qt(1-sig/(2*nrow(sub)), sub$DF)*sub$SE
+      sub$ciw = qt(1-sig/(2*nrow(sub)), sub$DF)*sub$SE
       
-      sub <- as.data.frame(sub)
+      sub = as.data.frame(sub)
       
       ## for assigning x in ggplot2
-      colnames(sub)[3] <- "logFC"
+      colnames(sub)[3] = "logFC"
       
       ## ylimUp
-      y.limup <- ceiling(max(sub$logFC + sub$ciw))
+      y.limup = ceiling(max(sub$logFC + sub$ciw))
       if (is.numeric(ylimUp)) {
-        y.limup <- ylimUp 
+        y.limup = ylimUp 
       }
       
       ## ylimDown
-      y.limdown <- floor(min(sub$logFC - sub$ciw))
+      y.limdown = floor(min(sub$logFC - sub$ciw))
       if (is.numeric(ylimDown)) {
-        y.limdown <- ylimDown 
+        y.limdown = ylimDown 
       }
       
-      ptemp <- ggplot(aes_string(x='Label', y='logFC'), data=sub)+
+      ptemp = ggplot(aes_string(x='Label', y='logFC'), data=sub)+
         geom_errorbar(aes(ymax = logFC + ciw, ymin=logFC - ciw), data=sub, 
                       width=0.1, 
                       colour="red")+
@@ -795,10 +795,10 @@ groupComparisonPlots2 <- function(data=data,
         )
       
       if (colnames(data)[3] == "log2FC") {
-        ptemp <- ptemp+scale_y_continuous("Log2-Fold Change", limits=c(y.limdown, y.limup))
+        ptemp = ptemp+scale_y_continuous("Log2-Fold Change", limits=c(y.limdown, y.limup))
       }
       if (colnames(data)[3] == "log10FC") {
-        ptemp <- ptemp+scale_y_continuous("Log10-Fold Change", limits=c(y.limdown, y.limup))
+        ptemp = ptemp+scale_y_continuous("Log10-Fold Change", limits=c(y.limdown, y.limup))
       }
       
       if(savePDF) {

@@ -4,8 +4,18 @@
 \alias{QC_check}
 \title{Quick QC value check}
 \usage{
-QC_check()
+QC_check(input)
+}
+\arguments{
+\item{input}{options for data processing input by the user}
+}
+\value{
+string
 }
 \description{
 Quick QC value check for LF vs TMT
+}
+\examples{
+input = list(null=TRUE)
+QC_check(input)
 }

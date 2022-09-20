@@ -5,8 +5,15 @@
 #' @export
 #' @import MSstats
 #' @importFrom shinybusy show_modal_progress_line update_modal_progress remove_modal_progress
+#' 
+#' @param data Data converted into MSstats format.
+#' @param input options for data processing input by the user
+#' @param busy_indicator Boolean indicator indicating whether or not to display 
+#' shiny waiting indicator.
 #' @return list of LF Summarization results
 #' @examples
+#' data("example_dia_skyline")
+#' data("example_skyline_annotation")
 #' testdata = MSstats::SkylinetoMSstatsFormat(example_dia_skyline,
 #'                                             annotation = example_skyline_annotation,
 #'                                             filter_with_Qvalue = TRUE, 
@@ -31,9 +38,9 @@
 #' input$null1 = FALSE
 #' input$DDA_DIA = "LF"
 #' 
-#' lf_summarization_loop(testdata, busy_indicator=FALSE))
+#' lf_summarization_loop(testdata, input, busy_indicator=FALSE)
 #' 
-lf_summarization_loop = function(data, busy_indicator = TRUE){
+lf_summarization_loop = function(data, input, busy_indicator = TRUE){
   
   proteins = as.character(unique(data[, 'ProteinName']))
   
@@ -58,7 +65,7 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
   prep_input = MSstatsNormalize(prep_input, input$norm, peptides_dict, input$names)
   prep_input = MSstatsMergeFractions(prep_input)
   prep_input = MSstatsHandleMissing(prep_input, "TMP", input$MBi,
-                                    "NA", QC_check())
+                                    "NA", QC_check(input))
   prep_input = MSstatsSelectFeatures(prep_input, input$features_used, input$n_feat, 2)
   processed = getProcessed(prep_input)
   prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
@@ -104,10 +111,21 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
 #' @import MSstatsConvert
 #' @import data.table
 #' @importFrom shinybusy show_modal_progress_line update_modal_progress remove_modal_progress
+#' @importFrom methods new
+#' @importFrom stats median na.omit
+#' 
+#' @param data Data converted into MSstats format.
+#' @param input options for data processing input by the user
+#' @param busy_indicator Boolean indicator indicating whether or not to display 
+#' shiny waiting indicator.
+#' 
 #' @return list of TMT summarization results
 #' @examples
-#' NULL
-tmt_summarization_loop = function(data, busy_indicator = TRUE){
+#' data("tmt_pd_summarized")
+#' names(tmt_pd_summarized)
+#' head(tmt_pd_summarized$ProteinLevelData)
+#' 
+tmt_summarization_loop = function(data, input, busy_indicator = TRUE){
   MBimpute = FALSE ## Add option for MBimpute to server..
   
   MSstatsConvert::MSstatsLogsSettings(FALSE,
@@ -116,7 +134,7 @@ tmt_summarization_loop = function(data, busy_indicator = TRUE){
   ## Prep functions
   prep_input = MSstatsTMT:::MSstatsPrepareForSummarizationTMT(
     data, input$summarization, input$global_norm, input$reference_norm,
-    input$remove_norm_channel, TRUE, MBimpute, QC_check() 
+    input$remove_norm_channel, TRUE, MBimpute, QC_check(input) 
   )
   prep_input = MSstatsTMT:::MSstatsNormalizeTMT(prep_input, "peptides", 
                                                 input$global_norm)
@@ -164,7 +182,7 @@ tmt_summarization_loop = function(data, busy_indicator = TRUE){
       single_run = new("MSstatsValidated", single_run)
       
       ## Make LF flow into a function and replace it here
-      msstats_summary = lf_summarization_loop(single_run, FALSE)
+      msstats_summary = lf_summarization_loop(single_run, input, FALSE)
       
       feature_level_data = msstats_summary$FeatureLevelData
       msstats_cols = c("PROTEIN", "PEPTIDE", "originalRUN", "censored",
@@ -238,9 +256,18 @@ tmt_summarization_loop = function(data, busy_indicator = TRUE){
 #' @import MSstats
 #' @import data.table
 #' @importFrom shinybusy show_modal_progress_line update_modal_progress remove_modal_progress
+#' @importFrom utils txtProgressBar
+#' 
+#' @param data summarized data from output of MSstats summarization function.
+#' @param contrast.matrix contrast matrix specifying which conditions should be compared
+#' @param busy_indicator Boolean indicator indicating whether or not to display 
+#' shiny waiting indicator.
+#' 
 #' @return list of LF modeling results
 #' @examples
-#' #lf_model(NULL)
+#' data("dia_skyline_model")
+#' names(dia_skyline_model)
+#' head(dia_skyline_model$ComparisonResult)
 #' 
 lf_model = function(data, contrast.matrix, busy_indicator = TRUE){
   
@@ -301,11 +328,20 @@ lf_model = function(data, contrast.matrix, busy_indicator = TRUE){
 #' @import MSstatsTMT
 #' @import data.table
 #' @importFrom shinybusy show_modal_progress_line update_modal_progress remove_modal_progress
+#' 
+#' @param data summarized data from output of MSstats summarization function.
+#' @param input options for data processing input by the user
+#' @param contrast.matrix contrast matrix specifying which conditions should be compared
+#' @param busy_indicator Boolean indicator indicating whether or not to display 
+#' shiny waiting indicator.
+#' 
 #' @return list of TMT modeling results
 #' @examples
-#' #tmt_model(NULL)
+#' data("tmt_pd_model")
+#' names(tmt_pd_model)
+#' head(tmt_pd_model$ComparisonResult)
 #' 
-tmt_model = function(data, contrast.matrix, busy_indicator = TRUE){
+tmt_model = function(data, input, contrast.matrix, busy_indicator = TRUE){
   
   proteins = as.character(unique(data$ProteinLevelData[, 'Protein']))
   
@@ -367,6 +403,10 @@ tmt_model = function(data, contrast.matrix, busy_indicator = TRUE){
 #' @import MSstats
 #' @import data.table
 #' @importFrom shinybusy show_modal_progress_line update_modal_progress remove_modal_progress
+#' 
+#' @param ptm_model output of MSstats modeling function modeling PTMs
+#' @param protein_model output of MSstats modeling function modeling unmodified proteins
+#' 
 #' @return list of PTM modeling results
 #' @examples
 #' #apply_adj(NULL)
@@ -403,8 +443,13 @@ apply_adj = function(ptm_model, protein_model){
 #' 
 #' Quick QC value check for LF vs TMT
 #' 
-#' @export 
-QC_check = function() {
+#' @export
+#' @param input options for data processing input by the user
+#' @return string
+#' @examples
+#' input = list(null=TRUE)
+#' QC_check(input)
+QC_check = function(input) {
   if (input$null == TRUE || input$null1 == TRUE) {
     maxQC = NULL
   }

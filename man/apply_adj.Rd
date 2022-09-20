@@ -6,6 +6,11 @@
 \usage{
 apply_adj(ptm_model, protein_model)
 }
+\arguments{
+\item{ptm_model}{output of MSstats modeling function modeling PTMs}
+
+\item{protein_model}{output of MSstats modeling function modeling unmodified proteins}
+}
 \value{
 list of PTM modeling results
 }
