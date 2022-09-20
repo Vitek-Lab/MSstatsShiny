@@ -2,7 +2,7 @@ Package: MSstatsShiny
 Type: Package
 Title: Statistical Characterization of Post-translational Modifications
 Version: 0.99.0
-Date: 2022-09-09
+Date: 2022-09-20
 Description: MSstatsShiny is an R-Shiny graphical user interface (GUI) 
   integrated with the R packages MSstats, MSstatsTMT, and MSstatsPTM. It 
   provides a point and click end-to-end analysis pipeline applicable to a wide 

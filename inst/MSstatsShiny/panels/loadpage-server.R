@@ -593,8 +593,7 @@ library(MSstatsPTM)\n", sep = "")
         
       }
       else{
-        codes = paste(codes, "data = read.delim(\"insert your quantification dataset filepath\")
-                       annot_file = read.csv(\"insert your annotation filepath\")\n"
+        codes = paste(codes, "data = read.delim(\"insert your quantification dataset filepath\")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
                        , sep = "")
         
         codes = paste(codes, "data = PDtoMSstatsFormat(data,
@@ -609,8 +608,7 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'spec') {
       
-      codes = paste(codes, "data = read_xls(\"insert your MSstats scheme output from Spectronaut filepath\", header = T)
-                       annot_file = read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from Spectronaut filepath\", header = T)\nannot_file = read.csv(\"insert your annotation filepath\")\n"
                      , sep = "")
       
       codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
@@ -623,8 +621,7 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'open') {
       
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
-                       annot_file = read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
                      , sep = "")
       
       codes = paste(codes, "data = OpenSWATHtoMSstatsFormat(data,
@@ -639,16 +636,13 @@ library(MSstatsPTM)\n", sep = "")
     else if(input$filetype == 'openms') {
       if(input$DDA_DIA=="TMT"){
         
-        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
-                       data = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)\n"
+        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")\ndata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)\n"
                        , sep = "")
 
       }
       else{
         
-        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
-                        unique(data[, c('Run', 'BioReplicate', 'Condition')])
-                        data = OpenMStoMSstatsFormat(data, removeProtein_with1Feature=TRUE, use_log_file = FALSE)\n"
+        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")\nunique(data[, c('Run', 'BioReplicate', 'Condition')])\ndata = OpenMStoMSstatsFormat(data, removeProtein_with1Feature=TRUE, use_log_file = FALSE)\n"
                        , sep = "")
         
       }
@@ -665,9 +659,7 @@ library(MSstatsPTM)\n", sep = "")
     # }
     else if(input$filetype == 'spmin') {
       
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = \"\t\")
-                       annot_file = read.csv(\"insert your annotation filepath\")
-                    data = SpectroMinetoMSstatsTMTFormat(data, annot_file,
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = \"\t\")\nannot_file = read.csv(\"insert your annotation filepath\")\ndata = SpectroMinetoMSstatsTMTFormat(data, annot_file,
                                               use_log_file = FALSE)"
                      , sep = "")
     }
