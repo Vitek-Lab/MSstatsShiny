@@ -23,19 +23,17 @@ application. To install and run the application locally, please follow these
 steps.
 
 1. Download [R](https://www.r-project.org/) and [RStudio](https://www.rstudio.com/products/rstudio/download/) - [How to](https://rstudio-education.github.io/hopr/starting.html).
-2. Download this github repository to your local machine.
-3. Open RStudio and set working directory to the local repository.
 4. Install the dependencies listed below.
-5. Install the package by using R build `Install and Restart`
-5. Run the application by executing `library(MSstatsShiny)` and `launch_MSstatsShiny()` in the console.
+5. Install the package by executing `devtools::install_github("Vitek-Lab/MSstatsShiny")` in the console.
+5. Run the application by executing `library(MSstatsShiny)` and `launch_MSstatsShiny()` or `MSstatsShiny::launch_MSstatsShiny()` in the console.
 
 #### Dependencies
 
 
   `install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr',
-                    'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager'))`
+                    'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager', 'devtools'))`
                     
-  `BiocManager::install(c('MSstatsTMT', 'biomaRt'))`
+  `BiocManager::install(c('MSstatsPTM', 'biomaRt'))`
 
 ## Processing instructions
 
