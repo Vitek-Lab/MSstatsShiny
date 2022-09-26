@@ -4,11 +4,13 @@ rm()
 library(shiny)
 library(shinyBS)
 library(shinyjs)
+library(shinybusy)
 #library(STRINGdb)
 library(ggplot2)
 library(tidyverse)
 library(data.table)
 library(MSstatsTMT)
+library(MSstatsPTM)
 library(knitr)
 library(readxl)
 
@@ -61,15 +63,18 @@ radioTooltip <- function(id, choice, title, placement = "bottom", trigger = "hov
 
 source("panels/home-ui.R", local = T)
 source("panels/loadpage-ui.R", local = T)
+# source("panels/pipeline-ui.R", local = T)
 source("panels/qc-ui.R", local = T)
-source("panels/pq-ui.R", local = T)
 source("panels/statmodel-ui.R", local = T)
-
+# 
 source("panels/expdes-ui.R", local = T)
-#source("panels/analysis-ui.R", local = T)
-#source("panels/clust-ui.R", local = T)
-source("panels/report-ui.R", local = T)
+# #source("panels/analysis-ui.R", local = T)
+# #source("panels/clust-ui.R", local = T)
+# source("panels/report-ui.R", local = T)
 source("panels/help-ui.R", local = T)
+source("panels/msstats_help-ui.R", local = T)
+source("panels/msstatstmt_help-ui.R", local = T)
+
 
 #########################################################################
 
@@ -113,8 +118,12 @@ ui <- navbarPage(
                     .shiny-output-error-validation {
                     color: red;
                     }
+                    h1 {
+                    color: #000000;
+                    }
                     "))
     ),
+  
   
   useShinyjs(),
   extendShinyjs(text = jsCode,functions = c("init","enableTab")),
@@ -122,13 +131,17 @@ ui <- navbarPage(
   
   
   tabPanel("Homepage", icon = icon("home"), home),
-  tabPanel("Upload data",value = "Uploaddata", icon = icon("send"), loadpage),
-  tabPanel("Data processing",value = "DataProcessing", icon = icon("gears"), qc),
-  tabPanel("Protein quantification", value = "PQ",icon = icon("calculator"), pq),
-  tabPanel("Statistical model", value = "StatsModel", icon = icon("magic"), statmodel),
-  tabPanel("Future experiments", value = "Future", icon = icon("flask"), expdes),
-  tabPanel("Download logfile", icon = icon("download"), report),
-  tabPanel("Help", icon = icon("ambulance"), help),
+  # tabPanel("Run Pipeline", icon = icon("running"), pipeline),
+  tabPanel("1. Data Uploading",value = "Uploaddata", icon = icon("send"), loadpage),
+  tabPanel("2. Data Processing", value = "DataProcessing", icon = icon("gears"), qc),
+  tabPanel("3. Statistical Inference", value = "StatsModel", icon = icon("magic"), statmodel),
+  tabPanel("4. Future Experiments", value = "Future", icon = icon("flask"), expdes),
+  # tabPanel("Download logfile", icon = icon("download"), report),
+  navbarMenu("Help", icon = icon("ambulance"), 
+    tabPanel("Shiny Help", help),
+    tabPanel("MSstats Vignette", msstats_help),
+    tabPanel("MSstatsTMT Vignette", msstatstmt_help)
+    ),
   inverse = T,
   collapsible = T,
   windowTitle = "Shiny-MSstats"

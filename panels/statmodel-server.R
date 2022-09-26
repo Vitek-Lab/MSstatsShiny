@@ -3,18 +3,32 @@
 # choices of groups for contrast matrix
 
 choices <- reactive({
-  if(input$DDA_DIA=="TMT"){
-    levels(preprocess_data()$Condition)
-    
+  if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+    levels(preprocess_data()$PTM$ProteinLevelData$Condition)
+  } else if(input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
+    levels(preprocess_data()$PTM$ProteinLevelData$GROUP)
+  } else if(input$DDA_DIA=="TMT"){
+    levels(preprocess_data()$ProteinLevelData$Condition)
   }
   else{
-    levels(preprocess_data()$ProcessedData$GROUP_ORIGINAL)
+    levels(preprocess_data()$ProteinLevelData$GROUP)
   }
   
 })
 row <- reactive({rep(0, length(choices()))})
 contrast <- reactiveValues()
 comp_list <- reactiveValues()
+significant <- reactiveValues()
+
+
+observe({
+  if(input$DDA_DIA == "TMT"){
+    shinyjs::hide("Design")
+  }
+  else{
+    shinyjs::show("Design")
+  }
+})
 
 output$choice1 <- renderUI({
   selectInput("group1", "Group 1", choices())
@@ -28,10 +42,26 @@ output$choice3 <- renderUI({
   selectInput("group3", "", choices())
 })
 
+output$comp_name <- renderUI({
+  textInput("comp_name", label = "Comparison Name", value = "")
+})
+
+output$weights <- renderUI({
+  
+  lapply(1:length(choices()), function(i) {
+    list(
+      numericInput(paste0("weight", i), label = choices()[i], value=0))  
+  })
+})
+
 # rownames for matrix
 
-Rownames <- reactive({
-  rownames(matrix_build())
+Rownames <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
+  req(input$def_comp)
+  req(input$DDA_DIA)
+  tryCatch({
+    rownames(matrix_build())},
+    error=function(e){})
 })
 
 # choices of comparisons/proteins to plot
@@ -42,13 +72,13 @@ output$WhichComp <- renderUI ({
 })
 
 output$WhichProt <- renderUI ({
-  selectizeInput("whichProt",
-                 label = h4("which protein to plot"), unique(get_data()[1]))
+  selectInput("whichProt",
+                 label = h4("which protein to plot"), unique(get_data()[[1]]))
 })
 
 output$WhichProt1 <- renderUI ({
   selectizeInput("whichProt1",
-                 label = h4("which protein to plot"), c("", unique(get_data()[1])))
+                 label = h4("which protein to plot"), c("", unique(get_data()[[1]])))
 })
 
 
@@ -61,15 +91,45 @@ observeEvent(input$def_comp, {
   comp_list$dList <- NULL
 })
 
-matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
+observeEvent(input$proceed1, {
+  contrast$matrix <- NULL
+  comp_list$dList <- NULL
+  significant$result <- NULL
+})
+
+## Check contrast matrix was created correctly
+check_cond <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
   req(input$def_comp)
+  req(input$DDA_DIA)
   if(input$def_comp == "custom") {
     validate(
       need(input$group1 != input$group2, "Please select different groups")
-    )
+    )}
+  
+  else if(input$def_comp == "custom_np") {
+    
+    wt_sum <- 0
+    for (index in 1:length(choices())){
+      wt_sum <- wt_sum + input[[paste0("weight", index)]]
+    }
+    
+    validate(
+      need( wt_sum == 0, 
+            "The contrast weights should sum up to 0")
+    )}
+})
+
+matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
+  req(input$def_comp)
+  req(input$DDA_DIA)
+  if(input$def_comp == "custom") {
+    if(input$group1 == input$group2){
+      return(contrast$matrix)
+    }
     index1 <- reactive({which(choices() == input$group1)})
     index2 <- reactive({which(choices() == input$group2)})
-    comp_list$dList <- c(isolate(comp_list$dList), paste(input$group1, "vs", input$group2, sep = " "))
+    comp_list$dList <- unique(c(isolate(comp_list$dList), paste(input$group1, "vs", 
+                                                                input$group2, sep = " ")))
     contrast$row <- matrix(row(), nrow=1)
     contrast$row[index1()] = 1
     contrast$row[index2()] = -1
@@ -80,17 +140,53 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
       contrast$matrix <- rbind(contrast$matrix, contrast$row)
       contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
     }
+    print(contrast$matrix)
     rownames(contrast$matrix) <- comp_list$dList
     colnames(contrast$matrix) <- choices()
   }
+  
+  else if(input$def_comp == "custom_np") {
+    
+    wt_sum <- 0
+    for (index in 1:length(choices())){
+      wt_sum <- wt_sum + input[[paste0("weight", index)]]
+    }
+    
+    if(wt_sum != 0){
+      return(contrast$matrix)
+    }
+    
+    comp_list$dList <- unique(c(isolate(comp_list$dList), input$comp_name))
+    contrast$row <- matrix(row(), nrow=1)
+    
+    for (index in 1:length(choices())){
+      contrast$row[index] = input[[paste0("weight", index)]]
+    }
+    
+    if (is.null(contrast$matrix)) {
+      contrast$matrix <- contrast$row 
+    } else {
+      contrast$matrix <- rbind(contrast$matrix, contrast$row)
+      contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
+    }
+    print(contrast$matrix)
+    rownames(contrast$matrix) <- comp_list$dList
+    colnames(contrast$matrix) <- choices()
+  }
+  
   else if (input$def_comp == "all_one") {
+    print(choices())
     for (index in 1:length(choices())) {
       index3 <- reactive({which(choices() == input$group3)})
       if(index == index3()) next
       if(input$DDA_DIA=="TMT"){
-        comp_list$dList <- c(isolate(comp_list$dList), paste(choices()[index], " vs ", input$group3, sep = ""))
+        comp_list$dList <- c(isolate(comp_list$dList), 
+                             paste(choices()[index], " vs ", 
+                                   input$group3, sep = ""))
       } else{
-        comp_list$dList <- c(isolate(comp_list$dList), paste("C",index, " vs ", input$group3, sep = ""))
+        comp_list$dList <- c(isolate(comp_list$dList), 
+                             paste(choices()[index], " vs ", 
+                                   input$group3, sep = ""))
       }
       
       contrast$row <- matrix(row(), nrow=1)
@@ -98,8 +194,7 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
       contrast$row[index3()] = -1
       if (is.null(contrast$matrix)) {
         contrast$matrix <- contrast$row 
-      } 
-      else {
+      } else {
         contrast$matrix <- rbind(contrast$matrix, contrast$row)
       }
       rownames(contrast$matrix) <- comp_list$dList
@@ -113,18 +208,20 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
         if (index == index1) next
         if (index < index1) {
           if(input$DDA_DIA=="TMT"){
-            comp_list$dList <- c(isolate(comp_list$dList), paste(choices()[index], " vs ", choices()[index1], sep = ""))
+            comp_list$dList <- c(isolate(comp_list$dList), 
+                                 paste(choices()[index], " vs ", 
+                                       choices()[index1], sep = ""))
           } else{
-            comp_list$dList <- c(isolate(comp_list$dList), paste("C",index, " vs ", "C",index1, sep = ""))
+            comp_list$dList <- c(isolate(comp_list$dList), 
+                                 paste(choices()[index], " vs ", 
+                                       choices()[index1], sep = ""))
           }
-          
           contrast$row <- matrix(row(), nrow=1)
           contrast$row[index] = 1
           contrast$row[index1] = -1
           if (is.null(contrast$matrix)) {
             contrast$matrix <- contrast$row 
-          } 
-          else {
+          } else {
             contrast$matrix <- rbind(contrast$matrix, contrast$row)
             contrast$matrix <- rbind(contrast$matrix[!duplicated(contrast$matrix),])
           }
@@ -134,30 +231,241 @@ matrix_build <- eventReactive(input$submit | input$submit1 | input$submit2, {
       }
     }
   }
-  
+  shinyjs::enable("calculate")
   return(contrast$matrix)
 })
 
 # clear matrix
 
-observeEvent({input$clear
-  input$clear1
-  input$clear2},  {
-    comp_list$dList <- NULL
-    contrast$matrix <- NULL
-  })
+observeEvent({input$clear | input$clear1 | input$clear2 | input$clear3},  {
+  shinyjs::disable("calculate")
+  comp_list$dList <- NULL
+  contrast$matrix <- NULL
+})
 
-# compare data
-
-data_comparison <- eventReactive(input$calculate, {
-  if(input$DDA_DIA=="TMT"){
-    groupComparisonTMT(contrast.matrix = matrix_build(), data = preprocess_data())
-  }
-  else{
-    groupComparison(contrast.matrix = matrix_build(), data = preprocess_data())
+# Run Models
+## Function for LF so we can track progress
+lf_model = function(data, contrast.matrix, busy_indicator = TRUE){
+  
+  proteins = as.character(unique(data$ProteinLevelData[, 'Protein']))
+  
+  if (busy_indicator){
+    show_modal_progress_line() # show the modal window
+    
+    ## Setup progress bar
+    update_val = 1/length(proteins)
+    counter = 0
   }
   
+  ## Prepare data for modeling
+  labeled = data.table::uniqueN(data$FeatureLevelData$Label) > 1
+  split_summarized = MSstatsPrepareForGroupComparison(data)
+  repeated = checkRepeatedDesign(data)
+  samples_info = getSamplesInfo(data)
+  groups = unique(data$ProteinLevelData$GROUP)
+  contrast_matrix = MSstatsContrastMatrix(contrast.matrix, groups)
+  
+  ## Inside MSstatsGroupComparison function
+  groups = sort(colnames(contrast_matrix))
+  has_imputed = attr(split_summarized, "has_imputed")
+  all_proteins_id = seq_along(split_summarized)
+  test_results = vector("list", length(all_proteins_id))
+  pb = txtProgressBar(max = length(all_proteins_id), style = 3)
+  
+  for (i in all_proteins_id) {
+    comparison_outputs = MSstatsGroupComparisonSingleProtein(
+      split_summarized[[i]], contrast_matrix, repeated, 
+      groups, samples_info, TRUE, has_imputed
+    )
+    test_results[[i]] = comparison_outputs
+    
+    ## Update progress bar
+    if (busy_indicator){
+      counter = counter + update_val
+      update_modal_progress(counter)
+    }
+  }
+  
+  results = MSstatsGroupComparisonOutput(test_results, data, 2) ## 2 is log_base param
+  
+  if (busy_indicator){
+    remove_modal_progress() # remove it when done
+  }
+  
+  return(results)
+  
+}
+
+tmt_model = function(data, contrast.matrix, busy_indicator = TRUE){
+  
+  proteins = as.character(unique(data$ProteinLevelData[, 'Protein']))
+  
+  if (busy_indicator){
+    show_modal_progress_line() # show the modal window
+    
+    ## Setup progress bar
+    update_val = 1/length(proteins)
+    counter = 0
+  }
+  
+  ## Prep data for modeling
+  summarized = MSstatsTMT:::MSstatsPrepareForGroupComparisonTMT(data$ProteinLevelData, 
+                                                                TRUE,#remove_norm_channel
+                                                                TRUE)#remove_empty_channel
+  contrast_matrix = MSstats::MSstatsContrastMatrix(contrast.matrix,
+                                                   unique(summarized$Group))
+  fitted_models = MSstatsTMT:::MSstatsFitComparisonModelsTMT(summarized)
+  FittedModel <- fitted_models$fitted_model
+  names(FittedModel) <- fitted_models$protein
+  
+  fitted_models = MSstatsTMT:::MSstatsModerateTTest(summarized, fitted_models, 
+                                                    input$moderated)#moderated
+  
+  testing_results = vector("list", length(fitted_models))
+  
+  for (i in seq_along(fitted_models)) {
+    testing_result = MSstatsTMT:::MSstatsTestSingleProteinTMT(fitted_models[[i]], 
+                                                              contrast_matrix)
+    testing_results[[i]] = testing_result
+    
+    ## Update progress bar
+    if (busy_indicator){
+      counter = counter + update_val
+      update_modal_progress(counter)
+    }
+  }
+  
+  testing_results = MSstatsTMT:::MSstatsGroupComparisonOutputTMT(
+    testing_results, "BH") #adj.method
+  
+  results = list(ComparisonResult = testing_results, 
+                 ModelQC = NULL,
+                 FittedModel = FittedModel)   
+  
+  if (busy_indicator){
+    remove_modal_progress() # remove it when done
+  }
+  
+  return(results)
+  
+}
+
+apply_adj = function(ptm_model, protein_model){
+  
+  ptm_model_site_sep = copy(ptm_model)
+  ## extract global protein name
+  ptm_model_site_sep = MSstatsPTM:::.extractProtein(ptm_model_site_sep, 
+                                                    protein_model)
+
+  ## adjustProteinLevel function can only compare one label at a time
+  comparisons = unique(ptm_model_site_sep[, Label])
+  
+  adjusted_model_list = list()
+  for (i in seq_len(length(comparisons))) {
+
+    temp_adjusted_model = MSstatsPTM:::.applyPtmAdjustment(comparisons[[i]],
+                                               ptm_model_site_sep,
+                                               protein_model)
+    adjusted_model_list[[i]] = temp_adjusted_model
+  }
+  
+  adjusted_models = rbindlist(adjusted_model_list)
+  
+  adjusted_models$GlobalProtein = adjusted_models$Protein
+  adjusted_models$Protein = adjusted_models$Site
+  adjusted_models[, Site := NULL]
+  
+  return(adjusted_models)
+}
+
+data_comparison <- eventReactive(input$calculate, {
+  
+  input_data = preprocess_data()
+  contrast.matrix = matrix_build()
+  
+  print(matrix_build())
+  if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+    model_ptm = tmt_model(input_data$PTM, contrast.matrix)
+    model_protein = tmt_model(input_data$PROTEIN, contrast.matrix)
+    model_adj = apply_adj(model_ptm$ComparisonResult,
+                          model_protein$ComparisonResult)
+    model = list('PTM.Model' = model_ptm$ComparisonResult, 
+                 'PROTEIN.Model' = model_protein$ComparisonResult,
+                'ADJUSTED.Model' = model_adj)
+
+  } else if(input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
+    model_ptm = lf_model(input_data$PTM, contrast.matrix)
+    model_protein = lf_model(input_data$PROTEIN, contrast.matrix)
+    model_adj = apply_adj(model_ptm$ComparisonResult,
+                          model_protein$ComparisonResult)
+    model = list('PTM.Model' = model_ptm$ComparisonResult, 
+                 'PROTEIN.Model' = model_protein$ComparisonResult,
+                 'ADJUSTED.Model' = model_adj)
+    
+  } else if(input$DDA_DIA=="TMT"){
+    model <- tmt_model(input_data, contrast.matrix)
+  }
+  else{
+    model <- lf_model(input_data, contrast.matrix)
+  }
+  
+  return(model)
 })
+
+data_comparison_code <- eventReactive(input$calculate, { 
+  
+  codes <- preprocess_data_code()
+  
+  if(input$DDA_DIA == "TMT"){
+    
+    comp.mat <- matrix_build()
+    
+    codes <- paste(codes, "\n# Create the contrast matrix\n", sep = "")
+    codes <- paste(codes, "contrast.matrix <- NULL\n", sep = "")
+    for(i in 1:nrow(comp.mat)){
+      codes <- paste(codes, "comparison <- matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
+      codes <- paste(codes, "contrast.matrix <- rbind(contrast.matrix, comparison)\n", sep = "")
+      
+    }
+    
+    codes <- paste(codes, "row.names(contrast.matrix)<-c(\"", paste(row.names(comp.mat), collapse='","'),"\")\n", sep = "")
+    codes <- paste(codes, "colnames(contrast.matrix)<-c(\"", paste(colnames(comp.mat), collapse='","'),"\")\n", sep = "")
+
+    codes <- paste(codes, "\n# Model-based comparison\n", sep = "")
+    codes <- paste(codes,"model <- MSstatsTMT:::groupComparisonTMT(summarized,
+                   contrast.matrix = contrast.matrix,
+                   moderated = ", input$moderated,",\t\t\t\t   
+                   adj.method = \"BH\",
+                   remove_norm_channel = TRUE,
+                   remove_empty_channel = TRUE
+                   )\n", sep = "")
+  }
+  else{
+    comp.mat <- matrix_build()
+    codes <- paste(codes, "\n# Create the contrat matrix\n", sep = "")
+    codes <- paste(codes, "contrast.matrix <- NULL\n", sep = "")
+    for(i in 1:nrow(comp.mat)){
+      codes <- paste(codes, "comparison <- matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
+      codes <- paste(codes, "contrast.matrix <- rbind(contrast.matrix, comparison)\n", sep = "")
+      
+    }
+    
+    codes <- paste(codes, "row.names(contrast.matrix)<-c(\"", paste(row.names(comp.mat), collapse='","'),"\")\n", sep = "")
+    codes <- paste(codes, "colnames(contrast.matrix)<-c(\"", paste(colnames(comp.mat), collapse='","'),"\")\n", sep = "")
+    
+    codes <- paste(codes, "\n# Model-based comparison\n", sep = "")
+    codes <- paste(codes,"model <- MSstats:::groupComparison(contrast.matrix, summarized)\n", sep = "")
+  }
+  
+  codes <- paste(codes, "groupComparisonPlots(data=model$ComparisonResult,
+                         type=\"Enter VolcanoPlot, Heatmap, or ComparisonPlot\",
+                         which.Comparison=\"all\",
+                         which.Protein=\"all\",
+                         address=\"\")\n", sep="")
+  
+  return(codes)
+})
+
 
 round_df <- function(df) {
   nums <- vapply(df, is.numeric, FUN.VALUE = logical(1))
@@ -167,19 +475,31 @@ round_df <- function(df) {
   (df)
 }
 
-SignificantProteins <- reactive({
-  if(input$DDA_DIA=="TMT"){
-    data_comp <- data_comparison()
-    with(data_comp,round_df(data_comp[data_comp$adj.pvalue < input$signif, ]))
+SignificantProteins <- eventReactive(input$calculate,{
+  if (input$DDA_DIA == "PTM"){
+    data_comp = data_comparison()
+    sig_unadj = data_comp$PTM.Model[
+      data_comp$PTM.Model$adj.pvalue < input$signif]
+    sig_prot = data_comp$PROTEIN.Model[
+      data_comp$PROTEIN.Model$adj.pvalue < input$signif]
+    sig_adj = data_comp$ADJUSTED.Model[
+      data_comp$ADJUSTED.Model$adj.pvalue < input$signif]
+    significant = list(PTM.Model=sig_unadj, 
+                       PROTEIN.Model=sig_prot, 
+                       ADJUSTED.Model=sig_adj)
+
+  } else if(input$DDA_DIA=="TMT"){
+    data_comp = data_comparison()
+    significant = data_comp$ComparisonResult[
+      data_comp$ComparisonResult$adj.pvalue < input$signif, ]
     
   } else {
-    with(data_comparison(),round_df(ComparisonResult[ComparisonResult$adj.pvalue < input$signif, ]))
+    significant = with(data_comparison(), round_df(ComparisonResult[
+      ComparisonResult$adj.pvalue < input$signif, ]))
+
   }
-  
+  return(significant)
 })
-  
-
-
 
 # comparison plots
 
@@ -191,17 +511,18 @@ SignificantProteins <- reactive({
 #     group_comparison(TRUE)
 #   }
 # })
-# 
+#
 # observeEvent(input$viewresults, {
 #   if(input$typeplot != "ComparisonPlot") {
 #     group_comparison(TRUE)
 #   }
 #   else {
 #     group_comparison(TRUE)
-#   } 
+#   }
 # })
 
 group_comparison <- function(saveFile1, pdf) {
+  
   id1 <- as.character(UUIDgenerate(FALSE))
   id_address1 <- paste("tmp/",id1, sep = "")
   path1 <- function() {
@@ -214,9 +535,20 @@ group_comparison <- function(saveFile1, pdf) {
     return(path1_id)
   }
   
-  if(input$DDA_DIA=="TMT"){
+  if (input$DDA_DIA=="PTM"){
+    plot1 = groupComparisonPlotsPTM(data_comparison(),
+                            input$typeplot,
+                            sig=input$sig,
+                            FCcutoff=input$FC,
+                            logBase.pvalue=as.integer(input$logp),
+                            ProteinName = input$pname,
+                            which.Comparison = input$whichComp,
+                            address = path1())
     
-    plot1 <- groupComparisonPlots2(data=data_comparison(),
+    
+  } else if(input$DDA_DIA=="TMT"){
+    
+    plot1 <- groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                    type=input$typeplot,
                                    sig=input$sig,
                                    FCcutoff=input$FC,
@@ -258,7 +590,6 @@ group_comparison <- function(saveFile1, pdf) {
 
 # model assumptions plots
 
-
 assumptions1 <- function(saveFile3, protein) {
   if (input$whichProt1 != "") {
     id2 <- as.character(UUIDgenerate(FALSE))
@@ -273,7 +604,8 @@ assumptions1 <- function(saveFile3, protein) {
       return (path_id2)
     }
     
-    plots <- modelBasedQCPlots(data=data_comparison(), type=input$assum_type, which.Protein = protein, address = path2())
+    plots <- modelBasedQCPlots(data=data_comparison(), type=input$assum_type, 
+                               which.Protein = protein, address = path2())
     
     if(saveFile3) {
       return(id_address2)
@@ -319,9 +651,19 @@ output$fitted_v <- downloadHandler(
 
 # matrix
 
+output$message <- renderText({
+  check_cond()
+})
+observeEvent(input$calculate, {output$code.button <- renderUI(
+  downloadButton("download_code", "Download analysis code", icon("download"),
+    style="color: #000000; background-color: #75ba82; border-color: #000000"))})
+
 output$matrix <- renderUI({
   tagList(
-    h5("Comparison matrix"),
+    h2("Comparison matrix"),
+    br(),
+    textOutput("message"),
+    br(),
     if (is.null(contrast$matrix)) {
       ""
     } else {
@@ -335,18 +677,88 @@ output$table <-  renderDataTable({
 }, rownames = T)
 
 # table of significant proteins
-
 output$table_results <- renderUI({
   req(data_comparison())
-  tagList(
-    tags$br(),
-    h5("Results"),
-    h5("There are ",textOutput("number", inline = TRUE),"significant proteins"),
-    dataTableOutput("significant", width = "100%"),
-    tags$br(),
-    downloadButton("download_compar", "Download full table of comparison"),
-    downloadButton("download_signif", "Download table of significant proteins")
-  )
+  req(SignificantProteins())
+  
+  if (is.null(significant)) {
+
+    tagList(
+      tags$br())
+  } else {
+    tagList(
+      tags$br(),
+      h2("Results"),
+      h5("There are ",textOutput("number", inline = TRUE),"significant proteins"),
+      tags$br(),
+      dataTableOutput("significant"),
+      downloadButton("download_compar", "Download all modeling results"),
+      downloadButton("download_signif", "Download significant proteins")
+      
+    )
+  }
+})
+
+output$adj_table_results <- renderUI({
+  req(data_comparison())
+  req(SignificantProteins())
+  significant = SignificantProteins()
+  print(significant$ADJUSTED.Model)
+  if (is.null(significant$ADJUSTED.Model)) {
+    print(TRUE)
+    tagList(
+      tags$br())
+  } else {
+    tagList(
+      tags$br(),
+      h2("Adjusted PTM Modeling Results"),
+      h5("There are ",textOutput("number_adj", inline = TRUE),"significant PTMs"),
+      tags$br(),
+      dataTableOutput("adj_significant"),
+      downloadButton("download_compar_adj", "Download all modeling results"),
+      downloadButton("download_signif_adj", "Download significant PTMs")
+    )
+  }
+})
+
+output$unadj_table_results <- renderUI({
+  req(data_comparison())
+  req(SignificantProteins())
+  significant = SignificantProteins()
+  if (is.null(significant$PTM.Model)) {
+    tagList(
+      tags$br())
+  } else {
+    tagList(
+      tags$br(),
+      h2("Unadjusted PTM Modeling Results"),
+      h5("There are ",textOutput("number_unadj", inline = TRUE),"significant PTMs"),
+      tags$br(),
+      dataTableOutput("unadj_significant"),
+      downloadButton("download_compar_unadj", "Download all modeling results"),
+      downloadButton("download_signif_unadj", "Download significant PTMs")
+    )
+  }
+})
+
+output$prot_table_results <- renderUI({
+  req(data_comparison())
+  req(SignificantProteins())
+  significant = SignificantProteins()
+  if (is.null(significant$PTM.Model)) {
+    tagList(
+      tags$br())
+  } else {
+    tagList(
+      tags$br(),
+      h2("Protein Modeling Results"),
+      h5("There are ",textOutput("number_prot", inline = TRUE),"significant proteins"),
+      tags$br(),
+      dataTableOutput("prot_significant"),
+      downloadButton("download_compar_prot", "Download all modeling results"),
+      downloadButton("download_signif_prot", "Download significant proteins")
+    )
+  }
 })
 
 output$significant <- renderDataTable({
@@ -354,10 +766,38 @@ output$significant <- renderDataTable({
 }, rownames = F
 )
 
+output$adj_significant <- renderDataTable({
+  SignificantProteins()$ADJUSTED.Model
+}, rownames = F
+)
+
+output$unadj_significant <- renderDataTable({
+  SignificantProteins()$PTM.Model
+}, rownames = F
+)
+
+output$prot_significant <- renderDataTable({
+  SignificantProteins()$PROTEIN.Model
+}, rownames = F
+)
+
+
 # number of significant proteins
 
 output$number <- renderText({
   nrow(SignificantProteins())
+})
+
+output$number_adj <- renderText({
+  nrow(SignificantProteins()$ADJUSTED.Model)
+})
+
+output$number_unadj <- renderText({
+  nrow(SignificantProteins()$PTM.Model)
+})
+
+output$number_prot <- renderText({
+  nrow(SignificantProteins()$PROTEIN.Model)
 })
 
 # plot in browser 
@@ -381,8 +821,6 @@ observeEvent(input$viewresults, {
 }
 )
 
-
-
 observe ({output$comp_plots <- renderPlot({
   group_comparison(FALSE, FALSE)}, height = input$height
 )
@@ -391,7 +829,7 @@ observe ({output$comp_plots <- renderPlot({
 plotset <- reactive({
   
   if(input$DDA_DIA=="TMT"){
-    data_comp <- data_comparison()
+    data_comp <- data_comparison()$ComparisonResult
     v1 <- data_comp[,1]
     v2 <- round(data_comp[,3], 10)
     v3 <- round(data_comp[,8], 10)
@@ -468,17 +906,45 @@ observeEvent(input$saveall1, {
 
 output$download_compar <- downloadHandler(
   filename = function() {
-    paste("data-", Sys.Date(), ".csv", sep="")
+    paste("test_result-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
-    if(input$DDA_DIA=="TMT") {
-      write.csv(data_comparison(), file)
-    } else {
-      write.csv(data_comparison()$ComparisonResult, file)
-    }
-    
+    write.csv(data_comparison()$ComparisonResult, file)
   }
 )
+output$download_compar_adj <- downloadHandler(
+  filename = function() {
+    paste("adj_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(data_comparison()$ADJUSTED.Model, file)
+  }
+)
+output$download_compar_unadj <- downloadHandler(
+  filename = function() {
+    paste("unadj_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(data_comparison()$PTM.Model, file)
+  }
+)
+output$download_compar_prot <- downloadHandler(
+  filename = function() {
+    paste("prot_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(data_comparison()$PROTEIN.Model, file)
+  }
+)
+
+output$download_code <- downloadHandler(
+  filename = function() {
+    paste("mstats-code-", Sys.Date(), ".R", sep="")
+  },
+  content = function(file) {
+    writeLines(paste(
+                  data_comparison_code(), sep = ""), file)
+  })
 
 output$download_signif <- downloadHandler(
   filename = function() {
@@ -486,6 +952,30 @@ output$download_signif <- downloadHandler(
   },
   content = function(file) {
     write.csv(SignificantProteins(), file)
+  }
+)
+output$download_signif_adj <- downloadHandler(
+  filename = function() {
+    paste("adj_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(SignificantProteins()$ADJUSTED.Model, file)
+  }
+)
+output$download_signif_unadj <- downloadHandler(
+  filename = function() {
+    paste("unadj_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(SignificantProteins()$PTM.Model, file)
+  }
+)
+output$download_signif_prot <- downloadHandler(
+  filename = function() {
+    paste("prot_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(SignificantProteins()$PROTEIN.Model, file)
   }
 )
 
@@ -510,4 +1000,15 @@ observeEvent(input$plotresults, {
 })
 
 
+observeEvent(input$calculate,{
+  shinyjs::enable("Design")
+  shinyjs::enable("typeplot")
+  shinyjs::enable("WhichComp")
+  shinyjs::enable("download_code")
+  
+})
 
+
+# observeEvent(input$power_next, {
+#   updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
+# })

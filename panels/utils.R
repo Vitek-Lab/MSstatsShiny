@@ -357,21 +357,21 @@ groupComparisonPlots2 <- function(data=data,
     ## group for coloring dots
     if (!FCcutoff) {  
       data[data$adj.pvalue >= sig, "colgroup"] <- "black"
-      data[data$adj.pvalue < sig & data[, 3] > 0, "colgroup"] <- "red"
-      data[data$adj.pvalue < sig & data[, 3] < 0, "colgroup"] <- "blue" 
+      data[data$adj.pvalue < sig & data[[3]] > 0, "colgroup"] <- "red"
+      data[data$adj.pvalue < sig & data[[3]] < 0, "colgroup"] <- "blue" 
     }
     
     if (is.numeric(FCcutoff)) {
       data$colgroup <- "black"
       
       if (colnames(data)[3] == "log2FC") {
-        data[data$adj.pvalue < sig & data[, 3] > log2(FCcutoff), "colgroup"] <- "red"
-        data[data$adj.pvalue < sig & data[, 3] < (-log2(FCcutoff)), "colgroup"] <- "blue"
+        data[data$adj.pvalue < sig & data[[3]] > log2(FCcutoff), "colgroup"] <- "red"
+        data[data$adj.pvalue < sig & data[[3]] < (-log2(FCcutoff)), "colgroup"] <- "blue"
       }
       
       if (colnames(data)[3] == "log10FC") {
-        data[data$adj.pvalue < sig & data[, 3] > log10(FCcutoff), "colgroup"] <- "red"
-        data[data$adj.pvalue < sig & data[, 3] < (-log10(FCcutoff)), "colgroup"] <- "blue"
+        data[data$adj.pvalue < sig & data[[3]] > log10(FCcutoff), "colgroup"] <- "red"
+        data[data$adj.pvalue < sig & data[[3]] < (-log10(FCcutoff)), "colgroup"] <- "blue"
       }
     }
     
