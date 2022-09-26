@@ -23,10 +23,8 @@ steps.
 
 1. Download [R](https://www.r-project.org/) and [RStudio](https://www.rstudio.com/products/rstudio/download/) - [How to](https://rstudio-education.github.io/hopr/starting.html).
 2. Install the dependencies listed below:
-  `install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr',
-                    'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager', 'devtools'))`
-                    
-  `BiocManager::install(c('MSstatsPTM', 'biomaRt'))`
+`install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr', 'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager', 'devtools'))`
+`BiocManager::install(c('MSstatsPTM', 'biomaRt'))`
 3. Install the package by executing `devtools::install_github("Vitek-Lab/MSstatsShiny")` in the console.
 4. Run the application by executing `library(MSstatsShiny)` and `launch_MSstatsShiny()` or `MSstatsShiny::launch_MSstatsShiny()` in the console.
 
