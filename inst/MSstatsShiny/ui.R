@@ -1,0 +1,124 @@
+rm()
+library(shiny)
+library(shinyBS)
+library(shinyjs)
+library(shinybusy)
+library(ggplot2)
+library(tidyverse)
+library(data.table)
+library(MSstatsTMT)
+library(MSstatsPTM)
+library(knitr)
+library(readxl)
+library(DT)
+
+if (FALSE) require("V8")
+#library(MSnbase)
+
+#####################################
+
+# Global functions #
+
+radioTooltip = function(id, choice, title, placement = "bottom", trigger = "hover", options = NULL){
+  
+  options = shinyBS:::buildTooltipOrPopoverOptionsList(title, placement, trigger, options)
+  options = paste0("{'", paste(names(options), options, sep = "': '", collapse = "', '"), "'}")
+  bsTag = shiny::tags$script(shiny::HTML(paste0("
+                                                 $(document).ready(function() {
+                                                 setTimeout(function() {
+                                                 $('input', $('#", id, "')).each(function(){
+                                                 if(this.getAttribute('value') == '", choice, "') {
+                                                 opts = $.extend(", options, ", {html: true});
+                                                 $(this.parentElement).tooltip('destroy');
+                                                 $(this.parentElement).tooltip(opts);
+                                                 }
+                                                 })
+                                                 }, 500)
+                                                 });
+                                                 ")))
+  htmltools::attachDependencies(bsTag, shinyBS:::shinyBSDep)
+}
+
+ ####################################
+
+source("panels/home-ui.R", local = T)
+source("panels/loadpage-ui.R", local = T)
+source("panels/qc-ui.R", local = T)
+source("panels/statmodel-ui.R", local = T)
+source("panels/expdes-ui.R", local = T)
+source("panels/help-ui.R", local = T)
+source("panels/msstats_help-ui.R", local = T)
+source("panels/msstatstmt_help-ui.R", local = T)
+
+
+#########################################################################
+
+jsCode = '
+shinyjs.init = function() {
+$(document).keypress(function(e) { alert("Key pressed: " + e.which); });
+  alert("fooo");
+  console.log("initttttt");
+  $("#tablist li a").addClass("disabled");
+
+  $(".nav").on("click", ".disabled", function (e) {
+    e.preventDefault();
+    return false;
+  });
+}
+
+shinyjs.enableTab = function(value) {
+  $("#tablist li a[data-value=" + value + "]").removeClass("disabled");
+}
+'
+
+if(!exists('currentTab') || is.null(currentTab)){
+  currentTab = "Homepage"
+}
+
+css = "
+.disabled {
+background: #eee !important;
+cursor: default !important;
+color: black !important;
+}
+"
+
+ui = navbarPage(
+  title = "MSstatsShiny",
+  id = "tablist",
+  selected = currentTab,
+  
+  tags$head(
+    tags$style(HTML("
+                    .shiny-output-error-validation {
+                    color: red;
+                    }
+                    h1 {
+                    color: #000000;
+                    }
+                    "))
+    ),
+  
+  
+  useShinyjs(),
+  extendShinyjs(text = jsCode,functions = c("init","enableTab")),
+  tags$style(css),
+  
+  
+  tabPanel("Homepage", icon = icon("home"), home),
+  tabPanel("1. Data Uploading",value = "Uploaddata", icon = icon("send"), loadpage),
+  tabPanel("2. Data Processing", value = "DataProcessing", icon = icon("gears"), qc),
+  tabPanel("3. Statistical Inference", value = "StatsModel", icon = icon("magic"), statmodel),
+  tabPanel("4. Future Experiments", value = "Future", icon = icon("flask"), expdes),
+  # tabPanel("Download logfile", icon = icon("download"), report),
+  navbarMenu("Help", icon = icon("ambulance"), 
+    tabPanel("Shiny Help", help),
+    tabPanel("MSstats Vignette", msstats_help),
+    tabPanel("MSstatsTMT Vignette", msstatstmt_help)
+    ),
+  inverse = T,
+  collapsible = T,
+  windowTitle = "MSstatsShiny"
+)
+
+shinyUI(ui)
