@@ -464,3 +464,54 @@ QC_check = function(input) {
   }
   return(maxQC)
 }
+
+#' Custom function to create radio tool tips
+#' 
+#' Used in UI files to create HTML vizualizations
+#' 
+#' @export
+#' @param id input id
+#' @param choice user selection
+#' @param title title of object
+#' @param placement where should tooltip be shown
+#' @param trigger how should prompt be shown
+#' @param options additional options to pass to function
+#' @return HTML object
+#' @examples
+#' radioTooltip("testid", "test_choice", "test_title")
+radioTooltip = function(id, choice, title, placement = "bottom", 
+                        trigger = "hover", options = NULL){
+  
+  options = shinyBS:::buildTooltipOrPopoverOptionsList(title, placement, 
+                                                       trigger, options)
+  options = paste0("{'", paste(
+    names(options), options, sep = "': '", collapse = "', '"), "'}")
+  bsTag = tags$script(HTML(paste0("
+                            $(document).ready(function() {
+                            setTimeout(function() {
+                            $('input', $('#", id, "')).each(function(){
+                            if(this.getAttribute('value') == '", choice, "') {
+                            opts = $.extend(", options, ", {html: true});
+                            $(this.parentElement).tooltip('destroy');
+                            $(this.parentElement).tooltip(opts);
+                            }
+                            })
+                            }, 500)
+                            });
+                            ")))
+  attachDependencies(bsTag, shinyBS:::shinyBSDep)
+}
+
+#' Simple function to return coordinates
+#' 
+#' Used expeirmental design to create vizualization
+#' 
+#' @export
+#' @param e input function provided by user
+#' @return Character with x and y coordinates
+#' @examples
+#' xy_str(list(x=5.0,y=2.0))
+xy_str = function(e) {
+  if(is.null(e)) return("NULL\n")
+  paste0("x=", round(e$x, 1), " y=", round(e$y, 1), "\n")
+}

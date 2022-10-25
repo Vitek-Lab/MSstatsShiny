@@ -1,5 +1,4 @@
 ### sidebar ###
-
 sbp_params = sidebarPanel(
   
   
@@ -37,11 +36,10 @@ sbp_params = sidebarPanel(
                                                           title = "Maximum quantile for deciding censored missing values, default is 0.999"))),
                    numericInput("maxQC", NULL, 0.999, 0.000, 1.000, 0.001)),
   
-  #normalisation
-  
+  # Normalization
   conditionalPanel(condition="input.DDA_DIA !== 'TMT' && input.PTMTMT !== 'Yes'",
                    selectInput("norm", 
-                               label = h4("2. Normalisation", 
+                               label = h4("2. Normalization", 
                                           tipify(icon("question-circle"), 
                                                  title = "Normalization to remove systematic bias between MS runs. For more information visit the Help tab")), 
                                c("none" = "FALSE", "equalize medians" = "equalizeMedians", 
@@ -234,7 +232,6 @@ main = mainPanel(
 ########################################################################################
 
 qc = fluidPage(
-  # useShinyalert(),
   use_busy_spinner(spin = "fading-circle"),
   tags$style(HTML('#proceed6{background-color:orange}')),
   headerPanel("Process and quantify data"),
@@ -243,26 +240,6 @@ qc = fluidPage(
   sbp_params,
   column(width = 8,
          main,
-         uiOutput('submit.button'),
-         #        tags$head(tags$style(type="text/css", "
-         #          #loadmessage {
-         #            position: bottomright;
-         #            top: 0px;
-         #            left: 0px;
-         #            width: 300px;
-         #            padding: 50px;
-         #            margin: 20px;
-         #            border: 15px solid navy;
-         #            text-align: center;
-         #            font-weight: bold;
-         #            font-size: 200%;
-         #            color: #000000;
-         #            background-color: lightgrey;
-         #            z-index: 105;
-         #          }
-         # ")),
-         #        shinyalert(conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-         #                         tags$div("Summarizing Data...",id="loadmessage")
-         #        )),
+         uiOutput('submit.button')
   )
 )

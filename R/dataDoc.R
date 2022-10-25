@@ -18,10 +18,8 @@
 #' without any log transformation and can be specified as the peak of height 
 #' or the peak of  area under curve.
 #' @examples
-#' data("example_dia_skyline")
-#' head(example_dia_skyline)
+#' head(MSstatsShiny::example_dia_skyline)
 #'
-"data(example_dia_skyline)"
 
 #' Example annotation file
 #' 
@@ -33,10 +31,8 @@
 #'
 #' @format data.frame
 #' @examples
-#' data("example_skyline_annotation")
-#' head(example_skyline_annotation)
+#' head(MSstatsShiny::example_skyline_annotation)
 #'
-"data(example_skyline_annotation)"
 
 #' Example of Sklyine DDA dataset processed using MSstats summarization function.
 #' 
@@ -49,10 +45,8 @@
 #'
 #' @format list
 #' @examples
-#' data("dia_skyline_summarized")
-#' head(dia_skyline_summarized)
+#' head(MSstatsShiny::dia_skyline_summarized)
 #'
-"data(dia_skyline_summarized)"
 
 #' Example of Sklyine DDA dataset modeled using MSstats `groupComparison` function.
 #' 
@@ -66,10 +60,8 @@
 #'
 #' @format list
 #' @examples
-#' data("dia_skyline_model")
-#' head(dia_skyline_model)
+#' head(MSstatsShiny::dia_skyline_model)
 #'
-"data(dia_skyline_model)"
 
 #' Example of TMT dataset processed using MSstatsTMT summarization function.
 #' 
@@ -82,10 +74,8 @@
 #'
 #' @format list
 #' @examples
-#' data("tmt_pd_summarized")
-#' head(tmt_pd_summarized)
+#' head(MSstatsShiny::tmt_pd_summarized)
 #'
-"data(tmt_pd_summarized)"
 
 #' Example of TMT dataset modeled using MSstatsTMT `groupComparisonTMT` function.
 #' 
@@ -99,7 +89,5 @@
 #'
 #' @format list
 #' @examples
-#' data("tmt_pd_model")
-#' head(tmt_pd_model)
+#' head(MSstatsShiny::tmt_pd_model)
 #'
-"data(tmt_pd_model)"

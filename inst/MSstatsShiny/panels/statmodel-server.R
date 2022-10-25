@@ -23,7 +23,7 @@ significant = reactiveValues()
 
 observe({
   if(input$DDA_DIA == "TMT"){
-    shinyjs::hide("Design")
+    hide("Design")
   }
   else{
     shinyjs::show("Design")
@@ -231,14 +231,14 @@ matrix_build = eventReactive(input$submit | input$submit1 | input$submit2 | inpu
       }
     }
   }
-  shinyjs::enable("calculate")
+  enable("calculate")
   return(contrast$matrix)
 })
 
 # clear matrix
 
 observeEvent({input$clear | input$clear1 | input$clear2 | input$clear3},  {
-  shinyjs::disable("calculate")
+  disable("calculate")
   comp_list$dList = NULL
   contrast$matrix = NULL
 })
@@ -370,26 +370,6 @@ SignificantProteins = eventReactive(input$calculate,{
   }
   return(significant)
 })
-
-# comparison plots
-
-# observeEvent(input$plotresults, {
-#   if(input$typeplot != "ComparisonPlot") {
-#     group_comparison(TRUE)
-#   }
-#   else {
-#     group_comparison(TRUE)
-#   }
-# })
-#
-# observeEvent(input$viewresults, {
-#   if(input$typeplot != "ComparisonPlot") {
-#     group_comparison(TRUE)
-#   }
-#   else {
-#     group_comparison(TRUE)
-#   }
-# })
 
 group_comparison = function(saveFile1, pdf) {
   
@@ -544,7 +524,7 @@ output$matrix = renderUI({
 
 output$table = renderDataTable({
   matrix_build()
-}#, rownames = T
+}
 )
 
 # table of significant proteins
@@ -634,27 +614,25 @@ output$prot_table_results = renderUI({
 
 output$significant = renderDataTable({
   SignificantProteins()
-}#, rownames = F
+}
 )
 
 output$adj_significant = renderDataTable({
   SignificantProteins()$ADJUSTED.Model
-}#, rownames = F
+}
 )
 
 output$unadj_significant = renderDataTable({
   SignificantProteins()$PTM.Model
-}#, rownames = F
+}
 )
 
 output$prot_significant = renderDataTable({
   SignificantProteins()$PROTEIN.Model
-}#, rownames = F
+}
 )
 
-
 # number of significant proteins
-
 output$number = renderText({
   nrow(SignificantProteins())
 })
@@ -672,7 +650,6 @@ output$number_prot = renderText({
 })
 
 # plot in browser 
-
 observeEvent(input$typeplot, {
   updateSelectInput(session, "whichComp", selected = "all")
 })
@@ -692,7 +669,7 @@ observeEvent(input$viewresults, {
 }
 )
 
-observe ({output$comp_plots = renderPlot({
+observe({output$comp_plots = renderPlot({
   group_comparison(FALSE, FALSE)}, height = input$height
 )
 })
@@ -754,11 +731,11 @@ observeEvent(input$saveone1, {
   path = assumptions1(TRUE, input$whichProt1)
   if (input$assum_type == "QQPlots") {
     js = paste("window.open('", path, "QQPlot.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
   else if (input$type == "ResidualPlots") {
     js = paste("window.open('", path, "ResidualPlots.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
 })
 
@@ -766,11 +743,11 @@ observeEvent(input$saveall1, {
   path = assumptions1(TRUE, "all")
   if (input$assum_type == "QQPlots") {
     js = paste("window.open('", path, "QQPlot.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
   else if (input$type == "ResidualPlots") {
     js = paste("window.open('", path, "ResidualPlots.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
 })
 
@@ -856,30 +833,23 @@ observeEvent(input$plotresults, {
     ui=tags$div(
       if (input$typeplot == "VolcanoPlot") {
         js = paste("window.open('", group_comparison(TRUE, TRUE), "VolcanoPlot.pdf')", sep="")
-        shinyjs::runjs(js);
+        runjs(js);
       }
       else if (input$typeplot == "Heatmap") {
         js = paste("window.open('", group_comparison(TRUE, TRUE), "Heatmap.pdf')", sep="")
-        shinyjs::runjs(js);
+        runjs(js);
       }
       else if (input$typeplot == "ComparisonPlot") {
         js = paste("window.open('", group_comparison(TRUE, TRUE), "ComparisonPlot.pdf')", sep="")
-        shinyjs::runjs(js);
+        runjs(js);
       }
     )
   )
 })
 
-
 observeEvent(input$calculate,{
-  shinyjs::enable("Design")
-  shinyjs::enable("typeplot")
-  shinyjs::enable("WhichComp")
-  shinyjs::enable("download_code")
-  
+  enable("Design")
+  enable("typeplot")
+  enable("WhichComp")
+  enable("download_code")
 })
-
-
-# observeEvent(input$power_next, {
-#   updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
-# })

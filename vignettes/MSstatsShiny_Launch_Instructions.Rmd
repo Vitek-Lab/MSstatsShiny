@@ -2,7 +2,7 @@
 title: "MSstatsShiny Launch Instructions"
 author: "Devon Kohler (<kohler.d@northeastern.edu>)"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: BiocStyle::pdf_document
 vignette: >
   %\VignetteIndexEntry{MSstatsPTM LabelFree Workflow}
   %\VignetteEngine{knitr::rmarkdown}
@@ -36,7 +36,20 @@ BiocManager::install("MSstatsShiny")
 library(MSstatsShiny)
 ```
 
-## 1. Launch Function
+# 1. Introduction
+
+`MSstatsShiny` is an R-shiny based GUI package integrated with the 
+`MSstats` family of packages. The package allows users to analyze a variety of 
+proteomic experiments, including those processed using different labeling 
+methods, spectral processing tools, and targeting different biological questions
+of interest. It is designed to enhance the usability of the `MSstats` packages, 
+bringing them to a wider user base, including those who do not have have 
+experience coding in R. The GUI is designed to be general, reproducible, and 
+scalable, as well as easily usable by all users. Finally, it enhances both 
+reproducibility and collaboration through documenting analyses via code, which 
+recreates the user's analysis exactly.
+
+# 2. Launch Function
 
 After installation, running the application is as simple as executing a single 
 command.
@@ -49,14 +62,14 @@ Once this command is executed, the application will automatically start up in a
 different window. You can still view any warnings or errors in the R console 
 where you ran the function. This can be helpful when debugging.
 
-## 2. Cloud Version
+# 3. Cloud Version
 
 `MSstatsShiny` is also available on the cloud at \url{www.msstatsshiny.com}. Due
 to RAM constraints, the cloud version of the application is limited to files 
 under 250 MB. Any larger files should be processed in a local instance of the 
 application.
 
-## 3. Session Info
+# 4. Session Info
 
 ```{r}
 sessioninfo::session_info()

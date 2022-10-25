@@ -7,7 +7,7 @@
 launch_MSstatsShiny(launch_app = TRUE)
 }
 \arguments{
-\item{launch_app}{One of TRUE or FALSE indicating wheter or not to run
+\item{launch_app}{One of TRUE or FALSE indicating whether or not to run
 application. Default is TRUE.}
 }
 \value{

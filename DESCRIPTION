@@ -21,7 +21,7 @@ Imports: shiny, shinyBS, shinyjs, shinybusy, tidyverse, data.table, MSstats,
   ggrepel, plotly, Biobase, biomaRt, uuid, methods, utils, stats
 Suggests: rmarkdown, tinytest, sessioninfo
 VignetteBuilder: knitr
-biocViews: ImmunoOncology, MassSpectrometry, Proteomics, Software, 
+biocViews: ImmunoOncology, MassSpectrometry, Proteomics, Software, ShinyApps,
   DifferentialExpression, OneChannel, TwoChannel, Normalization, QualityControl
 BugReports: https://github.com/Vitek-Lab/MSstatsPTM/issues
 Encoding: UTF-8
