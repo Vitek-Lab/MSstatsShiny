@@ -1,80 +1,74 @@
 # toggle ui (DDA DIA SRM)
 observe({
   if (input$DDA_DIA == "DDA") {
-    shinyjs::runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-    shinyjs::enable("filetype")
-    shinyjs::disable(selector = "[type=radio][value=spec]")
-    shinyjs::disable(selector = "[type=radio][value=open]")
-    shinyjs::disable(selector = "[type=radio][value=ump]")
-    shinyjs::disable(selector = "[type=radio][value=spmin]")
-    shinyjs::disable(selector = "[type=radio][value=phil]")
-    shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
+    runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
+    enable("filetype")
+    disable(selector = "[type=radio][value=spec]")
+    disable(selector = "[type=radio][value=open]")
+    disable(selector = "[type=radio][value=ump]")
+    disable(selector = "[type=radio][value=spmin]")
+    disable(selector = "[type=radio][value=phil]")
+    runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
   }
   else if (input$DDA_DIA == "DIA") {
-    shinyjs::runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-    shinyjs::enable("filetype")
-    shinyjs::disable(selector = "[type=radio][value=maxq]")
-    shinyjs::disable(selector = "[type=radio][value=prog]")
-    shinyjs::disable(selector = "[type=radio][value=PD]")
-    shinyjs::disable(selector = "[type=radio][value=openms]")
-    shinyjs::disable(selector = "[type=radio][value=spmin]")
-    shinyjs::disable(selector = "[type=radio][value=phil]")
-    shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
+    runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
+    enable("filetype")
+    disable(selector = "[type=radio][value=maxq]")
+    disable(selector = "[type=radio][value=prog]")
+    disable(selector = "[type=radio][value=PD]")
+    disable(selector = "[type=radio][value=openms]")
+    disable(selector = "[type=radio][value=spmin]")
+    disable(selector = "[type=radio][value=phil]")
+    runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
   }
   else if (input$DDA_DIA == "SRM_PRM") {
-    shinyjs::runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-    shinyjs::enable("filetype")
-    shinyjs::disable(selector = "[type=radio][value=maxq]")
-    shinyjs::disable(selector = "[type=radio][value=prog]")
-    shinyjs::disable(selector = "[type=radio][value=PD]")
-    shinyjs::disable(selector = "[type=radio][value=openms]")
-    shinyjs::disable(selector = "[type=radio][value=spec]")
-    shinyjs::disable(selector = "[type=radio][value=open]")
-    shinyjs::disable(selector = "[type=radio][value=ump]")
-    shinyjs::disable(selector = "[type=radio][value=spmin]")
-    shinyjs::disable(selector = "[type=radio][value=phil]")
-    shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
-    
+    runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
+    enable("filetype")
+    disable(selector = "[type=radio][value=maxq]")
+    disable(selector = "[type=radio][value=prog]")
+    disable(selector = "[type=radio][value=PD]")
+    disable(selector = "[type=radio][value=openms]")
+    disable(selector = "[type=radio][value=spec]")
+    disable(selector = "[type=radio][value=open]")
+    disable(selector = "[type=radio][value=ump]")
+    disable(selector = "[type=radio][value=spmin]")
+    disable(selector = "[type=radio][value=phil]")
+    runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
   }
   
   else if (input$DDA_DIA == "TMT") {
-    shinyjs::runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-    shinyjs::enable("filetype")
-    shinyjs::disable(selector = "[type=radio][value=sky]")
-    shinyjs::disable(selector = "[type=radio][value=prog]")
-    shinyjs::disable(selector = "[type=radio][value=spec]")
-    shinyjs::disable(selector = "[type=radio][value=open]")
-    shinyjs::disable(selector = "[type=radio][value=ump]")
-    shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
+    runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
+    enable("filetype")
+    disable(selector = "[type=radio][value=sky]")
+    disable(selector = "[type=radio][value=prog]")
+    disable(selector = "[type=radio][value=spec]")
+    disable(selector = "[type=radio][value=open]")
+    disable(selector = "[type=radio][value=ump]")
+    runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
     
   }
   else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")) {
-    shinyjs::runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-    shinyjs::enable("filetype")
-    shinyjs::disable(selector = "[type=radio][value=sky]")
-    # shinyjs::disable(selector = "[type=radio][value=maxq]") ## MaxQ converter available for PTM
-    shinyjs::disable(selector = "[type=radio][value=prog]")
-    shinyjs::disable(selector = "[type=radio][value=PD]")
-    shinyjs::disable(selector = "[type=radio][value=openms]")
-    shinyjs::disable(selector = "[type=radio][value=spec]")
-    shinyjs::disable(selector = "[type=radio][value=open]")
-    shinyjs::disable(selector = "[type=radio][value=ump]")
-    shinyjs::disable(selector = "[type=radio][value=spmin]")
-    shinyjs::disable(selector = "[type=radio][value=phil]")
-    shinyjs::runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
-    
+    runjs("$('[type=radio][name=filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
+    enable("filetype")
+    disable(selector = "[type=radio][value=sky]")
+    disable(selector = "[type=radio][value=prog]")
+    disable(selector = "[type=radio][value=PD]")
+    disable(selector = "[type=radio][value=openms]")
+    disable(selector = "[type=radio][value=spec]")
+    disable(selector = "[type=radio][value=open]")
+    disable(selector = "[type=radio][value=ump]")
+    disable(selector = "[type=radio][value=spmin]")
+    disable(selector = "[type=radio][value=phil]")
+    runjs("$.each($('[type=radio][name=filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
   }
 })
 
 observeEvent(input$filetype,{
-  
-  shinyjs::enable("proceed1")
-  
+  enable("proceed1")
 })
 
 
 ### functions ###
-
 get_annot = eventReactive(input$proceed1, {
   annot = input$annot
   if(is.null(annot)) {
@@ -82,9 +76,12 @@ get_annot = eventReactive(input$proceed1, {
   }
   else if (input$DDA_DIA == "TMT" && input$filetype == "sample") 
   {
-    return(MSstatsTMT::annotation.pd)
+    return(annotation.pd)
   }
-  annot_file = read.csv(annot$datapath)
+  annot_file = try(read.csv(annot$datapath), silent=TRUE)
+  if (class(annot_file) == "try-error") {
+    annot_file = "File load error. Please ensure file is in csv format."
+  }
   return(annot_file)
 })
 
@@ -93,7 +90,11 @@ get_annot1 = reactive({
   if(is.null(input$annot1)) {
     return(NULL)
   }
-  annot1=read.csv(annot1$datapath, header = T)
+  annot1=try(read.csv(annot1$datapath, header = TRUE), silent=TRUE)
+  if (class(annot1) == "try-error") {
+    annot1 = "File load error. Please ensure file is in csv format."
+  }
+  
   cat(file=stderr(), "Reached in maxq annot\n")
   return(annot1)
   
@@ -104,7 +105,12 @@ get_annot2 = reactive({
   if(is.null(input$annot2)) {
     return(NULL)
   }
-  annot2=read.csv(annot1$datapath, header = T)
+  annot2=try(read.csv(annot1$datapath, header = TRUE), silent=TRUE)
+  
+  if (class(annot2) == "try-error") {
+    annot2 = "File load error. Please ensure file is in csv format."
+  }
+  
   cat(file=stderr(), "Reached in ump annot\n")
   return(annot2)
   
@@ -115,7 +121,12 @@ get_annot3 = reactive({
   if(is.null(input$annot3)) {
     return(NULL)
   }
-  annot3=read.delim(annot3$datapath)
+  annot3 = try(read.delim(annot3$datapath), silent=TRUE)
+  
+  if (class(annot3) == "try-error") {
+    annot3 = "File load error. Please ensure file is in csv format."
+  }
+  
   cat(file=stderr(), "Reached in ump annot\n")
   return(annot3)
   
@@ -126,7 +137,12 @@ get_evidence = reactive({
   if(is.null(input$evidence)) {
     return(NULL)
   }
-  evidence = read.table(evidence$datapath, sep="\t", header=TRUE)
+  evidence = try(read.table(evidence$datapath, sep="\t", header=TRUE), silent=TRUE)
+  
+  if (class(evidence) == "try-error") {
+    evidence = "File load error. Please ensure file is in csv format."
+  }
+  
   cat(file=stderr(), "Reached in evidence\n")
   return(evidence)
   
@@ -137,7 +153,10 @@ get_evidence2 = reactive({
   if(is.null(input$evidence2)) {
     return(NULL)
   }
-  evidence2 = read.delim(evidence2$datapath)
+  evidence2 = try(read.delim(evidence2$datapath), silent=TRUE)
+  if (class(evidence2) == "try-error"){
+    evidence2 = "File load error. Please ensure file is in csv format." 
+  }
   cat(file=stderr(), "Reached in evidence\n")
   return(evidence2)
   
@@ -148,7 +167,13 @@ get_global = reactive({
   if(is.null(input$unmod)) {
     return(NULL)
   }
-  unmod = read.csv(unmod$datapath, sep=",", header=TRUE, stringsAsFactors=F)
+  unmod = try(read.csv(unmod$datapath, sep=",", header=TRUE, 
+                       stringsAsFactors=FALSE), silent=TRUE)
+  
+  if (class(unmod) == "try-error"){
+    unmod = "File load error. Please ensure file is in csv format." 
+  }
+  
   cat(file=stderr(), "Reached in unmod\n")
   return(unmod)
   
@@ -158,7 +183,12 @@ get_proteinGroups = reactive({
   if(is.null(input$pGroup)) {
     return(NULL)
   }
-  pGroup=read.table(pGroup$datapath, sep="\t", header=TRUE)
+  pGroup = try(read.table(pGroup$datapath, sep="\t", header=TRUE), silent=TRUE)
+  
+  if (class(pGroup) == "try-error"){
+    pGroup = "File load error. Please ensure file is in csv format." 
+  }
+  
   cat(file=stderr(), "Reached in proteins_group\n")
   return(pGroup)
 })
@@ -168,7 +198,12 @@ get_proteinGroups2 = reactive({
   if(is.null(input$pGroup2)) {
     return(NULL)
   }
-  pGroup2=read.delim(pGroup2$datapath)
+  pGroup2 = try(read.delim(pGroup2$datapath), silent=TRUE)
+  
+  if (class(pGroup2) == "try-error"){
+    pGroup2 = "File load error. Please ensure file is in csv format." 
+  }
+  
   cat(file=stderr(), "Reached in proteins_group\n")
   return(pGroup2)
 })
@@ -178,7 +213,13 @@ get_FragSummary = reactive({
   if(is.null(input$fragSummary)) {
     return(NULL)
   }
-  fragSummary = read.table(fragSummary$datapath, sep="\t", header=TRUE)
+  fragSummary = try(read.table(fragSummary$datapath, sep="\t", header=TRUE),
+                    silent=TRUE)
+  
+  if (class(fragSummary) == "try-error"){
+    fragSummary = "File load error. Please ensure file is in excel format." 
+  }
+  
   return(fragSummary)
   
 })
@@ -188,7 +229,13 @@ get_peptideSummary = reactive({
   if(is.null(input$peptideSummary)) {
     return(NULL)
   }
-  peptideSummary = read.table(peptideSummary$datapath, sep="\t", header=TRUE)
+  peptideSummary = try(read.table(peptideSummary$datapath, sep="\t", 
+                                  header=TRUE), silent=TRUE)
+  
+  if (class(peptideSummary) == "try-error"){
+    peptideSummary = "File load error. Please ensure file is in csv format." 
+  }
+  
   return(peptideSummary)
   
 })
@@ -198,7 +245,13 @@ get_protSummary = reactive({
   if(is.null(input$protSummary)) {
     return(NULL)
   }
-  protSummary = read.table(protSummary$datapath, sep="\t", header=TRUE)
+  protSummary = try(read.table(protSummary$datapath, sep="\t", header=TRUE),
+                    silent=TRUE)
+  
+  if (class(protSummary) == "try-error"){
+    protSummary = "File load error. Please ensure file is in csv format." 
+  }
+  
   return(protSummary)
   
 })
@@ -208,12 +261,16 @@ get_maxq_ptm_sites = reactive({
   if(is.null(input$maxq_ptm_sites)) {
     return(NULL)
   }
-  maxq_ptm_sites = read.delim(maxq_ptm_sites$datapath)
+  maxq_ptm_sites = try(read.delim(maxq_ptm_sites$datapath), silent=TRUE)
+  
+  if (class(maxq_ptm_sites) == "try-error"){
+    maxq_ptm_sites = "File load error. Please ensure file is in csv format." 
+  }
+  
   cat(file=stderr(), "Reached in maxq_ptm_sites\n")
   return(maxq_ptm_sites)
   
 })
-
 
 get_data = eventReactive(input$proceed1, {
   show_modal_spinner()
@@ -238,18 +295,18 @@ get_data = eventReactive(input$proceed1, {
   }
   if(input$filetype == 'sample') {
     if(input$DDA_DIA == "SRM_PRM") {
-      mydata = SRM_yeast
+      mydata = MSstats::DDARawData
     }
     else if(input$DDA_DIA == "DDA") {
-      mydata = DDARawData
+      mydata = MSstats::DDARawData
     }
     else if(input$DDA_DIA == "DIA"){
-      mydata = read.csv("dataset.csv", header = T, sep = ";")
+      mydata = read.csv("dataset.csv", header = TRUE, sep = ";")
     }
     else if(input$DDA_DIA == "TMT"){
-      mydata = PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd, 
-                                     annotation = MSstatsTMT::annotation.pd,
-                                     which.proteinid = input$which.proteinid, #"Protein.Accessions"
+      mydata = PDtoMSstatsTMTFormat(input = raw.pd, 
+                                     annotation = annotation.pd,
+                                     which.proteinid = input$which.proteinid,
                                      use_log_file = FALSE
       )
     }
@@ -263,8 +320,7 @@ get_data = eventReactive(input$proceed1, {
   }
   else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")){
     if (input$filetype == 'maxq') {
-      print(head(ev_maxq2))
-      mydata = MSstatsPTM::MaxQtoMSstatsPTMFormat(ptm_sites_data,
+      mydata = MaxQtoMSstatsPTMFormat(ptm_sites_data,
                                       annot3,
                                       evidence=ev_maxq2, 
                                       proteinGroups=pg_maxq2,
@@ -272,15 +328,17 @@ get_data = eventReactive(input$proceed1, {
                                       mod.num=input$mod.num,
                                       TMT.keyword=input$TMT.keyword,
                                       ptm.keyword=input$PTM.keyword)
-      mydata$PROTEIN = as.data.table(mydata$PROTEIN)
+      mydata$PROTEIN = as.data.frame(mydata$PROTEIN)
 
     } else {
-      data = read.csv(input$data$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+      data = read.csv(input$data$datapath, header = TRUE, sep = input$sep, 
+                      stringsAsFactors=FALSE)
       mydata = list("PTM" = data, "PROTEIN" = unmod)
     }
   }
   else if (input$filetype == "msstats"){
-    mydata = read.csv(input$data$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+    mydata = read.csv(input$data$datapath, header = TRUE, sep = input$sep, 
+                      stringsAsFactors=FALSE)
   }
   else {
     if(input$filetype=='spec' || input$filetype=='spmin'){
@@ -295,7 +353,6 @@ get_data = eventReactive(input$proceed1, {
     else{
       infile = input$data
     }
-    
     
     # TODO: This code stops processing if a file is not uploaded correctly. 
     #         ATM no error messages show and the load circle spins forever
@@ -317,14 +374,15 @@ get_data = eventReactive(input$proceed1, {
     # }
     
     if(input$filetype == '10col') {
-      mydata = read.csv(infile$datapath, header = T, sep = input$sep)
+      mydata = read.csv(infile$datapath, header = TRUE, sep = input$sep)
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
-      data = read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+      data = read.csv(infile$datapath, header = TRUE, sep = input$sep, 
+                      stringsAsFactors=FALSE)
       
       if(input$DDA_DIA=="DDA" ){
-        data = data[which(data$Fragment.Ion %in% c( "precursor", "precursor [M+1]","precursor [M+2]")), ]
+        data = data[which(data$Fragment.Ion %in% c("precursor", "precursor [M+1]","precursor [M+2]")),]
         
         mydata = SkylinetoMSstatsFormat(data,
                                          annotation = get_annot(),
@@ -343,7 +401,6 @@ get_data = eventReactive(input$proceed1, {
         
       }
       else if(input$DDA_DIA=="SRM_PRM") {
-        # mydata = data
         mydata = SkylinetoMSstatsFormat(data,
                                          annotation = get_annot(),
                                          filter_with_Qvalue = TRUE, 
@@ -364,7 +421,8 @@ get_data = eventReactive(input$proceed1, {
         
       }
       else{
-        mydata = MaxQtoMSstatsFormat(evidence= ev_maxq, annotation= an_maxq, proteinGroups= pg_maxq,
+        mydata = MaxQtoMSstatsFormat(evidence= ev_maxq, annotation= an_maxq, 
+                                     proteinGroups= pg_maxq,
                                       useUniquePeptide = TRUE,
                                       summaryforMultipleRows = max,
                                       removeProtein_with1Peptide=input$remove,
@@ -374,7 +432,8 @@ get_data = eventReactive(input$proceed1, {
     }
     else if(input$filetype == 'prog') {
       cat(file=stderr(), "Reached in prog\n")
-      data = read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+      data = read.csv(infile$datapath, header = TRUE, sep = input$sep, 
+                      stringsAsFactors=FALSE)
       
       mydata = ProgenesistoMSstatsFormat(data, annotation = get_annot(), 
                                           removeProtein_with1Peptide = TRUE,
@@ -385,7 +444,8 @@ get_data = eventReactive(input$proceed1, {
       
       if(input$DDA_DIA=="TMT"){
 
-        data = read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+        data = read.csv(infile$datapath, header = TRUE, sep = input$sep, 
+                        stringsAsFactors=FALSE)
         mydata = PDtoMSstatsTMTFormat(input = data, 
                                        annotation = get_annot(),
                                        which.proteinid = input$which.proteinid, ## same as default
@@ -393,7 +453,8 @@ get_data = eventReactive(input$proceed1, {
         )
       }
       else{
-        data = read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
+        data = read.csv(infile$datapath, header = TRUE, sep = input$sep, 
+                        stringsAsFactors=FALSE)
         mydata = PDtoMSstatsFormat(data, annotation = get_annot(), 
                                     removeProtein_with1Peptide = input$remove,
                                     use_log_file = FALSE)
@@ -410,10 +471,9 @@ get_data = eventReactive(input$proceed1, {
                                            qvalue_cutoff = 0.01, ## same as default
                                            removeProtein_with1Feature = TRUE,
                                            use_log_file = FALSE)
-      
     }
     else if(input$filetype == 'open') {
-      data = read.csv(infile$datapath, header = T, sep = input$sep)
+      data = read.csv(infile$datapath, header = TRUE, sep = input$sep)
       mydata =OpenSWATHtoMSstatsFormat(data,
                                         annotation = get_annot(),
                                         filter_with_mscore = TRUE, ## same as default
@@ -424,12 +484,12 @@ get_data = eventReactive(input$proceed1, {
     }
     else if(input$filetype == 'openms') {
       if(input$DDA_DIA=="TMT"){
-        data = read.csv(infile$datapath, header = T, sep = input$sep)
+        data = read.csv(infile$datapath, header = TRUE, sep = input$sep)
         mydata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)
         
       }
       else{
-        data = read.csv(infile$datapath, header = T, sep = input$sep)
+        data = read.csv(infile$datapath, header = TRUE, sep = input$sep)
         unique(data[, c('Run', 'BioReplicate', 'Condition')])
         mydata =OpenMStoMSstatsFormat(data,
                                        removeProtein_with1Feature=TRUE,
@@ -439,8 +499,6 @@ get_data = eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'ump') {
-      #data = read.csv(infile$datapath, header = T, sep = input$sep)
-      #unique(data[, c('Run', 'BioReplicate', 'Condition')])
       mydata = DIAUmpiretoMSstatsFormat(raw.frag, raw.pep, raw.pro,
                                          annot2,
                                          useSelectedFrag = TRUE,
@@ -481,7 +539,7 @@ library(MSstatsPTM)\n", sep = "")
       codes = paste(codes, "data = DDARawData\n", sep = "")
     }
     else if(input$DDA_DIA == "DIA"){
-      codes = paste(codes, "data = read.csv(\"dataset.csv\", header = T, sep = \";\")\n", sep = "")
+      codes = paste(codes, "data = read.csv(\"dataset.csv\", header = TRUE, sep = \";\")\n", sep = "")
     }
     else if(input$DDA_DIA == "TMT"){
       codes = paste(codes, "data = PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd,
@@ -505,11 +563,11 @@ library(MSstatsPTM)\n", sep = "")
   } else {
   
     if(input$filetype == '10col') {
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")\n", sep = "")
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep,")\n", sep = "")
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
-      codes = paste(codes, "data = read.csv(\"insert your MSstats report from Skyline filepath\", header = T, sep = \",\", stringsAsFactors=F)\n", sep = "")
+      codes = paste(codes, "data = read.csv(\"insert your MSstats report from Skyline filepath\", header = TRUE, sep = \",\", stringsAsFactors=F)\n", sep = "")
       
       if(input$DDA_DIA=="DDA" ){
         codes = paste(codes, "data = data[which(data$Fragment.Ion %in% c( \"precursor\", \"precursor [M+1]\",\"precursor [M+2]\")), ]\nannot_file = read.csv(\"insert your annotation filepath\")\n", sep = "")
@@ -532,11 +590,6 @@ library(MSstatsPTM)\n", sep = "")
                                        use_log_file = FALSE)\n", sep = "")
         
       }
-
-      # else if(input$DDA_DIA=="SRM_PRM") {
-      #   mydata = data
-      # }
-      
     }
     else if(input$filetype == 'maxq') {
       cat(file=stderr(), "Reached in maxq\n")
@@ -564,7 +617,7 @@ library(MSstatsPTM)\n", sep = "")
     else if(input$filetype == 'prog') {
       cat(file=stderr(), "Reached in prog\n")
       
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep,")
                        annot_file = read.csv(\"insert your annotation filepath\")\n"
                      , sep = "")
       
@@ -574,7 +627,6 @@ library(MSstatsPTM)\n", sep = "")
                                        use_log_file = FALSE)\n", sep = "")
       
       codes = paste(codes, "colnames(data)[colnames(data) == \'PeptideModifiedSequence\'] = \'PeptideSequence\'\n", sep = "")
-      
       
     }
     else if(input$filetype == 'PD') {
@@ -608,7 +660,7 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'spec') {
       
-      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from Spectronaut filepath\", header = T)\nannot_file = read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from Spectronaut filepath\", header = TRUE)\nannot_file = read.csv(\"insert your annotation filepath\")\n"
                      , sep = "")
       
       codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
@@ -621,7 +673,7 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'open') {
       
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep,")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
                      , sep = "")
       
       codes = paste(codes, "data = OpenSWATHtoMSstatsFormat(data,
@@ -636,30 +688,20 @@ library(MSstatsPTM)\n", sep = "")
     else if(input$filetype == 'openms') {
       if(input$DDA_DIA=="TMT"){
         
-        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")\ndata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)\n"
+        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep,")\ndata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)\n"
                        , sep = "")
 
       }
       else{
         
-        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = ",input$sep,")\nunique(data[, c('Run', 'BioReplicate', 'Condition')])\ndata = OpenMStoMSstatsFormat(data, removeProtein_with1Feature=TRUE, use_log_file = FALSE)\n"
+        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep,")\nunique(data[, c('Run', 'BioReplicate', 'Condition')])\ndata = OpenMStoMSstatsFormat(data, removeProtein_with1Feature=TRUE, use_log_file = FALSE)\n"
                        , sep = "")
         
       }
     }
-    # else if(input$filetype == 'ump') {
-    #   
-    #   mydata = DIAUmpiretoMSstatsFormat(raw.frag, raw.pep, raw.pro,
-    #                                      annot2,
-    #                                      useSelectedFrag = TRUE,
-    #                                      useSelectedPep = FALSE,
-    #                                      fewMeasurements="remove",
-    #                                      removeProtein_with1Feature = TRUE,
-    #                                      use_log_file = FALSE)
-    # }
     else if(input$filetype == 'spmin') {
       
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = T, sep = \"\t\")\nannot_file = read.csv(\"insert your annotation filepath\")\ndata = SpectroMinetoMSstatsTMTFormat(data, annot_file,
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = \"\t\")\nannot_file = read.csv(\"insert your annotation filepath\")\ndata = SpectroMinetoMSstatsTMTFormat(data, annot_file,
                                               use_log_file = FALSE)"
                      , sep = "")
     }
@@ -815,11 +857,11 @@ get_summary2 = eventReactive(input$proceed1, {
       unite("Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
     
     Peptides_Proteins = df %>% group_by(ProteinName)  %>%
-      summarise(npep = n_distinct(PeptideSequence)) %>% summarize(Peptides_Proteins_min=min(npep),
+      summarise(npep = n_distinct(PeptideSequence)) %>% summarise(Peptides_Proteins_min=min(npep),
                                                                   Peptides_Proteins_max=max(npep))
     
     Features_Peptides = df %>% group_by(PeptideSequence)  %>%
-      summarise(nfea = n_distinct(FEATURES)) %>% summarize(Features_Peptides_min=min(nfea),
+      summarise(nfea = n_distinct(FEATURES)) %>% summarise(Features_Peptides_min=min(nfea),
                                                            Features_Peptides_max=max(nfea))
     
     df1 = cbind(df1,Features_Peptides,Peptides_Proteins) %>%
@@ -853,7 +895,6 @@ get_summary2 = eventReactive(input$proceed1, {
                                        max(Intensity, na.rm=T)), 0, 
                                        round(max(Intensity, na.rm=T),0))) %>%
       unite("Protein Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
-    # df_prot1 = df_prot1 %>% select(!Min_Intensity, !Max_Intensity)
     df1 = cbind(df_ptm1, df_prot1)
   }
   
@@ -863,18 +904,17 @@ get_summary2 = eventReactive(input$proceed1, {
   t_df = cbind(rownames(t_df), t_df)
   
   colnames(t_df) = c("", "value")
-  # t_df$value = sub("\\.\\d+$", "", t_df$value)
-
   colnames(t_df) = c("", "")
-  
-  #t_df = get_summary2()
   
   return(t_df)
 })
 
+
+
 onclick("proceed1", {
   get_data()
   get_annot()
+  print("at summary thing")
   shinyjs::show("summary_tables")
   
   ### outputs ###
@@ -883,7 +923,7 @@ onclick("proceed1", {
       return(NULL)
     }
     data1 = get_data()
-    data_summary = Hmisc::describe(data1)
+    data_summary = describe(data1)
   })
 
   output$template = downloadHandler(
@@ -910,21 +950,18 @@ onclick("proceed1", {
 
   output$summary = renderTable(
     {
-      # req(get_data())
       head(get_data())
-    }, bordered = T
+    }, bordered = TRUE
   )
   output$summary_ptm = renderTable(
     {
-      # req(get_data())
       head(get_data()$PTM)
-    }, bordered = T
+    }, bordered = TRUE
   )
   output$summary_prot = renderTable(
     {
-      # req(get_data())
       head(get_data()$PROTEIN)
-    }, bordered = T
+    }, bordered = TRUE
   )
 
   
@@ -933,7 +970,7 @@ onclick("proceed1", {
       req(get_data())
       get_summary1()
 
-    }, colnames = FALSE, bordered = T
+    }, colnames = FALSE, bordered = TRUE
   )
 
   output$summary2 =  renderTable(
@@ -941,31 +978,20 @@ onclick("proceed1", {
       req(get_data())
       get_summary2()
 
-    }, colnames = FALSE, bordered = T, align='lr'
+    }, colnames = FALSE, bordered = TRUE, align='lr'
   )
-  
-  # shinyjs::enable("proceed1")
-  # observeEvent(get_data(),{
-  #   shinyjs::enable("proceed1")
-  # })
-  # 
-  # observeEvent(get_data(),{
-  #   shinyjs::enable("reset1")
-  # })
 
   onclick("proceed2", {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "DataProcessing")
   })
   
   output$summary_tables = renderUI({
-
+    
     tagList(
       tags$head(
         tags$style(HTML('#proceed2{background-color:orange}'))
       ),
       actionButton(inputId = "proceed2", label = "Next step"),
-      # conditionalPanel(
-      #   condition = "input.DDA_DIA == 'PTM'",
       h4("Summary of experimental design"),
       tableOutput('summary1'),
       tags$br(),
@@ -983,13 +1009,7 @@ onclick("proceed1", {
                        h4("Top 6 rows of the unmodified protein dataset"),
                        tableOutput("summary_prot")
       )
-      
     )
-    # ),
-    # conditionalPanel(
-    #   condition = "input.filetype == 'sample'",
-    #   h4("Summary of experimental design"),
-    #   column(width=12, tableOutput('summary1'), style = "height:200px; overflow-y: scroll;overflow-x: scroll;"),
-    # )
   })
+
 })

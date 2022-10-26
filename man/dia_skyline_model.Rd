@@ -7,9 +7,6 @@
 \format{
 list
 }
-\usage{
-data(dia_skyline_model)
-}
 \description{
 Data includes one list with two data.tables named \code{ComparisonResult} and
 \code{ModelQC} and another list of model details named \code{FittedModel}.
@@ -18,8 +15,7 @@ Data includes one list with two data.tables named \code{ComparisonResult} and
 in the dataset.
 }
 \examples{
-data("dia_skyline_model")
+data(dia_skyline_model)
 head(dia_skyline_model)
 
 }
-\keyword{datasets}

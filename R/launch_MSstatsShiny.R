@@ -7,7 +7,7 @@
 #' @importFrom shiny runApp
 #' @return Running Shiny Application
 #' 
-#' @param launch_app One of TRUE or FALSE indicating wheter or not to run 
+#' @param launch_app One of TRUE or FALSE indicating whether or not to run 
 #' application. Default is TRUE.
 #' @examples
 #' 

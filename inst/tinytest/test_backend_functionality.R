@@ -95,3 +95,62 @@ model_tmt_test = tmt_model(summarization_tmt_test, input, comparison,
 data("tmt_pd_model", package = "MSstatsShiny")
 expect_equal(tmt_pd_model$ComparisonResult, model_tmt_test$ComparisonResult)
 expect_equal(tmt_pd_model$ModelQC, model_tmt_test$ModelQC)
+
+## Adjustment functions --------------------------------------------------------
+model = MSstatsPTM::groupComparisonPTM(MSstatsPTM::summary.data, 
+                                       data.type = "LabelFree")
+expect_equal(colnames(apply_adj(model$PTM.Model, model$PROTEIN.Model)), 
+             c("Protein", "Label", "log2FC", "SE", "Tvalue", "DF", "pvalue", 
+               "adj.pvalue", "GlobalProtein"))
+
+## Smaller functions -----------------------------------------------------------
+expect_equal(xy_str(list(x=5.0,y=2.0)), "x=5 y=2\n")
+
+expect_error(radioTooltip())
+
+input = list(maxQC1=10,null=FALSE, null1=FALSE, DDA_DIA="TMT")
+expect_equal(QC_check(input),10)
+
+## Plotting function -----------------------------------------------------------
+data("dia_skyline_model")
+expect_silent(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                    type="VolcanoPlot", address=FALSE))
+
+expect_silent(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                    type="ComparisonPlot", address=FALSE, 
+                                    which.Protein = "AQUA4SWATH_HMLangeA"))
+## expect error bc only one comparison in data
+expect_error(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                    type="Heatmap", address=FALSE))
+expect_error(groupComparisonPlots2(tmt_pd_model$ComparisonResult, 
+                                   type="Heatmap", address=FALSE))
+
+expect_silent(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                    type="VolcanoPlot", address=FALSE,
+                                    sig=.01))
+
+## plot limits
+expect_silent(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                    type="VolcanoPlot", address=FALSE,
+                                    ylimUp=TRUE))
+expect_silent(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                    type="VolcanoPlot", address=FALSE,
+                                    ylimDown=TRUE))
+expect_silent(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                    type="VolcanoPlot", address=FALSE,
+                                    xlimUp=TRUE))
+expect_silent(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                     type="VolcanoPlot", address=FALSE,
+                                     x.axis.size = 20))
+expect_silent(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                    type="VolcanoPlot", address=FALSE,
+                                    y.axis.size = 20))
+expect_silent(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                    type="VolcanoPlot", address=FALSE,
+                                    dot.size = 20))
+expect_silent(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                    type="VolcanoPlot", address=FALSE,
+                                    ProteinName = FALSE))
+expect_silent(groupComparisonPlots2(dia_skyline_model$ComparisonResult, 
+                                    type="VolcanoPlot", address=FALSE,
+                                    which.Comparison = "1 vs 128"))

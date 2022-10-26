@@ -1,13 +1,94 @@
-#############################################
-## groupComparisonPlots
-#############################################
-
+#' Plotting funcitonality for QC plots
+#' 
+#' General plotting code to produce all QC plots in the application
+#' 
 #' @export
+#'
+#' @param data 'ComparisonResult' in testing output from function groupComparison.
+#' @param type choice of visualization. "VolcanoPlot" represents volcano plot of
+#' log fold changes and adjusted p-values for each comparison separately. 
+#' "Heatmap" represents heatmap of adjusted p-values for multiple comparisons. 
+#' "ComparisonPlot" represents comparison plot of log fold changes for multiple
+#' comparisons per protein.
+#' @param sig FDR cutoff for the adjusted p-values in heatmap and volcano plot. 
+#' level of significance for comparison plot. 100(1-sig)% confidence interval 
+#' will be drawn. sig=0.05 is default.
+#' @param FCcutoff for volcano plot or heatmap, whether involve fold change 
+#' cutoff or not. FALSE (default) means no fold change cutoff is applied for 
+#' significance analysis. FCcutoff = specific value means specific fold change 
+#' cutoff is applied.
+#' @param logBase.pvalue for volcano plot or heatmap, (-) logarithm 
+#' transformation of adjusted p-value with base 2 or 10(default).
+#' @param ylimUp for all three plots, upper limit for y-axis. FALSE (default) 
+#' for volcano plot/heatmap use maximum of -log2 (adjusted p-value) or -log10 
+#' (adjusted p-value). FALSE (default) for comparison plot uses maximum of 
+#' log-fold change + CI.
+#' @param ylimDown for all three plots, lower limit for y-axis. FALSE (default) 
+#' for volcano plot/heatmap use minimum of -log2 (adjusted p-value) or -log10 
+#' (adjusted p-value). FALSE (default) for comparison plot uses minimum of 
+#' log-fold change - CI.
+#' @param xlimUp for Volcano plot, the limit for x-axis. FALSE (default) for use
+#' maximum for absolute value of log-fold change or 3 as default if maximum for
+#' absolute value of log-fold change is less than 3.
+#' @param x.axis.size size of axes labels, e.g. name of the comparisons in 
+#' heatmap, and in comparison plot. Default is 10.
+#' @param y.axis.size size of axes labels, e.g. name of targeted proteins in 
+#' heatmap. Default is 10.
+#' @param dot.size size of dots in volcano plot and comparison plot. Default is 
+#' 3.
+#' @param text.size size of ProteinName label in the graph for Volcano Plot. 
+#' Default is 4.
+#' @param legend.size size of legend for color at the bottom of volcano plot. 
+#' Default is 7.
+#' @param ProteinName for volcano plot only, whether display protein names or 
+#' not. TRUE (default) means protein names, which are significant, are displayed
+#' next to the points. FALSE means no protein names are displayed.
+#' @param colorkey TRUE(default) shows colorkey.
+#' @param numProtein The number of proteins which will be presented in each 
+#' heatmap. Default is 100. Maximum possible number of protein for one heatmap 
+#' is 180.
+#' @param clustering Determines how to order proteins and comparisons. 
+#' Hierarchical cluster analysis with Ward method(minimum variance) is 
+#' performed. 'protein' means that protein dendrogram is computed and reordered 
+#' based on protein means (the order of row is changed). 'comparison' means 
+#' comparison dendrogram is computed and reordered based on comparison means 
+#' (the order of comparison is changed). 'both' means to reorder both protein 
+#' and comparison. Default is 'protein'.
+#' @param width width of the saved file. Default is 10.
+#' @param height height of the saved file. Default is 10.
+#' @param which.Comparison list of comparisons to draw plots. List can be labels
+#' of comparisons or order numbers of comparisons from levels(data$Label), such
+#' as levels(testResultMultiComparisons$ComparisonResult$Label). Default is 
+#' "all", which generates all plots for each protein.
+#' @param which.Protein Protein list to draw comparison plots. List can be names
+#' of Proteins or order numbers of Proteins from 
+#' levels(testResultMultiComparisons$ComparisonResult$Protein). Default is 
+#' "all", which generates all comparison plots for each protein.
+#' @param address the name of folder that will store the results. Default folder
+#' is the current working directory. The other assigned folder has to be 
+#' existed under the current working directory. An output pdf file is 
+#' automatically created with the default name of "VolcanoPlot.pdf" or 
+#' "Heatmap.pdf" or "ComparisonPlot.pdf". The command address can help to 
+#' specify where to store the file as well as how to modify the beginning of 
+#' the file name. If address=FALSE, plot will be not saved as pdf file but 
+#' showed in window.
+#' @param savePDF Boolean input passed from user on whether or not to save the 
+#' plot to a PDF.
+#' @return PDF or console plot
+#' @import ggplot2
 #' @importFrom gplots heatmap.2
-#' @importFrom stats hclust
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom marray maPalette
-
+#' @importFrom grDevices dev.off pdf
+#' @importFrom graphics image mtext par plot.new
+#' @importFrom stats dist hclust qt
+#' @importFrom utils read.table write.table
+#' 
+#' @examples
+#' data("dia_skyline_model")
+#' groupComparisonPlots2(dia_skyline_model$ComparisonResult, type="VolcanoPlot",
+#'                       address=FALSE)
+#'                       
 groupComparisonPlots2 = function(data=data,
                                  type=type,
                                  sig=0.05,
@@ -31,6 +112,8 @@ groupComparisonPlots2 = function(data=data,
                                  which.Protein="all",
                                  address="",
                                  savePDF=FALSE) {
+  
+  Protein = logFC = ciw = NULL
   
   ## save process output in each step
   allfiles = list.files()
@@ -57,7 +140,6 @@ groupComparisonPlots2 = function(data=data,
   }	
   
   processout = rbind(processout, as.matrix(c(" ", " ", "MSstats - groupComparisonPlots function", " "), ncol=1))
-  
   
   ## make upper letter
   type = toupper(type)
@@ -116,7 +198,6 @@ groupComparisonPlots2 = function(data=data,
     data$Label = factor(data$Label)
   }
   
-  
   #######################
   ## Heatmap
   #######################
@@ -154,7 +235,6 @@ groupComparisonPlots2 = function(data=data,
       data$adj.pvalue[data$adj.pvalue<10^(-y.limUp)] = 10^(-y.limUp)
     }
     
-    
     ## if FCcutoff is assigned, make p-value insignificant.
     if (is.numeric(FCcutoff)) {
       if (colnames(data)[3] == "log2FC") {
@@ -173,11 +253,11 @@ groupComparisonPlots2 = function(data=data,
       sub = data[data$Label == levels(data$Label)[i], ]
       
       if (logBase.pvalue==2) {
-        temp =  -log2(sub$adj.pvalue)*sign(sub[,3])
+        temp = -log2(sub$adj.pvalue)*sign(sub[,3])
       }
       
       if (logBase.pvalue==10) {
-        temp =  -log10(sub$adj.pvalue)*sign(sub[,3])
+        temp = -log10(sub$adj.pvalue)*sign(sub[,3])
       }
       
       final = data.frame(cbind(final,temp))
@@ -499,9 +579,9 @@ groupComparisonPlots2 = function(data=data,
           sigcut = data.frame(Protein='sigline', logFC=seq(-x.lim, x.lim, length.out=20), log2adjp=(-log2(sig)), line='twodash')
           
           pfinal = ptemp + geom_line(data=sigcut, aes_string(x='logFC', y='log2adjp', linetype='line'), 
-                                      colour="darkgrey", 
-                                      size=0.6, 
-                                      show.legend=TRUE)+
+                                     colour="darkgrey", 
+                                     size=0.6, 
+                                     show.legend=TRUE)+
             scale_linetype_manual(values=c('twodash'=6), 
                                   labels=c(paste("Adj p-value cutoff (", sig, ")", sep="")))+
             guides(colour=guide_legend(override.aes=list(linetype=0)),
@@ -513,9 +593,9 @@ groupComparisonPlots2 = function(data=data,
           sigcut = data.frame(Protein='sigline', logFC=seq(-x.lim, x.lim, length.out=20), log10adjp=(-log10(sig)), line='twodash')
           
           pfinal = ptemp + geom_line(data=sigcut, aes_string(x='logFC', y='log10adjp', linetype='line'), 
-                                      colour="darkgrey", 
-                                      size=0.6, 
-                                      show.legend=TRUE)+
+                                     colour="darkgrey", 
+                                     size=0.6, 
+                                     show.legend=TRUE)+
             scale_linetype_manual(values=c('twodash'=6), 
                                   labels=c(paste("Adj p-value cutoff (", sig, ")", sep="")))+
             guides(colour=guide_legend(override.aes=list(linetype=0)),
@@ -530,23 +610,23 @@ groupComparisonPlots2 = function(data=data,
             
             ## three different lines
             sigcut = data.frame(Protein='sigline', 
-                                 logFC=seq(-x.lim, x.lim, length.out=10), 
-                                 log2adjp=(-log2(sig)), 
-                                 line='twodash')
+                                logFC=seq(-x.lim, x.lim, length.out=10), 
+                                log2adjp=(-log2(sig)), 
+                                line='twodash')
             FCcutpos = data.frame(Protein='sigline', 
-                                   logFC=log2(FCcutoff), 
-                                   log2adjp=seq(y.limdown, y.limup, length.out=10), 
-                                   line='dotted')
+                                  logFC=log2(FCcutoff), 
+                                  log2adjp=seq(y.limdown, y.limup, length.out=10), 
+                                  line='dotted')
             FCcutneg = data.frame(Protein='sigline', 
-                                   logFC=(-log2(FCcutoff)), 
-                                   log2adjp=seq(y.limdown, y.limup, length.out=10), 
-                                   line='dotted')
+                                  logFC=(-log2(FCcutoff)), 
+                                  log2adjp=seq(y.limdown, y.limup, length.out=10), 
+                                  line='dotted')
             
             ## three lines, with order color first and then assign linetype manual
             pfinal = ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log2adjp', linetype='line'), 
-                                      colour="darkgrey", 
-                                      size=0.6, 
-                                      show.legend=TRUE)+
+                                     colour="darkgrey", 
+                                     size=0.6, 
+                                     show.legend=TRUE)+
               geom_line(data=FCcutpos, aes_string(x='logFC', y='log2adjp', linetype='line'), 
                         colour="darkgrey", 
                         size=0.6, show.legend=TRUE)+
@@ -563,22 +643,22 @@ groupComparisonPlots2 = function(data=data,
             
             ## three different lines
             sigcut = data.frame(Protein='sigline', 
-                                 logFC=seq(-x.lim, x.lim, length.out=10), 
-                                 log10adjp=(-log10(sig)), line='twodash')
+                                logFC=seq(-x.lim, x.lim, length.out=10), 
+                                log10adjp=(-log10(sig)), line='twodash')
             FCcutpos = data.frame(Protein='sigline', 
-                                   logFC=log2(FCcutoff), 
-                                   log10adjp=seq(y.limdown, y.limup, length.out=10), 
-                                   line='dotted')
+                                  logFC=log2(FCcutoff), 
+                                  log10adjp=seq(y.limdown, y.limup, length.out=10), 
+                                  line='dotted')
             FCcutneg = data.frame(Protein='sigline', 
-                                   logFC=(-log2(FCcutoff)), 
-                                   log10adjp=seq(y.limdown, y.limup, length.out=10), 
-                                   line='dotted')
+                                  logFC=(-log2(FCcutoff)), 
+                                  log10adjp=seq(y.limdown, y.limup, length.out=10), 
+                                  line='dotted')
             
             ## three lines, with order color first and then assign linetype manual
             pfinal = ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log10adjp', linetype='line'), 
-                                      colour="darkgrey", 
-                                      size=0.6, 
-                                      show.legend=TRUE)+
+                                     colour="darkgrey", 
+                                     size=0.6, 
+                                     show.legend=TRUE)+
               geom_line(data=FCcutpos, aes_string(x='logFC', y='log10adjp', linetype='line'), 
                         colour="darkgrey", 
                         size=0.6, 
@@ -598,23 +678,23 @@ groupComparisonPlots2 = function(data=data,
             
             ## three different lines
             sigcut = data.frame(Protein='sigline', 
-                                 logFC=seq(-x.lim, x.lim, length.out=10), 
-                                 log2adjp=(-log2(sig)), 
-                                 line='twodash')
+                                logFC=seq(-x.lim, x.lim, length.out=10), 
+                                log2adjp=(-log2(sig)), 
+                                line='twodash')
             FCcutpos = data.frame(Protein='sigline', 
-                                   logFC=log10(FCcutoff), 
-                                   log2adjp=seq(y.limdown, y.limup, length.out=10), 
-                                   line='dotted')
+                                  logFC=log10(FCcutoff), 
+                                  log2adjp=seq(y.limdown, y.limup, length.out=10), 
+                                  line='dotted')
             FCcutneg = data.frame(Protein='sigline', 
-                                   logFC=(-log10(FCcutoff)), 
-                                   log2adjp=seq(y.limdown, y.limup, length.out=10), 
-                                   line='dotted')
+                                  logFC=(-log10(FCcutoff)), 
+                                  log2adjp=seq(y.limdown, y.limup, length.out=10), 
+                                  line='dotted')
             
             ## three lines, with order color first and then assign linetype manual
             pfinal = ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log2adjp', linetype='line'), 
-                                      colour="darkgrey", 
-                                      size=0.6, 
-                                      show.legend=TRUE)+
+                                     colour="darkgrey", 
+                                     size=0.6, 
+                                     show.legend=TRUE)+
               geom_line(data=FCcutpos, aes_string(x='logFC', y='log2adjp', linetype='line'), 
                         colour="darkgrey", 
                         size=0.6, 
@@ -632,23 +712,23 @@ groupComparisonPlots2 = function(data=data,
             
             ## three different lines
             sigcut = data.frame(Protein='sigline', 
-                                 logFC=seq(-x.lim, x.lim, length.out=10), 
-                                 log10adjp=(-log10(sig)), 
-                                 line='twodash')
+                                logFC=seq(-x.lim, x.lim, length.out=10), 
+                                log10adjp=(-log10(sig)), 
+                                line='twodash')
             FCcutpos = data.frame(Protein='sigline', 
-                                   logFC=log10(FCcutoff), 
-                                   log10adjp=seq(y.limdown, y.limup, length.out=10), 
-                                   line='dotted')
+                                  logFC=log10(FCcutoff), 
+                                  log10adjp=seq(y.limdown, y.limup, length.out=10), 
+                                  line='dotted')
             FCcutneg = data.frame(Protein='sigline', 
-                                   logFC=(-log10(FCcutoff)), 
-                                   log10adjp=seq(y.limdown, y.limup, length.out=10), 
-                                   line='dotted')
+                                  logFC=(-log10(FCcutoff)), 
+                                  log10adjp=seq(y.limdown, y.limup, length.out=10), 
+                                  line='dotted')
             
             ## three lines, with order color first and then assign linetype manual
             pfinal = ptemp+geom_line(data=sigcut, aes_string(x='logFC', y='log10adjp', linetype='line'), 
-                                      colour="darkgrey", 
-                                      size=0.6, 
-                                      show.legend=TRUE)+
+                                     colour="darkgrey", 
+                                     size=0.6, 
+                                     show.legend=TRUE)+
               geom_line(data=FCcutpos, aes_string(x='logFC', y='log10adjp', linetype='line'), 
                         colour="darkgrey", 
                         size=0.6, 
@@ -753,7 +833,6 @@ groupComparisonPlots2 = function(data=data,
     for (i in 1:nlevels(datatemp$Protein)) {
       
       sub = datatemp[datatemp$Protein==levels(datatemp$Protein)[i], ] 		
-      #sub$ciw = qt(1-sig/2,sub$DF)*sub$SE
       ## adjust for multiple comparison within protein
       sub$ciw = qt(1-sig/(2*nrow(sub)), sub$DF)*sub$SE
       

@@ -7,9 +7,6 @@
 \format{
 list
 }
-\usage{
-data(tmt_pd_model)
-}
 \description{
 Data includes one list with two data.tables named \code{ComparisonResult} and
 \code{ModelQC} and another list of model details named \code{FittedModel}.
@@ -18,8 +15,7 @@ Data includes one list with two data.tables named \code{ComparisonResult} and
 in the dataset.
 }
 \examples{
-data("tmt_pd_model")
+data(tmt_pd_model)
 head(tmt_pd_model)
 
 }
-\keyword{datasets}

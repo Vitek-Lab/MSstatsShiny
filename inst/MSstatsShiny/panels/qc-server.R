@@ -5,15 +5,15 @@
 output$Names = renderUI({
   if (input$standards == "Proteins") {
     if((input$DDA_DIA=="SRM_PRM" && input$filetype=="sky")||(input$DDA_DIA=="DIA" && input$filetype=="ump")){
-      selectizeInput("names", "choose standard", unique(get_data()[2]), multiple = T)
+      selectizeInput("names", "choose standard", unique(get_data()[2]), multiple = TRUE)
     }
     else{
-      selectizeInput("names", "choose standard", unique(get_data()[1]), multiple = T)
+      selectizeInput("names", "choose standard", unique(get_data()[1]), multiple = TRUE)
     }
     
   }
   else if (input$standards == "Peptides") {
-    selectizeInput("names", "choose standard", unique(get_data()[2]), multiple = T)
+    selectizeInput("names", "choose standard", unique(get_data()[2]), multiple = TRUE)
   }
 })
 
@@ -21,15 +21,15 @@ output$Names = renderUI({
 
 observe({
   if(!is.null(input$filetype)) {
-    shinyjs::runjs("$('[type=radio][name=censInt]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-    shinyjs::enable("censInt")
+    runjs("$('[type=radio][name=censInt]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
+    enable("censInt")
     if (input$filetype == "sky" || input$filetype == "prog" || input$filetype == "spec") {
-      shinyjs::disable(selector = "[type=radio][value=NA]")
-      shinyjs::runjs("$.each($('[type=radio][name=censInt]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
+      disable(selector = "[type=radio][value=NA]")
+      runjs("$.each($('[type=radio][name=censInt]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
     }
     else if (input$filetype == "maxq" || input$filetype == "PD" || input$filetype == "open") {
-      shinyjs::disable(selector = "[type=radio][value=0]")
-      shinyjs::runjs("$.each($('[type=radio][name=censInt]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
+      disable(selector = "[type=radio][value=0]")
+      runjs("$.each($('[type=radio][name=censInt]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
     }
   }
 })
@@ -43,7 +43,7 @@ observe ({
 
 output$features = renderUI({
   req(get_data())
-  max_feat = reactive ({
+  max_feat = reactive({
     ## Old code for only 20 features. Meena thought this should be all uniques
     ## TODO: Need to fix this bc hard to be specific with slider.
     # if (nrow(unique(get_data()[1])) < 20) {
@@ -61,30 +61,8 @@ output$features = renderUI({
 })
 
 observe ({
-  shinyjs::toggleState("n_feat", input$all_feat == FALSE)
+  toggleState("n_feat", input$all_feat == FALSE)
 })
-
-# features = function() {
-#   if (input$all_feat == FALSE) {
-#     n_feat = "topN"
-#   }
-#   else {
-#     n_feat = "all"
-#   }
-#   return(n_feat)
-# }
-
-# features = function() {
-#   if (input$features_used == "all_feat") {
-#     n_feat = "all_feat"
-#     code_feat = "all"
-#   }
-#   else {
-#     n_feat = "n_feat"
-#     code_feat = "topN"
-#   }
-#   return(n_feat)
-# }
 
 # which protein to plot (will add "all" for QCPlot)
 
@@ -125,7 +103,7 @@ preprocess_data = eventReactive(input$run, {
   input_data = get_data()
   preprocess_list = list()
   
-  MSstatsConvert::MSstatsLogsSettings(FALSE)
+  MSstatsLogsSettings(FALSE)
   
   ## Here we run the underlying functions for MSstats and MSstatsTMT 
   ## summarization. Done so we can loop over proteins and create a progress bar
@@ -239,8 +217,8 @@ preprocess_data_code = eventReactive(input$calculate, {
     
     codes = paste(codes, "dataProcessPlots(data=summarized,
                            type=\"Enter ProfilePlot or QCPlot Here\",
-                           ylimUp = F,
-                           ylimDown = F,
+                           ylimUp = FALSE,
+                           ylimDown = FALSE,
                            which.Protein = \"Enter Protein to Plot Here\",
                            summaryPlot = TRUE,
                            address = FALSE)\n", sep="")
@@ -269,15 +247,6 @@ plotresult = function(saveFile, protein, summary, original) {
                           type=input$type1,
                           ylimUp = FALSE,
                           ylimDown = FALSE,
-                          # x.axis.size = 10,
-                          # y.axis.size = 10,
-                          # text.size = 4,
-                          # text.angle = 90,
-                          # legend.size = 7,
-                          # dot.size.profile = 2,
-                          # ncol.guide = 5,
-                          # width = 10,
-                          # height = 10,
                           which.Protein = protein,
                           originalPlot = TRUE,
                           summaryPlot = input$summ,
@@ -298,19 +267,10 @@ plotresult = function(saveFile, protein, summary, original) {
       plot = dataProcessPlots(data = preprocess_data(),
                               type=input$type1,
                               featureName = input$fname,
-                              ylimUp = F,
-                              ylimDown = F,
+                              ylimUp = FALSE,
+                              ylimDown = FALSE,
                               scale = input$cond_scale,
                               interval = input$interval,
-                              #              x.axis.size = input_xsize,
-                              #              y.axis.size = input_ysize,
-                              #              t.axis.size = input_tsize,
-                              #              text.angle = input_tangle,
-                              #              legend.size = input_legend,
-                              #              dot.size.profile = input_dot_prof,
-                              #              dot.size.condition = input_dot_cond,
-                              #              width = input_width,
-                              #              height = input_height,
                               which.Protein = protein,
                               originalPlot = original,
                               summaryPlot = input$summ,
@@ -369,33 +329,16 @@ output$caption = renderText({
 observeEvent(input$run,{
   
   if(input$DDA_DIA=="PTM"){
-    shinyjs::enable("prepr_csv_ptm")
-    shinyjs::enable("summ_csv_ptm")
-    shinyjs::enable("prepr_csv_prot")
-    shinyjs::enable("summ_csv_prot")
+    enable("prepr_csv_ptm")
+    enable("summ_csv_ptm")
+    enable("prepr_csv_prot")
+    enable("summ_csv_prot")
   } else {
-    shinyjs::enable("prepr_csv")
-    shinyjs::enable("summ_csv")
+    enable("prepr_csv")
+    enable("summ_csv")
   }
   
 })
-# output preprocessed data
-
-# observeEvent(input$run, {
-#   output$effect = renderPrint(
-#     str(preprocess_data())
-#   )
-#   insertUI(selector = "#download_buttons",
-#            where = "afterEnd",
-#            ui= tags$div(tags$br(),
-#                         downloadButton("prepr_csv","Download .csv of preprocessed data"),
-#                         conditionalPanel(condition = "input.DDA_DIA !== 'TMT'",
-#                                          downloadButton("summ_csv","Download .csv of summarised data")
-#                                          )
-# 
-#            )
-#   )
-# })
 
 # download preprocessed data
 
@@ -406,12 +349,12 @@ output$prepr_csv = downloadHandler(
   content = function(file) {
     if(input$DDA_DIA=='TMT'){
       
-      write.csv(preprocess_data()$FeatureLevelData, file, row.names = F)
+      write.csv(preprocess_data()$FeatureLevelData, file, row.names = FALSE)
       
     }
     else{
       
-      write.csv(preprocess_data()$FeatureLevelData, file, row.names = F)
+      write.csv(preprocess_data()$FeatureLevelData, file, row.names = FALSE)
     }
     
   }
@@ -422,7 +365,7 @@ output$prepr_csv_ptm = downloadHandler(
     paste("PTM_Feature_level_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
-    write.csv(preprocess_data()$PTM$FeatureLevelData, file, row.names = F)
+    write.csv(preprocess_data()$PTM$FeatureLevelData, file, row.names = FALSE)
   }
 )
 
@@ -431,7 +374,7 @@ output$prepr_csv_prot = downloadHandler(
     paste("Protein_Feature_level_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
-    write.csv(preprocess_data()$PROTEIN$FeatureLevelData, file, row.names = F)
+    write.csv(preprocess_data()$PROTEIN$FeatureLevelData, file, row.names = FALSE)
   }
 )
 
@@ -440,7 +383,7 @@ output$summ_csv = downloadHandler(
     paste("Protein_level_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
-    write.csv(preprocess_data()$ProteinLevelData, file, row.names = F)
+    write.csv(preprocess_data()$ProteinLevelData, file, row.names = FALSE)
   }
 )
 
@@ -449,7 +392,7 @@ output$summ_csv_ptm = downloadHandler(
     paste("PTM_level_data-", Sys.Date(), ".csv", sep="")
   },
   content = function(file) {
-    write.csv(preprocess_data()$PTM$ProteinLevelData, file, row.names = F)
+    write.csv(preprocess_data()$PTM$ProteinLevelData, file, row.names = FALSE)
   }
 )
 
@@ -468,15 +411,15 @@ observeEvent(input$saveone, {
   path = plotresult(TRUE, input$which, FALSE, TRUE)
   if (input$type1 == "ProfilePlot" || input$type1 == "ProfilePlot") {
     js = paste("window.open('", path, "ProfilePlot.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
   else if (input$type1 == "ConditionPlot") {
     js = paste("window.open('", path, "ConditionPlot.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
   else if (input$type1 == "QCPlot" || input$type1 == "QCPlot") {
     js = paste("window.open('", path, "QCPlot.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
 })
 
@@ -484,15 +427,15 @@ observeEvent(input$saveall, {
   path = plotresult(TRUE, "all", FALSE, TRUE)
   if (input$type1 == "ProfilePlot" || input$type1 == "ProfilePlot") {
     js = paste("window.open('", path, "ProfilePlot.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
   else if (input$type1 == "ConditionPlot") {
     js = paste("window.open('", path, "ConditionPlot.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
   else if (input$type1 == "QCPlot" || input$type1 == "QCPlot") {
     js = paste("window.open('", path, "QCPlot.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
 })
 
@@ -586,16 +529,14 @@ output$abundance = renderUI({
 output$abundanceTable = renderDataTable(abundance())
 
 
-shinyjs::enable("proceed6")
+enable("proceed6")
 observeEvent(preprocess_data(),{
-  shinyjs::enable("proceed6")
+  enable("proceed6")
 })
 
 onclick("proceed6", {
   updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
 })
-
-
 
 # downloads
 

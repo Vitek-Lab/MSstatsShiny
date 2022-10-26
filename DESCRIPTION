@@ -2,7 +2,7 @@ Package: MSstatsShiny
 Type: Package
 Title: MSstats GUI for Statistical Anaylsis of Proteomics Experiments
 Version: 0.99.1
-Date: 2022-09-26
+Date: 2022-10-26
 Description: MSstatsShiny is an R-Shiny graphical user interface (GUI) 
   integrated with the R packages MSstats, MSstatsTMT, and MSstatsPTM. It 
   provides a point and click end-to-end analysis pipeline applicable to a wide 
@@ -13,17 +13,25 @@ Description: MSstatsShiny is an R-Shiny graphical user interface (GUI)
   that recreates their analysis, supporting reproducible data analysis.
 Authors@R: c(
     person("Devon", "Kohler", email = "kohler.d@northeastern.edu", role = c("aut", "cre")),
+    person("Maanasa", "Kaza", email = "maanasakaza@gmail.com", role = c("aut")),
+    person("Cristina", "Pasi", email = "cristinapasi@gmail.com", role = c("aut")),
+    person("Ting", "Huang", email = "thuang0703@gmail.com", role = c("aut")),
+    person("Mateusz", "Staniak", email = "mateusz.staniak@math.uni.wroc.pl", role = c("aut")),
+    person("Dhaval", "Mohandas", email = "dhavalmohandas@gmail.com", role = c("aut")),
+    person("Eduard", "Sabido", email = "eduard.sabido@crg.cat", role = c("aut")),
+    person("Meena", "Choi", email = "choi.meena@gene.com", role = c("aut")),
     person("Olga", "Vitek", email = "o.vitek@northeastern.edu", role = "aut"))
 License: Artistic-2.0
 Depends: R (>= 4.2)
-Imports: shiny, shinyBS, shinyjs, shinybusy, tidyverse, data.table, MSstats, 
-  MSstatsTMT, MSstatsPTM, MSstatsConvert, knitr, readxl, gplots, marray, 
-  ggrepel, plotly, Biobase, biomaRt, uuid, methods, utils, stats
-Suggests: rmarkdown, tinytest, sessioninfo
+Imports: shiny, shinyBS, shinyjs, shinybusy, dplyr, ggplot2, data.table, Hmisc,
+  MSstats, MSstatsTMT, MSstatsPTM, MSstatsConvert, gplots, marray, DT,
+  ggrepel, uuid, utils, stats, htmltools, methods, tidyr, grDevices, graphics
+Suggests: rmarkdown, tinytest, sessioninfo, knitr
 VignetteBuilder: knitr
-biocViews: ImmunoOncology, MassSpectrometry, Proteomics, Software, 
-  DifferentialExpression, OneChannel, TwoChannel, Normalization, QualityControl
-BugReports: https://github.com/Vitek-Lab/MSstatsPTM/issues
+biocViews: ImmunoOncology, MassSpectrometry, Proteomics, Software, ShinyApps,
+  DifferentialExpression, OneChannel, TwoChannel, Normalization, QualityControl,
+  GUI
+BugReports: https://github.com/Vitek-Lab/MSstatsShiny/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1

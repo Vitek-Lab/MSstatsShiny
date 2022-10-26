@@ -3,7 +3,8 @@
 #' Used as input data to MSstats workflow. Data includes one data.table which 
 #' is the output of Skyline.
 #' 
-#' @usage example_dia_skyline
+#' @name example_dia_skyline
+#' @docType data
 #'
 #' @format data.frame
 #' @details The raw data (input data for MSstats) is required to contain 
@@ -18,10 +19,10 @@
 #' without any log transformation and can be specified as the peak of height 
 #' or the peak of  area under curve.
 #' @examples
-#' data("example_dia_skyline")
+#' data(example_dia_skyline)
 #' head(example_dia_skyline)
 #'
-"data(example_dia_skyline)"
+NULL
 
 #' Example annotation file
 #' 
@@ -29,14 +30,15 @@
 #' conditions. Used as input to preprocessing function, converting data into 
 #' MSstats format.
 #' 
-#' @usage example_skyline_annotation
+#' @name example_skyline_annotation
+#' @docType data
 #'
 #' @format data.frame
 #' @examples
-#' data("example_skyline_annotation")
+#' data(example_skyline_annotation)
 #' head(example_skyline_annotation)
 #'
-"data(example_skyline_annotation)"
+NULL
 
 #' Example of Sklyine DDA dataset processed using MSstats summarization function.
 #' 
@@ -45,14 +47,15 @@
 #' shows the unsummarized feature level data. `ProteinLevelData` shows the data 
 #' summarized up to the protein level and is used for modeling the data. 
 #' 
-#' @usage dia_skyline_summarized
+#' @name dia_skyline_summarized
+#' @docType data
 #'
 #' @format list
 #' @examples
-#' data("dia_skyline_summarized")
+#' data(dia_skyline_summarized)
 #' head(dia_skyline_summarized)
 #'
-"data(dia_skyline_summarized)"
+NULL
 
 #' Example of Sklyine DDA dataset modeled using MSstats `groupComparison` function.
 #' 
@@ -62,14 +65,15 @@
 #' `ModelQC` provides a report on the quality control checks of each protein 
 #' in the dataset.
 #' 
-#' @usage dia_skyline_model
+#' @name dia_skyline_model
+#' @docType data
 #'
 #' @format list
 #' @examples
-#' data("dia_skyline_model")
+#' data(dia_skyline_model)
 #' head(dia_skyline_model)
 #'
-"data(dia_skyline_model)"
+NULL
 
 #' Example of TMT dataset processed using MSstatsTMT summarization function.
 #' 
@@ -78,14 +82,15 @@
 #' data. `ProteinLevelData` shows the data summarized up to the protein level 
 #' and is used for modeling the data. 
 #' 
-#' @usage tmt_pd_summarized
+#' @name tmt_pd_summarized
+#' @docType data
 #'
 #' @format list
 #' @examples
-#' data("tmt_pd_summarized")
+#' data(tmt_pd_summarized)
 #' head(tmt_pd_summarized)
 #'
-"data(tmt_pd_summarized)"
+NULL
 
 #' Example of TMT dataset modeled using MSstatsTMT `groupComparisonTMT` function.
 #' 
@@ -95,11 +100,12 @@
 #' `ModelQC` provides a report on the quality control checks of each protein 
 #' in the dataset.
 #' 
-#' @usage tmt_pd_model
+#' @name tmt_pd_model
+#' @docType data
 #'
 #' @format list
 #' @examples
-#' data("tmt_pd_model")
+#' data(tmt_pd_model)
 #' head(tmt_pd_model)
 #'
-"data(tmt_pd_model)"
+NULL

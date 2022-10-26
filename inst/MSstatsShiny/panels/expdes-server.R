@@ -2,21 +2,21 @@
 
 observe({
   if (input$param == "sample") {
-    shinyjs::disable("nsample")
+    disable("nsample")
     sample_x = TRUE
     }
   else {
     sample_x = input$nsample
-    shinyjs::enable("nsample")
+    enable("nsample")
   }
    
   if (input$param == "npower") {
-    shinyjs::disable("power")
+    disable("power")
     power_x = TRUE
     }
   else {
     power_x = input$power
-    shinyjs::enable("power")
+    enable("power")
   }
   FDR_x = input$FDR
   FCR_x = input$desirFC
@@ -52,7 +52,3 @@ observe({
     )
   })
 })
-  
-
-
-

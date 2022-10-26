@@ -7,9 +7,6 @@
 \format{
 data.frame
 }
-\usage{
-data(example_dia_skyline)
-}
 \description{
 Used as input data to MSstats workflow. Data includes one data.table which
 is the output of Skyline.
@@ -28,8 +25,7 @@ without any log transformation and can be specified as the peak of height
 or the peak of  area under curve.
 }
 \examples{
-data("example_dia_skyline")
+data(example_dia_skyline)
 head(example_dia_skyline)
 
 }
-\keyword{datasets}

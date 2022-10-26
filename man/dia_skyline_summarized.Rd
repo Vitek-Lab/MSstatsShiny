@@ -7,9 +7,6 @@
 \format{
 list
 }
-\usage{
-data(dia_skyline_summarized)
-}
 \description{
 Data includes one list with two data.tables named \code{FeatureLevelData} and
 \code{ProteinLevelData} and a string value \code{SummaryMethod}. \code{FeatureLevelData}
@@ -17,8 +14,7 @@ shows the unsummarized feature level data. \code{ProteinLevelData} shows the dat
 summarized up to the protein level and is used for modeling the data.
 }
 \examples{
-data("dia_skyline_summarized")
+data(dia_skyline_summarized)
 head(dia_skyline_summarized)
 
 }
-\keyword{datasets}

@@ -1,5 +1,5 @@
 expdes = fluidPage(
-  shinyjs::useShinyjs(),
+  useShinyjs(),
   headerPanel("Design future experiments"),
   p("Calculate power or sample size for future experiments with the same experimental design"),
   p("Statistical model must be run in step 3 before power and sample size \
@@ -24,7 +24,3 @@ expdes = fluidPage(
   )
   )
 )
-    
-         
-
-

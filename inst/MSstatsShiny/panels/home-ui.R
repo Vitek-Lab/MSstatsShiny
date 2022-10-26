@@ -1,5 +1,3 @@
-
-
 home = fluidPage(
   tags$head(
     tags$style(HTML('#StartPipeline{background-color:orange}
@@ -41,5 +39,3 @@ home = fluidPage(
     )
   )
 )
-  
-
