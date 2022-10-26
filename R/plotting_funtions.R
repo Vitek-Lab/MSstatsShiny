@@ -2,6 +2,8 @@
 #' 
 #' General plotting code to produce all QC plots in the application
 #' 
+#' @export
+#'
 #' @param data 'ComparisonResult' in testing output from function groupComparison.
 #' @param type choice of visualization. "VolcanoPlot" represents volcano plot of
 #' log fold changes and adjusted p-values for each comparison separately. 
@@ -72,11 +74,15 @@
 #' showed in window.
 #' @param savePDF Boolean input passed from user on whether or not to save the 
 #' plot to a PDF.
-#' @export
+#' @return PDF or console plot
 #' @import ggplot2
 #' @importFrom gplots heatmap.2
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom marray maPalette
+#' @importFrom grDevices dev.off pdf
+#' @importFrom graphics image mtext par plot.new
+#' @importFrom stats dist hclust qt
+#' @importFrom utils read.table write.table
 #' 
 #' @examples
 #' data("dia_skyline_model")
@@ -106,6 +112,8 @@ groupComparisonPlots2 = function(data=data,
                                  which.Protein="all",
                                  address="",
                                  savePDF=FALSE) {
+  
+  Protein = logFC = ciw = NULL
   
   ## save process output in each step
   allfiles = list.files()
@@ -825,7 +833,6 @@ groupComparisonPlots2 = function(data=data,
     for (i in 1:nlevels(datatemp$Protein)) {
       
       sub = datatemp[datatemp$Protein==levels(datatemp$Protein)[i], ] 		
-      #sub$ciw = qt(1-sig/2,sub$DF)*sub$SE
       ## adjust for multiple comparison within protein
       sub$ciw = qt(1-sig/(2*nrow(sub)), sub$DF)*sub$SE
       

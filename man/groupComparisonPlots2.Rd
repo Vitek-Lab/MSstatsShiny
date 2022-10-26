@@ -124,6 +124,9 @@ showed in window.}
 \item{savePDF}{Boolean input passed from user on whether or not to save the
 plot to a PDF.}
 }
+\value{
+PDF or console plot
+}
 \description{
 General plotting code to produce all QC plots in the application
 }

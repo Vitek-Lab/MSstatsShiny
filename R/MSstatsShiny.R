@@ -37,5 +37,5 @@
 #' @importFrom MSstatsPTM dataProcessPlotsPTM groupComparisonPlotsPTM MaxQtoMSstatsPTMFormat
 #' 
 #' @docType package
-#' @name MSstatsPTM
+#' @name MSstatsShiny
 NULL

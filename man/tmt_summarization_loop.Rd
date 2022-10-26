@@ -21,8 +21,36 @@ list of TMT summarization results
 Main TMT function to calculate MSstatsShiny results.
 }
 \examples{
-data("tmt_pd_summarized")
-names(tmt_pd_summarized)
-head(tmt_pd_summarized$ProteinLevelData)
+data(raw.pd, package = "MSstatsTMT")
+data(annotation.pd, package = "MSstatsTMT")
+
+testdata <- MSstatsTMT::PDtoMSstatsTMTFormat(raw.pd, 
+                                             annotation.pd,
+                                             use_log_file = FALSE
+                                             )
+
+input = list()
+input$summarization = "msstats"
+input$norm = "equalizeMedians"
+input$log = 2
+input$names = NULL
+input$features_used	= "all"
+code_n_feat=3
+input$censInt = "NA"
+input$features_used	= "all"
+input$MBi = TRUE
+input$remove50 = FALSE
+input$maxQC = 0.999
+input$null = FALSE
+input$null1 = FALSE
+input$DDA_DIA = "LF"
+input$global_norm = TRUE
+input$reference_norm = TRUE
+input$remove_norm_channel = TRUE
+input$maxQC1 = NULL
+input$moderated = FALSE
+
+summarization_tmt_test = tmt_summarization_loop(testdata, input, 
+                                               busy_indicator = FALSE)
 
 }
