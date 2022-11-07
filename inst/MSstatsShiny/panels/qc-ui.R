@@ -91,14 +91,14 @@ sbp_params = sidebarPanel(
                    and 1 as censored" = "0", 
                    "all missing values are random" = "null"), 
                  selected = "NA"),
-    radioTooltip(id = "censInt", choice = "NA", title = "It assumes that all \
+    MSstatsShiny::radioTooltip(id = "censInt", choice = "NA", title = "It assumes that all \
                  NAs in Intensity column are censored.", placement = "right", 
                  trigger = "hover"),
-    radioTooltip(id = "censInt", choice = "0", title = "It assumes that all \
+    MSstatsShiny::radioTooltip(id = "censInt", choice = "0", title = "It assumes that all \
                  values between 0 and 1 in Intensity column are censored.  NAs \
                  will be considered as random missing.", placement = "right",
                  trigger = "hover"),
-    radioTooltip(id = "censInt", choice = "null", title = "It assumes that all \
+    MSstatsShiny::radioTooltip(id = "censInt", choice = "null", title = "It assumes that all \
                  missing values are randomly missing.", placement = "right", 
                  trigger = "hover"),
     
