@@ -109,25 +109,25 @@ preprocess_data = eventReactive(input$run, {
   ## summarization. Done so we can loop over proteins and create a progress bar
   if (input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
 
-    preprocessed_ptm = lf_summarization_loop(input_data$PTM, input)
-    preprocessed_unmod = lf_summarization_loop(input_data$PROTEIN, input)
+    preprocessed_ptm = MSstatsShiny::lf_summarization_loop(input_data$PTM, input)
+    preprocessed_unmod = MSstatsShiny::lf_summarization_loop(input_data$PROTEIN, input)
     preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
     
   } else if(input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
 
-    preprocessed_ptm = tmt_summarization_loop(input_data$PTM, input)
-    preprocessed_unmod = tmt_summarization_loop(input_data$PROTEIN, input)
+    preprocessed_ptm = MSstatsShiny::tmt_summarization_loop(input_data$PTM, input)
+    preprocessed_unmod = MSstatsShiny::tmt_summarization_loop(input_data$PROTEIN, input)
     preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
     
   } else if(input$DDA_DIA == "TMT"){
     
     ## Run MSstatsTMT summarization
-    preprocessed = tmt_summarization_loop(input_data, input)
+    preprocessed = MSstatsShiny::tmt_summarization_loop(input_data, input)
     
   } else {
     
     ## Run LF MSstats summarization
-    preprocessed = lf_summarization_loop(input_data, input)
+    preprocessed = MSstatsShiny::lf_summarization_loop(input_data, input)
     
   }
   
@@ -229,28 +229,29 @@ preprocess_data_code = eventReactive(input$calculate, {
 
 plotresult = function(saveFile, protein, summary, original) {
   if (input$which != "") {
-    id = as.character(UUIDgenerate(FALSE))
-    id_address = paste("tmp/",id, sep = "")
-    path = function()  {
-      if (saveFile) {
-        path_id = paste("www/", id_address, sep = "")
-      } 
-      else {
-        path_id = FALSE
-      }
-      return (path_id)
-    }
+    # id = as.character(UUIDgenerate(FALSE))
+    # id_address = paste("tmp/",id, sep = "")
+    # path = function()  {
+    #   if (saveFile) {
+    #     path_id = paste("www/", id_address, sep = "")
+    #   } 
+    #   else {
+    #     path_id = FALSE
+    #   }
+    #   return (path_id)
+    # }
+    path_id = FALSE
 
     if(input$DDA_DIA == "TMT"){
       
-      dataProcessPlotsTMT(preprocess_data(),
+      plot = dataProcessPlotsTMT(preprocess_data(),
                           type=input$type1,
                           ylimUp = FALSE,
                           ylimDown = FALSE,
                           which.Protein = protein,
                           originalPlot = TRUE,
                           summaryPlot = input$summ,
-                          address = path()
+                          address = path_id
       )
       
     } else if (input$DDA_DIA == "PTM"){
@@ -259,7 +260,7 @@ plotresult = function(saveFile, protein, summary, original) {
                                  type=input$type1,
                                  which.PTM = protein,
                                  summaryPlot = input$summ,
-                                 address = path()
+                                 address = path_id
       )
       
     } else{
@@ -275,18 +276,18 @@ plotresult = function(saveFile, protein, summary, original) {
                               originalPlot = original,
                               summaryPlot = input$summ,
                               save_condition_plot_result = FALSE,
-                              address = path()
+                              address = path_id
       )
       
     }
     
     
-    if (saveFile) {
-      return(id_address)
-    } 
-    else {
-      return (plot)
-    }
+    # if (saveFile) {
+    #   return(id_address)
+    # } 
+    # else {
+    return (plot)
+    # }
   }
   else {
     return(NULL)
@@ -406,38 +407,51 @@ output$summ_csv_prot = downloadHandler(
 )
 
 # download/view plots
+output$saveone = downloadHandler(
+  filename = function() {
+    paste("SummaryPlot-", Sys.Date(), ".pdf", sep="")
+  },
+  content = function(file) {
+    pdf(file=file)
+    plotresult(TRUE, input$which, FALSE, TRUE)
+    dev.off()
+  }
+)
+# observeEvent(input$saveone,{
+#   plotresult(TRUE, input$which, FALSE, TRUE)
+# })
 
-observeEvent(input$saveone, {
-  path = plotresult(TRUE, input$which, FALSE, TRUE)
-  if (input$type1 == "ProfilePlot" || input$type1 == "ProfilePlot") {
-    js = paste("window.open('", path, "ProfilePlot.pdf')", sep="")
-    runjs(js);
-  }
-  else if (input$type1 == "ConditionPlot") {
-    js = paste("window.open('", path, "ConditionPlot.pdf')", sep="")
-    runjs(js);
-  }
-  else if (input$type1 == "QCPlot" || input$type1 == "QCPlot") {
-    js = paste("window.open('", path, "QCPlot.pdf')", sep="")
-    runjs(js);
-  }
-})
+# observeEvent(input$saveone, {
+#   path = plotresult(TRUE, input$which, FALSE, TRUE)
+#   if (input$type1 == "ProfilePlot" || input$type1 == "ProfilePlot") {
+#     js = paste("window.open('", path, "ProfilePlot.pdf')", sep="")
+#     runjs(js);
+#   }
+#   else if (input$type1 == "ConditionPlot") {
+#     js = paste("window.open('", path, "ConditionPlot.pdf')", sep="")
+#     runjs(js);
+#   }
+#   else if (input$type1 == "QCPlot" || input$type1 == "QCPlot") {
+#     js = paste("window.open('", path, "QCPlot.pdf')", sep="")
+#     runjs(js);
+#   }
+# })
 
-observeEvent(input$saveall, {
-  path = plotresult(TRUE, "all", FALSE, TRUE)
-  if (input$type1 == "ProfilePlot" || input$type1 == "ProfilePlot") {
-    js = paste("window.open('", path, "ProfilePlot.pdf')", sep="")
-    runjs(js);
-  }
-  else if (input$type1 == "ConditionPlot") {
-    js = paste("window.open('", path, "ConditionPlot.pdf')", sep="")
-    runjs(js);
-  }
-  else if (input$type1 == "QCPlot" || input$type1 == "QCPlot") {
-    js = paste("window.open('", path, "QCPlot.pdf')", sep="")
-    runjs(js);
-  }
-})
+# observeEvent(input$saveall, {
+#   path = plotresult(TRUE, "all", FALSE, TRUE)
+#   if (input$type1 == "ProfilePlot" || input$type1 == "ProfilePlot") {
+#     js = paste("window.open('", path, "ProfilePlot.pdf')", sep="")
+#     runjs(js);
+#   }
+#   else if (input$type1 == "ConditionPlot") {
+#     js = paste("window.open('", path, "ConditionPlot.pdf')", sep="")
+#     runjs(js);
+#   }
+#   else if (input$type1 == "QCPlot" || input$type1 == "QCPlot") {
+#     js = paste("window.open('", path, "QCPlot.pdf')", sep="")
+#     runjs(js);
+#   }
+# })
 
 output$showplot = renderUI({
   tagList(
@@ -446,10 +460,11 @@ output$showplot = renderUI({
                      tableOutput("stats")),
     tags$br(),
     conditionalPanel(condition = "input.which != ''",
-                     actionButton("saveone", "Save this plot"),
-                     bsTooltip(id = "saveone", title = "Open plot as pdf. \
-                               Popups must be enabled", placement = "bottom", 
-                               trigger = "hover")
+                     downloadButton("saveone", "Save this plot")
+                     #,
+                     # bsTooltip(id = "saveone", title = "Open plot as pdf. \
+                     #           Popups must be enabled", placement = "bottom", 
+                     #           trigger = "hover")
     )
   )
 })

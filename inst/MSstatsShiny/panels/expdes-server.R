@@ -48,7 +48,7 @@ observe({
   
   output$info = renderText({
     paste0(
-      "hover: ", xy_str(input$plot_hover)
+      "hover: ", MSstatsShiny::xy_str(input$plot_hover)
     )
   })
 })

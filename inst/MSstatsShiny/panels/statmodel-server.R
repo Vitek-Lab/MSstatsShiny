@@ -251,28 +251,28 @@ data_comparison = eventReactive(input$calculate, {
   
   print(matrix_build())
   if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
-    model_ptm = tmt_model(input_data$PTM, input, contrast.matrix)
-    model_protein = tmt_model(input_data$PROTEIN, input, contrast.matrix)
-    model_adj = apply_adj(model_ptm$ComparisonResult,
+    model_ptm = MSstatsShiny::tmt_model(input_data$PTM, input, contrast.matrix)
+    model_protein = MSstatsShiny::tmt_model(input_data$PROTEIN, input, contrast.matrix)
+    model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
                           model_protein$ComparisonResult)
     model = list('PTM.Model' = model_ptm$ComparisonResult, 
                  'PROTEIN.Model' = model_protein$ComparisonResult,
                 'ADJUSTED.Model' = model_adj)
 
   } else if(input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
-    model_ptm = lf_model(input_data$PTM, contrast.matrix)
-    model_protein = lf_model(input_data$PROTEIN, contrast.matrix)
-    model_adj = apply_adj(model_ptm$ComparisonResult,
+    model_ptm = MSstatsShiny::lf_model(input_data$PTM, contrast.matrix)
+    model_protein = MSstatsShiny::lf_model(input_data$PROTEIN, contrast.matrix)
+    model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
                           model_protein$ComparisonResult)
     model = list('PTM.Model' = model_ptm$ComparisonResult, 
                  'PROTEIN.Model' = model_protein$ComparisonResult,
                  'ADJUSTED.Model' = model_adj)
     
   } else if(input$DDA_DIA=="TMT"){
-    model = tmt_model(input_data, input, contrast.matrix)
+    model = MSstatsShiny::tmt_model(input_data, input, contrast.matrix)
   }
   else{
-    model = lf_model(input_data, contrast.matrix)
+    model = MSstatsShiny::lf_model(input_data, contrast.matrix)
   }
   
   return(model)
@@ -398,7 +398,7 @@ group_comparison = function(saveFile1, pdf) {
     
   } else if(input$DDA_DIA=="TMT"){
     
-    plot1 = groupComparisonPlots2(data=data_comparison()$ComparisonResult,
+    plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                    type=input$typeplot,
                                    sig=input$sig,
                                    FCcutoff=input$FC,
@@ -414,7 +414,7 @@ group_comparison = function(saveFile1, pdf) {
     
   } else{
     
-    plot1 = groupComparisonPlots2(data=data_comparison()$ComparisonResult,
+    plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                    type=input$typeplot,
                                    sig=input$sig,
                                    FCcutoff=input$FC,

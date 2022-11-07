@@ -483,6 +483,8 @@ tmt_model = function(data, input, contrast.matrix, busy_indicator = TRUE){
 apply_adj = function(ptm_model, protein_model){
   
   Label = Site = NULL
+  ptm_model = as.data.table(ptm_model)
+  protein_model = as.data.table(protein_model)
   
   ptm_model_site_sep = copy(ptm_model)
   ## extract global protein name
@@ -575,7 +577,7 @@ radioTooltip = function(id, choice, title, placement = "bottom",
 
 #' Simple function to return coordinates
 #' 
-#' Used expeirmental design to create vizualization
+#' Used in experimental design to create vizualization
 #' 
 #' @export
 #' @param e input function provided by user
