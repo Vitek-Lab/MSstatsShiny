@@ -209,7 +209,7 @@ loadpage = fluidPage(
   to format your data please see the MSstatsPTM ", 
     a("documentation", href="https://www.bioconductor.org/packages/release/bioc/vignettes/MSstatsPTM/inst/doc/MSstatsPTM_LabelFree_Workflow.html",
     target="_blank")),
-  p("**Note please upload all files in csv format (unless otherwise indicated)**"),
+  p("**Note all files must be under 100MB and in csv format (unless otherwise indicated)**"),
   tags$br(),
   conditionalPanel(
     condition = "input.filetype == 'sample' && input.DDA_DIA == 'DDA'",

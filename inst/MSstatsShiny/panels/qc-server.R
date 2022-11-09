@@ -227,7 +227,7 @@ preprocess_data_code = eventReactive(input$calculate, {
   return(codes)
 })
 
-plotresult = function(saveFile, protein, summary, original) {
+plotresult = function(saveFile, protein, summary, original, file) {
   if (input$which != "") {
     # id = as.character(UUIDgenerate(FALSE))
     # id_address = paste("tmp/",id, sep = "")
@@ -240,32 +240,31 @@ plotresult = function(saveFile, protein, summary, original) {
     #   }
     #   return (path_id)
     # }
-    path_id = FALSE
 
     if(input$DDA_DIA == "TMT"){
       
-      plot = dataProcessPlotsTMT(preprocess_data(),
+      dataProcessPlotsTMT(preprocess_data(),
                           type=input$type1,
                           ylimUp = FALSE,
                           ylimDown = FALSE,
                           which.Protein = protein,
                           originalPlot = TRUE,
                           summaryPlot = input$summ,
-                          address = path_id
+                          address = file
       )
       
     } else if (input$DDA_DIA == "PTM"){
       
-      plot = dataProcessPlotsPTM(preprocess_data(),
+      dataProcessPlotsPTM(preprocess_data(),
                                  type=input$type1,
                                  which.PTM = protein,
                                  summaryPlot = input$summ,
-                                 address = path_id
+                                 address = file
       )
       
     } else{
       
-      plot = dataProcessPlots(data = preprocess_data(),
+      dataProcessPlots(data = preprocess_data(),
                               type=input$type1,
                               featureName = input$fname,
                               ylimUp = FALSE,
@@ -276,7 +275,7 @@ plotresult = function(saveFile, protein, summary, original) {
                               originalPlot = original,
                               summaryPlot = input$summ,
                               save_condition_plot_result = FALSE,
-                              address = path_id
+                              address = file
       )
       
     }
@@ -286,7 +285,7 @@ plotresult = function(saveFile, protein, summary, original) {
     #   return(id_address)
     # } 
     # else {
-    return (plot)
+    # return (plot)
     # }
   }
   else {
@@ -407,19 +406,16 @@ output$summ_csv_prot = downloadHandler(
 )
 
 # download/view plots
-output$saveone = downloadHandler(
+output$saveplot = downloadHandler(
   filename = function() {
     paste("SummaryPlot-", Sys.Date(), ".pdf", sep="")
   },
   content = function(file) {
-    pdf(file=file)
-    plotresult(TRUE, input$which, FALSE, TRUE)
+    pdf(file)
+    plotresult(TRUE, input$which, FALSE, TRUE, FALSE)
     dev.off()
   }
 )
-# observeEvent(input$saveone,{
-#   plotresult(TRUE, input$which, FALSE, TRUE)
-# })
 
 # observeEvent(input$saveone, {
 #   path = plotresult(TRUE, input$which, FALSE, TRUE)
@@ -459,22 +455,23 @@ output$showplot = renderUI({
     conditionalPanel(condition = "input.type == 'ConditionPlot' && input.which != ''",
                      tableOutput("stats")),
     tags$br(),
-    conditionalPanel(condition = "input.which != ''",
-                     downloadButton("saveone", "Save this plot")
-                     #,
-                     # bsTooltip(id = "saveone", title = "Open plot as pdf. \
-                     #           Popups must be enabled", placement = "bottom", 
-                     #           trigger = "hover")
-    )
+    enable("saveplot")
+    # conditionalPanel(condition = "input.which != ''",
+    #                  enable("saveone")
+    #                  #,
+    #                  # bsTooltip(id = "saveone", title = "Open plot as pdf. \
+    #                  #           Popups must be enabled", placement = "bottom",
+    #                  #           trigger = "hover")
+    # )
   )
 })
 
 theplot = reactive({
   if (input$summ == FALSE) {
-    output = plotresult(FALSE, input$which, FALSE, TRUE)
+    output = plotresult(FALSE, input$which, FALSE, TRUE, FALSE)
   }
   else if (input$summ == TRUE) {
-    output = plotresult(FALSE, input$which, TRUE, FALSE)
+    output = plotresult(FALSE, input$which, TRUE, FALSE, FALSE)
   } 
   return (output)
 })
