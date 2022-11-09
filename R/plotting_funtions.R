@@ -394,16 +394,16 @@ groupComparisonPlots2 = function(data=data,
   if (type == "VOLCANOPLOT") {
     
     ## choose comparison to draw plots
-    if ( address == FALSE ){ ## here I used != FALSE, instead of !address. Because address can be logical or characters.
-      if( which.Comparison == 'all' ) {
-        if( length(unique(data$Label)) > 1 ){
-          stop( '** Cannnot generate all volcano plots in a screen. Please set one comparison at a time.' )
-        }
-      } else if ( length(which.Comparison) > 1 ) {
-        stop( '** Cannnot generate multiple volcano plots in a screen. Please set one comparison at a time.' )
-        
-      }
-    }
+    # if ( address == FALSE ){ ## here I used != FALSE, instead of !address. Because address can be logical or characters.
+    #   if( which.Comparison == 'all' ) {
+    #     if( length(unique(data$Label)) > 1 ){
+    #       stop( '** Cannnot generate all volcano plots in a screen. Please set one comparison at a time.' )
+    #     }
+    #   } else if ( length(which.Comparison) > 1 ) {
+    #     stop( '** Cannnot generate multiple volcano plots in a screen. Please set one comparison at a time.' )
+    #     
+    #   }
+    # }
     
     ## If there are the file with the same name, add next numbering at the end of file name		
     if (address != FALSE) {
@@ -758,12 +758,14 @@ groupComparisonPlots2 = function(data=data,
         legend.text = element_text(size=legend.size),
         legend.title = element_blank()
       )
-      if(savePDF) {
-        print(ptemp)
-      }
-      else {
-        return(ptemp)
-      }
+      # if(savePDF) {
+      #   print(pfinal)
+      # }
+      # else {
+      #   return(pfinal)
+      # }
+      print("here")
+      return(pfinal)
     } ## end-loop
     
     if (address!=FALSE) dev.off()
@@ -778,13 +780,13 @@ groupComparisonPlots2 = function(data=data,
     datatemp$Protein = factor(datatemp$Protein)
     
     ## choose comparison to draw plots
-    if ( address == FALSE ){ ## here I used != FALSE, instead of !address. Because address can be logical or characters.
-      if( which.Protein == 'all' ) {
-        stop( '** Cannnot generate all comparison plots in a screen. Please set one protein at a time.' )
-      } else if ( length(which.Protein) > 1 ) {
-        stop( '** Cannnot generate multiple comparison plots in a screen. Please set one protein at a time.' )
-      }
-    }
+    # if ( address == FALSE ){ ## here I used != FALSE, instead of !address. Because address can be logical or characters.
+    #   if( which.Protein == 'all' ) {
+    #     stop( '** Cannnot generate all comparison plots in a screen. Please set one protein at a time.' )
+    #   } else if ( length(which.Protein) > 1 ) {
+    #     stop( '** Cannnot generate multiple comparison plots in a screen. Please set one protein at a time.' )
+    #   }
+    # }
     
     ## choose Proteins or not
     if (which.Protein != "all") {

@@ -204,7 +204,8 @@ main = mainPanel(
              #                  tags$br(),
              #                  tags$br(),
              #                  tags$h4("Calculation in progress...")),
-             uiOutput("showplot")
+             uiOutput("showplot"),
+             disabled(downloadButton("saveplot", "Save this plot"))
     ),
     tabPanel("Download Data", 
              #verbatimTextOutput('effect'),
