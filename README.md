@@ -5,8 +5,7 @@ utilizes MSstats, MSstatsTMT, and MSstatsPTM to analyze proteomics experiments.
 
 ## Availability
 
-The application is available both online and locally, with planned release on 
-Bioconductor in November 2022.
+The application is available both online and locally, via Bioconductor or Github.
 
 ### Online
 
@@ -14,6 +13,11 @@ The online application is located at
 [http://www.msstatsshiny.com/](http://www.msstatsshiny.com/). The online version
 is constrained to processing only input files smaller than 250 MB. Due to this, 
 we recommend processing large datasets using a local installation.
+
+
+### Bioconductor
+
+The easiest way to use the application locally is via [Bioconductor](https://bioconductor.org/packages/release/bioc/html/MSstatsShiny.html)
 
 ### Local
 
@@ -27,10 +31,6 @@ steps.
 `BiocManager::install(c('MSstatsPTM', 'biomaRt'))`
 3. Install the package by executing `devtools::install_github("Vitek-Lab/MSstatsShiny")` in the console.
 4. Run the application by executing `library(MSstatsShiny)` and `launch_MSstatsShiny()` or `MSstatsShiny::launch_MSstatsShiny()` in the console.
-
-### Bioconductor
-
-Submitted to Bioconductor for version 3.16, projected release November 2nd, 2022.
 
 ## Processing instructions
 
