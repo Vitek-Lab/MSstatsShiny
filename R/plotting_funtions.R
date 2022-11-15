@@ -330,20 +330,20 @@ groupComparisonPlots2 = function(data=data,
     
     
     ## If there are the file with the same name, add next numbering at the end of file name
-    if (address != FALSE) {
-      allfiles = list.files()
-      
-      num = 0
-      filenaming = paste(address, "Heatmap", sep="")
-      finalfile = paste(address, "Heatmap.pdf", sep="")
-      
-      while(is.element(finalfile, allfiles)) {
-        num = num + 1
-        finalfile = paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
-      }	
-      
-      pdf(finalfile, width=width, height=height)
-    }
+    # if (address != FALSE) {
+    #   allfiles = list.files()
+    #   
+    #   num = 0
+    #   filenaming = paste(address, "Heatmap", sep="")
+    #   finalfile = paste(address, "Heatmap.pdf", sep="")
+    #   
+    #   while(is.element(finalfile, allfiles)) {
+    #     num = num + 1
+    #     finalfile = paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
+    #   }	
+    #   
+    #   pdf(finalfile, width=width, height=height)
+    # }
     
     if (colorkey){
       par(mar=c(3,3,3,3), mfrow=c(3,1),oma=c(3,0,3,0))
@@ -384,7 +384,7 @@ groupComparisonPlots2 = function(data=data,
     } 
     ## end loop for heatmap
     
-    if (address!=FALSE) dev.off()
+    # if (address!=FALSE) dev.off()
   }
   
   
@@ -401,25 +401,26 @@ groupComparisonPlots2 = function(data=data,
         }
       } else if ( length(which.Comparison) > 1 ) {
         stop( '** Cannnot generate multiple volcano plots in a screen. Please set one comparison at a time.' )
-        
+
       }
     }
     
     ## If there are the file with the same name, add next numbering at the end of file name		
-    if (address != FALSE) {
-      allfiles = list.files()
-      
-      num = 0
-      filenaming = paste(address, "VolcanoPlot", sep="")
-      finalfile = paste(address, "VolcanoPlot.pdf", sep="")
-      
-      while(is.element(finalfile, allfiles)) {
-        num = num + 1
-        finalfile = paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
-      }	
-      
-      pdf(finalfile, width=width, height=height)
-    }
+    # if (address != FALSE) {
+    #   allfiles = list.files()
+    #   
+    #   num = 0
+    #   filenaming = paste(address, "VolcanoPlot", sep="")
+    #   finalfile = paste(address, "VolcanoPlot.pdf", sep="")
+    #   
+    #   while(is.element(finalfile, allfiles)) {
+    #     num = num + 1
+    #     finalfile = paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
+    #   }	
+    #   print(finalfile)
+    #   pdf(finalfile, width=width, height=height)
+    #   
+    # }
     
     if (logBase.pvalue == 2) {
       y.limUp  = 30
@@ -764,9 +765,13 @@ groupComparisonPlots2 = function(data=data,
       else {
         return(ptemp)
       }
+
     } ## end-loop
     
-    if (address!=FALSE) dev.off()
+    # if (address!=FALSE) {
+    #   print("here")
+    #   dev.off()
+    # }
   }	
   
   #######################
@@ -785,7 +790,7 @@ groupComparisonPlots2 = function(data=data,
         stop( '** Cannnot generate multiple comparison plots in a screen. Please set one protein at a time.' )
       }
     }
-    
+
     ## choose Proteins or not
     if (which.Protein != "all") {
       ## check which.Protein is name of Protein
@@ -815,20 +820,20 @@ groupComparisonPlots2 = function(data=data,
     }
     
     ## If there are the file with the same name, add next numbering at the end of file name		
-    if (address!=FALSE) {
-      allfiles = list.files()
-      
-      num = 0
-      filenaming = paste(address, "ComparisonPlot", sep="")
-      finalfile = paste(address, "ComparisonPlot.pdf", sep="")
-      
-      while(is.element(finalfile, allfiles)) {
-        num = num+1
-        finalfile = paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
-      }	
-      
-      pdf(finalfile, width=width, height=height)
-    }
+    # if (address!=FALSE) {
+    #   allfiles = list.files()
+    #   
+    #   num = 0
+    #   filenaming = paste(address, "ComparisonPlot", sep="")
+    #   finalfile = paste(address, "ComparisonPlot.pdf", sep="")
+    #   
+    #   while(is.element(finalfile, allfiles)) {
+    #     num = num+1
+    #     finalfile = paste(paste(filenaming, num, sep="-"), ".pdf", sep="")
+    #   }	
+    #   
+    #   pdf(finalfile, width=width, height=height)
+    # }
     
     for (i in 1:nlevels(datatemp$Protein)) {
       
@@ -892,8 +897,8 @@ groupComparisonPlots2 = function(data=data,
       
     } ## end-loop
     
-    if (address!=FALSE) {
-      dev.off()
-    }
+    # if (address!=FALSE) {
+    #   dev.off()
+    # }
   } ## end Comparison plot
 }

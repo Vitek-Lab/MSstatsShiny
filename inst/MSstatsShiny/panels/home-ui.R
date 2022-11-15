@@ -12,13 +12,13 @@ home = fluidPage(
       h2("About MSstatsShiny"),
       p("This is a web tool for the statistical analysis of quantitative \
         proteomic data. It is built around the R packages ", 
-        a("MSstats (v 4.4.1).", 
+        a("MSstats (v 4.6.0).", 
           href="https://www.bioconductor.org/packages/release/bioc/html/MSstats.html"), 
         ", ", 
-        a("MSstatsTMT (v 2.4.1).",
+        a("MSstatsTMT (v 2.6.0).",
           href="https://www.bioconductor.org/packages/release/bioc/html/MSstatsTMT.html"),
         ", and ", 
-        a("MSstatsPTM (v 1.6.0).", 
+        a("MSstatsPTM (v 2.0.0).", 
           href="https://www.bioconductor.org/packages/release/bioc/html/MSstatsPTM.html"), ),
       p("This tool is designed to increase the usability of the packages, \
       providing an all in one, end to end, analysis pipeline for proteomic 
