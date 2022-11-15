@@ -85,7 +85,7 @@ statmodel = fluidPage(
                                                 select plot type"), 
                            c("Volcano Plot" = "VolcanoPlot", 
                              "Heatmap"="Heatmap", 
-                             "Comparison Plot"="ComparisonPlot"))),
+                             "Comparison Plot"="ComparisonPlot"))), #
              conditionalPanel(condition = "input.typeplot == 'VolcanoPlot'",
                               uiOutput("WhichComp"),
                               conditionalPanel(
@@ -149,7 +149,7 @@ statmodel = fluidPage(
               actionButton("viewresults", 
                           "View plot in browser (only for one \
                                      comparison/protein)")),
-             actionButton("plotresults", "Save plot results as pdf")
+             downloadButton("plotresults", "Save plot results as pdf")
       )
     )
   ),
