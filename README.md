@@ -11,7 +11,7 @@ The application is available both online and locally, via Bioconductor or Github
 
 The online application is located at 
 [http://www.msstatsshiny.com/](http://www.msstatsshiny.com/). The online version
-is constrained to processing only input files smaller than 250 MB. Due to this, 
+is constrained to processing only input files smaller than 100 MB. Due to this, 
 we recommend processing large datasets using a local installation.
 
 
