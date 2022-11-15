@@ -373,11 +373,13 @@ SignificantProteins = eventReactive(input$calculate,{
 
 group_comparison = function(saveFile1, pdf) {
   
+  
   id1 = as.character(UUIDgenerate(FALSE))
-  id_address1 = paste("tmp/",id1, sep = "")
+  id_address1 = paste(tempdir(), "\\", id1, sep = "")
+  
   path1 = function() {
     if (saveFile1) {
-      path1_id = paste("www/", id_address1, sep = "")
+      path1_id = paste(tempdir(), "\\", id1, sep = "")
     }
     else {
       path1_id = FALSE
@@ -827,25 +829,37 @@ output$download_signif_prot = downloadHandler(
   }
 )
 
-observeEvent(input$plotresults, {
-  insertUI(
-    selector = "#comparison_plots",
-    ui=tags$div(
-      if (input$typeplot == "VolcanoPlot") {
-        js = paste("window.open('", group_comparison(TRUE, TRUE), "VolcanoPlot.pdf')", sep="")
-        runjs(js);
-      }
-      else if (input$typeplot == "Heatmap") {
-        js = paste("window.open('", group_comparison(TRUE, TRUE), "Heatmap.pdf')", sep="")
-        runjs(js);
-      }
-      else if (input$typeplot == "ComparisonPlot") {
-        js = paste("window.open('", group_comparison(TRUE, TRUE), "ComparisonPlot.pdf')", sep="")
-        runjs(js);
-      }
-    )
-  )
-})
+output$plotresults = downloadHandler(
+  filename = function() {
+    paste("SummaryPlot-", Sys.Date(), ".pdf", sep="")
+  },
+  content = function(file) {
+    pdf(file)
+    group_comparison(TRUE, TRUE)
+    dev.off()
+  }
+)
+
+# observeEvent(input$plotresults, {
+#   insertUI(
+#     selector = "#comparison_plots",
+#     ui=tags$div(
+#       if (input$typeplot == "VolcanoPlot") {
+#         js = paste("window.open('", group_comparison(TRUE, TRUE), "VolcanoPlot.pdf')", sep="")
+#         print(js)
+#         runjs(js);
+#       }
+#       else if (input$typeplot == "Heatmap") {
+#         js = paste("window.open('", group_comparison(TRUE, TRUE), "Heatmap.pdf')", sep="")
+#         runjs(js);
+#       }
+#       else if (input$typeplot == "ComparisonPlot") {
+#         js = paste("window.open('", group_comparison(TRUE, TRUE), "ComparisonPlot.pdf')", sep="")
+#         runjs(js);
+#       }
+#     )
+#   )
+# })
 
 observeEvent(input$calculate,{
   enable("Design")
