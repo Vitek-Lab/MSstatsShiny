@@ -4,13 +4,13 @@ sbp_params = sidebarPanel(
   
   # transformation
   
-  conditionalPanel(condition = "input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes'",
+  conditionalPanel(condition = "input.DDA_DIA == 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'Yes')",
                    h4("1. Peptide level normalization", 
                       tipify(icon("question-circle"), 
                              title = "Global median normalization on peptide level data, equalizes medians across all the channels and runs")),
                    checkboxInput("global_norm", "Yes", value = T)),
   
-  conditionalPanel(condition = "input.DDA_DIA !== 'TMT' && input.PTMTMT == 'No'",
+  conditionalPanel(condition = "input.DDA_DIA !== 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'No')",
                    radioButtons("log", 
                                 label= h4("1. Log transformation", 
                                           tipify(icon("question-circle"), 
@@ -20,7 +20,7 @@ sbp_params = sidebarPanel(
   
   tags$hr(),
   
-  conditionalPanel(condition = "input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes'",
+  conditionalPanel(condition = "input.DDA_DIA == 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'Yes')",
                    selectInput("summarization", 
                                label = h4("2. Summarization method", 
                                           tipify(icon("question-circle"), 
@@ -30,14 +30,14 @@ sbp_params = sidebarPanel(
                                  "Log(Sum)" = "LogSum","Median" = "Median"), 
                                selected = "log")),
   
-  conditionalPanel(condition = "(input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes') && input.summarization == 'msstats'",
+  conditionalPanel(condition = "(input.DDA_DIA == 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'Yes')) && input.summarization == 'msstats'",
                    checkboxInput("null", label = p("Do not apply cutoff", 
                                                    tipify(icon("question-circle"), 
                                                           title = "Maximum quantile for deciding censored missing values, default is 0.999"))),
                    numericInput("maxQC", NULL, 0.999, 0.000, 1.000, 0.001)),
   
   # Normalization
-  conditionalPanel(condition="input.DDA_DIA !== 'TMT' && input.PTMTMT !== 'Yes'",
+  conditionalPanel(condition="input.DDA_DIA !== 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'No')",
                    selectInput("norm", 
                                label = h4("2. Normalization", 
                                           tipify(icon("question-circle"), 
@@ -53,7 +53,7 @@ sbp_params = sidebarPanel(
   tags$hr(),
   
   conditionalPanel(
-    condition = "input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes'",
+    condition = "input.DDA_DIA == 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'Yes')",
     h4("3. Local protein normalization",
        tipify(icon("question-circle"), 
               title = "Reference channel based normalization between MS runs on protein level data. Requires one reference channel in each MS run, annotated by ‘Norm’ in Condition column of annotation file")),
@@ -66,15 +66,20 @@ sbp_params = sidebarPanel(
   
   
   conditionalPanel(
-    condition = "input.DDA_DIA !== 'TMT' || input.PTMTMT !== 'Yes'",
+    condition = "input.DDA_DIA !== 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'Yes')",
     
     # features
     
     #h4("3. Used features"),
     radioButtons("features_used",
-                 label = h4("3. Used features"),
+                 label = h4("3. Feature subset", 
+                            tipify(icon("question-circle"), 
+                                   title = "What features to use in \
+                                   summarization. All features or a subset of \
+                                   features can be used.")),
                  c("Use all features" = "all", "Use top N features" = "topN", 
                    "Remove uninformative features & outliers" = "highQuality")),
+    #),
     #checkboxInput("all_feat", "Use all features", value = TRUE),
     conditionalPanel(condition = "input.features_used =='topN'",
                      uiOutput("features")),

@@ -345,7 +345,6 @@ get_data = eventReactive(input$proceed1, {
       infile = input$data1
     }
     else if(input$filetype=='phil'){
-      #print(input$folder$datapath)
       extracted.files = unzip(input$folder$datapath, list = TRUE)
       unzip(input$folder$datapath, list = FALSE)
       infile = paste0("./", str_split(extracted.files$Name[1], "/")[[1]][[1]])
@@ -517,6 +516,12 @@ get_data = eventReactive(input$proceed1, {
                                               use_log_file = FALSE)
     }
   }
+  
+  
+  if (input$level == "Peptide"){
+    mydata$ProteinName = mydata$PeptideSequence
+  }
+  
   remove_modal_spinner()
   return(mydata)
 })
@@ -914,7 +919,6 @@ get_summary2 = eventReactive(input$proceed1, {
 onclick("proceed1", {
   get_data()
   get_annot()
-  print("at summary thing")
   shinyjs::show("summary_tables")
   
   ### outputs ###
