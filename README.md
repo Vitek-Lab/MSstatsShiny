@@ -17,7 +17,7 @@ we recommend processing large datasets using a local installation.
 
 ### Bioconductor
 
-For large file processing, it is recommend you use a local install of the application. The easiest way to use the application locally is via [Bioconductor](https://bioconductor.org/packages/release/bioc/html/MSstatsShiny.html)
+For large file processing, it is recommend you use a local install of the application. The easiest way to install the application locally is via [Bioconductor](https://bioconductor.org/packages/release/bioc/html/MSstatsShiny.html)
 
 ### Local
 
