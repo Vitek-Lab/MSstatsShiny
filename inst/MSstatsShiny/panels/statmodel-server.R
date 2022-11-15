@@ -140,7 +140,6 @@ matrix_build = eventReactive(input$submit | input$submit1 | input$submit2 | inpu
       contrast$matrix = rbind(contrast$matrix, contrast$row)
       contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix),])
     }
-    print(contrast$matrix)
     rownames(contrast$matrix) = comp_list$dList
     colnames(contrast$matrix) = choices()
   }
@@ -169,13 +168,11 @@ matrix_build = eventReactive(input$submit | input$submit1 | input$submit2 | inpu
       contrast$matrix = rbind(contrast$matrix, contrast$row)
       contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix),])
     }
-    print(contrast$matrix)
     rownames(contrast$matrix) = comp_list$dList
     colnames(contrast$matrix) = choices()
   }
   
   else if (input$def_comp == "all_one") {
-    print(choices())
     for (index in 1:length(choices())) {
       index3 = reactive({which(choices() == input$group3)})
       if(index == index3()) next
@@ -249,7 +246,6 @@ data_comparison = eventReactive(input$calculate, {
   input_data = preprocess_data()
   contrast.matrix = matrix_build()
   
-  print(matrix_build())
   if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
     model_ptm = MSstatsShiny::tmt_model(input_data$PTM, input, contrast.matrix)
     model_protein = MSstatsShiny::tmt_model(input_data$PROTEIN, input, contrast.matrix)
@@ -373,6 +369,7 @@ SignificantProteins = eventReactive(input$calculate,{
 
 group_comparison = function(saveFile1, pdf) {
   
+  show_modal_spinner()
   
   id1 = as.character(UUIDgenerate(FALSE))
   id_address1 = paste(tempdir(), "\\", id1, sep = "")
@@ -395,7 +392,7 @@ group_comparison = function(saveFile1, pdf) {
                                     logBase.pvalue=as.integer(input$logp),
                                     ProteinName = input$pname,
                                     which.Comparison = input$whichComp,
-                                    address = path1())
+                                    address = FALSE)#path1())
     
     
   } else if(input$DDA_DIA=="TMT"){
@@ -432,12 +429,15 @@ group_comparison = function(saveFile1, pdf) {
     
   }
   
+  remove_modal_spinner()
+  
   if(saveFile1) {
     return(id_address1)
   }
   else {
     return(plot1)
   }
+  
 }
 
 # model assumptions plots
@@ -556,9 +556,7 @@ output$adj_table_results = renderUI({
   req(data_comparison())
   req(SignificantProteins())
   significant = SignificantProteins()
-  print(significant$ADJUSTED.Model)
   if (is.null(significant$ADJUSTED.Model)) {
-    print(TRUE)
     tagList(
       tags$br())
   } else {
