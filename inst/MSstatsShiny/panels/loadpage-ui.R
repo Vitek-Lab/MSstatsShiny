@@ -31,9 +31,19 @@ sbp_load = sidebarPanel(
     condition = "input.DDA_DIA != 'PTM'",
     radioButtons("level",
                  label = h4("3. Analysis Level", tipify(icon("question-circle"), 
-                            title = "Choose either peptide or protein level of analysis. MSstats is classically designed for protein level analysis and peptide analysis may produce inconsistent results.")),                 choices = c("Protein" = "Protein", "Peptide" = "Peptide"),
+                            title = "Choose either peptide or protein level of analysis. MSstats is classically designed for protein level analysis and peptide analysis may produce inconsistent results.")),                 
+                 choices = c("Protein" = "Protein", "Peptide" = "Peptide"),
                  selected = "Protein")
   ),
+  # conditionalPanel(
+  #   condition = "input.DDA_DIA != 'PTM'",
+  #   radioButtons("subset",
+  #                label = h4("4. Subset data", 
+  #                           tipify(icon("question-circle"), 
+  #                                  title = "Whether to use the full dataset or randomly sample a portion. Useful for generating analysis code.")),
+  #                choices = c("True" = TRUE, "False" = FALSE),
+  #                selected = FALSE)
+  # ),
   tags$hr(),
   conditionalPanel(
     condition = "input.filetype == 'sample' && input.DDA_DIA == 'PTM'",
@@ -41,7 +51,7 @@ sbp_load = sidebarPanel(
     radioButtons("PTMTMT", tipify(icon("question-circle"),
                                   title = "Indicate whether to use a label free or TMT sample experiment"),
                  c(No='No', Yes='Yes'),
-                 inline=T)
+                 inline=TRUE)
   ),
   conditionalPanel(
   condition = "input.filetype =='10col' || input.filetype =='prog' || input.filetype =='PD' || input.filetype =='open'||
@@ -50,7 +60,7 @@ sbp_load = sidebarPanel(
   conditionalPanel(condition = "input.filetype == 'msstats' && input.DDA_DIA != 'PTM' && input.DDA_DIA != 'PTM_TMT'",
                    h4("4. Upload data in MSstats Format")),
   conditionalPanel(condition = "input.filetype == 'msstats' && (input.DDA_DIA == 'PTM' || input.DDA_DIA == 'PTM_TMT')",
-                   h4("3. Upload PTM data in MSstats Format")),
+                   h4("4. Upload PTM data in MSstats Format")),
   conditionalPanel(condition = "input.filetype == 'sky'",
                    h4("4. Upload MSstats report from Skyline")),
   conditionalPanel(condition = "input.filetype == 'spec'",
@@ -73,14 +83,14 @@ sbp_load = sidebarPanel(
   ),
   
   conditionalPanel(condition = "input.filetype && (input.filetype == 'spec' || input.filetype =='spmin')",
-                   fileInput('data1', "", multiple = F, accept = c(".xls")),
+                   fileInput('data1', "", multiple = FALSE, accept = c(".xls")),
   ),
   tags$br(),
   conditionalPanel(
     condition = "input.filetype == 'sky' || input.filetype == 'prog' || input.filetype == 'PD' || input.filetype == 'spec' || input.filetype == 'open'|| input.filetype =='spmin' || input.filetype == 'phil'",
     h4("5. Upload annotation File", tipify(icon("question-circle"), 
         title = "Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.")),
-    downloadLink("template", "Annotation file template"),
+    # downloadLink("template", "Annotation file template"),
     fileInput('annot', "", multiple = F,
               accept = c("text/csv",
                          "text/comma-separated-values,text/plain", ".csv"))
@@ -88,7 +98,7 @@ sbp_load = sidebarPanel(
   tags$br(),
   conditionalPanel(condition = "input.filetype == 'msstats' && (input.DDA_DIA == 'PTM' || input.DDA_DIA == 'PTM_TMT')",
                    h4("4. (Optional) Upload unmodified data in MSstats Format"), 
-                   fileInput('unmod', "", multiple = F, 
+                   fileInput('unmod', "", multiple = FALSE, 
                              accept = c("text/csv", 
                                         "text/comma-separated-values,text/plain", 
                                         ".csv")),
@@ -97,55 +107,55 @@ sbp_load = sidebarPanel(
                    radioButtons("PTMTMT", tipify(icon("question-circle"),
                                                  title = "Indicate if experiment was processed using TMT labeling"),
                                 c(No='No', Yes='Yes'),
-                                inline=T)),
+                                inline=TRUE)),
   conditionalPanel(
     condition = "input.filetype == 'maxq' && (input.DDA_DIA != 'PTM' && input.DDA_DIA != 'PTM_TMT')",
     h4("5. Upload evidence.txt File"),
-    fileInput('evidence', "", multiple = F, 
+    fileInput('evidence', "", multiple = FALSE, 
               accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
     h4("6. Upload proteinGroups.txt File"),
-    fileInput('pGroup', "", multiple = F, 
+    fileInput('pGroup', "", multiple = FALSE, 
               accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
     h4("7. Upload annotation File", tipify(icon("question-circle"), 
                                            title = "Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.")),
-    fileInput('annot1', "", multiple = F, 
+    fileInput('annot1', "", multiple = FALSE, 
               accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
   ),
   conditionalPanel(
     condition = "input.filetype == 'maxq' && (input.DDA_DIA == 'PTM' || input.DDA_DIA == 'PTM_TMT')",
     h4("4. Upload PTM sites Sites.txt File"),
-    fileInput('maxq_ptm_sites', "", multiple = F,
+    fileInput('maxq_ptm_sites', "", multiple = FALSE,
               accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
     h4("5. Upload annotation File", tipify(icon("question-circle"), 
                                            title = "Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.")),
-    fileInput('annot3', "", multiple = F, 
+    fileInput('annot3', "", multiple = FALSE, 
               accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
     h4("6. (Optional) Upload Unmodified Protein evidence.txt File"),
-    fileInput('evidence2', "", multiple = F, 
+    fileInput('evidence2', "", multiple = FALSE, 
               accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
     h4("7. (Optional) Upload Unmodified Protein proteinGroups.txt File"),
-    fileInput('pGroup2', "", multiple = F, 
+    fileInput('pGroup2', "", multiple = FALSE, 
               accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
     h4("8. TMT Experiment"),
     radioButtons("PTMTMT", tipify(icon("question-circle"),
                                   title = "Indicate if experiment was processed using TMT labeling"),
                  c(No='No', Yes='Yes'),
-                 selected='Yes', inline=T)
+                 selected='Yes', inline=TRUE)
   ),
   conditionalPanel(
     condition = "input.filetype == 'ump'",
     h4("5. Upload FragSummary.xls File"),
-    fileInput('fragSummary', "", multiple = F,
+    fileInput('fragSummary', "", multiple = FALSE,
               accept = c("xls", "text/comma-separated-values,text/plain", ".xls")),
     h4("6. Upload PeptideSummary.xls File"),
-    fileInput('peptideSummary', "", multiple = F, 
+    fileInput('peptideSummary', "", multiple = FALSE, 
               accept = c("xls", "text/comma-separated-values,text/plain", ".xls")),
     h4("7. Upload ProtSummary.xls File"),
-    fileInput('protSummary', "", multiple = F, 
+    fileInput('protSummary', "", multiple = FALSE, 
               accept = c("xls", "text/comma-separated-values,text/plain", ".xls")),
     h4("8. Upload Annotation File", tipify(icon("question-circle"), 
                                            title = "Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.")),
-    fileInput('annot2', "", multiple = F, 
+    fileInput('annot2', "", multiple = FALSE, 
               accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
   ),
   tags$hr(),
@@ -177,7 +187,7 @@ sbp_load = sidebarPanel(
                    radioButtons("mod.num", h5("Modification Number", tipify(icon("question-circle"), 
                                                           title = "Use single or multiple modifications per peptide")),
                                               c(Single="Single", Total="Total"),
-                                              inline=T),
+                                              inline=TRUE),
                    textInput("TMT.keyword", h5("TMT.keyword", 
                                                    tipify(icon("question-circle"), 
                                                           title = "The sub-name of columns in sites.data file")), 
@@ -215,12 +225,14 @@ loadpage = fluidPage(
   p("To run the MSstats Pipeline, please upload your dataset. The required files\
     depend on the spectral processing tool used. Generally the raw data and an \
     annotation file are needed. The output of this step is your experimental \
-    data processed in MSstats format."),
+    data processed in MSstats format. For examples on how to prepare your input \
+    please review the MSstats ", a("User Guide", href="https://msstats.org/wp-content/uploads/2020/02/MSstats_v3.18.1_manual_2020Feb26-v2.pdf",
+                                   target="_blank")),
   p("PTM data must be processed using MaxQuant or preformatted into MSstats format. For information on how \
   to format your data please see the MSstatsPTM ", 
     a("documentation", href="https://www.bioconductor.org/packages/release/bioc/vignettes/MSstatsPTM/inst/doc/MSstatsPTM_LabelFree_Workflow.html",
     target="_blank")),
-  p("**Note all files must in csv format (unless otherwise indicated) and under 100 MB if using msstatsshiny.com (there is no limit when running the application locally)**"),
+  p("**Note all files must in csv format (unless otherwise indicated) and under 250 MB if using msstatsshiny.com (there is no limit when running the application locally)**"),
   tags$br(),
   conditionalPanel(
     condition = "input.filetype == 'sample' && input.DDA_DIA == 'DDA'",
