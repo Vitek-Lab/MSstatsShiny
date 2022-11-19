@@ -66,7 +66,7 @@ sbp_params = sidebarPanel(
   
   
   conditionalPanel(
-    condition = "input.DDA_DIA !== 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'Yes')",
+    condition = "input.DDA_DIA == 'DDA' || input.DDA_DIA == 'DIA' || input.DDA_DIA == 'SRM_PRM' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'No')",
     
     # features
     

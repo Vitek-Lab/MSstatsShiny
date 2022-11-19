@@ -2,13 +2,13 @@
 title: "MSstatsShiny Launch Instructions"
 author: "Devon Kohler (<kohler.d@northeastern.edu>)"
 date: "`r Sys.Date()`"
-output: BiocStyle::pdf_document
+output: pdf_document
 vignette: >
   %\VignetteIndexEntry{MSstatsPTM LabelFree Workflow}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
+BiocStyle::pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
