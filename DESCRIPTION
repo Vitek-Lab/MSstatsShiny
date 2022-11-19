@@ -1,8 +1,8 @@
 Package: MSstatsShiny
 Type: Package
 Title: MSstats GUI for Statistical Anaylsis of Proteomics Experiments
-Version: 0.99.3
-Date: 2022-10-26
+Version: 1.1.1
+Date: 2022-11-15
 Description: MSstatsShiny is an R-Shiny graphical user interface (GUI) 
   integrated with the R packages MSstats, MSstatsTMT, and MSstatsPTM. It 
   provides a point and click end-to-end analysis pipeline applicable to a wide 
@@ -34,4 +34,4 @@ biocViews: ImmunoOncology, MassSpectrometry, Proteomics, Software, ShinyApps,
 BugReports: https://github.com/Vitek-Lab/MSstatsShiny/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.2

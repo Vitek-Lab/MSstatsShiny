@@ -13,7 +13,7 @@ xy_str(e)
 Character with x and y coordinates
 }
 \description{
-Used expeirmental design to create vizualization
+Used in experimental design to create vizualization
 }
 \examples{
 xy_str(list(x=5.0,y=2.0))

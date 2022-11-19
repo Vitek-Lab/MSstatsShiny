@@ -4,11 +4,19 @@
 \alias{launch_MSstatsShiny}
 \title{Run MSstatsShiny Application}
 \usage{
-launch_MSstatsShiny(launch_app = TRUE)
+launch_MSstatsShiny(
+  launch_app = TRUE,
+  port = getOption("shiny.port"),
+  host = getOption("shiny.host", "127.0.0.1")
+)
 }
 \arguments{
 \item{launch_app}{One of TRUE or FALSE indicating whether or not to run
 application. Default is TRUE.}
+
+\item{port}{(optional) Specify port the application should list to.}
+
+\item{host}{(optional) The IPv4 address that the application should listen on.}
 }
 \value{
 Running Shiny Application

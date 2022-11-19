@@ -137,7 +137,13 @@ get_evidence = reactive({
   if(is.null(input$evidence)) {
     return(NULL)
   }
+  # if (input$subset){
+  #   evidence = try(read.csv.sql(evidence$datapath, sep="\t", 
+  #                               sql = "select * from file order by random() limit 100000"), 
+  #                  silent=TRUE)
+  # } else {
   evidence = try(read.table(evidence$datapath, sep="\t", header=TRUE), silent=TRUE)
+  # }
   
   if (class(evidence) == "try-error") {
     evidence = "File load error. Please ensure file is in csv format."
@@ -153,7 +159,14 @@ get_evidence2 = reactive({
   if(is.null(input$evidence2)) {
     return(NULL)
   }
+  # if (input$subset){
+  #   evidence2 = try(read.csv.sql(evidence2$datapath, sep = "\t",
+  #                               sql = "select * from file order by random() limit 100000"), 
+  #                  silent=TRUE)
+  # } else {
   evidence2 = try(read.delim(evidence2$datapath), silent=TRUE)
+  # }
+  
   if (class(evidence2) == "try-error"){
     evidence2 = "File load error. Please ensure file is in csv format." 
   }
@@ -167,8 +180,14 @@ get_global = reactive({
   if(is.null(input$unmod)) {
     return(NULL)
   }
+  # if (input$subset){
+  #   unmod = try(read.csv.sql(unmod$datapath, sep=",",
+  #                            sql = "select * from file order by random() limit 100000"), 
+  #                   silent=TRUE)
+  # } else {
   unmod = try(read.csv(unmod$datapath, sep=",", header=TRUE, 
-                       stringsAsFactors=FALSE), silent=TRUE)
+                         stringsAsFactors=FALSE), silent=TRUE)
+  # }
   
   if (class(unmod) == "try-error"){
     unmod = "File load error. Please ensure file is in csv format." 
@@ -183,7 +202,13 @@ get_proteinGroups = reactive({
   if(is.null(input$pGroup)) {
     return(NULL)
   }
+  # if (input$subset){
+  #   pGroup = try(read.csv.sql(pGroup$datapath, sep="\t",
+  #                            sql = "select * from file order by random() limit 100000"), 
+  #               silent=TRUE)
+  # } else {
   pGroup = try(read.table(pGroup$datapath, sep="\t", header=TRUE), silent=TRUE)
+  # }
   
   if (class(pGroup) == "try-error"){
     pGroup = "File load error. Please ensure file is in csv format." 
@@ -198,7 +223,13 @@ get_proteinGroups2 = reactive({
   if(is.null(input$pGroup2)) {
     return(NULL)
   }
+  # if (input$subset){
+  #   pGroup2 = try(read.csv.sql(pGroup2$datapath, sep="\t",
+  #                             sql = "select * from file order by random() limit 100000"), 
+  #                silent=TRUE)
+  # } else {
   pGroup2 = try(read.delim(pGroup2$datapath), silent=TRUE)
+  # }
   
   if (class(pGroup2) == "try-error"){
     pGroup2 = "File load error. Please ensure file is in csv format." 
@@ -207,14 +238,21 @@ get_proteinGroups2 = reactive({
   cat(file=stderr(), "Reached in proteins_group\n")
   return(pGroup2)
 })
-
+  
 get_FragSummary = reactive({
   fragSummary = input$fragSummary
   if(is.null(input$fragSummary)) {
     return(NULL)
   }
+  
+  # if (input$subset){
+  #   fragSummary = try(read.csv.sql(fragSummary$datapath, sep="\t",
+  #                              sql = "select * from file order by random() limit 100000"), 
+  #                 silent=TRUE)
+  # } else {
   fragSummary = try(read.table(fragSummary$datapath, sep="\t", header=TRUE),
-                    silent=TRUE)
+                      silent=TRUE)
+  # }
   
   if (class(fragSummary) == "try-error"){
     fragSummary = "File load error. Please ensure file is in excel format." 
@@ -229,8 +267,15 @@ get_peptideSummary = reactive({
   if(is.null(input$peptideSummary)) {
     return(NULL)
   }
+  
+  # if (input$subset){
+  #   peptideSummary = try(read.csv.sql(peptideSummary$datapath, sep="\t",
+  #                                  sql = "select * from file order by random() limit 100000"), 
+  #                     silent=TRUE)
+  # } else {
   peptideSummary = try(read.table(peptideSummary$datapath, sep="\t", 
-                                  header=TRUE), silent=TRUE)
+                                    header=TRUE), silent=TRUE)
+  # }
   
   if (class(peptideSummary) == "try-error"){
     peptideSummary = "File load error. Please ensure file is in csv format." 
@@ -245,8 +290,14 @@ get_protSummary = reactive({
   if(is.null(input$protSummary)) {
     return(NULL)
   }
+  # if (input$subset){
+  #   protSummary = try(read.csv.sql(protSummary$datapath, sep="\t",
+  #                                     sql = "select * from file order by random() limit 100000"), 
+  #                        silent=TRUE)
+  # } else {
   protSummary = try(read.table(protSummary$datapath, sep="\t", header=TRUE),
-                    silent=TRUE)
+                      silent=TRUE)
+  # }
   
   if (class(protSummary) == "try-error"){
     protSummary = "File load error. Please ensure file is in csv format." 
@@ -261,7 +312,13 @@ get_maxq_ptm_sites = reactive({
   if(is.null(input$maxq_ptm_sites)) {
     return(NULL)
   }
+  # if (input$subset){
+  #   maxq_ptm_sites = try(read.csv.sql(maxq_ptm_sites$datapath, sep="\t",
+  #                                  sql = "select * from file order by random() limit 100000"), 
+  #                     silent=TRUE)
+  # } else {
   maxq_ptm_sites = try(read.delim(maxq_ptm_sites$datapath), silent=TRUE)
+  # }
   
   if (class(maxq_ptm_sites) == "try-error"){
     maxq_ptm_sites = "File load error. Please ensure file is in csv format." 
@@ -377,8 +434,13 @@ get_data = eventReactive(input$proceed1, {
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
+      # if (input$subset){
+      #   data = read.csv.sql(infile$datapath, sep=input$sep,
+      #                           sql = "select * from file order by random() limit 100000")
+      # } else {
       data = read.csv(infile$datapath, header = TRUE, sep = input$sep, 
-                      stringsAsFactors=FALSE)
+                        stringsAsFactors=FALSE)
+      # }
       
       if(input$DDA_DIA=="DDA" ){
         data = data[which(data$Fragment.Ion %in% c("precursor", "precursor [M+1]","precursor [M+2]")),]
@@ -431,8 +493,14 @@ get_data = eventReactive(input$proceed1, {
     }
     else if(input$filetype == 'prog') {
       cat(file=stderr(), "Reached in prog\n")
+      
+      # if (input$subset){
+      #   data = read.csv.sql(infile$datapath, sep=input$sep,
+      #                       sql = "select * from file order by random() limit 100000")
+      # } else {
       data = read.csv(infile$datapath, header = TRUE, sep = input$sep, 
-                      stringsAsFactors=FALSE)
+                        stringsAsFactors=FALSE)
+      # }
       
       mydata = ProgenesistoMSstatsFormat(data, annotation = get_annot(), 
                                           removeProtein_with1Peptide = TRUE,
@@ -442,9 +510,14 @@ get_data = eventReactive(input$proceed1, {
     else if(input$filetype == 'PD') {
       
       if(input$DDA_DIA=="TMT"){
-
+        
+        # if (input$subset){
+        #   data = read.csv.sql(infile$datapath, sep=input$sep,
+        #                       sql = "select * from file order by random() limit 100000")
+        # } else {
         data = read.csv(infile$datapath, header = TRUE, sep = input$sep, 
-                        stringsAsFactors=FALSE)
+                          stringsAsFactors=FALSE)
+        # }
         mydata = PDtoMSstatsTMTFormat(input = data, 
                                        annotation = get_annot(),
                                        which.proteinid = input$which.proteinid, ## same as default
@@ -452,8 +525,13 @@ get_data = eventReactive(input$proceed1, {
         )
       }
       else{
+        # if (input$subset){
+        #   data = read.csv.sql(infile$datapath, sep=input$sep,
+        #                       sql = "select * from file order by random() limit 100000")
+        # } else {
         data = read.csv(infile$datapath, header = TRUE, sep = input$sep, 
-                        stringsAsFactors=FALSE)
+                          stringsAsFactors=FALSE)
+        # }
         mydata = PDtoMSstatsFormat(data, annotation = get_annot(), 
                                     removeProtein_with1Peptide = input$remove,
                                     use_log_file = FALSE)
@@ -462,8 +540,13 @@ get_data = eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'spec') {
-
+      
+      # if (input$subset){
+      #   data = read.csv.sql(infile$datapath, sep="\t",
+      #                       sql = "select * from file order by random() limit 100000")
+      # } else {
       data = read.csv(infile$datapath, sep = "\t")
+      # }
       mydata = SpectronauttoMSstatsFormat(data,
                                            annotation = get_annot(),
                                            filter_with_Qvalue = TRUE, ## same as default
@@ -472,7 +555,13 @@ get_data = eventReactive(input$proceed1, {
                                            use_log_file = FALSE)
     }
     else if(input$filetype == 'open') {
+      
+      # if (input$subset){
+      #   data = read.csv.sql(infile$datapath, sep = input$sep,
+      #                       sql = "select * from file order by random() limit 100000")
+      # } else {
       data = read.csv(infile$datapath, header = TRUE, sep = input$sep)
+      # }
       mydata =OpenSWATHtoMSstatsFormat(data,
                                         annotation = get_annot(),
                                         filter_with_mscore = TRUE, ## same as default
@@ -483,12 +572,23 @@ get_data = eventReactive(input$proceed1, {
     }
     else if(input$filetype == 'openms') {
       if(input$DDA_DIA=="TMT"){
+        
+        # if (input$subset){
+        #   data = read.csv.sql(infile$datapath, sep = input$sep,
+        #                       sql = "select * from file order by random() limit 100000")
+        # } else {
         data = read.csv(infile$datapath, header = TRUE, sep = input$sep)
+        # }
         mydata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)
         
       }
       else{
+        # if (input$subset){
+        #   data = read.csv.sql(infile$datapath, sep = input$sep,
+        #                       sql = "select * from file order by random() limit 100000")
+        # } else {
         data = read.csv(infile$datapath, header = TRUE, sep = input$sep)
+        # }
         unique(data[, c('Run', 'BioReplicate', 'Condition')])
         mydata =OpenMStoMSstatsFormat(data,
                                        removeProtein_with1Feature=TRUE,
@@ -506,7 +606,12 @@ get_data = eventReactive(input$proceed1, {
                                          use_log_file = FALSE)
     }
     else if(input$filetype == 'spmin') {
+      # if (input$subset){
+      #   data = read.csv.sql(infile$datapath, sep = "\t",
+      #                       sql = "select * from file order by random() limit 100000")
+      # } else {
       data = read.csv(infile$datapath, sep="\t")
+      # }
       mydata = SpectroMinetoMSstatsTMTFormat(data, get_annot(),
                                               use_log_file = FALSE)
     }
@@ -931,9 +1036,7 @@ onclick("proceed1", {
   })
 
   output$template = downloadHandler(
-    filename = function() {
-      paste("templateannotation", "csv", sep=".")
-    },
+    filename = "templateannotation.csv",
     
     content = function(file) {
       file.copy("templateannotation.csv", file)
