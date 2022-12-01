@@ -22,7 +22,7 @@ significant = reactiveValues()
 
 
 observe({
-  if(input$DDA_DIA == "TMT"){
+  if(input$DDA_DIA == "TMT" | input$DDA_DIA == "PTM"){
     hide("Design")
   }
   else{
@@ -392,12 +392,12 @@ group_comparison = function(saveFile1, pdf) {
                                     logBase.pvalue=as.integer(input$logp),
                                     ProteinName = input$pname,
                                     which.Comparison = input$whichComp,
-                                    address = FALSE)#path1())
+                                    address = FALSE)
     
     
   } else if(input$DDA_DIA=="TMT"){
     
-    plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
+    tryCatch({plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                                 type=input$typeplot,
                                                 sig=input$sig,
                                                 FCcutoff=input$FC,
@@ -408,12 +408,15 @@ group_comparison = function(saveFile1, pdf) {
                                                 which.Comparison=input$whichComp,
                                                 which.Protein = input$whichProt,
                                                 address=path1(),
-                                                savePDF=pdf
-    )
+                                                savePDF=pdf)},
+             error = function(e){remove_modal_spinner()
+              print("All plots cannot be shown in browser. Please select and individual comparison or download pdf.")}
+             )
+
     
   } else{
     
-    plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
+    tryCatch({plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                                 type=input$typeplot,
                                                 sig=input$sig,
                                                 FCcutoff=input$FC,
@@ -424,9 +427,11 @@ group_comparison = function(saveFile1, pdf) {
                                                 which.Comparison=input$whichComp,
                                                 which.Protein = input$whichProt,
                                                 address=path1(),
-                                                savePDF=pdf
-    )
-    
+                                                savePDF=pdf)},
+             error = function(e){remove_modal_spinner()
+               print("All plots cannot be shown in browser. Please select and individual comparison or download pdf.")}
+             )
+
   }
   
   remove_modal_spinner()
