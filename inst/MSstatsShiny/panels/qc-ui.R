@@ -10,7 +10,7 @@ sbp_params = sidebarPanel(
                              title = "Global median normalization on peptide level data, equalizes medians across all the channels and runs")),
                    checkboxInput("global_norm", "Yes", value = T)),
   
-  conditionalPanel(condition = "input.DDA_DIA !== 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'No')",
+  conditionalPanel(condition = "input.DDA_DIA == 'SRM_PRM' || input.DDA_DIA == 'DDA' || input.DDA_DIA == 'DIA' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'No')",
                    radioButtons("log", 
                                 label= h4("1. Log transformation", 
                                           tipify(icon("question-circle"), 
@@ -37,7 +37,7 @@ sbp_params = sidebarPanel(
                    numericInput("maxQC", NULL, 0.999, 0.000, 1.000, 0.001)),
   
   # Normalization
-  conditionalPanel(condition="input.DDA_DIA !== 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'No')",
+  conditionalPanel(condition = "input.DDA_DIA == 'SRM_PRM' || input.DDA_DIA == 'DDA' || input.DDA_DIA == 'DIA'",
                    selectInput("norm", 
                                label = h4("2. Normalization", 
                                           tipify(icon("question-circle"), 
@@ -45,11 +45,18 @@ sbp_params = sidebarPanel(
                                c("none" = "FALSE", "equalize medians" = "equalizeMedians", 
                                  "quantile" = "quantile", "global standards" = "globalStandards"), 
                                selected = "equalizeMedians")),
-  conditionalPanel(condition = "input.DDA_DIA !== 'TMT' && input.norm == 'globalStandards' && input.DDA_DIA !== PTM",
+  conditionalPanel(condition = "input.DDA_DIA == 'PTM' && input.PTMTMT == 'No'",
+                   selectInput("norm", 
+                               label = h4("2. Normalization", 
+                                          tipify(icon("question-circle"), 
+                                                 title = "Normalization to remove systematic bias between MS runs. For more information visit the Help tab")), 
+                               c("none" = "FALSE", "equalize medians" = "equalizeMedians", 
+                                 "quantile" = "quantile"), 
+                               selected = "equalizeMedians")),
+  conditionalPanel(condition = "input.norm == 'globalStandards' &&  (input.DDA_DIA !== 'PTM' && input.DDA_DIA !== 'TMT')",
                    radioButtons("standards", "Choose type of standards", 
                                 c("Proteins", "Peptides")),
-                   uiOutput("Names")
-  ),
+                   uiOutput("Names")),
   tags$hr(),
   
   conditionalPanel(
