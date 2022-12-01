@@ -15,6 +15,7 @@ output$Names = renderUI({
   else if (input$standards == "Peptides") {
     selectizeInput("names", "choose standard", unique(get_data()[2]), multiple = TRUE)
   }
+  
 })
 
 # toggle censoring input based on type of experiment
@@ -53,7 +54,13 @@ output$features = renderUI({
     # {
     #   m_feat = 20
     #   }
-    m_feat = nrow(unique(get_data()[1]))
+
+    if (input$DDA_DIA =="PTM"){
+      m_feat = nrow(unique(get_data()$PTM[1]))  
+    } else {
+      m_feat = nrow(unique(get_data()[1]))
+    }
+    
     return(m_feat)
   })
   sliderInput("n_feat", "Number of top features to use", 1, 

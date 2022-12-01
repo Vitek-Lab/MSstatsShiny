@@ -828,8 +828,9 @@ library(MSstatsPTM)\n", sep = "")
     }
   }
   
-  codes = paste(codes,"data = unique(as.data.frame(data))\n"
-                 , sep = "")  
+  if (input$DDA_DIA != "PTM"){
+    codes = paste(codes,"data = unique(as.data.frame(data))\n", sep = "")
+  }
   return(codes)
   
 })
