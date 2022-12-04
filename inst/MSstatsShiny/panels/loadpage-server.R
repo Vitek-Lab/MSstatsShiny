@@ -666,7 +666,7 @@ library(MSstatsPTM)\n", sep = "")
     
   } else if (input$filetype == "msstats") {
     if (input$DDA_DIA == "PTM") {
-      codes = paste(codes, "ptm_data = read.csv(\'Enter PTM data file path here\')\nglobal_data = read.csv(\'Enter unmod data file path here\')\ndata = list(PTM = input$data, PROTEIN = unmod)\n")
+      codes = paste(codes, "\nptm_data = read.csv(\'Enter PTM data file path here\')\nglobal_data = read.csv(\'Enter unmod data file path here\')\ndata = list(PTM = ptm_data, PROTEIN = unmod)\n")
     } else {
       codes = paste(codes, "data = read.csv(\'Enter MSstats formatted data file path here\')\n")
     }
@@ -770,11 +770,11 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'spec') {
       
-      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from Spectronaut filepath\", header = TRUE)\nannot_file = read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from Spectronaut filepath\", header = TRUE)\nannot_file = read.csv(\"insert your annotation filepath\", sep='\t')#Optional\n"
                      , sep = "")
       
       codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
-                                       annotation = annot_file,
+                                       annotation = annot_file #Optional,
                                        filter_with_Qvalue = TRUE, ## same as default
                                        qvalue_cutoff = 0.01, ## same as default
                                        fewMeasurements=\"remove\",
