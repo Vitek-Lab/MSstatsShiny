@@ -42,14 +42,9 @@
 #' 
 lf_summarization_loop = function(data, input, busy_indicator = TRUE){
   
-  proteins = as.character(unique(data[, 'ProteinName']))
-  
   if (busy_indicator){
     show_modal_progress_line() # show the modal window
     
-    ## Setup progress bar
-    update_val = 1/length(proteins)
-    counter = 0
   }
   
   if (input$features_used == "highQuality"){
@@ -72,11 +67,20 @@ lf_summarization_loop = function(data, input, busy_indicator = TRUE){
                                               input$censInt, rm_feat)
   
   input_split = split(prep_input, prep_input$PROTEIN)
-  summarized_results = vector("list", length(proteins))
   
+  num_proteins = length(input_split)
+  
+  if (busy_indicator){
+    ## Setup progress bar stepping
+    update_val = 1/num_proteins
+    counter = 0
+  }
+  
+  summarized_results = vector("list", num_proteins)
+
   ## Loop over proteins
-  for (i in seq_along(proteins)){
-    
+  for (i in seq_len(num_proteins)){
+
     temp_data = input_split[[i]]
     summarized_results[[i]] = MSstatsSummarizeSingleTMP(temp_data,
                                                         input$MBi, input$censInt, 
