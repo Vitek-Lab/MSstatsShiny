@@ -401,11 +401,13 @@ get_data = eventReactive(input$proceed1, {
     if(input$filetype=='spec' || input$filetype=='spmin'){
       infile = input$data1
     }
-    else if(input$filetype=='phil'){
-      extracted.files = unzip(input$folder$datapath, list = TRUE)
-      unzip(input$folder$datapath, list = FALSE)
-      infile = paste0("./", str_split(extracted.files$Name[1], "/")[[1]][[1]])
-    }
+    # else if(input$filetype=='phil'){
+    #   extracted.files = unzip(input$folder$datapath, list = TRUE)
+    #   # unzip(input$folder$datapath, list = FALSE)
+    #   infile = paste0("./", str_split(extracted.files$Name[1], "/")[[1]][[1]])
+    #   # infile = str_replace(input$folder$datapath, ".zip", "")
+    #   print(infile)
+    # }
     else{
       infile = input$data
     }
@@ -616,9 +618,11 @@ get_data = eventReactive(input$proceed1, {
                                               use_log_file = FALSE)
     }
     else if(input$filetype == 'phil') {
-      mydata = PhilosophertoMSstatsTMTFormat(path = infile, folder = TRUE, annotation = get_annot(),
-                                              protein_id_col = input$which.proteinid,
-                                              use_log_file = FALSE)
+      mydata = PhilosophertoMSstatsTMTFormat(input = unzip(input$folder$datapath), 
+                                             folder = TRUE, 
+                                             annotation = get_annot(),
+                                             protein_id_col = input$which.proteinid,
+                                             use_log_file = FALSE)
     }
   }
   
