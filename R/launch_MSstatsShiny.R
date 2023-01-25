@@ -20,14 +20,15 @@ launch_MSstatsShiny = function(launch_app=TRUE,
                                port=getOption("shiny.port"), 
                                host=getOption("shiny.host", "127.0.0.1")){
   
-  appDir = system.file("MSstatsShiny", package = "MSstatsShiny")
-  if (appDir == "") {
-    stop("Could not find application folder. Try re-installing `MSstatsShiny`.", 
-         call. = FALSE)
-  }
-  
-  if (launch_app){
-    runApp(appDir, port=port, host=host)
-  }
+  # appDir = system.file("MSstatsShiny", package = "MSstatsShiny")
+  # if (appDir == "") {
+  #   stop("Could not find application folder. Try re-installing `MSstatsShiny`.", 
+  #        call. = FALSE)
+  # }
+  # 
+  # if (launch_app){
+  #   runApp(appDir, port=port, host=host)
+  # }
+  runApp("R",port=port, host=host)
   
 }
