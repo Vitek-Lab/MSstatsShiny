@@ -1,14 +1,3 @@
-# getData <- function(input) {
-#   print(input$filetype)
-#   print(input$DDA_DIA)
-#   print(input$data$datapath)
-#   # print(input$filetype)
-#   # print(input$filetype)
-#   
-# }
-
-
-
 getEvidence <- function(input) {
   evidence = input$evidence
   if(is.null(input$evidence)) {

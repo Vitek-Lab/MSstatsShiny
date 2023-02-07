@@ -36,11 +36,9 @@ shinyServer(function(input, output, session) {
 
   # # source("panels/loadpage-server.R", local = TRUE)
   loadpage_inputs <- loadpageServer("loadpage", parent_session = session)
-  print(loadpage_inputs)
   callModule(qcServer, "qc",session, loadpage_inputs)
   # qcServer("qc",loadpage_inputs)
   observeEvent(input$proceed, {
-    print("rajuuu")
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
   })
 
@@ -56,7 +54,6 @@ shinyServer(function(input, output, session) {
   # 
   observe({
     if(input$"loadpage-DDA_DIA" %in% c("TMT", "PTM")){
-      print("derillll")
       hideTab(inputId = "tablist", target = "PQ")
       hideTab(inputId = "tablist", target = "Future")
     }
