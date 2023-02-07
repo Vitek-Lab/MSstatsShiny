@@ -3,10 +3,10 @@ homeUI <- function(id) {
   tagList(
     fluidPage(
       tags$head(
-        tags$style(HTML('#StartPipeline{background-color:orange}
-                    #Reset{background-color:orange}
-                    #Design{background-color:orange}
-                    #Help{background-color:orange}'))
+        tags$style(HTML('#home-StartPipeline{background-color:orange}
+                    #home-Reset{background-color:orange}
+                    #home-Design{background-color:orange}
+                    #home-Help{background-color:orange}'))
       ),
       headerPanel(div(img(src = "MSstatsLogo.PNG", height = 165, width = 132), "Welcome to MSstatsShiny")),
       tags$br(),
@@ -28,9 +28,9 @@ homeUI <- function(id) {
         data."),
           br(),
           h2("Please select from the following options to get started"),
-          h4("1.", actionButton(inputId = "StartPipeline", label = "Run MSstats Pipeline")),
-          h4("2.", actionButton(inputId = "Reset", label = "Reset Pipeline")),
-          h4("3.", actionButton(inputId = "Help", label = "Help!", onclick ="window.open('https://groups.google.com/g/msstats', '_blank')")),
+          h4("1.", actionButton(inputId = ns("StartPipeline"), label = "Run MSstats Pipeline")),
+          h4("2.", actionButton(inputId = ns("Reset"), label = "Reset Pipeline")),
+          h4("3.", actionButton(inputId = ns("Help"), label = "Help!", onclick ="window.open('https://groups.google.com/g/msstats', '_blank')")),
           br(),
           h2("Notes"),
           p("- All code and documentation is available on ", a("github", 

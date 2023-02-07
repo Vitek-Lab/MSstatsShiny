@@ -40,8 +40,8 @@
 #' 
 #' lf_summarization_loop(testdata, input, busy_indicator=FALSE)
 #' 
-lf_summarization_loop = function(data, input, busy_indicator = TRUE){
-  
+lf_summarization_loop = function(data, input,loadpage_input, busy_indicator = TRUE){
+  print(input)
   if (busy_indicator){
     show_modal_progress_line() # show the modal window
     
@@ -57,10 +57,12 @@ lf_summarization_loop = function(data, input, busy_indicator = TRUE){
   peptides_dict = makePeptidesDictionary(as.data.table(unclass(data)), 
                                          toupper(input$norm))
   prep_input = MSstatsPrepareForDataProcess(data, as.numeric(input$log), NULL)
+  print(input$norm)
+  print(input$names)
   prep_input = MSstatsNormalize(prep_input, input$norm, peptides_dict, input$names)
   prep_input = MSstatsMergeFractions(prep_input)
   prep_input = MSstatsHandleMissing(prep_input, "TMP", input$MBi,
-                                    "NA", QC_check(input))
+                                    "NA", QC_check(input,loadpage_input))
   prep_input = MSstatsSelectFeatures(prep_input, input$features_used, input$n_feat, 2)
   processed = getProcessed(prep_input)
   prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
@@ -157,7 +159,7 @@ lf_summarization_loop = function(data, input, busy_indicator = TRUE){
 #' summarization_tmt_test = tmt_summarization_loop(testdata, input, 
 #'                                                busy_indicator = FALSE)
 #' 
-tmt_summarization_loop = function(data, input, busy_indicator = TRUE){
+tmt_summarization_loop = function(data, input,loadpage_input, busy_indicator = TRUE){
   MBimpute = FALSE ## Add option for MBimpute to server..
   
   MSstatsConvert::MSstatsLogsSettings(FALSE,
@@ -166,7 +168,7 @@ tmt_summarization_loop = function(data, input, busy_indicator = TRUE){
   ## Prep functions
   prep_input = MSstatsTMT:::MSstatsPrepareForSummarizationTMT(
     data, input$summarization, input$global_norm, input$reference_norm,
-    input$remove_norm_channel, TRUE, MBimpute, QC_check(input) 
+    input$remove_norm_channel, TRUE, MBimpute, QC_check(input,loadpage_input) 
   )
   prep_input = MSstatsTMT:::MSstatsNormalizeTMT(prep_input, "peptides", 
                                                 input$global_norm)
@@ -214,7 +216,7 @@ tmt_summarization_loop = function(data, input, busy_indicator = TRUE){
       single_run = new("MSstatsValidated", single_run)
       
       ## Make LF flow into a function and replace it here
-      msstats_summary = lf_summarization_loop(single_run, input, FALSE)
+      msstats_summary = lf_summarization_loop(single_run, input,loadpage_input, FALSE)
       
       feature_level_data = msstats_summary$FeatureLevelData
       msstats_cols = c("PROTEIN", "PEPTIDE", "originalRUN", "censored",
@@ -402,7 +404,7 @@ lf_model = function(data, contrast.matrix, busy_indicator = TRUE){
 #' input$maxQC1 = NULL
 #' input$moderated = FALSE
 #' 
-#' summarization_tmt_test = tmt_summarization_loop(testdata, input, 
+#' summarization_tmt_test = tmt_summarization_loop(testdata, input, loadpage_input,
 #'                                                busy_indicator = FALSE)
 #'                                                
 #' comparison=matrix(c(-1,0,0,1),nrow=1)
@@ -526,12 +528,13 @@ apply_adj = function(ptm_model, protein_model){
 #' @examples
 #' input = list(null=TRUE)
 #' QC_check(input)
-QC_check = function(input) {
+QC_check = function(input,loadpage_input) {
   if (input$null == TRUE || input$null1 == TRUE) {
     maxQC = NULL
   }
   else {
-    if(input$DDA_DIA=="TMT"){
+    print(loadpage_input()$DDA_DIA)
+    if(loadpage_input()$DDA_DIA=="TMT"){
       maxQC = input$maxQC1
     }
     else{

@@ -25,18 +25,22 @@ shinyServer(function(input, output, session) {
                 class = "disabled",
                 selector = "#tablist li a[data-value='Data processing']")
   })
-
+  # browser()
   # observeEvent(input$Design, {
   #   updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
   # })
-
-  observeEvent(input$StartPipeline, {
+  observeEvent(input$"home-StartPipeline", {
+    print("midddle")
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
   })
 
   # # source("panels/loadpage-server.R", local = TRUE)
-  loadpageServer("loadpage")
+  loadpage_inputs <- loadpageServer("loadpage", parent_session = session)
+  print(loadpage_inputs)
+  callModule(qcServer, "qc",session, loadpage_inputs)
+  # qcServer("qc",loadpage_inputs)
   observeEvent(input$proceed, {
+    print("rajuuu")
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
   })
 
@@ -52,6 +56,7 @@ shinyServer(function(input, output, session) {
   # 
   observe({
     if(input$"loadpage-DDA_DIA" %in% c("TMT", "PTM")){
+      print("derillll")
       hideTab(inputId = "tablist", target = "PQ")
       hideTab(inputId = "tablist", target = "Future")
     }
@@ -62,7 +67,7 @@ shinyServer(function(input, output, session) {
     }
   })
 
-  observeEvent(input$Reset, {
+  observeEvent(input$"home-Reset", {
     refresh()
   })
   

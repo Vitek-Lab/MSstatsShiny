@@ -29,6 +29,7 @@ launch_MSstatsShiny = function(launch_app=TRUE,
   # if (launch_app){
   #   runApp(appDir, port=port, host=host)
   # }
+  pkgload::load_all()
   runApp("R",port=port, host=host)
   
 }

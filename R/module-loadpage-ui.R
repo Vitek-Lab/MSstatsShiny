@@ -121,7 +121,7 @@ loadpageUI <- function(id) {
           condition = "input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil'",
           h4("5. Upload annotation File", tipify(icon("question-circle"), 
                                                  title = "Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.")),
-          # downloadLink("template", "Annotation file template"),
+           #downloadLink("template", "Annotation file template"),
           fileInput(ns('annot'), "", multiple = F,
                     accept = c("text/csv",
                                "text/comma-separated-values,text/plain", ".csv"))
@@ -238,19 +238,19 @@ loadpageUI <- function(id) {
                          checkboxInput(ns("remove"), "Remove proteins with 1 feature", value = FALSE),
                          conditionalPanel(condition = "input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'spec'",
                                           checkboxInput(ns("q_val"), "Filter with Q-value"),
-                                          conditionalPanel(condition = "input.q_val",
+                                          conditionalPanel(condition = "input['loadpage-q_val']",
                                                            numericInput(ns("q_cutoff"), "Q-value cutoff", 0.01, 0, 1, 0.01))),
                          conditionalPanel(condition = "input['loadpage-filetype'] == 'open'",
                                           checkboxInput(ns("m_score"), "Filter with M-score"),
-                                          conditionalPanel(condition = "input.m_score",
+                                          conditionalPanel(condition = "input['loadpage-m_score']",
                                                            numericInput(ns("m_cutoff"), "M-score cutoff", 0.01, 0, 1, 0.01)))
         ),
         disabled(actionButton(inputId = ns("proceed1"), label = "Upload Data"))
       )
       ,
       column(width = 8,
-             shinyjs::hidden(uiOutput("summary_tables"))
-             
+             shinyjs::hidden(uiOutput(ns("summary_tables")))
+         
       )
     )
   )
