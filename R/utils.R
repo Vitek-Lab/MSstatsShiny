@@ -1,3 +1,4 @@
+# loadpage server functions
 getEvidence <- function(input) {
   evidence = input$evidence
   if(is.null(input$evidence)) {
@@ -763,6 +764,140 @@ library(MSstatsPTM)\n", sep = "")
   if (input$DDA_DIA != "PTM"){
     codes = paste(codes,"data = unique(as.data.frame(data))\n", sep = "")
   }
+  return(codes)
+  
+}
+
+# qc server functions
+preprocessData <- function(qc_input,loadpage_input) {
+  validate(need(getData(loadpage_input()), 
+                message = "PLEASE UPLOAD DATASET OR SELECT SAMPLE"))
+  
+  ## Preprocess input for loop
+  input_data = getData(loadpage_input())
+  preprocess_list = list()
+  
+  MSstatsLogsSettings(FALSE)
+  
+  ## Here we run the underlying functions for MSstats and MSstatsTMT 
+  ## summarization. Done so we can loop over proteins and create a progress bar
+  if (loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "No"){
+    
+    preprocessed_ptm = MSstatsShiny::lf_summarization_loop(input_data$PTM, qc_input, loadpage_input)
+    preprocessed_unmod = MSstatsShiny::lf_summarization_loop(input_data$PROTEIN, qc_input, loadpage_input)
+    preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
+    
+  } else if(loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "Yes"){
+    
+    preprocessed_ptm = MSstatsShiny::tmt_summarization_loop(input_data$PTM, qc_input,loadpage_input)
+    preprocessed_unmod = MSstatsShiny::tmt_summarization_loop(input_data$PROTEIN, qc_input,loadpage_input)
+    preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
+    
+  } else if(loadpage_input()$DDA_DIA == "TMT"){
+    
+    ## Run MSstatsTMT summarization
+    preprocessed = MSstatsShiny::tmt_summarization_loop(input_data, qc_input,loadpage_input)
+    
+  } else {
+    
+    ## Run LF MSstats summarization
+    preprocessed = MSstatsShiny::lf_summarization_loop(input_data, qc_input, loadpage_input)
+    
+  }
+  
+  return(preprocessed)
+}
+
+preprocessDataCode <- function(qc_input,loadpage_input) {
+  
+  codes = getDataCode(loadpage_input())
+  
+  if(loadpage_input()$DDA_DIA == "TMT"){
+    
+    codes = paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
+    codes = paste(codes, "summarized = MSstatsTMT::proteinSummarization(data, 
+                   method = '",qc_input()$summarization,"\',\t\t\t\t
+                   global_norm = ", qc_input()$global_norm,",\t\t\t\t 
+                   reference_norm = ", qc_input()$reference_norm,",\t\t\t\t
+                   remove_norm_channel  = ", qc_input()$remove_norm_channel,",\t\t\t\t
+                   remove_empty_channel = TRUE, \t\t\t\t 
+                   MBimpute = FALSE, \t\t\t\t
+                   maxQuantileforCensored = ", qc_input()$maxQC1,")\n", sep = "")
+    codes = paste(codes, "\n# use to create data summarization plots\n", sep = "")
+    codes = paste(codes, "dataProcessPlotsTMT(summarized,
+                            type= \"Enter ProfilePlot or QCPlot Here\",
+                            ylimUp = FALSE,
+                            ylimDown = FALSE,
+                            which.Protein = \"Enter Protein to Plot Here\",
+                            originalPlot = TRUE,
+                            summaryPlot =", qc_input()$summ,",\t\t\t\t   
+                            address = FALSE)\n", sep="")
+  } else if (loadpage_input()$DDA_DIA == "PTM"){
+    if (loadpage_input()$PTMTMT == "Yes"){
+      codes = paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
+      codes = paste(codes, "summarized = MSstatsPTM::dataSummarizationPTM_TMT(data, 
+                     method = '",qc_input()$summarization,"\',\t\t\t\t
+                     global_norm.PTM = ", qc_input()$global_norm,",\t\t\t\t 
+                     reference_norm.PTM = ", qc_input()$reference_norm,",\t\t\t\t
+                     remove_norm_channel  = ", qc_input()$remove_norm_channel,",\t\t\t\t
+                     remove_empty_channel = TRUE, \t\t\t\t 
+                     MBimpute.PTM = FALSE, \t\t\t\t
+                     maxQuantileforCensored = ", qc_input()$maxQC1,")\n", sep = "")
+    } else{
+      codes = paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
+      codes = paste(codes, "summarized = MSstatsPTM::dataSummarizationPTM(data, 
+                               normalization.PTM = \'", qc_input()$norm,"\',\t\t\t\t   
+                               logTrans = ", as.numeric(qc_input()$log),",\t\t\t\t   
+                               nameStandards = ", paste0("c('", paste(qc_input()$names, collapse = "', '"), "')"), ",\t\t\t\t  
+                               featureSubset = \'", qc_input()$features_used, "\',\t\t\t\t  
+                               n_top_feature = ", code_n_feat, ",\t\t\t\t  
+                               summaryMethod=\"TMP\",
+                               censoredInt=\'", qc_input()$censInt, "\',\t\t\t\t   
+                               MBimpute.PTM=", qc_input()$MBi, ",\t\t\t\t   
+                               remove50missing=", qc_input()$remove50, ",\t\t\t\t   
+                               maxQuantileforCensored=", qc_input()$maxQC, ")\n", sep = "")
+    }
+    codes = paste(codes, "\n# use to create data summarization plots\n", sep = "")
+    codes = paste(codes, "dataProcessPlotsPTM(summarized,
+                            type= \"Enter ProfilePlot or QCPlot Here\",
+                            ylimUp = FALSE,
+                            ylimDown = FALSE,
+                            which.PTM = \"Enter PTM to Plot Here\",
+                            originalPlot = TRUE,
+                            summaryPlot =", qc_input()$summ,",\t\t\t\t   
+                            address = FALSE)\n", sep="")
+  }
+  else{
+    if (qc_input()$features_used == "all"){
+      code_n_feat = 'NULL'
+    } else if (qc_input()$features_used == "topN") {
+      code_n_feat = qc_input()$n_feat
+    } else {
+      code_n_feat = 'NULL'
+    }
+    
+    codes = paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
+    codes = paste(codes, "summarized = MSstats::dataProcess(data,
+                               normalization = \'", qc_input()$norm,"\',\t\t\t\t   
+                               logTrans = ", as.numeric(qc_input()$log),",\t\t\t\t   
+                               nameStandards = ", paste0("c('", paste(qc_input()$names, collapse = "', '"), "')"), ",\t\t\t\t  
+                               featureSubset = \'", qc_input()$features_used, "\',\t\t\t\t  
+                               n_top_feature = ", code_n_feat, ",\t\t\t\t  
+                               summaryMethod=\"TMP\",
+                               censoredInt=\'", qc_input()$censInt, "\',\t\t\t\t   
+                               MBimpute=", qc_input()$MBi, ",\t\t\t\t   
+                               remove50missing=", qc_input()$remove50, ",\t\t\t\t   
+                               maxQuantileforCensored=", qc_input()$maxQC, ")\n", sep = "")
+    
+    codes = paste(codes, "dataProcessPlots(data=summarized,
+                           type=\"Enter ProfilePlot or QCPlot Here\",
+                           ylimUp = FALSE,
+                           ylimDown = FALSE,
+                           which.Protein = \"Enter Protein to Plot Here\",
+                           summaryPlot = TRUE,
+                           address = FALSE)\n", sep="")
+  }
+  
   return(codes)
   
 }

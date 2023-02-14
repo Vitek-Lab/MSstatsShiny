@@ -40,14 +40,16 @@
 #' 
 #' lf_summarization_loop(testdata, input, busy_indicator=FALSE)
 #' 
-lf_summarization_loop = function(data, input,loadpage_input, busy_indicator = TRUE){
-  print(input)
+lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator = TRUE){
+  print("amigoooo")
+  print(loadpage_input()$DDA_DIA)
+  print(qc_input()$features_used)
   if (busy_indicator){
     show_modal_progress_line() # show the modal window
     
   }
   
-  if (input$features_used == "highQuality"){
+  if (qc_input()$features_used == "highQuality"){
     rm_feat = TRUE
   } else {
     rm_feat = FALSE
@@ -55,18 +57,16 @@ lf_summarization_loop = function(data, input,loadpage_input, busy_indicator = TR
   
   ## Prepare MSstats for summarization
   peptides_dict = makePeptidesDictionary(as.data.table(unclass(data)), 
-                                         toupper(input$norm))
-  prep_input = MSstatsPrepareForDataProcess(data, as.numeric(input$log), NULL)
-  print(input$norm)
-  print(input$names)
-  prep_input = MSstatsNormalize(prep_input, input$norm, peptides_dict, input$names)
+                                         toupper(qc_input()$norm))
+  prep_input = MSstatsPrepareForDataProcess(data, as.numeric(qc_input()$log), NULL)
+  prep_input = MSstatsNormalize(prep_input, qc_input()$norm, peptides_dict, qc_input()$names)
   prep_input = MSstatsMergeFractions(prep_input)
-  prep_input = MSstatsHandleMissing(prep_input, "TMP", input$MBi,
-                                    "NA", QC_check(input,loadpage_input))
-  prep_input = MSstatsSelectFeatures(prep_input, input$features_used, input$n_feat, 2)
+  prep_input = MSstatsHandleMissing(prep_input, "TMP", qc_input()$MBi,
+                                    "NA", QC_check(qc_input,loadpage_input))
+  prep_input = MSstatsSelectFeatures(prep_input, qc_input()$features_used, qc_input()$n_feat, 2)
   processed = getProcessed(prep_input)
-  prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
-                                              input$censInt, rm_feat)
+  prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", qc_input()$MBi, 
+                                              qc_input()$censInt, rm_feat)
   
   input_split = split(prep_input, prep_input$PROTEIN)
   
@@ -85,8 +85,8 @@ lf_summarization_loop = function(data, input,loadpage_input, busy_indicator = TR
 
     temp_data = input_split[[i]]
     summarized_results[[i]] = MSstatsSummarizeSingleTMP(temp_data,
-                                                        input$MBi, input$censInt, 
-                                                        input$remove50)
+                                                        qc_input()$MBi, qc_input()$censInt, 
+                                                        qc_input()$remove50)
     
     ## Update progress bar
     if (busy_indicator){
@@ -97,8 +97,8 @@ lf_summarization_loop = function(data, input,loadpage_input, busy_indicator = TR
   
   ## Summarization output
   preprocessed = MSstatsSummarizationOutput(prep_input, summarized_results, 
-                                             processed, "TMP", input$MBi, 
-                                             input$censInt)
+                                             processed, "TMP", qc_input()$MBi, 
+                                            qc_input()$censInt)
   
   if (busy_indicator){
     remove_modal_progress() # remove it when done
@@ -528,17 +528,17 @@ apply_adj = function(ptm_model, protein_model){
 #' @examples
 #' input = list(null=TRUE)
 #' QC_check(input)
-QC_check = function(input,loadpage_input) {
-  if (input$null == TRUE || input$null1 == TRUE) {
+QC_check = function(qc_input,loadpage_input) {
+  if (qc_input()$null == TRUE || qc_input()$null1 == TRUE) {
     maxQC = NULL
   }
   else {
     print(loadpage_input()$DDA_DIA)
     if(loadpage_input()$DDA_DIA=="TMT"){
-      maxQC = input$maxQC1
+      maxQC = qc_input()$maxQC1
     }
     else{
-      maxQC = input$maxQC
+      maxQC = qc_input()$maxQC
     }
     
   }

@@ -84,7 +84,7 @@ ui = navbarPage(
   tabPanel("Homepage", icon = icon("home"), homeUI("home")),
   tabPanel("1. Data Uploading",value = "Uploaddata", icon = icon("send"), loadpageUI("loadpage")),
   tabPanel("2. Data Processing", value = "DataProcessing", icon = icon("gears"), qcUI("qc")),
-  # tabPanel("3. Statistical Inference", value = "StatsModel", icon = icon("magic"), statmodel),
+  tabPanel("3. Statistical Inference", value = "StatsModel", icon = icon("magic"), statmodelUI("statmodel")),
   # tabPanel("4. Future Experiments", value = "Future", icon = icon("flask"), expdes),
   # navbarMenu("Help", icon = icon("ambulance"), 
   #   tabPanel("Shiny Help", help),

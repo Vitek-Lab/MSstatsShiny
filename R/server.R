@@ -36,7 +36,8 @@ shinyServer(function(input, output, session) {
 
   # # source("panels/loadpage-server.R", local = TRUE)
   loadpage_inputs <- loadpageServer("loadpage", parent_session = session)
-  callModule(qcServer, "qc",session, loadpage_inputs)
+  qc_inputs <- callModule(qcServer, "qc",session, loadpage_inputs)
+  callModule(statmodelServer, "statmodel",session, loadpage_inputs,qc_inputs)
   # qcServer("qc",loadpage_inputs)
   observeEvent(input$proceed, {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
