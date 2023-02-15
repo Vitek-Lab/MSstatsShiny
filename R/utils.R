@@ -901,3 +901,154 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
   return(codes)
   
 }
+
+# statmodel server functions
+dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix) {
+  input_data = preprocessData(qc_input,loadpage_input)
+  contrast.matrix = matrix
+  if (loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "Yes"){
+    model_ptm = MSstatsShiny::tmt_model(input_data$PTM, statmodel_input, contrast.matrix)
+    model_protein = MSstatsShiny::tmt_model(input_data$PROTEIN, statmodel_input, contrast.matrix)
+    model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
+                                        model_protein$ComparisonResult)
+    model = list('PTM.Model' = model_ptm$ComparisonResult,
+                 'PROTEIN.Model' = model_protein$ComparisonResult,
+                 'ADJUSTED.Model' = model_adj)
+    
+  } else if(loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "No"){
+    model_ptm = MSstatsShiny::lf_model(input_data$PTM, contrast.matrix)
+    model_protein = MSstatsShiny::lf_model(input_data$PROTEIN, contrast.matrix)
+    model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
+                                        model_protein$ComparisonResult)
+    model = list('PTM.Model' = model_ptm$ComparisonResult,
+                 'PROTEIN.Model' = model_protein$ComparisonResult,
+                 'ADJUSTED.Model' = model_adj)
+    
+  } else if(loadpage_input()$DDA_DIA=="TMT"){
+    model = MSstatsShiny::tmt_model(input_data, statmodel_input, contrast.matrix)
+  }
+  else{
+    model = MSstatsShiny::lf_model(input_data, contrast.matrix)
+  }
+  return(model)
+}
+
+matrixBuild <- function(statmodel_input,qc_input,loadpage_input) {
+  
+  req(input$def_comp)
+  req(loadpage_input()$DDA_DIA)
+  if(input$def_comp == "custom") {
+    if(input$group1 == input$group2){
+      return(contrast$matrix)
+    }
+    index1 = reactive({which(choices() == input$group1)})
+    index2 = reactive({which(choices() == input$group2)})
+    comp_list$dList = unique(c(isolate(comp_list$dList), paste(input$group1, "vs",
+                                                               input$group2, sep = " ")))
+    contrast$row = matrix(row(), nrow=1)
+    contrast$row[index1()] = 1
+    contrast$row[index2()] = -1
+    if (is.null(contrast$matrix)) {
+      contrast$matrix = contrast$row
+    }
+    else {
+      contrast$matrix = rbind(contrast$matrix, contrast$row)
+      contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix),])
+    }
+    rownames(contrast$matrix) = comp_list$dList
+    colnames(contrast$matrix) = choices()
+  }
+  
+  else if(input$def_comp == "custom_np") {
+    
+    wt_sum = 0
+    for (index in 1:length(choices())){
+      wt_sum = wt_sum + input[[paste0("weight", index)]]
+    }
+    
+    if(wt_sum != 0){
+      return(contrast$matrix)
+    }
+    
+    comp_list$dList = unique(c(isolate(comp_list$dList), input$comp_name))
+    contrast$row = matrix(row(), nrow=1)
+    
+    for (index in 1:length(choices())){
+      contrast$row[index] = input[[paste0("weight", index)]]
+    }
+    
+    if (is.null(contrast$matrix)) {
+      contrast$matrix = contrast$row
+    } else {
+      contrast$matrix = rbind(contrast$matrix, contrast$row)
+      contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix),])
+    }
+    rownames(contrast$matrix) = comp_list$dList
+    colnames(contrast$matrix) = choices()
+  }
+  
+  else if (input$def_comp == "all_one") {
+    for (index in 1:length(choices())) {
+      index3 = reactive({which(choices() == input$group3)})
+      if(index == index3()) next
+      if(loadpage_input()$DDA_DIA=="TMT"){
+        comp_list$dList = c(isolate(comp_list$dList),
+                            paste(choices()[index], " vs ",
+                                  input$group3, sep = ""))
+      } else{
+        comp_list$dList = c(isolate(comp_list$dList),
+                            paste(choices()[index], " vs ",
+                                  input$group3, sep = ""))
+      }
+      
+      contrast$row = matrix(row(), nrow=1)
+      contrast$row[index] = 1
+      contrast$row[index3()] = -1
+      if (is.null(contrast$matrix)) {
+        contrast$matrix = contrast$row
+      } else {
+        contrast$matrix = rbind(contrast$matrix, contrast$row)
+      }
+      rownames(contrast$matrix) = comp_list$dList
+      colnames(contrast$matrix) = choices()
+    }
+  }
+  else if (input$def_comp == "all_pair") {
+    contrast$matrix = NULL
+    for (index in 1:length(choices())) {
+      for (index1 in 1:length(choices())) {
+        if (index == index1) next
+        if (index < index1) {
+          if(loadpage_input()$DDA_DIA=="TMT"){
+            comp_list$dList = c(isolate(comp_list$dList),
+                                paste(choices()[index], " vs ",
+                                      choices()[index1], sep = ""))
+          } else{
+            comp_list$dList = c(isolate(comp_list$dList),
+                                paste(choices()[index], " vs ",
+                                      choices()[index1], sep = ""))
+          }
+          contrast$row = matrix(row(), nrow=1)
+          contrast$row[index] = 1
+          contrast$row[index1] = -1
+          if (is.null(contrast$matrix)) {
+            contrast$matrix = contrast$row
+          } else {
+            contrast$matrix = rbind(contrast$matrix, contrast$row)
+            contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix),])
+          }
+          rownames(contrast$matrix) = comp_list$dList
+          colnames(contrast$matrix) = choices()
+        }
+      }
+    }
+  }
+  enable("calculate")
+  return(contrast$matrix)
+  
+  
+  
+  
+  
+  
+  }

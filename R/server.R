@@ -26,9 +26,9 @@ shinyServer(function(input, output, session) {
                 selector = "#tablist li a[data-value='Data processing']")
   })
   # browser()
-  # observeEvent(input$Design, {
-  #   updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
-  # })
+  observeEvent(input$"statmodel-Design", {
+    updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
+  })
   observeEvent(input$"home-StartPipeline", {
     print("midddle")
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
@@ -37,7 +37,8 @@ shinyServer(function(input, output, session) {
   # # source("panels/loadpage-server.R", local = TRUE)
   loadpage_inputs <- loadpageServer("loadpage", parent_session = session)
   qc_inputs <- callModule(qcServer, "qc",session, loadpage_inputs)
-  callModule(statmodelServer, "statmodel",session, loadpage_inputs,qc_inputs)
+  statmodel_inputs <- callModule(statmodelServer, "statmodel",session, loadpage_inputs,qc_inputs)
+  callModule(expdesServer, "expdes",session, loadpage_inputs,qc_inputs,statmodel_inputs)
   # qcServer("qc",loadpage_inputs)
   observeEvent(input$proceed, {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
