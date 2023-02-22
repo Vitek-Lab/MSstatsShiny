@@ -267,36 +267,6 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
     matrix = matrix_build()
     dataComparison(statmodel_input,qc_input,loadpage_input,matrix)
   })
-  
-  # data_comparison = eventReactive(input$calculate, {
-  #   input_data = preprocessData(qc_input,loadpage_input)
-  #   contrast.matrix = matrix_build()
-  #   if (loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "Yes"){
-  #     model_ptm = MSstatsShiny::tmt_model(input_data$PTM, input, contrast.matrix)
-  #     model_protein = MSstatsShiny::tmt_model(input_data$PROTEIN, input, contrast.matrix)
-  #     model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
-  #                                         model_protein$ComparisonResult)
-  #     model = list('PTM.Model' = model_ptm$ComparisonResult,
-  #                  'PROTEIN.Model' = model_protein$ComparisonResult,
-  #                  'ADJUSTED.Model' = model_adj)
-  # 
-  #   } else if(loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "No"){
-  #     model_ptm = MSstatsShiny::lf_model(input_data$PTM, contrast.matrix)
-  #     model_protein = MSstatsShiny::lf_model(input_data$PROTEIN, contrast.matrix)
-  #     model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
-  #                                         model_protein$ComparisonResult)
-  #     model = list('PTM.Model' = model_ptm$ComparisonResult,
-  #                  'PROTEIN.Model' = model_protein$ComparisonResult,
-  #                  'ADJUSTED.Model' = model_adj)
-  # 
-  #   } else if(loadpage_input()$DDA_DIA=="TMT"){
-  #     model = MSstatsShiny::tmt_model(input_data, input, contrast.matrix)
-  #   }
-  #   else{
-  #     model = MSstatsShiny::lf_model(input_data, contrast.matrix)
-  #   }
-  #   return(model)
-  # })
 
   data_comparison_code = eventReactive(input$calculate, {
     
@@ -420,7 +390,6 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
 
     } else if(loadpage_input()$DDA_DIA=="TMT"){
-
       tryCatch({plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                                             type=input$typeplot,
                                                             sig=input$sig,
@@ -439,7 +408,6 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
 
     } else{
-
       tryCatch({plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                                             type=input$typeplot,
                                                             sig=input$sig,

@@ -5,7 +5,7 @@ homeUI <- function(id) {
       tags$head(
         tags$style(HTML('#home-StartPipeline{background-color:orange}
                     #home-Reset{background-color:orange}
-                    #home-Design{background-color:orange}
+                    #statmodel-Design{background-color:orange}
                     #home-Help{background-color:orange}'))
       ),
       headerPanel(div(img(src = "MSstatsLogo.PNG", height = 165, width = 132), "Welcome to MSstatsShiny")),

@@ -30,27 +30,17 @@ shinyServer(function(input, output, session) {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
   })
   observeEvent(input$"home-StartPipeline", {
-    print("midddle")
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
   })
 
-  # # source("panels/loadpage-server.R", local = TRUE)
   loadpage_inputs <- loadpageServer("loadpage", parent_session = session)
   qc_inputs <- callModule(qcServer, "qc",session, loadpage_inputs)
   statmodel_inputs <- callModule(statmodelServer, "statmodel",session, loadpage_inputs,qc_inputs)
   callModule(expdesServer, "expdes",session, loadpage_inputs,qc_inputs,statmodel_inputs)
-  # qcServer("qc",loadpage_inputs)
   observeEvent(input$proceed, {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
   })
 
-  # # data preprocessing
-  # # source("panels/qc-server.R", local = TRUE)
-  # # statistical model
-  # # source("panels/statmodel-server.R", local = TRUE)
-  # # future experiment
-  # # source("panels/expdes-server.R", local = TRUE)
-  # 
   # statmodel= reactiveFileReader(1000, session, "panels/statmodel-ui.R", source)
   # output$statmodel = renderUI(statmodel())
   # 

@@ -118,7 +118,6 @@ groupComparisonPlots2 = function(data=data,
   ## save process output in each step
   allfiles = list.files()
   filenaming = "msstats"
-  
   if (length(grep(filenaming,allfiles)) == 0) {
     
     finalfile = "msstats.log"

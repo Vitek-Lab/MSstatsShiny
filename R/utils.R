@@ -1045,10 +1045,5 @@ matrixBuild <- function(statmodel_input,qc_input,loadpage_input) {
   }
   enable("calculate")
   return(contrast$matrix)
-  
-  
-  
-  
-  
-  
+
   }
