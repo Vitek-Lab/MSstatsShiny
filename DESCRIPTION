@@ -26,7 +26,13 @@ Depends: R (>= 4.2)
 Imports: shiny, shinyBS, shinyjs, shinybusy, dplyr, ggplot2, data.table, Hmisc,
   MSstats, MSstatsTMT, MSstatsPTM, MSstatsConvert, gplots, marray, DT,
   ggrepel, uuid, utils, stats, htmltools, methods, tidyr, grDevices, graphics
-Suggests: rmarkdown, tinytest, sessioninfo, knitr
+Suggests: 
+    rmarkdown,
+    tinytest,
+    sessioninfo,
+    knitr,
+    testthat (>= 3.0.0),
+    shinytest2
 VignetteBuilder: knitr
 biocViews: ImmunoOncology, MassSpectrometry, Proteomics, Software, ShinyApps,
   DifferentialExpression, OneChannel, TwoChannel, Normalization, QualityControl,
@@ -35,3 +41,4 @@ BugReports: https://github.com/Vitek-Lab/MSstatsShiny/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.2
+Config/testthat/edition: 3

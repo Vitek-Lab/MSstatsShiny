@@ -17,6 +17,8 @@ library(MSstatsPTM)
 
 ####################################
 
+# files.sources = list.files(pattern = "\\.R$")
+# sapply(files.sources, source)
 # source("panels/home-ui.R", local = TRUE)
 # source("panels/loadpage-ui.R", local = TRUE)
 # source("panels/qc-ui.R", local = TRUE)
