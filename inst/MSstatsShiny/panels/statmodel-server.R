@@ -397,7 +397,8 @@ group_comparison = function(saveFile1, pdf) {
     
   } else if(input$DDA_DIA=="TMT"){
     
-    tryCatch({plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
+    tryCatch({
+      plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                                 type=input$typeplot,
                                                 sig=input$sig,
                                                 FCcutoff=input$FC,
@@ -408,10 +409,13 @@ group_comparison = function(saveFile1, pdf) {
                                                 which.Comparison=input$whichComp,
                                                 which.Protein = input$whichProt,
                                                 address=path1(),
-                                                savePDF=pdf)},
-             error = function(e){remove_modal_spinner()
-              print("All plots cannot be shown in browser. Please select and individual comparison or download pdf.")}
-             )
+                                                savePDF=pdf)
+      # remove_modal_spinner()
+    },
+    error = function(e){
+      remove_modal_spinner()
+      stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf. **' )}
+    )
 
     
   } else{
@@ -427,10 +431,11 @@ group_comparison = function(saveFile1, pdf) {
                                                 which.Comparison=input$whichComp,
                                                 which.Protein = input$whichProt,
                                                 address=path1(),
-                                                savePDF=pdf)},
-             error = function(e){remove_modal_spinner()
-               print("All plots cannot be shown in browser. Please select and individual comparison or download pdf.")}
-             )
+                                                savePDF=pdf)
+          }, error = function(e){
+            remove_modal_spinner()
+            stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )}
+            )
 
   }
   

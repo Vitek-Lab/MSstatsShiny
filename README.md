@@ -19,16 +19,13 @@ we recommend processing large datasets using a local installation.
 
 For large file processing, it is recommend you use a local install of the application. The easiest way to install the application locally is via [Bioconductor](https://bioconductor.org/packages/release/bioc/html/MSstatsShiny.html)
 
-### Local
+### Github
 
 To install the application via Github, please use the following steps.
 
 1. Download [R](https://www.r-project.org/) and [RStudio](https://www.rstudio.com/products/rstudio/download/) - [How to](https://rstudio-education.github.io/hopr/starting.html). **Note R version must be >= 4.2**
-2. Install the dependencies by running the following commands:
-`install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr', 'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager', 'devtools'))`
-`BiocManager::install(c('MSstatsPTM', 'biomaRt'))`
-3. Install the package by executing `devtools::install_github("Vitek-Lab/MSstatsShiny")` in the console.
-4. Run the application by executing `library(MSstatsShiny)` and `launch_MSstatsShiny()` or `MSstatsShiny::launch_MSstatsShiny()` in the console.
+2. Install the package by executing `devtools::install_github("Vitek-Lab/MSstatsShiny")` in the console.
+3. Run the application by executing `library(MSstatsShiny)` and `launch_MSstatsShiny()` or `MSstatsShiny::launch_MSstatsShiny()` in the console.
 
 ## Processing instructions
 

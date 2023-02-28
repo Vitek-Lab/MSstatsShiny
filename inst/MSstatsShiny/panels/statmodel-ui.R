@@ -64,7 +64,7 @@ statmodel = fluidPage(
       p("Please add a comparison matrix before modeling."),
       disabled(actionButton("calculate", "Start")),
       tags$hr(),
-      conditionalPanel(condition = "input.DDA_DIA == 'TMT'",
+      conditionalPanel(condition = "input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes'",
                        radioButtons("moderated", 
                                     label= h4("Empirical Bayes moderation", 
                                               tipify(icon("question-circle"), 
