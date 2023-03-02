@@ -898,9 +898,10 @@ get_summary1 = eventReactive(input$proceed1, {
     }
     
   } else if (input$DDA_DIA == "PTM"){
+    ptm_df = as.data.frame(df$PTM)
+    unmod_df = as.data.frame(df$PROTEIN)
     if (input$PTMTMT == "Yes"){
-      ptm_df = df$PTM
-      unmod_df = df$PROTEIN
+
       ptm_df1 = ptm_df %>% summarise("Number of Conditions" = n_distinct(Condition),
                                      "Number of PTM Mixtures" = n_distinct(Mixture),
                                      "Number of PTM Biological Replicates" = n_distinct(BioReplicate),
@@ -913,8 +914,7 @@ get_summary1 = eventReactive(input$proceed1, {
         "Number of Unmod Technical Replicates" = n_distinct(TechRepMixture))
       df = cbind(ptm_df1, unmod_df1)
     } else {
-      ptm_df = df$PTM
-      unmod_df = df$PROTEIN
+
       ptm_df1 = ptm_df %>% summarise("Number of Conditions" = n_distinct(Condition),
                              "Number of PTM Biological Replicates" = n_distinct(BioReplicate),
                              "Number of PTM MS runs" = n_distinct(Run)) 
