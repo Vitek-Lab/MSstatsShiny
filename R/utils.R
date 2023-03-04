@@ -377,14 +377,14 @@ getData <- function(input) {
         data = data[which(data$Fragment.Ion %in% c("precursor", "precursor [M+1]","precursor [M+2]")),]
 
         mydata = SkylinetoMSstatsFormat(data,
-                                        annotation = getAnnot(),
+                                        annotation = getAnnot(input),
                                         fewMeasurements="remove",
                                         removeProtein_with1Feature = input$remove,
                                         use_log_file = FALSE)
       }
       else if(input$DDA_DIA=="DIA"){
         mydata = SkylinetoMSstatsFormat(data,
-                                        annotation = getAnnot(),
+                                        annotation = getAnnot(input),
                                         filter_with_Qvalue = TRUE,
                                         qvalue_cutoff = 0.01,
                                         fewMeasurements="remove",
@@ -394,7 +394,7 @@ getData <- function(input) {
       }
       else if(input$DDA_DIA=="SRM_PRM") {
         mydata = SkylinetoMSstatsFormat(data,
-                                        annotation = getAnnot(),
+                                        annotation = getAnnot(input),
                                         filter_with_Qvalue = TRUE,
                                         qvalue_cutoff = 0.01,
                                         fewMeasurements="remove",
@@ -433,7 +433,7 @@ getData <- function(input) {
                       stringsAsFactors=FALSE)
       # }
 
-      mydata = ProgenesistoMSstatsFormat(data, annotation = getAnnot(),
+      mydata = ProgenesistoMSstatsFormat(data, annotation = getAnnot(input),
                                          removeProtein_with1Peptide = TRUE,
                                          use_log_file = FALSE)
       colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] = 'PeptideSequence'
@@ -450,7 +450,7 @@ getData <- function(input) {
                         stringsAsFactors=FALSE)
         # }
         mydata = PDtoMSstatsTMTFormat(input = data,
-                                      annotation = getAnnot(),
+                                      annotation = getAnnot(input),
                                       which.proteinid = input$which.proteinid, ## same as default
                                       use_log_file = FALSE
         )
@@ -463,7 +463,7 @@ getData <- function(input) {
         data = read.csv(infile$datapath, header = TRUE, sep = input$sep,
                         stringsAsFactors=FALSE)
         # }
-        mydata = PDtoMSstatsFormat(data, annotation = getAnnot(),
+        mydata = PDtoMSstatsFormat(data, annotation = getAnnot(input),
                                    removeProtein_with1Peptide = input$remove,
                                    use_log_file = FALSE)
         colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] = 'PeptideSequence'
@@ -479,7 +479,7 @@ getData <- function(input) {
       data = read.csv(infile$datapath, sep = "\t")
       # }
       mydata = SpectronauttoMSstatsFormat(data,
-                                          annotation = getAnnot(),
+                                          annotation = getAnnot(input),
                                           filter_with_Qvalue = TRUE, ## same as default
                                           qvalue_cutoff = 0.01, ## same as default
                                           removeProtein_with1Feature = TRUE,
@@ -494,7 +494,7 @@ getData <- function(input) {
       data = read.csv(infile$datapath, header = TRUE, sep = input$sep)
       # }
       mydata =OpenSWATHtoMSstatsFormat(data,
-                                       annotation = getAnnot(),
+                                       annotation = getAnnot(input),
                                        filter_with_mscore = TRUE, ## same as default
                                        mscore_cutoff = 0.01, ## same as default
                                        removeProtein_with1Feature = TRUE,
@@ -543,13 +543,13 @@ getData <- function(input) {
       # } else {
       data = read.csv(infile$datapath, sep="\t")
       # }
-      mydata = SpectroMinetoMSstatsTMTFormat(data, getAnnot(),
+      mydata = SpectroMinetoMSstatsTMTFormat(data, getAnnot(input),
                                              use_log_file = FALSE)
     }
     else if(input$filetype == 'phil') {
       mydata = PhilosophertoMSstatsTMTFormat(input = unzip(input$folder$datapath),
                                              folder = TRUE,
-                                             annotation = getAnnot(),
+                                             annotation = getAnnot(input),
                                              protein_id_col = input$which.proteinid,
                                              use_log_file = FALSE)
     }
