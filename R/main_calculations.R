@@ -41,7 +41,7 @@
 #' lf_summarization_loop(testdata, input, busy_indicator=FALSE)
 #' 
 lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator = TRUE){
-  print("amigoooo")
+  # print(qc_input()$features_used)
   print(loadpage_input()$DDA_DIA)
   print(qc_input()$features_used)
   if (busy_indicator){

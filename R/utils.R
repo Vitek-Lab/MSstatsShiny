@@ -778,7 +778,8 @@ preprocessData <- function(qc_input,loadpage_input) {
   preprocess_list = list()
   
   MSstatsLogsSettings(FALSE)
-  
+  print(loadpage_input())
+  print("__________")
   ## Here we run the underlying functions for MSstats and MSstatsTMT 
   ## summarization. Done so we can loop over proteins and create a progress bar
   if (loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "No"){
