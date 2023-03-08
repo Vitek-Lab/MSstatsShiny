@@ -260,6 +260,10 @@ getAnnot1 <- function(input) {
 }
 
 getData <- function(input) {
+  print("yyyyyy")
+  print(input$filetype)
+  print(input$DDA_DIA)
+  print("yyyyyy")
   show_modal_spinner()
   ev_maxq = getEvidence(input)
   pg_maxq = getProteinGroups(input)
@@ -321,6 +325,7 @@ getData <- function(input) {
       data = read.csv(input$data$datapath, header = TRUE, sep = input$sep,
                       stringsAsFactors=FALSE)
       mydata = list("PTM" = data, "PROTEIN" = unmod)
+      print("holaaa")
     }
   }
   else if (input$filetype == "msstats"){
@@ -770,22 +775,28 @@ library(MSstatsPTM)\n", sep = "")
 
 # qc server functions
 preprocessData <- function(qc_input,loadpage_input) {
+  print(loadpage_input()$filetype)
   validate(need(getData(loadpage_input()), 
                 message = "PLEASE UPLOAD DATASET OR SELECT SAMPLE"))
   
   ## Preprocess input for loop
+  print("xxxxx")
+  print(loadpage_input()$filetype)
+  print(loadpage_input()$DDA_DIA)
+  print("xxxxx")
   input_data = getData(loadpage_input())
+  print(names(input_data))
+  print("xxxxx")
   preprocess_list = list()
-  
   MSstatsLogsSettings(FALSE)
-  print(loadpage_input())
-  print("__________")
   ## Here we run the underlying functions for MSstats and MSstatsTMT 
   ## summarization. Done so we can loop over proteins and create a progress bar
   if (loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "No"){
     
     preprocessed_ptm = MSstatsShiny::lf_summarization_loop(input_data$PTM, qc_input, loadpage_input)
+    print("preprocessed_ptm")
     preprocessed_unmod = MSstatsShiny::lf_summarization_loop(input_data$PROTEIN, qc_input, loadpage_input)
+    print("preprocessed_unmod")
     preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
     
   } else if(loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "Yes"){
@@ -805,7 +816,6 @@ preprocessData <- function(qc_input,loadpage_input) {
     preprocessed = MSstatsShiny::lf_summarization_loop(input_data, qc_input, loadpage_input)
     
   }
-  
   return(preprocessed)
 }
 
@@ -933,118 +943,3 @@ dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix) {
   }
   return(model)
 }
-
-matrixBuild <- function(statmodel_input,qc_input,loadpage_input) {
-  
-  req(input$def_comp)
-  req(loadpage_input()$DDA_DIA)
-  if(input$def_comp == "custom") {
-    if(input$group1 == input$group2){
-      return(contrast$matrix)
-    }
-    index1 = reactive({which(choices() == input$group1)})
-    index2 = reactive({which(choices() == input$group2)})
-    comp_list$dList = unique(c(isolate(comp_list$dList), paste(input$group1, "vs",
-                                                               input$group2, sep = " ")))
-    contrast$row = matrix(row(), nrow=1)
-    contrast$row[index1()] = 1
-    contrast$row[index2()] = -1
-    if (is.null(contrast$matrix)) {
-      contrast$matrix = contrast$row
-    }
-    else {
-      contrast$matrix = rbind(contrast$matrix, contrast$row)
-      contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix),])
-    }
-    rownames(contrast$matrix) = comp_list$dList
-    colnames(contrast$matrix) = choices()
-  }
-  
-  else if(input$def_comp == "custom_np") {
-    
-    wt_sum = 0
-    for (index in 1:length(choices())){
-      wt_sum = wt_sum + input[[paste0("weight", index)]]
-    }
-    
-    if(wt_sum != 0){
-      return(contrast$matrix)
-    }
-    
-    comp_list$dList = unique(c(isolate(comp_list$dList), input$comp_name))
-    contrast$row = matrix(row(), nrow=1)
-    
-    for (index in 1:length(choices())){
-      contrast$row[index] = input[[paste0("weight", index)]]
-    }
-    
-    if (is.null(contrast$matrix)) {
-      contrast$matrix = contrast$row
-    } else {
-      contrast$matrix = rbind(contrast$matrix, contrast$row)
-      contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix),])
-    }
-    rownames(contrast$matrix) = comp_list$dList
-    colnames(contrast$matrix) = choices()
-  }
-  
-  else if (input$def_comp == "all_one") {
-    for (index in 1:length(choices())) {
-      index3 = reactive({which(choices() == input$group3)})
-      if(index == index3()) next
-      if(loadpage_input()$DDA_DIA=="TMT"){
-        comp_list$dList = c(isolate(comp_list$dList),
-                            paste(choices()[index], " vs ",
-                                  input$group3, sep = ""))
-      } else{
-        comp_list$dList = c(isolate(comp_list$dList),
-                            paste(choices()[index], " vs ",
-                                  input$group3, sep = ""))
-      }
-      
-      contrast$row = matrix(row(), nrow=1)
-      contrast$row[index] = 1
-      contrast$row[index3()] = -1
-      if (is.null(contrast$matrix)) {
-        contrast$matrix = contrast$row
-      } else {
-        contrast$matrix = rbind(contrast$matrix, contrast$row)
-      }
-      rownames(contrast$matrix) = comp_list$dList
-      colnames(contrast$matrix) = choices()
-    }
-  }
-  else if (input$def_comp == "all_pair") {
-    contrast$matrix = NULL
-    for (index in 1:length(choices())) {
-      for (index1 in 1:length(choices())) {
-        if (index == index1) next
-        if (index < index1) {
-          if(loadpage_input()$DDA_DIA=="TMT"){
-            comp_list$dList = c(isolate(comp_list$dList),
-                                paste(choices()[index], " vs ",
-                                      choices()[index1], sep = ""))
-          } else{
-            comp_list$dList = c(isolate(comp_list$dList),
-                                paste(choices()[index], " vs ",
-                                      choices()[index1], sep = ""))
-          }
-          contrast$row = matrix(row(), nrow=1)
-          contrast$row[index] = 1
-          contrast$row[index1] = -1
-          if (is.null(contrast$matrix)) {
-            contrast$matrix = contrast$row
-          } else {
-            contrast$matrix = rbind(contrast$matrix, contrast$row)
-            contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix),])
-          }
-          rownames(contrast$matrix) = comp_list$dList
-          colnames(contrast$matrix) = choices()
-        }
-      }
-    }
-  }
-  enable("calculate")
-  return(contrast$matrix)
-
-  }

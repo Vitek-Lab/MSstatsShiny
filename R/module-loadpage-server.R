@@ -311,10 +311,8 @@ loadpageServer <- function(id, parent_session) {
       t_df = as.data.frame(t(df1))
       rownames(t_df) = colnames(df1)
       t_df = cbind(rownames(t_df), t_df)
-      
       colnames(t_df) = c("", "value")
       colnames(t_df) = c("", "")
-      
       return(t_df)
     })
     
@@ -402,11 +400,11 @@ loadpageServer <- function(id, parent_session) {
           h4("Summary of dataset"), 
           tableOutput(ns("summary2")),
           tags$br(),
-          conditionalPanel(condition = "input.DDA_DIA !== 'PTM'",
+          conditionalPanel(condition = "input['loadpage-DDA_DIA'] !== 'PTM'",
                            h4("Top 6 rows of the dataset"),
                            tableOutput(ns("summary"))
           ),
-          conditionalPanel(condition = "input.DDA_DIA == 'PTM'",
+          conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'PTM'",
                            h4("Top 6 rows of the PTM dataset"),
                            tableOutput(ns("summary_ptm")),
                            tags$br(),

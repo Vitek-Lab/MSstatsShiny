@@ -41,9 +41,10 @@
 #' lf_summarization_loop(testdata, input, busy_indicator=FALSE)
 #' 
 lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator = TRUE){
-  # print(qc_input()$features_used)
-  print(loadpage_input()$DDA_DIA)
-  print(qc_input()$features_used)
+  print("hiiii")
+  print(qc_input()$norm)
+  print(data)
+  print("hiiii")
   if (busy_indicator){
     show_modal_progress_line() # show the modal window
     
@@ -96,6 +97,9 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
   }
   
   ## Summarization output
+  print("preppp")
+  print(prep_input)
+  print("preppp")
   preprocessed = MSstatsSummarizationOutput(prep_input, summarized_results, 
                                              processed, "TMP", qc_input()$MBi, 
                                             qc_input()$censInt)
@@ -159,19 +163,21 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
 #' summarization_tmt_test = tmt_summarization_loop(testdata, input, 
 #'                                                busy_indicator = FALSE)
 #' 
-tmt_summarization_loop = function(data, input,loadpage_input, busy_indicator = TRUE){
+tmt_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator = TRUE){
   MBimpute = FALSE ## Add option for MBimpute to server..
   
   MSstatsConvert::MSstatsLogsSettings(FALSE,
                                       pkg_name = "MSstatsTMT")
-  
+  print("zzzzzz")
+  print(qc_input()$summarization)
+  print("zzzzzz")
   ## Prep functions
   prep_input = MSstatsTMT:::MSstatsPrepareForSummarizationTMT(
-    data, input$summarization, input$global_norm, input$reference_norm,
-    input$remove_norm_channel, TRUE, MBimpute, QC_check(input,loadpage_input) 
+    data, qc_input()$summarization, qc_input()$global_norm, qc_input()$reference_norm,
+    qc_input()$remove_norm_channel, TRUE, MBimpute, QC_check(qc_input,loadpage_input) 
   )
   prep_input = MSstatsTMT:::MSstatsNormalizeTMT(prep_input, "peptides", 
-                                                input$global_norm)
+                                                qc_input()$global_norm)
   
   ## Go inside summarization loop to track progress
   log2Intensity = NULL
@@ -182,7 +188,7 @@ tmt_summarization_loop = function(data, input,loadpage_input, busy_indicator = T
   
   ## Current implementatin only keeps track of msstats progress
   ## Other functions are vectorized and should be faster (?)
-  if (input$summarization == "msstats") {
+  if (qc_input()$summarization == "msstats") {
     MSRun = FragmentIon = ProductCharge = IsotopeLabelType = ProteinName = 
       PeptideSequence = PrecursorCharge = Run = Condition = BioReplicate =
       Intensity = PSM = RunChannel = NULL
@@ -216,7 +222,7 @@ tmt_summarization_loop = function(data, input,loadpage_input, busy_indicator = T
       single_run = new("MSstatsValidated", single_run)
       
       ## Make LF flow into a function and replace it here
-      msstats_summary = lf_summarization_loop(single_run, input,loadpage_input, FALSE)
+      msstats_summary = lf_summarization_loop(single_run, qc_input,loadpage_input, FALSE)
       
       feature_level_data = msstats_summary$FeatureLevelData
       msstats_cols = c("PROTEIN", "PEPTIDE", "originalRUN", "censored",
@@ -258,12 +264,12 @@ tmt_summarization_loop = function(data, input,loadpage_input, busy_indicator = T
     processed[, RunChannel := NULL]
     summarized = list(summarized_results, processed)
     
-  } else if (input$summarization == "MedianPolish") {
+  } else if (qc_input()$summarization == "MedianPolish") {
     summarized = MSstatsTMT:::.summarizeTMP(prep_input, annotation)
-  } else if (input$summarization == "LogSum") {
+  } else if (qc_input()$summarization == "LogSum") {
     summarized = MSstatsTMT:::.summarizeSimpleStat(prep_input, annotation, 
                                                    MSstatsTMT:::.logSum)
-  } else if (input$summarization == "Median") {
+  } else if (qc_input()$summarization == "Median") {
     summarized = MSstatsTMT:::.summarizeSimpleStat(prep_input, annotation, median)
   }
   
@@ -271,10 +277,10 @@ tmt_summarization_loop = function(data, input,loadpage_input, busy_indicator = T
   processed = MSstatsTMT:::getProcessedTMT(summarized, prep_input)
   summarized = MSstatsTMT:::getSummarizedTMT(summarized)
   summarized = MSstatsTMT:::MSstatsNormalizeTMT(summarized, "proteins", 
-                                                input$reference_norm)
+                                                qc_input()$reference_norm)
   preprocessed = MSstatsTMT:::MSstatsSummarizationOutputTMT(summarized,
                                                             processed, TRUE,
-                                                            input$remove_norm_channel)
+                                                            qc_input()$remove_norm_channel)
   if (busy_indicator){
     remove_modal_progress() # remove it when done
   }
@@ -529,11 +535,13 @@ apply_adj = function(ptm_model, protein_model){
 #' input = list(null=TRUE)
 #' QC_check(input)
 QC_check = function(qc_input,loadpage_input) {
+  print("in qccccc")
+  print(qc_input())
+  print("in qccccc")
   if (qc_input()$null == TRUE || qc_input()$null1 == TRUE) {
     maxQC = NULL
   }
   else {
-    print(loadpage_input()$DDA_DIA)
     if(loadpage_input()$DDA_DIA=="TMT"){
       maxQC = qc_input()$maxQC1
     }
