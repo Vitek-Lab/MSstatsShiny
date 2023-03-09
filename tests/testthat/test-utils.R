@@ -828,7 +828,68 @@ test_that("get summary 1 Other:DDA", {
   })
 })
 
+stub(getSummary2,"show_modal_spinner",{},depth=2)
+stub(getSummary2,"remove_modal_spinner",{},depth=2)
 
+test_that("get summary 2 TMT", {
+  suppressWarnings({
+    mock_input$filetype = "sample"
+    mock_input$DDA_DIA <- "TMT"
+    stub(getSummary2,"getData",mockGetData(mock_input))
+    
+    output <- getSummary2(mock_input)
+    
+    expected_names <- c("Number of Proteins","Number of Peptides","Number of Features","Number of Peptides/Protein","Number of Features/Peptide","Intensity Range")
+    expect_type(output,"list")
+    expect_identical(rownames(output), expected_names)
+    
+  })
+})
+
+test_that("get summary 2 PTM PTMTMT:Yes", {
+  suppressWarnings({
+    mock_input$filetype = "sample"
+    mock_input$DDA_DIA <- "PTM"
+    mock_input$PTMTMT <- "Yes"
+    stub(getSummary2,"getData",mockGetData(mock_input))
+    
+    output <- getSummary2(mock_input)
+    print(rownames(output))
+    
+    expected_names <- c("Number of PTMs","Number of PTM Features","Number of Features/PTM","PTM Intensity Range","Number of Unmod Proteins","Number of Protein Peptides","Number of Protein Features","Number of Features/Peptide","Number of Peptides/Protein","Protein Intensity Range")
+    expect_type(output,"list")
+    expect_identical(rownames(output), expected_names)
+  })
+})
+
+test_that("get summary 2 PTM PTMTMT:No", {
+  suppressWarnings({
+    mock_input$filetype = "sample"
+    mock_input$DDA_DIA <- "PTM"
+    mock_input$PTMTMT <- "No"
+    stub(getSummary2,"getData",mockGetData(mock_input))
+    
+    output <- getSummary2(mock_input)
+    print(rownames(output))
+    
+    expected_names <- c("Number of PTMs","Number of PTM Features","Number of Features/PTM","PTM Intensity Range","Number of Unmod Proteins","Number of Protein Peptides","Number of Protein Features","Number of Features/Peptide","Number of Peptides/Protein","Protein Intensity Range") 
+    expect_type(output,"list")
+    expect_identical(rownames(output), expected_names)
+  })
+})
+
+test_that("get summary 2 Other:DDA", {
+  suppressWarnings({
+    mock_input$filetype = "sample"
+    mock_input$DDA_DIA <- "DDA"
+    stub(getSummary2,"getData",mockGetData(mock_input))
+    
+    output <- getSummary2(mock_input)
+    expected_names <- c("Number of Proteins","Number of Peptides","Number of Features","Number of Peptides/Protein","Number of Features/Peptide","Intensity Range") 
+    expect_type(output,"list")
+    expect_identical(rownames(output), expected_names)
+  })
+})
 
 ################################################################################
 # preprocessData QC FUNCTION TESTING

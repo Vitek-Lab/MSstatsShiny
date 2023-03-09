@@ -861,6 +861,97 @@ getSummary1 <- function(input) {
   
 }
 
+getSummary2 <- function(input) {
+  df = getData(input)
+  if(input$DDA_DIA=="TMT"){
+    df = as.data.frame(df)
+    df = df %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence, Charge,
+                                          sep = '_'))
+  } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+    df_ptm = df$PTM %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence,
+                                                  Charge, sep = '_'))
+    df_prot = df$PROTEIN %>% mutate("FEATURES" = paste(ProteinName, 
+                                                       PeptideSequence,
+                                                       Charge, sep = '_'))
+  } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
+    df_ptm = df$PTM %>% mutate("FEATURES" = paste(PeptideSequence, 
+                                                  PrecursorCharge, 
+                                                  FragmentIon, 
+                                                  ProductCharge, sep = '_'))
+    df_prot = df$PROTEIN %>% mutate("FEATURES" = paste(PeptideSequence, 
+                                                       PrecursorCharge, 
+                                                       FragmentIon, 
+                                                       ProductCharge, 
+                                                       sep = '_'))
+  } else {
+    df = as.data.frame(df)
+    df = df %>% mutate("FEATURES" = paste(PeptideSequence, PrecursorCharge, 
+                                          FragmentIon, ProductCharge, 
+                                          sep = '_'))
+  }
+  
+  if (input$DDA_DIA != "PTM"){
+    
+    df1 = df %>% summarise("Number of Proteins" = n_distinct(ProteinName), 
+                           "Number of Peptides" = n_distinct(PeptideSequence),
+                           "Number of Features" = n_distinct(FEATURES),
+                           "Min_Intensity" = ifelse(!is.finite(min(Intensity, na.rm=T)),0,round(min(Intensity, na.rm=T),0)),
+                           "Max_Intensity" = ifelse(!is.finite(max(Intensity, na.rm=T)),0,
+                                                    round(max(Intensity, na.rm=T),0))) %>%
+      unite("Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
+    
+    Peptides_Proteins = df %>% group_by(ProteinName)  %>%
+      summarise(npep = n_distinct(PeptideSequence)) %>% summarise(Peptides_Proteins_min=min(npep),
+                                                                  Peptides_Proteins_max=max(npep))
+    
+    Features_Peptides = df %>% group_by(PeptideSequence)  %>%
+      summarise(nfea = n_distinct(FEATURES)) %>% summarise(Features_Peptides_min=min(nfea),
+                                                           Features_Peptides_max=max(nfea))
+    
+    df1 = cbind(df1,Features_Peptides,Peptides_Proteins) %>%
+      unite("Number of Features/Peptide",Features_Peptides_min:Features_Peptides_max,sep = " - ") %>%
+      unite("Number of Peptides/Protein",Peptides_Proteins_min:Peptides_Proteins_max, sep = " - ")
+    
+    df1 = df1[,c(1,2,3,6,5,4)]
+  } else {
+    
+    df_ptm1 = df_ptm %>% summarise("Number of PTMs" = n_distinct(ProteinName), 
+                                   "Number of PTM Features" = n_distinct(FEATURES),
+                                   "Number of Features/PTM" = as.numeric(n_distinct(FEATURES) / n_distinct(PeptideSequence)),
+                                   "Min_Intensity" = ifelse(!is.finite(
+                                     min(Intensity, na.rm=T)), 0, 
+                                     round(min(Intensity, na.rm=T),0)),
+                                   "Max_Intensity" = ifelse(!is.finite(
+                                     max(Intensity, na.rm=T)), 0, 
+                                     round(max(Intensity, na.rm=T),0))) %>%
+      unite("PTM Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
+    # df_ptm1 = df_ptm1 %>% select(!Min_Intensity, !Max_Intensity)
+    
+    df_prot1 = df_prot %>% summarise("Number of Unmod Proteins" = n_distinct(ProteinName), 
+                                     "Number of Protein Peptides" = n_distinct(PeptideSequence),
+                                     "Number of Protein Features" = n_distinct(FEATURES),
+                                     "Number of Features/Peptide" = as.numeric(n_distinct(FEATURES) / n_distinct(PeptideSequence)),
+                                     "Number of Peptides/Protein" = as.numeric(n_distinct(PeptideSequence) / n_distinct(ProteinName)),
+                                     "Min_Intensity" = ifelse(!is.finite(
+                                       min(Intensity, na.rm=T)), 0, 
+                                       round(min(Intensity, na.rm=T),0)),
+                                     "Max_Intensity" = ifelse(!is.finite(
+                                       max(Intensity, na.rm=T)), 0, 
+                                       round(max(Intensity, na.rm=T),0))) %>%
+      unite("Protein Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
+    df1 = cbind(df_ptm1, df_prot1)
+  }
+  
+  
+  t_df = as.data.frame(t(df1))
+  rownames(t_df) = colnames(df1)
+  t_df = cbind(rownames(t_df), t_df)
+  colnames(t_df) = c("", "value")
+  colnames(t_df) = c("", "")
+  return(t_df)
+  
+}
+
 # qc server functions
 preprocessData <- function(qc_input,loadpage_input) {
   validate(need(getData(loadpage_input()), 
