@@ -41,10 +41,6 @@
 #' lf_summarization_loop(testdata, input, busy_indicator=FALSE)
 #' 
 lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator = TRUE){
-  print("hiiii")
-  print(qc_input()$norm)
-  print(data)
-  print("hiiii")
   if (busy_indicator){
     show_modal_progress_line() # show the modal window
     
@@ -97,9 +93,6 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
   }
   
   ## Summarization output
-  print("preppp")
-  print(prep_input)
-  print("preppp")
   preprocessed = MSstatsSummarizationOutput(prep_input, summarized_results, 
                                              processed, "TMP", qc_input()$MBi, 
                                             qc_input()$censInt)
@@ -168,9 +161,6 @@ tmt_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator 
   
   MSstatsConvert::MSstatsLogsSettings(FALSE,
                                       pkg_name = "MSstatsTMT")
-  print("zzzzzz")
-  print(qc_input()$summarization)
-  print("zzzzzz")
   ## Prep functions
   prep_input = MSstatsTMT:::MSstatsPrepareForSummarizationTMT(
     data, qc_input()$summarization, qc_input()$global_norm, qc_input()$reference_norm,
@@ -535,9 +525,6 @@ apply_adj = function(ptm_model, protein_model){
 #' input = list(null=TRUE)
 #' QC_check(input)
 QC_check = function(qc_input,loadpage_input) {
-  print("in qccccc")
-  print(qc_input())
-  print("in qccccc")
   if (qc_input()$null == TRUE || qc_input()$null1 == TRUE) {
     maxQC = NULL
   }

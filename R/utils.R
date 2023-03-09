@@ -260,10 +260,6 @@ getAnnot1 <- function(input) {
 }
 
 getData <- function(input) {
-  print("yyyyyy")
-  print(input$filetype)
-  print(input$DDA_DIA)
-  print("yyyyyy")
   show_modal_spinner()
   ev_maxq = getEvidence(input)
   pg_maxq = getProteinGroups(input)
@@ -325,7 +321,6 @@ getData <- function(input) {
       data = read.csv(input$data$datapath, header = TRUE, sep = input$sep,
                       stringsAsFactors=FALSE)
       mydata = list("PTM" = data, "PROTEIN" = unmod)
-      print("holaaa")
     }
   }
   else if (input$filetype == "msstats"){
@@ -773,20 +768,107 @@ library(MSstatsPTM)\n", sep = "")
   
 }
 
+getSummary1 <- function(input) {
+  df = getData(input)
+  annot_df = getAnnot(input)
+  if (input$DDA_DIA != "PTM"){
+    df = as.data.frame(df)
+    df = df %>% filter(!Condition %in% c("Norm", "Empty"))
+    nf = ifelse("Fraction" %in% colnames(df),n_distinct(df$Fraction),1)
+  }
+  
+  if(input$DDA_DIA=="TMT"){
+    if(is.null(annot_df)){
+      df1 = df %>% summarise("Number of Conditions" = n_distinct(Condition),
+                             "Number of Biological Replicates" = n_distinct(BioReplicate),
+                             "Number of Mixtures" = n_distinct(Mixture),
+                             "Number of Fractions" = nf,
+                             "Number of MS runs" = n_distinct(Run),
+                             "Number of Technical Replicates" = n_distinct(TechRepMixture))
+    } else {
+      annot_df = annot_df %>% filter(!Condition %in% c("Norm", "Empty"))
+      df1 = annot_df %>% summarise("Number of Conditions" = n_distinct(Condition),
+                                   "Number of Biological Replicates" = n_distinct(BioReplicate),
+                                   "Number of Mixtures" = n_distinct(Mixture),
+                                   "Number of Fractions" = n_distinct(Fraction),
+                                   "Number of MS runs" = n_distinct(Run),
+                                   "Number of Technical Replicates" = n_distinct(TechRepMixture))
+    }
+    
+  } else if (input$DDA_DIA == "PTM"){
+    if (input$PTMTMT == "Yes"){
+      ptm_df = df$PTM
+      unmod_df = df$PROTEIN
+      ptm_df1 = ptm_df %>% summarise("Number of Conditions" = n_distinct(Condition),
+                                     "Number of PTM Mixtures" = n_distinct(Mixture),
+                                     "Number of PTM Biological Replicates" = n_distinct(BioReplicate),
+                                     "Number of PTM MS runs" = n_distinct(Run),
+                                     "Number of PTM Technical Replicates" = n_distinct(TechRepMixture))
+      unmod_df1 = unmod_df %>% summarise(
+        "Number of Unmod Mixtures" = n_distinct(Mixture),
+        "Number of Unmod Biological Replicates" = n_distinct(BioReplicate),
+        "Number of Unmod MS runs" = n_distinct(Run),
+        "Number of Unmod Technical Replicates" = n_distinct(TechRepMixture))
+      df = cbind(ptm_df1, unmod_df1)
+    } else {
+      ptm_df = df$PTM
+      unmod_df = df$PROTEIN
+      ptm_df1 = ptm_df %>% summarise("Number of Conditions" = n_distinct(Condition),
+                                     "Number of PTM Biological Replicates" = n_distinct(BioReplicate),
+                                     "Number of PTM MS runs" = n_distinct(Run)) 
+      unmod_df1 = unmod_df %>% summarise("Number of Unmod Conditions" = n_distinct(Condition),
+                                         "Number of Unmod Biological Replicates" = n_distinct(BioReplicate),
+                                         "Number of Unmod MS runs" = n_distinct(Run)) 
+      df = cbind(ptm_df1, unmod_df1)
+    }
+  } else {
+    df1 = df %>% summarise("Number of Conditions" = n_distinct(Condition),
+                           "Number of Biological Replicates" = n_distinct(BioReplicate),
+                           "Number of Fractions" = nf,
+                           "Number of MS runs" = n_distinct(Run)
+    )
+  }
+  
+  if (input$DDA_DIA != "PTM"){
+    df2 = df %>% group_by(Condition, Run) %>% summarise("Condition_Run" = n()) %>% ungroup() %>%
+      select("Condition_Run")
+    df3 = df %>% group_by(Run, BioReplicate) %>% summarise("BioReplicate_Run" = n()) %>% ungroup() %>%
+      select("BioReplicate_Run")
+    
+    df1 = head(df1,1)
+    df2 = head(df2,1)
+    df3 = head(df3,1)
+    
+    if(input$DDA_DIA !="TMT"){
+      df1 = cbind(df1,df2,df3) %>%
+        mutate("Number of Technical Replicates" = Condition_Run/(BioReplicate_Run*`Number of Fractions`) ) %>%
+        select(-Condition_Run,-BioReplicate_Run)
+      df = df1[,c(1,2,5,3,4)]
+    }
+    else{
+      df = df1[,c(1,2,3,6,4,5)]
+    }
+    
+  }
+  
+  t_df = as.data.frame(t(df))
+  rownames(t_df) = colnames(df)
+  t_df = cbind(rownames(t_df), t_df)
+  colnames(t_df) = c("", "value")
+  t_df$value = sub("\\.\\d+$", "", t_df$value)
+  colnames(t_df) = c("", "")
+  return(t_df)
+  
+}
+
 # qc server functions
 preprocessData <- function(qc_input,loadpage_input) {
-  print(loadpage_input()$filetype)
   validate(need(getData(loadpage_input()), 
                 message = "PLEASE UPLOAD DATASET OR SELECT SAMPLE"))
   
   ## Preprocess input for loop
-  print("xxxxx")
-  print(loadpage_input()$filetype)
-  print(loadpage_input()$DDA_DIA)
-  print("xxxxx")
+
   input_data = getData(loadpage_input())
-  print(names(input_data))
-  print("xxxxx")
   preprocess_list = list()
   MSstatsLogsSettings(FALSE)
   ## Here we run the underlying functions for MSstats and MSstatsTMT 
@@ -794,9 +876,7 @@ preprocessData <- function(qc_input,loadpage_input) {
   if (loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "No"){
     
     preprocessed_ptm = MSstatsShiny::lf_summarization_loop(input_data$PTM, qc_input, loadpage_input)
-    print("preprocessed_ptm")
     preprocessed_unmod = MSstatsShiny::lf_summarization_loop(input_data$PROTEIN, qc_input, loadpage_input)
-    print("preprocessed_unmod")
     preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
     
   } else if(loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "Yes"){
@@ -879,6 +959,8 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
                             address = FALSE)\n", sep="")
   }
   else{
+    print(qc_input()$features_used)
+    print("xxx")
     if (qc_input()$features_used == "all"){
       code_n_feat = 'NULL'
     } else if (qc_input()$features_used == "topN") {
