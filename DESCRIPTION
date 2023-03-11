@@ -13,6 +13,7 @@ Description: MSstatsShiny is an R-Shiny graphical user interface (GUI)
   that recreates their analysis, supporting reproducible data analysis.
 Authors@R: c(
     person("Devon", "Kohler", email = "kohler.d@northeastern.edu", role = c("aut", "cre")),
+    person("Deril", "Raju", email = "raju.d@northeastern.edu", role = c("aut")),
     person("Maanasa", "Kaza", email = "maanasakaza@gmail.com", role = c("aut")),
     person("Cristina", "Pasi", email = "cristinapasi@gmail.com", role = c("aut")),
     person("Ting", "Huang", email = "thuang0703@gmail.com", role = c("aut")),

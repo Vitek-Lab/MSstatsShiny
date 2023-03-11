@@ -317,7 +317,23 @@ getData <- function(input) {
                                       ptm.keyword=input$PTM.keyword)
       mydata$PROTEIN = as.data.frame(mydata$PROTEIN)
 
-    } else {
+    } else if(input$filetype=='phil'){
+      mydata = read.csv(input$ptmdata$datapath)
+      mydata_protein = read.csv(input$globaldata$datapath)
+      annotation = read.csv(input$annotation$datapath)
+      annotation_protein = read.csv(input$globalannotation$datapath)
+      
+      mydata = PhilosophertoMSstatsPTMFormat(mydata,
+                                             annotation,
+                                             mydata_protein,
+                                             annotation_protein,
+                                             mod_id_col = input$mod_id_col,
+                                             localization_cutoff = as.numeric(input$localization_cutoff),
+                                             remove_unlocalized_peptides=input$remove_unlocalized_peptides)
+      
+    }
+    
+    else {
       data = read.csv(input$data$datapath, header = TRUE, sep = input$sep,
                       stringsAsFactors=FALSE)
       mydata = list("PTM" = data, "PROTEIN" = unmod)
@@ -331,13 +347,10 @@ getData <- function(input) {
     if(input$filetype=='spec' || input$filetype=='spmin'){
       infile = input$data1
     }
-    # else if(input$filetype=='phil'){
-    #   extracted.files = unzip(input$folder$datapath, list = TRUE)
-    #   # unzip(input$folder$datapath, list = FALSE)
-    #   infile = paste0("./", str_split(extracted.files$Name[1], "/")[[1]][[1]])
-    #   # infile = str_replace(input$folder$datapath, ".zip", "")
-    #   print(infile)
-    # }
+    else if(input$filetype=='phil' & input$DDA_DIA != "PTM"){
+      mydata = read.csv(input$data$datapath)
+      
+    }
     else{
       infile = input$data
     }
@@ -546,11 +559,9 @@ getData <- function(input) {
       mydata = SpectroMinetoMSstatsTMTFormat(data, getAnnot(input),
                                              use_log_file = FALSE)
     }
-    else if(input$filetype == 'phil') {
-      mydata = PhilosophertoMSstatsTMTFormat(input = unzip(input$folder$datapath),
-                                             folder = TRUE,
-                                             annotation = getAnnot(input),
-                                             protein_id_col = input$which.proteinid,
+    else if(input$filetype == 'phil' & input$DDA_DIA=="TMT") {
+      mydata = PhilosophertoMSstatsTMTFormat(input = mydata, 
+                                             annotation = get_annot(),
                                              use_log_file = FALSE)
     }
   }
@@ -748,16 +759,34 @@ library(MSstatsPTM)\n", sep = "")
                                               use_log_file = FALSE)"
                     , sep = "")
     }
-    else if(input$filetype == 'phil') {
+    else if(input$filetype == 'phil' & input$DDA_DIA == "TMT") {
       
+      codes = paste(codes,"data = read.csv(\"insert your msstats filepath\")\n"
+                    , sep = "")
       codes = paste(codes,"annot_file = read.csv(\"insert your annotation filepath\")\n"
                     , sep = "")
       
-      codes = paste(codes, "data = PhilosophertoMSstatsTMTFormat((path = \"insert your folder path\",
-                                       folder = TRUE,
-                                       annotation = annot_file,
-                                       protein_id_col =\'", input$which.proteinid,"\',\n\t\t\t\t       ",
-                    "use_log_file = FALSE)\n", sep = "")
+      codes = paste(codes, "data = PhilosophertoMSstatsTMTFormat(data,
+                                       annotation = annot_file)\n", sep = "")
+    }else if (input$filetype == 'phil' & input$DDA_DIA == "PTM"){
+      codes = paste(codes,"data = read.csv(\"insert your msstats filepath\")\n"
+                    , sep = "")
+      codes = paste(codes,"annot_file = read.csv(\"insert your annotation filepath\")\n"
+                    , sep = "")
+      
+      codes = paste(codes,"data_protein = read.csv(\"insert your global profiling msstats filepath\")\n"
+                    , sep = "")
+      codes = paste(codes,"annot_protein_file = read.csv(\"insert your global profiling annotation filepath\")\n"
+                    , sep = "")
+      
+      codes = paste(codes, paste0("data = PhilosophertoMSstatsPTMFormat(data,
+                                       annot_file,
+                                       data_protein,
+                                       annot_protein_file,
+                                       mod_id_col = ", input$mod_id_col, ",
+                                       localization_cutoff = ",input$localization_cutoff, ",
+                                       remove_unlocalized_peptides = ", as.character(input$remove_unlocalized_peptides),
+                                  ")\n"), sep = "")
     }
   }
   
@@ -868,21 +897,21 @@ getSummary2 <- function(input) {
     df = df %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence, Charge,
                                           sep = '_'))
   } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
-    df_ptm = df$PTM %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence,
-                                                  Charge, sep = '_'))
-    df_prot = df$PROTEIN %>% mutate("FEATURES" = paste(ProteinName, 
-                                                       PeptideSequence,
-                                                       Charge, sep = '_'))
+    df_ptm = as.data.frame(df$PTM) %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence,
+                                                                 Charge, sep = '_'))
+    df_prot = as.data.frame(df$PROTEIN) %>% mutate("FEATURES" = paste(ProteinName, 
+                                                                      PeptideSequence,
+                                                                      Charge, sep = '_'))
   } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
-    df_ptm = df$PTM %>% mutate("FEATURES" = paste(PeptideSequence, 
-                                                  PrecursorCharge, 
-                                                  FragmentIon, 
-                                                  ProductCharge, sep = '_'))
-    df_prot = df$PROTEIN %>% mutate("FEATURES" = paste(PeptideSequence, 
-                                                       PrecursorCharge, 
-                                                       FragmentIon, 
-                                                       ProductCharge, 
-                                                       sep = '_'))
+    df_ptm = as.data.frame(df$PTM) %>% mutate("FEATURES" = paste(PeptideSequence, 
+                                                                 PrecursorCharge, 
+                                                                 FragmentIon, 
+                                                                 ProductCharge, sep = '_'))
+    df_prot = as.data.frame(df$PROTEIN) %>% mutate("FEATURES" = paste(PeptideSequence, 
+                                                                      PrecursorCharge, 
+                                                                      FragmentIon, 
+                                                                      ProductCharge, 
+                                                                      sep = '_'))
   } else {
     df = as.data.frame(df)
     df = df %>% mutate("FEATURES" = paste(PeptideSequence, PrecursorCharge, 
@@ -915,29 +944,29 @@ getSummary2 <- function(input) {
     df1 = df1[,c(1,2,3,6,5,4)]
   } else {
     
-    df_ptm1 = df_ptm %>% summarise("Number of PTMs" = n_distinct(ProteinName), 
-                                   "Number of PTM Features" = n_distinct(FEATURES),
-                                   "Number of Features/PTM" = as.numeric(n_distinct(FEATURES) / n_distinct(PeptideSequence)),
-                                   "Min_Intensity" = ifelse(!is.finite(
-                                     min(Intensity, na.rm=T)), 0, 
-                                     round(min(Intensity, na.rm=T),0)),
-                                   "Max_Intensity" = ifelse(!is.finite(
-                                     max(Intensity, na.rm=T)), 0, 
-                                     round(max(Intensity, na.rm=T),0))) %>%
+    df_ptm1 = as.data.frame(df_ptm) %>% summarise("Number of PTMs" = n_distinct(ProteinName), 
+                                                  "Number of PTM Features" = n_distinct(FEATURES),
+                                                  "Number of Features/PTM" = as.numeric(n_distinct(FEATURES) / n_distinct(PeptideSequence)),
+                                                  "Min_Intensity" = ifelse(!is.finite(
+                                                    min(Intensity, na.rm=T)), 0, 
+                                                    round(min(Intensity, na.rm=T),0)),
+                                                  "Max_Intensity" = ifelse(!is.finite(
+                                                    max(Intensity, na.rm=T)), 0, 
+                                                    round(max(Intensity, na.rm=T),0))) %>%
       unite("PTM Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
     # df_ptm1 = df_ptm1 %>% select(!Min_Intensity, !Max_Intensity)
     
-    df_prot1 = df_prot %>% summarise("Number of Unmod Proteins" = n_distinct(ProteinName), 
-                                     "Number of Protein Peptides" = n_distinct(PeptideSequence),
-                                     "Number of Protein Features" = n_distinct(FEATURES),
-                                     "Number of Features/Peptide" = as.numeric(n_distinct(FEATURES) / n_distinct(PeptideSequence)),
-                                     "Number of Peptides/Protein" = as.numeric(n_distinct(PeptideSequence) / n_distinct(ProteinName)),
-                                     "Min_Intensity" = ifelse(!is.finite(
-                                       min(Intensity, na.rm=T)), 0, 
-                                       round(min(Intensity, na.rm=T),0)),
-                                     "Max_Intensity" = ifelse(!is.finite(
-                                       max(Intensity, na.rm=T)), 0, 
-                                       round(max(Intensity, na.rm=T),0))) %>%
+    df_prot1 = as.data.frame(df_prot) %>% summarise("Number of Unmod Proteins" = n_distinct(ProteinName), 
+                                                    "Number of Protein Peptides" = n_distinct(PeptideSequence),
+                                                    "Number of Protein Features" = n_distinct(FEATURES),
+                                                    "Number of Features/Peptide" = as.numeric(n_distinct(FEATURES) / n_distinct(PeptideSequence)),
+                                                    "Number of Peptides/Protein" = as.numeric(n_distinct(PeptideSequence) / n_distinct(ProteinName)),
+                                                    "Min_Intensity" = ifelse(!is.finite(
+                                                      min(Intensity, na.rm=T)), 0, 
+                                                      round(min(Intensity, na.rm=T),0)),
+                                                    "Max_Intensity" = ifelse(!is.finite(
+                                                      max(Intensity, na.rm=T)), 0, 
+                                                      round(max(Intensity, na.rm=T),0))) %>%
       unite("Protein Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
     df1 = cbind(df_ptm1, df_prot1)
   }

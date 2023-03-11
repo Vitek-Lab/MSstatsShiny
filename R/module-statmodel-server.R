@@ -395,20 +395,24 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
 
     } else if(loadpage_input()$DDA_DIA=="TMT"){
-      tryCatch({plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
-                                                            type=input$typeplot,
-                                                            sig=input$sig,
-                                                            FCcutoff=input$FC,
-                                                            logBase.pvalue=input$logp,
-                                                            ProteinName=input$pname,
-                                                            numProtein=input$nump,
-                                                            clustering=input$cluster,
-                                                            which.Comparison=input$whichComp,
-                                                            which.Protein = input$whichProt,
-                                                            address=path1(),
-                                                            savePDF=pdf)},
-               error = function(e){remove_modal_spinner()
-                 print("All plots cannot be shown in browser. Please select and individual comparison or download pdf.")}
+      tryCatch({
+        plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
+                                                    type=input$typeplot,
+                                                    sig=input$sig,
+                                                    FCcutoff=input$FC,
+                                                    logBase.pvalue=input$logp,
+                                                    ProteinName=input$pname,
+                                                    numProtein=input$nump, 
+                                                    clustering=input$cluster, 
+                                                    which.Comparison=input$whichComp,
+                                                    which.Protein = input$whichProt,
+                                                    address=path1(),
+                                                    savePDF=pdf)
+        # remove_modal_spinner()
+      },
+      error = function(e){
+        remove_modal_spinner()
+        stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf. **' )}
       )
 
 
@@ -419,14 +423,15 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
                                                             FCcutoff=input$FC,
                                                             logBase.pvalue=input$logp,
                                                             ProteinName=input$pname,
-                                                            numProtein=input$nump,
-                                                            clustering=input$cluster,
+                                                            numProtein=input$nump, 
+                                                            clustering=input$cluster, 
                                                             which.Comparison=input$whichComp,
                                                             which.Protein = input$whichProt,
                                                             address=path1(),
-                                                            savePDF=pdf)},
-               error = function(e){remove_modal_spinner()
-                 print("All plots cannot be shown in browser. Please select and individual comparison or download pdf.")}
+                                                            savePDF=pdf)
+      }, error = function(e){
+        remove_modal_spinner()
+        stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )}
       )
 
     }

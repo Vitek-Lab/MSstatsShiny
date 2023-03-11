@@ -60,7 +60,7 @@ loadpageServer <- function(id, parent_session) {
         disable(selector = "[type=radio][value=open]")
         disable(selector = "[type=radio][value=ump]")
         disable(selector = "[type=radio][value=spmin]")
-        disable(selector = "[type=radio][value=phil]")
+        # disable(selector = "[type=radio][value=phil]")
         runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
       }
     })

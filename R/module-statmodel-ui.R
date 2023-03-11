@@ -66,7 +66,7 @@ statmodelUI <- function(id) {
           p("Please add a comparison matrix before modeling."),
           disabled(actionButton(ns("calculate"), "Start")),
           tags$hr(),
-          conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT'",
+          conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || input['loadpage-input.PTMTMT'] == 'Yes'",
                            radioButtons(ns("moderated"), 
                                         label= h4("Empirical Bayes moderation", 
                                                   tipify(icon("question-circle"), 
