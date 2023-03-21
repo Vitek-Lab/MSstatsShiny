@@ -489,7 +489,7 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep="\t",
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
-      data = read.csv(infile$datapath, sep = "\t")
+      data = read.csv(infile$datapath, sep="\t")
       # }
       mydata = SpectronauttoMSstatsFormat(data,
                                           annotation = getAnnot(input),
@@ -1114,6 +1114,8 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
   return(codes)
   
 }
+
+
 
 # statmodel server functions
 dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix) {

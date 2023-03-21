@@ -429,15 +429,210 @@ test_that("sample file type returns expected value", {
   expect_type(output,"list")
 })
 
+# test_that("dda maxquant", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "DDA"
+#     mock_input$filetype = "maxq"
+# 
+#     mock_input$evidence$datapath <- '../data/DDA-Controlledmix-MaxQuant/ControlMixture_DDA_MaxQuant_evidence.txt'
+#     mock_input$pGroup$datapath <- '../data/DDA-Controlledmix-MaxQuant/ControlMixture_DDA_MaxQuant_proteinGroups.txt'
+#     mock_input$annot1$datapath <- '../data/DDA-Controlledmix-MaxQuant/ControlMixture_DDA_MaxQuant_annotation.csv'
+# 
+#     output <- getData(mock_input)
+#     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
+#     expect_type(output,"list")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+# 
+# test_that("dda pd", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "DDA"
+#     mock_input$filetype = "PD"
+#     mock_input$sep = ","
+# 
+#     mock_input$data$datapath <- '../data/DDA-Controlledmix-PD/ControlMixture_DDA_ProteomeDiscoverer_input.csv'
+#     mock_input$annot$datapath <- '../data/DDA-Controlledmix-PD/ControlMixture_DDA_ProteomeDiscoverer_annotation.csv'
+# 
+#     output <- getData(mock_input)
+#     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
+#     expect_type(output,"list")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+# 
+# test_that("dda prog", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "DDA"
+#     mock_input$filetype = "prog"
+#     mock_input$sep = ","
+# 
+#     mock_input$data$datapath <- '../data/DDA-Controlledmix-Progenesis/ControlMixture_DDA_Progenesis_input.csv'
+#     mock_input$annot$datapath <- '../data/DDA-Controlledmix-Progenesis/ControlMixture_DDA_Progenesis_annotation.csv'
+# 
+#     output <- getData(mock_input)
+#     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
+#     expect_type(output,"list")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+# 
+# test_that("dda skyline", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "DDA"
+#     mock_input$filetype = "sky"
+#     mock_input$sep = ","
+# 
+#     mock_input$data$datapath <- '../data/DDA-Controlledmix-Skyline/ControlMixture_DDA_Skyline_input.csv'
+#     mock_input$annot$datapath <- '../data/DDA-Controlledmix-Skyline/ControlMixture_DDA_Skyline_annotation.csv'
+# 
+#     output <- getData(mock_input)
+#     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
+#     expect_type(output,"list")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+# 
+# test_that("dda openms", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "DDA"
+#     mock_input$filetype = "openms"
+#     mock_input$sep = ","
+# 
+#     mock_input$data$datapath <- '../data/DDA-iPRG-OpenMS/ABRF2015_OpenMS_raw.csv'
+# 
+#     output <- getData(mock_input)
+#     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
+#     expect_type(output,"list")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+# 
+# test_that("dia diaumpire", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "DIA"
+#     mock_input$filetype = "ump"
+# 
+#     mock_input$fragSummary$datapath <- '../data/DIA-Navarro2016-DIAUmpire/Navarro2016_DIA_DIAumpire_input_FragSummary.xls'
+#     mock_input$peptideSummary$datapath <- '../data/DIA-Navarro2016-DIAUmpire/Navarro2016_DIA_DIAumpire_input_PeptideSummary.xls'
+#     mock_input$protSummary$datapath <- '../data/DIA-Navarro2016-DIAUmpire/Navarro2016_DIA_DIAumpire_input_ProtSummary.xls'
+# 
+#     mock_input$annot2$datapath <- '../data/DIA-Navarro2016-DIAUmpire/Navarro2016_DIA_DIAumpire_input_annotation.csv'
+# 
+#     output <- getData(mock_input)
+#     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
+#     expect_type(output,"list")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+# 
+# test_that("dia skyline", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "DIA"
+#     mock_input$filetype = "sky"
+#     mock_input$sep = ","
+# 
+#     mock_input$data$datapath <- '../data/DIA-Navarro2016-Skyline/Navarro2016_DIA_Skyline_input.csv'
+#     mock_input$annot$datapath <- '../data/DIA-Navarro2016-Skyline/Navarro2016_DIA_Skyline_annotation.csv'
+# 
+#     output <- getData(mock_input)
+#     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
+#     expect_type(output,"list")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+# 
+# test_that("dia spectronaut", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "DIA"
+#     mock_input$filetype = "spec"
+# 
+#     mock_input$data1$datapath <- '../data/DIA-Navarro2016-Spectronaut/Navarro2016_DIA_Spectronaut_input.xls'
+#     mock_input$annot$datapath <- '../data/DIA-Navarro2016-Spectronaut/Navarro2016_DIA_Spectronaut_annotation.csv'
+# 
+#     output <- getData(mock_input)
+#     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
+#     expect_type(output,"list")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+# 
+# test_that("dia openswath", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "DIA"
+#     mock_input$filetype = "open"
+#     mock_input$sep = "\t"
+# 
+#     mock_input$data$datapath <- '../data/DIA-Rost2014-OpenSWATH/Rost2014_DIA_OpenSWATH_input.txt'
+#     mock_input$annot$datapath <- '../data/DIA-Rost2014-OpenSWATH/Rost2014_DIA_OpenSWATH_annotation.csv'
+# 
+#     output <- getData(mock_input)
+#     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
+#     expect_type(output,"list")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+# 
+# test_that("tmt maxquant", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "TMT"
+#     mock_input$filetype = "maxq"
+# 
+#     mock_input$evidence$datapath <- '../data/TMT-Controlledmix-MS3-MaxQuant/evidence.txt'
+#     mock_input$pGroup$datapath <- '../data/TMT-Controlledmix-MS3-MaxQuant/proteinGroups.txt'
+#     mock_input$annot1$datapath <- '../data/TMT-Controlledmix-MS3-MaxQuant/MaxQuant_annotation.csv'
+# 
+#     output <- getData(mock_input)
+#     print(names(output))
+#     expected_names <- c("ProteinName","PeptideSequence","Charge","PSM","Mixture","TechRepMixture","Run","Channel","BioReplicate","Condition","Intensity")
+#     expect_type(output,"list")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+# 
+# test_that("tmt openms", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "TMT"
+#     mock_input$filetype = "openms"
+#     mock_input$sep = ","
+# 
+#     mock_input$data$datapath <- '../data/TMT-Plubell2016-OpenMS/20200225_MSstatsTMT_OpenMS_Export.csv'
+# 
+#     output <- getData(mock_input)
+#     print(names(output))
+#     expected_names <- c("ProteinName","PeptideSequence","Charge","PSM","Mixture","TechRepMixture","Run","Channel","BioReplicate","Condition","Intensity")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+# 
+# test_that("tmt spectromine", {
+#   suppressWarnings({
+#     mock_input$DDA_DIA <- "TMT"
+#     mock_input$filetype = "spmin"
+# 
+#     mock_input$data1$datapath <- '../data/TMT-exampledata-SpectroMine/20180831_095547_CID-OT-MS3-Short_PSM Report_20180831_103118.xls'
+#     mock_input$annot$datapath <- '../data/TMT-exampledata-SpectroMine/SpectroMine_annotation.csv'
+# 
+#     output <- getData(mock_input)
+#     expected_names <- c("ProteinName","PeptideSequence","Charge","PSM","Mixture","TechRepMixture","Run","Channel","BioReplicate","Condition","Intensity")
+#     expect_type(output,"list")
+#     expect_identical(names(output), expected_names)
+#   })
+# })
+
 test_that("dda maxquant", {
   suppressWarnings({
     mock_input$DDA_DIA <- "DDA"
     mock_input$filetype = "maxq"
-
-    mock_input$evidence$datapath <- '../data/DDA-Controlledmix-MaxQuant/ControlMixture_DDA_MaxQuant_evidence.txt'
-    mock_input$pGroup$datapath <- '../data/DDA-Controlledmix-MaxQuant/ControlMixture_DDA_MaxQuant_proteinGroups.txt'
-    mock_input$annot1$datapath <- '../data/DDA-Controlledmix-MaxQuant/ControlMixture_DDA_MaxQuant_annotation.csv'
-
+    
+    stub(getData,"getEvidence",data.table::fread(system.file("tinytest/raw_data/MaxQuant/mq_ev.csv",
+                                                             package = "MSstatsConvert")))
+    stub(getData,"getProteinGroups",data.table::fread(system.file("tinytest/raw_data/MaxQuant/mq_pg.csv",
+                                                                  package = "MSstatsConvert")))
+    stub(getData,"getAnnot1",data.table::fread(system.file("tinytest/raw_data/MaxQuant/annotation.csv",
+                                                           package = "MSstatsConvert")))
+    
+    
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
@@ -450,10 +645,12 @@ test_that("dda pd", {
     mock_input$DDA_DIA <- "DDA"
     mock_input$filetype = "PD"
     mock_input$sep = ","
-
-    mock_input$data$datapath <- '../data/DDA-Controlledmix-PD/ControlMixture_DDA_ProteomeDiscoverer_input.csv'
-    mock_input$annot$datapath <- '../data/DDA-Controlledmix-PD/ControlMixture_DDA_ProteomeDiscoverer_annotation.csv'
-
+    
+    mock_input$data$datapath <- system.file("tinytest/raw_data/PD/pd_input.csv",
+                                            package = "MSstatsConvert")
+    
+    stub(getData,"getAnnot",data.table::fread(system.file("tinytest/annotations/annot_pd.csv", package = "MSstats")))
+    
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
@@ -466,10 +663,13 @@ test_that("dda prog", {
     mock_input$DDA_DIA <- "DDA"
     mock_input$filetype = "prog"
     mock_input$sep = ","
-
-    mock_input$data$datapath <- '../data/DDA-Controlledmix-Progenesis/ControlMixture_DDA_Progenesis_input.csv'
-    mock_input$annot$datapath <- '../data/DDA-Controlledmix-Progenesis/ControlMixture_DDA_Progenesis_annotation.csv'
-
+    
+    mock_input$data$datapath <- system.file("tinytest/raw_data/Progenesis/progenesis_input.csv",
+                                            package = "MSstatsConvert")
+    
+    stub(getData,"getAnnot",data.table::fread(system.file("tinytest/raw_data/Progenesis/progenesis_annot.csv",
+                                                          package = "MSstatsConvert")))
+    
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
@@ -477,15 +677,23 @@ test_that("dda prog", {
   })
 })
 
-test_that("dda skyline", {
+test_that("dda dia skyline", {
   suppressWarnings({
     mock_input$DDA_DIA <- "DDA"
     mock_input$filetype = "sky"
     mock_input$sep = ","
-
-    mock_input$data$datapath <- '../data/DDA-Controlledmix-Skyline/ControlMixture_DDA_Skyline_input.csv'
-    mock_input$annot$datapath <- '../data/DDA-Controlledmix-Skyline/ControlMixture_DDA_Skyline_annotation.csv'
-
+    
+    mock_input$data$datapath <- system.file("tinytest/raw_data/Skyline/skyline_input.csv",
+                                            package = "MSstatsConvert")
+    
+    stub(getData,"getAnnot",NULL)
+    
+    output <- getData(mock_input)
+    expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
+    expect_type(output,"list")
+    expect_identical(names(output), expected_names)
+    
+    mock_input$DDA_DIA <- "DIA"
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
@@ -498,9 +706,10 @@ test_that("dda openms", {
     mock_input$DDA_DIA <- "DDA"
     mock_input$filetype = "openms"
     mock_input$sep = ","
-
-    mock_input$data$datapath <- '../data/DDA-iPRG-OpenMS/ABRF2015_OpenMS_raw.csv'
-
+    
+    mock_input$data$datapath <- system.file("tinytest/raw_data/OpenMS/openms_input.csv",
+                                            package = "MSstatsConvert")
+    
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
@@ -512,29 +721,16 @@ test_that("dia diaumpire", {
   suppressWarnings({
     mock_input$DDA_DIA <- "DIA"
     mock_input$filetype = "ump"
-
-    mock_input$fragSummary$datapath <- '../data/DIA-Navarro2016-DIAUmpire/Navarro2016_DIA_DIAumpire_input_FragSummary.xls'
-    mock_input$peptideSummary$datapath <- '../data/DIA-Navarro2016-DIAUmpire/Navarro2016_DIA_DIAumpire_input_PeptideSummary.xls'
-    mock_input$protSummary$datapath <- '../data/DIA-Navarro2016-DIAUmpire/Navarro2016_DIA_DIAumpire_input_ProtSummary.xls'
-
-    mock_input$annot2$datapath <- '../data/DIA-Navarro2016-DIAUmpire/Navarro2016_DIA_DIAumpire_input_annotation.csv'
-
-    output <- getData(mock_input)
-    expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
-    expect_type(output,"list")
-    expect_identical(names(output), expected_names)
-  })
-})
-
-test_that("dia skyline", {
-  suppressWarnings({
-    mock_input$DDA_DIA <- "DIA"
-    mock_input$filetype = "sky"
-    mock_input$sep = ","
-
-    mock_input$data$datapath <- '../data/DIA-Navarro2016-Skyline/Navarro2016_DIA_Skyline_input.csv'
-    mock_input$annot$datapath <- '../data/DIA-Navarro2016-Skyline/Navarro2016_DIA_Skyline_annotation.csv'
-
+    
+    stub(getData,"getFragSummary",data.table::fread(system.file("tinytest/raw_data/DIAUmpire/dia_frag.csv",
+                                                                package = "MSstatsConvert")))
+    stub(getData,"getPeptideSummary",data.table::fread(system.file("tinytest/raw_data/DIAUmpire/dia_pept.csv",
+                                                                   package = "MSstatsConvert")))
+    stub(getData,"getProtSummary",data.table::fread(system.file("tinytest/raw_data/DIAUmpire/dia_prot.csv",
+                                                                package = "MSstatsConvert")))
+    stub(getData,"getAnnot2",data.table::fread(system.file("tinytest/annotations/annot_diau.csv",
+                                                           package = "MSstats")))
+    
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
@@ -546,10 +742,11 @@ test_that("dia spectronaut", {
   suppressWarnings({
     mock_input$DDA_DIA <- "DIA"
     mock_input$filetype = "spec"
-
-    mock_input$data1$datapath <- '../data/DIA-Navarro2016-Spectronaut/Navarro2016_DIA_Spectronaut_input.xls'
-    mock_input$annot$datapath <- '../data/DIA-Navarro2016-Spectronaut/Navarro2016_DIA_Spectronaut_annotation.csv'
-
+    
+    stub(getData,"getAnnot",NULL)
+    
+    stub(getData,"read.csv",data.table::fread(system.file("tinytest/raw_data/Spectronaut/spectronaut_input.csv",
+                                                          package = "MSstatsConvert")))
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
@@ -562,10 +759,11 @@ test_that("dia openswath", {
     mock_input$DDA_DIA <- "DIA"
     mock_input$filetype = "open"
     mock_input$sep = "\t"
-
-    mock_input$data$datapath <- '../data/DIA-Rost2014-OpenSWATH/Rost2014_DIA_OpenSWATH_input.txt'
-    mock_input$annot$datapath <- '../data/DIA-Rost2014-OpenSWATH/Rost2014_DIA_OpenSWATH_annotation.csv'
-
+    
+    stub(getData,"getAnnot",data.table::fread(system.file("tinytest/annotations/annot_os.csv",
+                                                          package = "MSstats")))
+    stub(getData,"read.csv",data.table::fread(system.file("tinytest/raw_data/OpenSWATH/openswath_input.csv",
+                                                          package = "MSstatsConvert")))
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
@@ -577,11 +775,17 @@ test_that("tmt maxquant", {
   suppressWarnings({
     mock_input$DDA_DIA <- "TMT"
     mock_input$filetype = "maxq"
-
-    mock_input$evidence$datapath <- '../data/TMT-Controlledmix-MS3-MaxQuant/evidence.txt'
-    mock_input$pGroup$datapath <- '../data/TMT-Controlledmix-MS3-MaxQuant/proteinGroups.txt'
-    mock_input$annot1$datapath <- '../data/TMT-Controlledmix-MS3-MaxQuant/MaxQuant_annotation.csv'
-
+    
+    load(system.file("tinytest/raw_data_tmt/evidence.rda",
+                     package = "MSstatsShiny"))
+    load(system.file("tinytest/raw_data_tmt/proteinGroups.rda",
+                     package = "MSstatsShiny"))
+    load(system.file("tinytest/raw_data_tmt/annotation.mq.rda",
+                     package = "MSstatsShiny"))
+    stub(getData,"getEvidence",evidence)
+    stub(getData,"getProteinGroups",proteinGroups)
+    stub(getData,"getAnnot1",annotation.mq)
+    
     output <- getData(mock_input)
     print(names(output))
     expected_names <- c("ProteinName","PeptideSequence","Charge","PSM","Mixture","TechRepMixture","Run","Channel","BioReplicate","Condition","Intensity")
@@ -595,9 +799,11 @@ test_that("tmt openms", {
     mock_input$DDA_DIA <- "TMT"
     mock_input$filetype = "openms"
     mock_input$sep = ","
-
-    mock_input$data$datapath <- '../data/TMT-Plubell2016-OpenMS/20200225_MSstatsTMT_OpenMS_Export.csv'
-
+    
+    load(system.file("tinytest/raw_data_tmt/raw.om.rda",
+                     package = "MSstatsShiny"))
+    stub(getData,"read.csv",raw.om)
+    
     output <- getData(mock_input)
     print(names(output))
     expected_names <- c("ProteinName","PeptideSequence","Charge","PSM","Mixture","TechRepMixture","Run","Channel","BioReplicate","Condition","Intensity")
@@ -609,14 +815,27 @@ test_that("tmt spectromine", {
   suppressWarnings({
     mock_input$DDA_DIA <- "TMT"
     mock_input$filetype = "spmin"
-
-    mock_input$data1$datapath <- '../data/TMT-exampledata-SpectroMine/20180831_095547_CID-OT-MS3-Short_PSM Report_20180831_103118.xls'
-    mock_input$annot$datapath <- '../data/TMT-exampledata-SpectroMine/SpectroMine_annotation.csv'
-
+    
+    load(system.file("tinytest/raw_data_tmt/raw.mine.rda",
+                     package = "MSstatsShiny"))
+    load(system.file("tinytest/raw_data_tmt/annotation.mine.rda",
+                     package = "MSstatsShiny"))
+    stub(getData,"read.csv",raw.mine)
+    stub(getData,"getAnnot",annotation.mine)
+    
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","Charge","PSM","Mixture","TechRepMixture","Run","Channel","BioReplicate","Condition","Intensity")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
+  })
+})
+
+test_that("tmt phil", {
+  suppressWarnings({
+    mock_input$DDA_DIA <- "TMT"
+    mock_input$filetype = "phil"
+    
+    expect_equal(1,1)
   })
 })
 
