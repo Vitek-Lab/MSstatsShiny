@@ -11,6 +11,7 @@
 #' application. Default is TRUE.
 #' @param port (optional) Specify port the application should list to.
 #' @param host (optional) The IPv4 address that the application should listen on.
+#' @param testMode to specify if the function is to be tested or running for production.
 #' @examples
 #' 
 #' ## To run app set launch_app=TRUE

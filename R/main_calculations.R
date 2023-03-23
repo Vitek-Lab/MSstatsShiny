@@ -7,8 +7,8 @@
 #' @importFrom shinybusy show_modal_progress_line update_modal_progress remove_modal_progress
 #' 
 #' @param data Data converted into MSstats format.
-#' @param input options for data processing input by the user
-#' @param busy_indicator Boolean indicator indicating whether or not to display 
+#' @param qc_input options for data processing input by the user from data processing page.
+#' @param loadpage_input options for data processing input by the user from data upload page.#' @param busy_indicator Boolean indicator indicating whether or not to display 
 #' shiny waiting indicator.
 #' @return list of LF Summarization results
 #' @examples
@@ -519,12 +519,15 @@ apply_adj = function(ptm_model, protein_model){
 #' Quick QC value check for LF vs TMT
 #' 
 #' @export
-#' @param input options for data processing input by the user
+#' @param qc_input options for data processing input by the user from data processing page.
+#' @param loadpage_input options for data processing input by the user from data upload page.
 #' @return string
 #' @examples
-#' input = list(null=TRUE)
-#' QC_check(input)
+#' qc_input = list(null=TRUE)
+#' loadpage_input = list(null=TRUE)
+#' QC_check(qc_input,loadpage_input)
 QC_check = function(qc_input,loadpage_input) {
+  print(qc_input)
   if (qc_input()$null == TRUE || qc_input()$null1 == TRUE) {
     maxQC = NULL
   }
