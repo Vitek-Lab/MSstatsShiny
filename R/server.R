@@ -25,7 +25,7 @@ shinyServer(function(input, output, session) {
                 class = "disabled",
                 selector = "#tablist li a[data-value='Data processing']")
   })
-  # browser()
+
   observeEvent(input$"statmodel-Design", {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
   })
