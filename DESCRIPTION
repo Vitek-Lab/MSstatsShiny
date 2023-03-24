@@ -33,7 +33,8 @@ Suggests:
     sessioninfo,
     knitr,
     testthat (>= 3.0.0),
-    shinytest2
+    shinytest2,
+    mockery
 VignetteBuilder: knitr
 biocViews: ImmunoOncology, MassSpectrometry, Proteomics, Software, ShinyApps,
   DifferentialExpression, OneChannel, TwoChannel, Normalization, QualityControl,
@@ -41,5 +42,5 @@ biocViews: ImmunoOncology, MassSpectrometry, Proteomics, Software, ShinyApps,
 BugReports: https://github.com/Vitek-Lab/MSstatsShiny/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3
 Config/testthat/edition: 3

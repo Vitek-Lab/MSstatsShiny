@@ -8,7 +8,8 @@
 #' 
 #' @param data Data converted into MSstats format.
 #' @param qc_input options for data processing input by the user from data processing page.
-#' @param loadpage_input options for data processing input by the user from data upload page.#' @param busy_indicator Boolean indicator indicating whether or not to display 
+#' @param loadpage_input options for data processing input by the user from data upload page.
+#' @param busy_indicator Boolean indicator indicating whether or not to display 
 #' shiny waiting indicator.
 #' @return list of LF Summarization results
 #' @examples
@@ -23,22 +24,21 @@
 #'                                             use_log_file = FALSE)
 #' 
 #' ## Source app functionality
-#' input = list()
-#' input$norm = "equalizeMedians"
-#' input$log = 2
-#' input$names = NULL
-#' input$features_used	= "all"
+#' qc_input = list()
+#' loadpage_input = list()
+#' qc_input$norm = "equalizeMedians"
+#' qc_input$log = 2
+#' qc_input$names = NULL
+#' qc_input$features_used	= "all"
 #' code_n_feat=3
-#' input$censInt = "NA"
-#' input$features_used	= "all"
-#' input$MBi = TRUE
-#' input$remove50 = FALSE
-#' input$maxQC = 0.999
-#' input$null = FALSE
-#' input$null1 = FALSE
-#' input$DDA_DIA = "LF"
-#' 
-#' lf_summarization_loop(testdata, input, busy_indicator=FALSE)
+#' qc_input$censInt = "NA"
+#' qc_input$MBi = TRUE
+#' qc_input$remove50 = FALSE
+#' qc_input$maxQC = 0.999
+#' qc_input$null = FALSE
+#' qc_input$null1 = FALSE
+#' loadpage_input$DDA_DIA = "LF"
+#' lf_summarization_loop(testdata, qc_input,loadpage_input, busy_indicator=FALSE)
 #' 
 lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator = TRUE){
   if (busy_indicator){
@@ -46,7 +46,7 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
     
   }
   
-  if (qc_input()$features_used == "highQuality"){
+  if (qc_input$features_used == "highQuality"){
     rm_feat = TRUE
   } else {
     rm_feat = FALSE
@@ -54,16 +54,16 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
   
   ## Prepare MSstats for summarization
   peptides_dict = makePeptidesDictionary(as.data.table(unclass(data)), 
-                                         toupper(qc_input()$norm))
-  prep_input = MSstatsPrepareForDataProcess(data, as.numeric(qc_input()$log), NULL)
-  prep_input = MSstatsNormalize(prep_input, qc_input()$norm, peptides_dict, qc_input()$names)
+                                         toupper(qc_input$norm))
+  prep_input = MSstatsPrepareForDataProcess(data, as.numeric(qc_input$log), NULL)
+  prep_input = MSstatsNormalize(prep_input, qc_input$norm, peptides_dict, qc_input$names)
   prep_input = MSstatsMergeFractions(prep_input)
-  prep_input = MSstatsHandleMissing(prep_input, "TMP", qc_input()$MBi,
+  prep_input = MSstatsHandleMissing(prep_input, "TMP", qc_input$MBi,
                                     "NA", QC_check(qc_input,loadpage_input))
-  prep_input = MSstatsSelectFeatures(prep_input, qc_input()$features_used, qc_input()$n_feat, 2)
+  prep_input = MSstatsSelectFeatures(prep_input, qc_input$features_used, qc_input$n_feat, 2)
   processed = getProcessed(prep_input)
-  prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", qc_input()$MBi, 
-                                              qc_input()$censInt, rm_feat)
+  prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", qc_input$MBi, 
+                                              qc_input$censInt, rm_feat)
   
   input_split = split(prep_input, prep_input$PROTEIN)
   
@@ -82,8 +82,8 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
 
     temp_data = input_split[[i]]
     summarized_results[[i]] = MSstatsSummarizeSingleTMP(temp_data,
-                                                        qc_input()$MBi, qc_input()$censInt, 
-                                                        qc_input()$remove50)
+                                                        qc_input$MBi, qc_input$censInt, 
+                                                        qc_input$remove50)
     
     ## Update progress bar
     if (busy_indicator){
@@ -94,8 +94,8 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
   
   ## Summarization output
   preprocessed = MSstatsSummarizationOutput(prep_input, summarized_results, 
-                                             processed, "TMP", qc_input()$MBi, 
-                                            qc_input()$censInt)
+                                             processed, "TMP", qc_input$MBi, 
+                                            qc_input$censInt)
   
   if (busy_indicator){
     remove_modal_progress() # remove it when done
@@ -118,7 +118,8 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
 #' @importFrom stats median na.omit
 #' 
 #' @param data Data converted into MSstats format.
-#' @param input options for data processing input by the user
+#' @param qc_input options for data processing input by the user from data processing page.
+#' @param loadpage_input options for data processing input by the user from data upload page.
 #' @param busy_indicator Boolean indicator indicating whether or not to display 
 #' shiny waiting indicator.
 #' 
@@ -132,42 +133,39 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
 #'                                              use_log_file = FALSE
 #'                                              )
 #' 
-#' input = list()
-#' input$summarization = "msstats"
-#' input$norm = "equalizeMedians"
-#' input$log = 2
-#' input$names = NULL
-#' input$features_used	= "all"
+#' qc_input = list()
+#' loadpage_input = list()
+#' qc_input$summarization = "msstats"
+#' qc_input$norm = "equalizeMedians"
+#' qc_input$log = 2
+#' qc_input$names = NULL
+#' qc_input$features_used	= "all"
 #' code_n_feat=3
-#' input$censInt = "NA"
-#' input$features_used	= "all"
-#' input$MBi = TRUE
-#' input$remove50 = FALSE
-#' input$maxQC = 0.999
-#' input$null = FALSE
-#' input$null1 = FALSE
-#' input$DDA_DIA = "LF"
-#' input$global_norm = TRUE
-#' input$reference_norm = TRUE
-#' input$remove_norm_channel = TRUE
-#' input$maxQC1 = NULL
-#' input$moderated = FALSE
-#'
-#' summarization_tmt_test = tmt_summarization_loop(testdata, input, 
+#' qc_input$censInt = "NA"
+#' qc_input$MBi = TRUE
+#' qc_input$remove50 = FALSE
+#' qc_input$maxQC = 0.999
+#' qc_input$null = FALSE
+#' qc_input$null1 = FALSE
+#' loadpage_input$DDA_DIA = "LF"
+#' qc_input$global_norm = TRUE
+#' qc_input$reference_norm = TRUE
+#' qc_input$remove_norm_channel = TRUE
+#' qc_input$maxQC1 = NULL
+#' summarization_tmt_test = tmt_summarization_loop(testdata, qc_input,loadpage_input, 
 #'                                                busy_indicator = FALSE)
 #' 
 tmt_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator = TRUE){
   MBimpute = FALSE ## Add option for MBimpute to server..
-  
   MSstatsConvert::MSstatsLogsSettings(FALSE,
                                       pkg_name = "MSstatsTMT")
   ## Prep functions
   prep_input = MSstatsTMT:::MSstatsPrepareForSummarizationTMT(
-    data, qc_input()$summarization, qc_input()$global_norm, qc_input()$reference_norm,
-    qc_input()$remove_norm_channel, TRUE, MBimpute, QC_check(qc_input,loadpage_input) 
+    data, qc_input$summarization, qc_input$global_norm, qc_input$reference_norm,
+    qc_input$remove_norm_channel, TRUE, MBimpute, QC_check(qc_input,loadpage_input) 
   )
   prep_input = MSstatsTMT:::MSstatsNormalizeTMT(prep_input, "peptides", 
-                                                qc_input()$global_norm)
+                                                qc_input$global_norm)
   
   ## Go inside summarization loop to track progress
   log2Intensity = NULL
@@ -178,7 +176,7 @@ tmt_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator 
   
   ## Current implementatin only keeps track of msstats progress
   ## Other functions are vectorized and should be faster (?)
-  if (qc_input()$summarization == "msstats") {
+  if (qc_input$summarization == "msstats") {
     MSRun = FragmentIon = ProductCharge = IsotopeLabelType = ProteinName = 
       PeptideSequence = PrecursorCharge = Run = Condition = BioReplicate =
       Intensity = PSM = RunChannel = NULL
@@ -254,12 +252,12 @@ tmt_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator 
     processed[, RunChannel := NULL]
     summarized = list(summarized_results, processed)
     
-  } else if (qc_input()$summarization == "MedianPolish") {
+  } else if (qc_input$summarization == "MedianPolish") {
     summarized = MSstatsTMT:::.summarizeTMP(prep_input, annotation)
-  } else if (qc_input()$summarization == "LogSum") {
+  } else if (qc_input$summarization == "LogSum") {
     summarized = MSstatsTMT:::.summarizeSimpleStat(prep_input, annotation, 
                                                    MSstatsTMT:::.logSum)
-  } else if (qc_input()$summarization == "Median") {
+  } else if (qc_input$summarization == "Median") {
     summarized = MSstatsTMT:::.summarizeSimpleStat(prep_input, annotation, median)
   }
   
@@ -267,10 +265,10 @@ tmt_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator 
   processed = MSstatsTMT:::getProcessedTMT(summarized, prep_input)
   summarized = MSstatsTMT:::getSummarizedTMT(summarized)
   summarized = MSstatsTMT:::MSstatsNormalizeTMT(summarized, "proteins", 
-                                                qc_input()$reference_norm)
+                                                qc_input$reference_norm)
   preprocessed = MSstatsTMT:::MSstatsSummarizationOutputTMT(summarized,
                                                             processed, TRUE,
-                                                            qc_input()$remove_norm_channel)
+                                                            qc_input$remove_norm_channel)
   if (busy_indicator){
     remove_modal_progress() # remove it when done
   }
@@ -379,35 +377,36 @@ lf_model = function(data, contrast.matrix, busy_indicator = TRUE){
 #'                                              annotation.pd,
 #'                                              use_log_file = FALSE
 #'                                              )#' 
-#' input = list()
-#' input$summarization = "msstats"
-#' input$norm = "equalizeMedians"
-#' input$log = 2
-#' input$names = NULL
-#' input$features_used	= "all"
-#' code_n_feat=3
-#' input$censInt = "NA"
-#' input$features_used	= "all"
-#' input$MBi = TRUE
-#' input$remove50 = FALSE
-#' input$maxQC = 0.999
-#' input$null = FALSE
-#' input$null1 = FALSE
-#' input$DDA_DIA = "LF"
-#' input$global_norm = TRUE
-#' input$reference_norm = TRUE
-#' input$remove_norm_channel = TRUE
-#' input$maxQC1 = NULL
-#' input$moderated = FALSE
 #' 
-#' summarization_tmt_test = tmt_summarization_loop(testdata, input, loadpage_input,
+#' qc_input = list()
+#' loadpage_input = list()
+#' qc_input$summarization = "msstats"
+#' qc_input$norm = "equalizeMedians"
+#' qc_input$log = 2
+#' qc_input$names = NULL
+#' qc_input$features_used	= "all"
+#' code_n_feat=3
+#' qc_input$censInt = "NA"
+#' qc_input$MBi = TRUE
+#' qc_input$remove50 = FALSE
+#' qc_input$maxQC = 0.999
+#' qc_input$null = FALSE
+#' qc_input$null1 = FALSE
+#' loadpage_input$DDA_DIA = "LF"
+#' qc_input$global_norm = TRUE
+#' qc_input$reference_norm = TRUE
+#' qc_input$remove_norm_channel = TRUE
+#' qc_input$maxQC1 = NULL
+#' qc_input$moderated = FALSE
+#' 
+#' summarization_tmt_test = tmt_summarization_loop(testdata, qc_input, loadpage_input,
 #'                                                busy_indicator = FALSE)
 #'                                                
 #' comparison=matrix(c(-1,0,0,1),nrow=1)
 #' row.names(comparison) = "1-0.125"
 #' colnames(comparison) = c("0.125", "0.5", "0.667", "1")
 #' 
-#' model_tmt_test = tmt_model(summarization_tmt_test, input, comparison, 
+#' model_tmt_test = tmt_model(summarization_tmt_test, qc_input, comparison, 
 #'                            busy_indicator = FALSE)
 #' 
 tmt_model = function(data, input, contrast.matrix, busy_indicator = TRUE){
@@ -433,7 +432,7 @@ tmt_model = function(data, input, contrast.matrix, busy_indicator = TRUE){
   names(FittedModel) = fitted_models$protein
   
   fitted_models = MSstatsTMT:::MSstatsModerateTTest(summarized, fitted_models, 
-                                                    input()$moderated)#moderated
+                                                    input$moderated)#moderated
   
   testing_results = vector("list", length(fitted_models))
   
@@ -527,16 +526,15 @@ apply_adj = function(ptm_model, protein_model){
 #' loadpage_input = list(null=TRUE)
 #' QC_check(qc_input,loadpage_input)
 QC_check = function(qc_input,loadpage_input) {
-  print(qc_input)
-  if (qc_input()$null == TRUE || qc_input()$null1 == TRUE) {
+  if (qc_input$null == TRUE || qc_input$null1 == TRUE) {
     maxQC = NULL
   }
   else {
-    if(loadpage_input()$DDA_DIA=="TMT"){
-      maxQC = qc_input()$maxQC1
+    if(loadpage_input$DDA_DIA=="TMT"){
+      maxQC = qc_input$maxQC1
     }
     else{
-      maxQC = qc_input()$maxQC
+      maxQC = qc_input$maxQC
     }
     
   }

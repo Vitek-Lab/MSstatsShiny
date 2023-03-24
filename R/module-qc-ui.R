@@ -71,7 +71,7 @@ qcUI <- function(id) {
           condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')",
           h4("3. Local protein normalization",
              tipify(icon("question-circle"), 
-                    title = "Reference channel based normalization between MS runs on protein level data. Requires one reference channel in each MS run, annotated by ‘Norm’ in Condition column of annotation file")),
+                    title = "Reference channel based normalization between MS runs on protein level data. Requires one reference channel in each MS run, annotated by 'Norm' in Condition column of annotation file")),
           checkboxInput(ns("reference_norm"), "Yes", value = T),
           tags$hr(),
           h4("4. Filtering"),

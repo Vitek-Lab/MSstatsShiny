@@ -2,7 +2,23 @@ qcServer <- function(input, output, session,parent_session, loadpage_inputs) {
   loadpage_input <- reactive({
     loadpage_inputs
   })
-  
+
+  # observe({
+  #   # print(names(loadpage_input()))
+  #   # print("-----")
+  #   # print(names(input))
+  #   # print('-----')
+  #   # print(loadpage_input())
+  #   # print('------')
+  #   # print(input)
+  #   
+  #   for (key in names(loadpage_input())) {
+  #     value <- loadpage_input()[[key]]
+  #     # print(paste(key, value))
+  #     input[[key]] <- value
+  #   }
+  #   print(input)
+  # })
   # output$showplot = renderUI({
   #   print("****")
   #         print(new_input()$DDA_DIA)
@@ -121,14 +137,14 @@ qcServer <- function(input, output, session,parent_session, loadpage_inputs) {
     qc_input <- reactive({
       input
     })
-    preprocessData(qc_input,loadpage_input)
+    preprocessData(qc_input(),loadpage_input())
   })
   
   preprocess_data_code <- eventReactive(input$calculate, {
     qc_input <- reactive({
       input
     })
-    preprocessDataCode(qc_input,loadpage_input)
+    preprocessDataCode(qc_input(),loadpage_input())
   })
   
   plotresult = function(saveFile, protein, summary, original, file) {

@@ -31,7 +31,7 @@ expdesServer <- function(input, output, session,parent_session, loadpage_inputs,
     FDR_x = input$FDR
     FCR_x = input$desirFC
     future_exp = function(){
-      exp = designSampleSize(data=dataComparison(statmodel_input,qc_input,loadpage_input,statmodel_inputs$matrix())$FittedModel,
+      exp = designSampleSize(data=dataComparison(statmodel_input(),qc_input(),loadpage_input(),statmodel_inputs$matrix())$FittedModel,
                              desiredFC = input$desirFC,
                              FDR = FDR_x,
                              numSample = sample_x,

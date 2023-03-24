@@ -30,35 +30,36 @@ testdata <- MSstatsTMT::PDtoMSstatsTMTFormat(raw.pd,
                                              annotation.pd,
                                              use_log_file = FALSE
                                              )#' 
-input = list()
-input$summarization = "msstats"
-input$norm = "equalizeMedians"
-input$log = 2
-input$names = NULL
-input$features_used	= "all"
-code_n_feat=3
-input$censInt = "NA"
-input$features_used	= "all"
-input$MBi = TRUE
-input$remove50 = FALSE
-input$maxQC = 0.999
-input$null = FALSE
-input$null1 = FALSE
-input$DDA_DIA = "LF"
-input$global_norm = TRUE
-input$reference_norm = TRUE
-input$remove_norm_channel = TRUE
-input$maxQC1 = NULL
-input$moderated = FALSE
 
-summarization_tmt_test = tmt_summarization_loop(testdata, input, 
+qc_input = list()
+loadpage_input = list()
+qc_input$summarization = "msstats"
+qc_input$norm = "equalizeMedians"
+qc_input$log = 2
+qc_input$names = NULL
+qc_input$features_used	= "all"
+code_n_feat=3
+qc_input$censInt = "NA"
+qc_input$MBi = TRUE
+qc_input$remove50 = FALSE
+qc_input$maxQC = 0.999
+qc_input$null = FALSE
+qc_input$null1 = FALSE
+loadpage_input$DDA_DIA = "LF"
+qc_input$global_norm = TRUE
+qc_input$reference_norm = TRUE
+qc_input$remove_norm_channel = TRUE
+qc_input$maxQC1 = NULL
+qc_input$moderated = FALSE
+
+summarization_tmt_test = tmt_summarization_loop(testdata, qc_input, loadpage_input,
                                                busy_indicator = FALSE)
                                                
 comparison=matrix(c(-1,0,0,1),nrow=1)
 row.names(comparison) = "1-0.125"
 colnames(comparison) = c("0.125", "0.5", "0.667", "1")
 
-model_tmt_test = tmt_model(summarization_tmt_test, input, comparison, 
+model_tmt_test = tmt_model(summarization_tmt_test, qc_input, comparison, 
                            busy_indicator = FALSE)
 
 }

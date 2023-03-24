@@ -12,14 +12,14 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   
   choices = reactive({
     if (loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "Yes"){
-      levels(preprocessData(qc_input,loadpage_input)$PTM$ProteinLevelData$Condition)
+      levels(preprocessData(qc_input(),loadpage_input())$PTM$ProteinLevelData$Condition)
     } else if(loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "No"){
-      levels(preprocessData(qc_input,loadpage_input)$PTM$ProteinLevelData$GROUP)
+      levels(preprocessData(qc_input(),loadpage_input())$PTM$ProteinLevelData$GROUP)
     } else if(loadpage_input()$DDA_DIA=="TMT"){
-      levels(preprocessData(qc_input,loadpage_input)$ProteinLevelData$Condition)
+      levels(preprocessData(qc_input(),loadpage_input())$ProteinLevelData$Condition)
     }
     else{
-      levels(preprocessData(qc_input,loadpage_input)$ProteinLevelData$GROUP)
+      levels(preprocessData(qc_input(),loadpage_input())$ProteinLevelData$GROUP)
     }
     
   })
@@ -270,12 +270,12 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
       input
     })
     matrix = matrix_build()
-    dataComparison(statmodel_input,qc_input,loadpage_input,matrix)
+    dataComparison(statmodel_input(),qc_input(),loadpage_input(),matrix)
   })
 
   data_comparison_code = eventReactive(input$calculate, {
     
-    codes = preprocessDataCode(qc_input,loadpage_input)
+    codes = preprocessDataCode(qc_input(),loadpage_input())
     comp.mat = matrix_build()
 
     codes = paste(codes, "\n# Create the contrast matrix\n", sep = "")

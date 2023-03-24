@@ -24,12 +24,12 @@ loadpageUI <- function(id) {
       conditionalPanel(
         condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'DIA'",
         p("The sample dataset for DIA acquisition is taken from the publication ",
-          a("Selevsek, N. et al. Reproducible and Consistent Quantification of the Saccharomyces Cerevisiae Proteome by SWATH-Mass Spectrometry. Molecular & Cellular Proteomics : MCP 14.3 (2015): 739–749. ", href = "http://www.mcponline.org/content/14/3/739.long", target="_blank"))
+          a("Selevsek, N. et al. Reproducible and Consistent Quantification of the Saccharomyces Cerevisiae Proteome by SWATH-Mass Spectrometry. Molecular & Cellular Proteomics\u202f: MCP 14.3 (2015): 739\u2013749. ", href = "http://www.mcponline.org/content/14/3/739.long", target="_blank"))
       ),
       conditionalPanel(
         condition = "input['loadpage-filetype'] == 'sample' && input['loadpage-DDA_DIA'] == 'SRM_PRM'",
         p("The sample dataset for SRM/PRM acquisition is taken from the publication ",
-          a("Picotti, P. et al. Full dynamic range proteome analysis of S. cerevisiae by targeted proteomics. Cell (2009), 138, 795–806.", href = "http://www.cell.com/cell/fulltext/S0092-8674(09)00715-6", target="_blank"))
+          a("Picotti, P. et al. Full dynamic range proteome analysis of S. cerevisiae by targeted proteomics. Cell (2009), 138, 795\u2013806.", href = "http://www.cell.com/cell/fulltext/S0092-8674(09)00715-6", target="_blank"))
       ),
       tags$br(),
       sidebarPanel(

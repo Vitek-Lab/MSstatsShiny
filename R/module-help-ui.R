@@ -54,16 +54,16 @@ helpUI <- function(id) {
         tags$li("Log transformation: the Intensity column is transformed in either \
             log2 or log10 depending on which the user would prefer."),
         tags$li("Normalization: the available methods are Equalization of medians \
-            (indicated when the majority of proteins don’t change between runs,\
+            (indicated when the majority of proteins don't change between runs,\
             less indicated for label-free DDA), use of Global standards \
-            (defined by the user), ‘quantile’ (for label-free, all intensity \
+            (defined by the user), 'quantile' (for label-free, all intensity \
             distributions will become equal across runs; for label-based, all \
             intensity distributions for references will become equal across \
             runs and endogenous intensities shifted according to references), \
             or no normalisation."),
         tags$li("Feature subset: use all feature or top 3 most significant (highest\
             log2 transformed intensity) or top n (custom) most significant, or \
-            ‘high quality’ for most informative features (to eliminate \
+            'high quality' for most informative features (to eliminate \
             unexplainable variation in features - interference). DIA \
             experiments should likely use a subset of features due to the very \
             large number of available features."),
@@ -94,7 +94,7 @@ helpUI <- function(id) {
             "),
         tags$li("Local protein normalization: Reference channel based normalization\
             between MS runs on protein level data. Requires one reference \
-            channel in each MS run, annotated by ‘Norm’ in Condition column \
+            channel in each MS run, annotated by 'Norm' in Condition column \
             of annotation file."),
         tags$li("Filtering: Whether to keep or remove normalization channel.")
       ),
