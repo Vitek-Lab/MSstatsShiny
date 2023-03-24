@@ -207,7 +207,7 @@ loadpageServer <- function(id, parent_session) {
           
         }, colnames = FALSE, bordered = TRUE, align='lr'
       )
-      # browser()
+
       onclick("proceed2", {
         updateTabsetPanel(session = parent_session, inputId = "tablist", selected = "DataProcessing")
       })

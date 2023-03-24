@@ -1,7 +1,4 @@
-qcServer <- function(input, output, session,parent_session, loadpage_inputs) {
-  loadpage_input <- reactive({
-    loadpage_inputs
-  })
+qcServer <- function(input, output, session,parent_session, loadpage_input) {
 
   # observe({
   #   # print(names(loadpage_input()))
@@ -51,6 +48,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_inputs) {
   # toggle censoring input based on type of experiment
   
   observe({
+    print(loadpage_input()$filetype)
     if(!is.null(loadpage_input()$filetype)) {
       runjs("$('[type=radio][name=censInt]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
       enable("censInt")

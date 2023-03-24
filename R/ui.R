@@ -15,22 +15,6 @@ library(MSstatsConvert)
 library(MSstatsPTM)
 # library(sqldf)
 
-####################################
-
-# files.sources = list.files(pattern = "\\.R$")
-# sapply(files.sources, source)
-# source("panels/home-ui.R", local = TRUE)
-# source("panels/loadpage-ui.R", local = TRUE)
-# source("panels/qc-ui.R", local = TRUE)
-# source("panels/statmodel-ui.R", local = TRUE)
-# source("panels/expdes-ui.R", local = TRUE)
-# source("panels/help-ui.R", local = TRUE)
-# source("panels/msstats_help-ui.R", local = TRUE)
-# source("panels/msstatstmt_help-ui.R", local = TRUE)
-
-
-#########################################################################
-
 jsCode = '
 shinyjs.init = function() {
 $(document).keypress(function(e) { alert("Key pressed: " + e.which); });

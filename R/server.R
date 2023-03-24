@@ -33,10 +33,10 @@ shinyServer(function(input, output, session) {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
   })
 
-  loadpage_inputs <- loadpageServer("loadpage", parent_session = session)
-  qc_inputs <- callModule(qcServer, "qc",session, loadpage_inputs)
-  statmodel_inputs <- callModule(statmodelServer, "statmodel",session, loadpage_inputs,qc_inputs)
-  callModule(expdesServer, "expdes",session, loadpage_inputs,qc_inputs,statmodel_inputs)
+  loadpage_input <- loadpageServer("loadpage", parent_session = session)
+  qc_input <- callModule(qcServer, "qc",session, reactive(loadpage_input))
+  statmodel_input <- callModule(statmodelServer, "statmodel",session, reactive(loadpage_input),reactive(qc_input))
+  callModule(expdesServer, "expdes",session, reactive(loadpage_input),reactive(qc_input),reactive(statmodel_input))
   observeEvent(input$proceed, {
     updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
   })

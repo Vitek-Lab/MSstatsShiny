@@ -1,13 +1,4 @@
-expdesServer <- function(input, output, session,parent_session, loadpage_inputs, qc_inputs,statmodel_inputs) {
-  loadpage_input <- reactive({
-    loadpage_inputs
-  })
-  qc_input <- reactive({
-    qc_inputs
-  })
-  statmodel_input <- reactive({
-    statmodel_inputs
-  })
+expdesServer <- function(input, output, session,parent_session, loadpage_input, qc_input,statmodel_input) {
   # toggle input elements and plot
   
   observe({
@@ -31,7 +22,7 @@ expdesServer <- function(input, output, session,parent_session, loadpage_inputs,
     FDR_x = input$FDR
     FCR_x = input$desirFC
     future_exp = function(){
-      exp = designSampleSize(data=dataComparison(statmodel_input(),qc_input(),loadpage_input(),statmodel_inputs$matrix())$FittedModel,
+      exp = designSampleSize(data=dataComparison(statmodel_input(),qc_input(),loadpage_input(),statmodel_input()$matrix())$FittedModel,
                              desiredFC = input$desirFC,
                              FDR = FDR_x,
                              numSample = sample_x,

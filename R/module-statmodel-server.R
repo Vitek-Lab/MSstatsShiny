@@ -1,11 +1,4 @@
-statmodelServer <- function(input, output, session,parent_session, loadpage_inputs, qc_inputs) {
-  
-  loadpage_input <- reactive({
-    loadpage_inputs
-  })
-  qc_input <- reactive({
-    qc_inputs
-  })
+statmodelServer <- function(input, output, session,parent_session, loadpage_input, qc_input) {
   ######### UI #########
   
   # choices of groups for contrast matrix
