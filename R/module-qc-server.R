@@ -1,21 +1,18 @@
+#' QC Server module for data processing
+#'
+#' This function sets up the QC server to process data based on user
+#' selected inputs
+#'
+#' @param input input object to capture different ui element values
+#' @param output to render and create elements
+#' @param session session current module
+#' @param parent_session session of the main calling module
+#' @param loadpage_input input object from loadpage UI
+#' 
+#' @return input object with user selected options
+#'
 qcServer <- function(input, output, session,parent_session, loadpage_input) {
 
-  # observe({
-  #   # print(names(loadpage_input()))
-  #   # print("-----")
-  #   # print(names(input))
-  #   # print('-----')
-  #   # print(loadpage_input())
-  #   # print('------')
-  #   # print(input)
-  #   
-  #   for (key in names(loadpage_input())) {
-  #     value <- loadpage_input()[[key]]
-  #     # print(paste(key, value))
-  #     input[[key]] <- value
-  #   }
-  #   print(input)
-  # })
   # output$showplot = renderUI({
   #   print("****")
   #         print(new_input()$DDA_DIA)

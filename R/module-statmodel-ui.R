@@ -1,3 +1,12 @@
+#' Statmodel UI module for statistical inference UI.
+#'
+#' This function sets up the Statmodel UI where it consists of several, 
+#' options for users to select and upload files.
+#'
+#' @param id namespace prefix for the module
+#' 
+#' @return This function returns nothing, as it sets up the Statmodel UI
+#'
 statmodelUI <- function(id) {
   ns <- NS(id)
   tagList(

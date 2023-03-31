@@ -1,3 +1,12 @@
+#' Loadpage UI module for data selection and upload UI.
+#'
+#' This function sets up the loadpage UI where it consists of several, 
+#' options for users to select and upload files.
+#'
+#' @param id namespace prefix for the module
+#' 
+#' @return This function returns nothing, as it sets up the loadpage UI
+#'
 loadpageUI <- function(id) {
   ns <- NS(id)
   tagList(

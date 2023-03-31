@@ -1,3 +1,17 @@
+#' Statmodel Server module for stat inference
+#'
+#' This function sets up the Statmodel server to process data based on user
+#' selected inputs
+#'
+#' @param input input object to capture different ui element values
+#' @param output to render and create elements
+#' @param session session current module
+#' @param parent_session session of the main calling module
+#' @param loadpage_input input object from loadpage UI
+#' @param qc_input input object from QC UI
+#' 
+#' @return list object with user selected options and matrix build
+#'
 statmodelServer <- function(input, output, session,parent_session, loadpage_input, qc_input) {
   ######### UI #########
   

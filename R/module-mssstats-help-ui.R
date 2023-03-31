@@ -1,3 +1,11 @@
+#' Help MSStats UI module for mssatst help page.
+#'
+#' This module shows the msstats help page for general documentation
+#'
+#' @param id namespace prefix for the module
+#' 
+#' @return This function returns nothing, as it sets up the MSStats Help UI
+#'
 msstatsHelpUI <- function(id) {
   ns <- NS(id)
   tagList(

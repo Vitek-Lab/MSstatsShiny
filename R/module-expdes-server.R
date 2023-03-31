@@ -1,3 +1,18 @@
+#' Expdes Server module for future experiments
+#'
+#' This function sets up the Expdes server to process data based on user
+#' selected inputs
+#'
+#' @param input input object to capture different ui element values
+#' @param output to render and create elements
+#' @param session session current module
+#' @param parent_session session of the main calling module
+#' @param loadpage_input input object from loadpage UI
+#' @param qc_input input object from QC UI
+#' @param statmodel_input input object from Statmodel UI
+#' 
+#' @return list object with user selected options and matrix build
+#'
 expdesServer <- function(input, output, session,parent_session, loadpage_input, qc_input,statmodel_input) {
   # toggle input elements and plot
   

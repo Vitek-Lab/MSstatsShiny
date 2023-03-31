@@ -1,3 +1,12 @@
+#' QC UI module for data processing UI.
+#'
+#' This function sets up the QC UI where it consists of several, 
+#' options for users to process data based on previously selected fragments.
+#'
+#' @param id namespace prefix for the module
+#' 
+#' @return This function returns nothing, as it sets up the QC UI
+#'
 qcUI <- function(id) {
   ns <- NS(id)
   tagList(

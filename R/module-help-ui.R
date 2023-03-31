@@ -1,3 +1,11 @@
+#' Help UI module for help page.
+#'
+#' This module shows the help page for general documentation
+#'
+#' @param id namespace prefix for the module
+#' 
+#' @return This function returns nothing, as it sets up the Help UI
+#'
 helpUI <- function(id) {
   ns <- NS(id)
   tagList(

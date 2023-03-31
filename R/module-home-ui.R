@@ -1,3 +1,13 @@
+#' Home UI module for home page.
+#'
+#' This function generates the home user interface for MSstatsShiny, a web tool 
+#' for the statistical analysis of quantitative proteomic data built around the
+#'  R packages MSstats, MSstatsTMT, and MSstatsPTM.
+#'
+#' @param id namespace prefix for the module
+#' 
+#' @return This function returns nothing, as it sets up the Home UI
+#'
 homeUI <- function(id) {
   ns <- NS(id)
   tagList(

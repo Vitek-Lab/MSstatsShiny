@@ -1,3 +1,13 @@
+#' Loadpage Server module for data selection and upload server.
+#'
+#' This function sets up the loadpage server where it consists of several, 
+#' options for users to select and upload files.
+#'
+#' @param id namespace prefix for the module
+#' @param parent_session session of the main calling module
+#' 
+#' @return input object with user selected options
+#'
 loadpageServer <- function(id, parent_session) {
   moduleServer(id, function(input, output, session) {
     # toggle ui (DDA DIA SRM)

@@ -1,3 +1,12 @@
+#' Expdes UI module for future experiments UI.
+#'
+#' This function sets up the Expdes UI where it consists of several, 
+#' options for users to select and generate plots.
+#'
+#' @param id namespace prefix for the module
+#' 
+#' @return This function returns nothing, as it sets up the Expdes UI
+#'
 expdesUI <- function(id) {
   ns <- NS(id)
   tagList(
