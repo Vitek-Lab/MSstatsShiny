@@ -1,3 +1,19 @@
+library(shiny)
+library(shinyBS)
+library(shinyjs)
+library(shinybusy)
+library(DT)
+library(htmltools)
+library(uuid)
+library(Hmisc)
+library(dplyr)
+library(data.table)
+library(tidyr)
+library(MSstats)
+library(MSstatsTMT)
+library(MSstatsConvert)
+library(MSstatsPTM)
+
 jsCode = '
 shinyjs.init = function() {
 $(document).keypress(function(e) { alert("Key pressed: " + e.which); });

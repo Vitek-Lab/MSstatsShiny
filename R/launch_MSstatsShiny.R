@@ -4,7 +4,7 @@
 #' run automatically.
 #' 
 #' @export
-#' @importFrom shiny runApp
+#' @importFrom shiny runA
 #' @return Running Shiny Application
 #' 
 #' @param launch_app One of TRUE or FALSE indicating whether or not to run 
@@ -52,6 +52,6 @@ launch_MSstatsShiny = function(launch_app=TRUE,
   source(paste(path,"module-help-ui.R",sep=""))
   source(paste(path,"module-statstmt-help-ui.R",sep=""))
   source(paste(path,"utils.R",sep=""))
-  runApp(path)
+  runApp(path,port=port, host=host)
   
 }
