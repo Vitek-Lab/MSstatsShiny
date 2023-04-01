@@ -57,6 +57,6 @@ launch_MSstatsShiny = function(launch_app=TRUE,
   # appDir = "Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/MSstatsShiny/R"
   # print('----')
   # runApp(path,port=port, host=host)
-  shinyApp(uiObject(),server)
+  shinyApp(uiObject(),server,options = list(host=host,port=port))
   
 }
