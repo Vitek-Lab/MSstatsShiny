@@ -39,19 +39,19 @@ launch_MSstatsShiny = function(launch_app=TRUE,
   if (!is.null(shiny_test_mode) && shiny_test_mode) {
     path = "../../R/"
   }
-  source(paste(path,"module-home-ui.R",sep=""))
-  source(paste(path,"module-loadpage-ui.R",sep=""))
-  source(paste(path,"module-loadpage-server.R",sep=""))
-  source(paste(path,"module-expdes-ui.R",sep=""))
-  source(paste(path,"module-expdes-server.R",sep=""))
-  source(paste(path,"module-statmodel-ui.R",sep=""))
-  source(paste(path,"module-statmodel-server.R",sep=""))
-  source(paste(path,"module-qc-ui.R",sep=""))
-  source(paste(path,"module-qc-server.R",sep=""))
-  source(paste(path,"module-mssstats-help-ui.R",sep=""))
-  source(paste(path,"module-help-ui.R",sep=""))
-  source(paste(path,"module-statstmt-help-ui.R",sep=""))
-  source(paste(path,"utils.R",sep=""))
+  # source(paste(path,"module-home-ui.R",sep=""))
+  # source(paste(path,"module-loadpage-ui.R",sep=""))
+  # source(paste(path,"module-loadpage-server.R",sep=""))
+  # source(paste(path,"module-expdes-ui.R",sep=""))
+  # source(paste(path,"module-expdes-server.R",sep=""))
+  # source(paste(path,"module-statmodel-ui.R",sep=""))
+  # source(paste(path,"module-statmodel-server.R",sep=""))
+  # source(paste(path,"module-qc-ui.R",sep=""))
+  # source(paste(path,"module-qc-server.R",sep=""))
+  # source(paste(path,"module-mssstats-help-ui.R",sep=""))
+  # source(paste(path,"module-help-ui.R",sep=""))
+  # source(paste(path,"module-statstmt-help-ui.R",sep=""))
+  # source(paste(path,"utils.R",sep=""))
   runApp(path,port=port, host=host)
   
 }
