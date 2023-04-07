@@ -57,6 +57,9 @@ launch_MSstatsShiny = function(launch_app=TRUE,
   # appDir = "Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/MSstatsShiny/R"
   # print('----')
   # runApp(path,port=port, host=host)
+  # addResourcePath(prefix = "www", directoryPath = "./www")
   shinyApp(uiObject(),server,options = list(host=host,port=port))
-  
+  # runApp(app,host=host,port=port)
+  # addResourcePath("prefix", "www")
+  # runApp(shinyApp(uiObject(),server),host=host,port=port)
 }

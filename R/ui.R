@@ -98,4 +98,5 @@ uiObject <- function() {
   return(ui)
 }
 
-shinyUI(uiObject())
+uiObject()
+# shinyUI(uiObject())

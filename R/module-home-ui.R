@@ -18,7 +18,7 @@ homeUI <- function(id) {
                     #statmodel-Design{background-color:orange}
                     #home-Help{background-color:orange}'))
       ),
-      headerPanel(div(img(src = "MSstatsLogo.PNG", height = 165, width = 132), "Welcome to MSstatsShiny")),
+      headerPanel(div(img(src = "assets/MSstatsLogo.PNG", height = 165, width = 132), "Welcome to MSstatsShiny")),
       tags$br(),
       mainPanel(
         div(tagList(
