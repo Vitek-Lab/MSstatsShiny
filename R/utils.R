@@ -16,7 +16,10 @@ getEvidence <- function(input) {
   print(typeof(evidence))
   print(isS4(evidence))
   print("***")
-  if (class(evidence) == "try-error") {
+  # if (class(evidence) == "try-error") {
+  #   evidence = "File load error. Please ensure file is in csv format."
+  # }
+  if (is(evidence,"try-error")) {
     evidence = "File load error. Please ensure file is in csv format."
   }
   
@@ -37,7 +40,10 @@ getEvidence2 <- function(input) {
   evidence2 = try(read.delim(evidence2$datapath), silent=TRUE)
   # }
   
-  if (class(evidence2) == "try-error"){
+  # if (class(evidence2) == "try-error"){
+  #   evidence2 = "File load error. Please ensure file is in csv format." 
+  # }
+  if (is(evidence2,"try-error")) {
     evidence2 = "File load error. Please ensure file is in csv format." 
   }
   cat(file=stderr(), "Reached in evidence\n")
@@ -59,7 +65,10 @@ getGlobal <- function(input) {
                        stringsAsFactors=FALSE), silent=TRUE)
   # }
   
-  if (class(unmod) == "try-error"){
+  # if (class(unmod) == "try-error"){
+  #   unmod = "File load error. Please ensure file is in csv format." 
+  # }
+  if (is(unmod,"try-error")) {
     unmod = "File load error. Please ensure file is in csv format." 
   }
   
@@ -81,7 +90,10 @@ getProteinGroups <- function(input) {
   pGroup = try(read.table(pGroup$datapath, sep="\t", header=TRUE), silent=TRUE)
   # }
   
-  if (class(pGroup) == "try-error"){
+  # if (class(pGroup) == "try-error"){
+  #   pGroup = "File load error. Please ensure file is in csv format." 
+  # }
+  if (is(pGroup,"try-error")) {
     pGroup = "File load error. Please ensure file is in csv format." 
   }
   
@@ -102,10 +114,12 @@ getProteinGroups2 <- function(input) {
   pGroup2 = try(read.delim(pGroup2$datapath), silent=TRUE)
   # }
   
-  if (class(pGroup2) == "try-error"){
+  # if (class(pGroup2) == "try-error"){
+  #   pGroup2 = "File load error. Please ensure file is in csv format." 
+  # }
+  if (is(pGroup2,"try-error")) {
     pGroup2 = "File load error. Please ensure file is in csv format." 
   }
-  
   cat(file=stderr(), "Reached in proteins_group\n")
   return(pGroup2)
 }
@@ -125,10 +139,12 @@ getFragSummary <- function(input) {
                     silent=TRUE)
   # }
   
-  if (class(fragSummary) == "try-error"){
+  # if (class(fragSummary) == "try-error"){
+  #   fragSummary = "File load error. Please ensure file is in excel format." 
+  # }
+  if (is(fragSummary,"try-error")) {
     fragSummary = "File load error. Please ensure file is in excel format." 
   }
-  
   return(fragSummary)
   
 }
@@ -148,10 +164,12 @@ getPeptideSummary <- function(input) {
                                   header=TRUE), silent=TRUE)
   # }
   
-  if (class(peptideSummary) == "try-error"){
-    peptideSummary = "File load error. Please ensure file is in csv format." 
+  # if (class(peptideSummary) == "try-error"){
+  #   peptideSummary = "File load error. Please ensure file is in csv format." 
+  # }
+  if (is(peptideSummary,"try-error")) {
+    peptideSummary = "File load error. Please ensure file is in csv format."
   }
-  
   return(peptideSummary)
   
 }
@@ -170,10 +188,12 @@ getProtSummary <- function(input) {
                     silent=TRUE)
   # }
   
-  if (class(protSummary) == "try-error"){
+  # if (class(protSummary) == "try-error"){
+  #   protSummary = "File load error. Please ensure file is in csv format." 
+  # }
+  if (is(protSummary,"try-error")) {
     protSummary = "File load error. Please ensure file is in csv format." 
   }
-  
   return(protSummary)
   
 }
@@ -191,10 +211,12 @@ getMaxqPtmSites <- function(input) {
   maxq_ptm_sites = try(read.delim(maxq_ptm_sites$datapath), silent=TRUE)
   # }
   
-  if (class(maxq_ptm_sites) == "try-error"){
+  # if (class(maxq_ptm_sites) == "try-error"){
+  #   maxq_ptm_sites = "File load error. Please ensure file is in csv format." 
+  # }
+  if (is(maxq_ptm_sites,"try-error")) {
     maxq_ptm_sites = "File load error. Please ensure file is in csv format." 
   }
-  
   cat(file=stderr(), "Reached in maxq_ptm_sites\n")
   return(maxq_ptm_sites)
   
@@ -207,10 +229,12 @@ getAnnot3 <- function(input) {
   }
   annot3 = try(read.delim(annot3$datapath), silent=TRUE)
   
-  if (class(annot3) == "try-error") {
+  # if (class(annot3) == "try-error") {
+  #   annot3 = "File load error. Please ensure file is in csv format."
+  # }
+  if (is(annot3,"try-error")) {
     annot3 = "File load error. Please ensure file is in csv format."
   }
-  
   cat(file=stderr(), "Reached in ump annot\n")
   return(annot3)
   
@@ -223,10 +247,12 @@ getAnnot2 <- function(input) {
   }
   annot2=try(read.csv(annot1$datapath, header = TRUE), silent=TRUE)
   
-  if (class(annot2) == "try-error") {
+  # if (class(annot2) == "try-error") {
+  #   annot2 = "File load error. Please ensure file is in csv format."
+  # }
+  if (is(annot2,"try-error")) {
     annot2 = "File load error. Please ensure file is in csv format."
   }
-  
   cat(file=stderr(), "Reached in ump annot\n")
   return(annot2)
   
@@ -242,7 +268,10 @@ getAnnot <- function(input) {
     return(annotation.pd)
   }
   annot_file = try(read.csv(annot$datapath), silent=TRUE)
-  if (class(annot_file) == "try-error") {
+  # if (class(annot_file) == "try-error") {
+  #   annot_file = "File load error. Please ensure file is in csv format."
+  # }
+  if(is(annot_file,"try-error")) {
     annot_file = "File load error. Please ensure file is in csv format."
   }
   return(annot_file)
@@ -254,10 +283,12 @@ getAnnot1 <- function(input) {
     return(NULL)
   }
   annot1=try(read.csv(annot1$datapath, header = TRUE), silent=TRUE)
-  if (class(annot1) == "try-error") {
+  # if (class(annot1) == "try-error") {
+  #   annot1 = "File load error. Please ensure file is in csv format."
+  # }
+  if (is(annot1,"try-error")) {
     annot1 = "File load error. Please ensure file is in csv format."
   }
-  
   cat(file=stderr(), "Reached in maxq annot\n")
   return(annot1)
   
@@ -928,9 +959,9 @@ getSummary2 <- function(input) {
     df1 = df %>% summarise("Number of Proteins" = n_distinct(ProteinName), 
                            "Number of Peptides" = n_distinct(PeptideSequence),
                            "Number of Features" = n_distinct(FEATURES),
-                           "Min_Intensity" = ifelse(!is.finite(min(Intensity, na.rm=T)),0,round(min(Intensity, na.rm=T),0)),
-                           "Max_Intensity" = ifelse(!is.finite(max(Intensity, na.rm=T)),0,
-                                                    round(max(Intensity, na.rm=T),0))) %>%
+                           "Min_Intensity" = ifelse(!is.finite(min(Intensity, na.rm=TRUE)),0,round(min(Intensity, na.rm=TRUE),0)),
+                           "Max_Intensity" = ifelse(!is.finite(max(Intensity, na.rm=TRUE)),0,
+                                                    round(max(Intensity, na.rm=TRUE),0))) %>%
       unite("Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
     
     Peptides_Proteins = df %>% group_by(ProteinName)  %>%
@@ -952,11 +983,11 @@ getSummary2 <- function(input) {
                                                   "Number of PTM Features" = n_distinct(FEATURES),
                                                   "Number of Features/PTM" = as.numeric(n_distinct(FEATURES) / n_distinct(PeptideSequence)),
                                                   "Min_Intensity" = ifelse(!is.finite(
-                                                    min(Intensity, na.rm=T)), 0, 
-                                                    round(min(Intensity, na.rm=T),0)),
+                                                    min(Intensity, na.rm=TRUE)), 0, 
+                                                    round(min(Intensity, na.rm=TRUE),0)),
                                                   "Max_Intensity" = ifelse(!is.finite(
-                                                    max(Intensity, na.rm=T)), 0, 
-                                                    round(max(Intensity, na.rm=T),0))) %>%
+                                                    max(Intensity, na.rm=TRUE)), 0, 
+                                                    round(max(Intensity, na.rm=TRUE),0))) %>%
       unite("PTM Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
     # df_ptm1 = df_ptm1 %>% select(!Min_Intensity, !Max_Intensity)
     
@@ -966,11 +997,11 @@ getSummary2 <- function(input) {
                                                     "Number of Features/Peptide" = as.numeric(n_distinct(FEATURES) / n_distinct(PeptideSequence)),
                                                     "Number of Peptides/Protein" = as.numeric(n_distinct(PeptideSequence) / n_distinct(ProteinName)),
                                                     "Min_Intensity" = ifelse(!is.finite(
-                                                      min(Intensity, na.rm=T)), 0, 
-                                                      round(min(Intensity, na.rm=T),0)),
+                                                      min(Intensity, na.rm=TRUE)), 0, 
+                                                      round(min(Intensity, na.rm=TRUE),0)),
                                                     "Max_Intensity" = ifelse(!is.finite(
-                                                      max(Intensity, na.rm=T)), 0, 
-                                                      round(max(Intensity, na.rm=T),0))) %>%
+                                                      max(Intensity, na.rm=TRUE)), 0, 
+                                                      round(max(Intensity, na.rm=TRUE),0))) %>%
       unite("Protein Intensity Range", Min_Intensity:Max_Intensity, sep = " - ")
     df1 = cbind(df_ptm1, df_prot1)
   }
