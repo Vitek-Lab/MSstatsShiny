@@ -4,7 +4,6 @@
 #' run automatically.
 #' 
 #' @export
-#' @importFrom shiny runA
 #' @return Running Shiny Application
 #' 
 #' @param launch_app One of TRUE or FALSE indicating whether or not to run 

@@ -1,18 +1,18 @@
-library(shiny)
-library(shinyBS)
-library(shinyjs)
-library(shinybusy)
-library(DT)
-library(htmltools)
-library(uuid)
-library(Hmisc)
-library(dplyr)
-library(data.table)
-library(tidyr)
-library(MSstats)
-library(MSstatsTMT)
-library(MSstatsConvert)
-library(MSstatsPTM)
+# library(shiny)
+# library(shinyBS)
+# library(shinyjs)
+# library(shinybusy)
+# library(DT)
+# library(htmltools)
+# library(uuid)
+# library(Hmisc)
+# library(dplyr)
+# library(data.table)
+# library(tidyr)
+# library(MSstats)
+# library(MSstatsTMT)
+# library(MSstatsConvert)
+# library(MSstatsPTM)
 
 jsCode = '
 shinyjs.init = function() {
@@ -91,8 +91,8 @@ uiObject <- function() {
                tabPanel("MSstats Vignette", msstatsHelpUI("msstatsHelp")),
                tabPanel("MSstatsTMT Vignette", msstatsTmtHelpUI("msstatsTmtHelp"))
     ),
-    inverse = T,
-    collapsible = T,
+    inverse = TRUE,
+    collapsible = TRUE,
     windowTitle = "MSstatsShiny"
   )
   return(ui)

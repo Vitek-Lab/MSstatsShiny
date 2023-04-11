@@ -107,7 +107,7 @@ loadpageUI <- function(id) {
                          h4("4. Upload MSstats scheme output from Spectronaut")),
         conditionalPanel(
           condition = "input['loadpage-filetype'] && input['loadpage-filetype'] != 'maxq' && input['loadpage-filetype'] != 'sample' && input['loadpage-filetype'] != 'ump' && input['loadpage-filetype'] != 'MRF' && input['loadpage-filetype'] != 'spec' && input['loadpage-filetype'] != 'spmin' && input['loadpage-DDA_DIA'] != 'PTM'",# && input['loadpage-filetype'] != 'phil'
-          fileInput(ns('data'), "", multiple = F, 
+          fileInput(ns('data'), "", multiple = FALSE, 
                     accept = c("text/csv", 
                                "text/comma-separated-values,text/plain", 
                                ".csv")),
@@ -116,7 +116,7 @@ loadpageUI <- function(id) {
                                   tipify(icon("question-circle"), 
                                          title = "Choose how columns are separated in the uploaded file")),
                        c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), 
-                       inline = T)),
+                       inline = TRUE)),
         # conditionalPanel(
         #   condition = "input['loadpage-filetype'] && input['loadpage-filetype'] == 'phil'",
         #   fileInput(ns("folder"), "Upload a zip file", accept = ".zip")
@@ -125,22 +125,22 @@ loadpageUI <- function(id) {
         conditionalPanel(
           condition = "input['loadpage-filetype'] == 'phil' && input['loadpage-DDA_DIA'] == 'PTM'",
           h4("3. Upload PTM msstats dataset"),
-          fileInput(ns('ptmdata'), "", multiple = F, 
+          fileInput(ns('ptmdata'), "", multiple = FALSE, 
                     accept = c("text/csv", 
                                "text/comma-separated-values,text/plain", 
                                ".csv")),
           h4("4. Upload PTM annotation file"),
-          fileInput(ns('annotation'), "", multiple = F, 
+          fileInput(ns('annotation'), "", multiple = FALSE, 
                     accept = c("text/csv", 
                                "text/comma-separated-values,text/plain", 
                                ".csv")),
           h4("5. Upload global profling msstats dataset (optional)"),
-          fileInput(ns('globaldata'), "", multiple = F, 
+          fileInput(ns('globaldata'), "", multiple = FALSE, 
                     accept = c("text/csv", 
                                "text/comma-separated-values,text/plain", 
                                ".csv")),
           h4("6. Upload global profling annotation file (optional)"),
-          fileInput(ns('globalannotation'), "", multiple = F, 
+          fileInput(ns('globalannotation'), "", multiple = FALSE, 
                     accept = c("text/csv", 
                                "text/comma-separated-values,text/plain", 
                                ".csv")),
@@ -170,7 +170,7 @@ loadpageUI <- function(id) {
           h4("5. Upload annotation File", tipify(icon("question-circle"), 
                                                  title = "Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.")),
            #downloadLink("template", "Annotation file template"),
-          fileInput(ns('annot'), "", multiple = F,
+          fileInput(ns('annot'), "", multiple = FALSE,
                     accept = c("text/csv",
                                "text/comma-separated-values,text/plain", ".csv"))
         ),

@@ -208,7 +208,11 @@ tmt_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator 
                                    BioReplicate, Intensity, IsotopeLabelType,
                                    Fraction = 1)]
       single_run = new("MSstatsValidated", single_run)
-      
+      print("S$$$$$$$$")
+      print(class(single_run))
+      print(typeof(single_run))
+      print(isS4(single_run))
+      print("S$$$$$$$$")
       ## Make LF flow into a function and replace it here
       msstats_summary = lf_summarization_loop(single_run, qc_input,loadpage_input, FALSE)
       

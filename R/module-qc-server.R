@@ -322,7 +322,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input) {
       paste("Protein_level_data-", Sys.Date(), ".csv", sep="")
     },
     content = function(file) {
-      write.csv(preprocess_data()$PROTEIN$ProteinLevelData, file, row.names = F)
+      write.csv(preprocess_data()$PROTEIN$ProteinLevelData, file, row.names = FALSE)
     }
   )
   

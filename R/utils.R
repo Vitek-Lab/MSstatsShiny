@@ -11,7 +11,11 @@ getEvidence <- function(input) {
   # } else {
   evidence = try(read.table(evidence$datapath, sep="\t", header=TRUE), silent=TRUE)
   # }
-  
+  print("***")
+  print(class(evidence))
+  print(typeof(evidence))
+  print(isS4(evidence))
+  print("***")
   if (class(evidence) == "try-error") {
     evidence = "File load error. Please ensure file is in csv format."
   }

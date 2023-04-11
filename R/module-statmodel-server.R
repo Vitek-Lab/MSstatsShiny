@@ -254,11 +254,6 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
       }
     }
     enable("calculate")
-    print("THIS IS THE MATRIX")
-    print(contrast$matrix)
-    print(class(contrast$matrix))
-    print(typeof(contrast$matrix))
-    print("THIS IS THE MATRIX")
     return(contrast$matrix)
   })
 
