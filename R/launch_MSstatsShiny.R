@@ -51,14 +51,6 @@ launch_MSstatsShiny = function(launch_app=TRUE,
   # source(paste(path,"module-help-ui.R",sep=""))
   # source(paste(path,"module-statstmt-help-ui.R",sep=""))
   # source(paste(path,"utils.R",sep=""))
-  # appDir = system.file("MSstatsShiny", package = "MSstatsShiny")
-  # print(appDir)
-  # appDir = "Library/Frameworks/R.framework/Versions/4.2-arm64/Resources/library/MSstatsShiny/R"
-  # print('----')
-  # runApp(path,port=port, host=host)
-  # addResourcePath(prefix = "www", directoryPath = "./www")
   shinyApp(uiObject(),server,options = list(host=host,port=port))
-  # runApp(app,host=host,port=port)
-  # addResourcePath("prefix", "www")
   # runApp(shinyApp(uiObject(),server),host=host,port=port)
 }
