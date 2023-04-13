@@ -83,12 +83,6 @@
 #' @importFrom graphics image mtext par plot.new
 #' @importFrom stats dist hclust qt
 #' @importFrom utils read.table write.table
-#' 
-#' @examples
-#' data("dia_skyline_model")
-#' groupComparisonPlots2(dia_skyline_model$ComparisonResult, type="VolcanoPlot",
-#'                       address=FALSE)
-#'                       
 groupComparisonPlots2 = function(data=data,
                                  type=type,
                                  sig=0.05,

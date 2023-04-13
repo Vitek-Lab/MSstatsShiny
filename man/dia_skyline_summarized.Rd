@@ -13,8 +13,3 @@ Data includes one list with two data.tables named \code{FeatureLevelData} and
 shows the unsummarized feature level data. \code{ProteinLevelData} shows the data
 summarized up to the protein level and is used for modeling the data.
 }
-\examples{
-data(dia_skyline_summarized)
-head(dia_skyline_summarized)
-
-}

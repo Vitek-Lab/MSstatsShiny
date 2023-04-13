@@ -13,8 +13,3 @@ Data includes one list with two data.tables named \code{FeatureLevelData} and
 data. \code{ProteinLevelData} shows the data summarized up to the protein level
 and is used for modeling the data.
 }
-\examples{
-data(tmt_pd_summarized)
-head(tmt_pd_summarized)
-
-}

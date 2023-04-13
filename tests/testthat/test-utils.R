@@ -585,11 +585,11 @@ test_that("tmt maxquant", {
     mock_input$DDA_DIA <- "TMT"
     mock_input$filetype = "maxq"
     
-    load(system.file("tinytest/raw_data_tmt/evidence.rda",
+    load(system.file("data/evidence.rda",
                      package = "MSstatsShiny"))
-    load(system.file("tinytest/raw_data_tmt/proteinGroups.rda",
+    load(system.file("data/proteinGroups.rda",
                      package = "MSstatsShiny"))
-    load(system.file("tinytest/raw_data_tmt/annotation.mq.rda",
+    load(system.file("data/annotation.mq.rda",
                      package = "MSstatsShiny"))
     stub(getData,"getEvidence",evidence)
     stub(getData,"getProteinGroups",proteinGroups)
@@ -609,8 +609,7 @@ test_that("tmt openms", {
     mock_input$filetype = "openms"
     mock_input$sep = ","
     
-    load(system.file("tinytest/raw_data_tmt/raw.om.rda",
-                     package = "MSstatsShiny"))
+    load(system.file("data/raw.om.rda", package = "MSstatsShiny"))
     stub(getData,"read.csv",raw.om)
     
     output <- getData(mock_input)
@@ -625,9 +624,9 @@ test_that("tmt spectromine", {
     mock_input$DDA_DIA <- "TMT"
     mock_input$filetype = "spmin"
     
-    load(system.file("tinytest/raw_data_tmt/raw.mine.rda",
+    load(system.file("data/raw.mine.rda",
                      package = "MSstatsShiny"))
-    load(system.file("tinytest/raw_data_tmt/annotation.mine.rda",
+    load(system.file("data/annotation.mine.rda",
                      package = "MSstatsShiny"))
     stub(getData,"read.csv",raw.mine)
     stub(getData,"getAnnot",annotation.mine)
@@ -884,7 +883,12 @@ test_that("get summary 2 PTM PTMTMT:Yes", {
     output <- getSummary2(mock_input)
     print(rownames(output))
     
-    expected_names <- c("Number of PTMs","Number of PTM Features","Number of Features/PTM","PTM Intensity Range","Number of Unmod Proteins","Number of Protein Peptides","Number of Protein Features","Number of Features/Peptide","Number of Peptides/Protein","Protein Intensity Range")
+    expected_names <- c("Number of PTMs","Number of PTM Features",
+                        "Number of Features/PTM","PTM Intensity Range",
+                        "Number of Unmod Proteins","Number of Protein Peptides",
+                        "Number of Protein Features",
+                        "Number of Features/Peptide",
+                        "Number of Peptides/Protein","Protein Intensity Range")
     expect_type(output,"list")
     expect_identical(rownames(output), expected_names)
   })
@@ -1182,10 +1186,10 @@ test_that("dataComparison statmodel PTM PTMTMT: No", {
           mockery::stub(MSstatsShiny::lf_summarization_loop, "show_modal_progress_line", NULL);
           mockery::stub(MSstatsShiny::lf_summarization_loop, "remove_modal_progress", NULL);
           mockery::stub(MSstatsShiny::lf_summarization_loop, "update_modal_progress", NULL);
-          # mockery::stub(MSstatsShiny::lf_summarization_loop, "qc_input", mock_input,depth=2);
-          # mockery::stub(where=MSstatsShiny::lf_summarization_loop, what="QC_check", how=function(...){
-          #   mockery::stub(QC_check, "qc_input", mock_input);
-          #   QC_check(...)});
+          mockery::stub(MSstatsShiny::lf_summarization_loop, "qc_input", mock_input,depth=2);
+          mockery::stub(where=MSstatsShiny::lf_summarization_loop, what="QC_check", how=function(...){
+            mockery::stub(QC_check, "qc_input", mock_input);
+            QC_check(...)});
           MSstatsShiny::lf_summarization_loop(...)});
         preprocessData(...)})
 

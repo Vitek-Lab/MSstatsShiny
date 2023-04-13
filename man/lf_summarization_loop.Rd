@@ -22,32 +22,3 @@ list of LF Summarization results
 \description{
 Main LF function to calculate MSstatsShiny results.
 }
-\examples{
-data("example_dia_skyline")
-data("example_skyline_annotation")
-testdata = MSstats::SkylinetoMSstatsFormat(example_dia_skyline,
-                                            annotation = example_skyline_annotation,
-                                            filter_with_Qvalue = TRUE, 
-                                            qvalue_cutoff = 0.01, 
-                                            fewMeasurements="remove", 
-                                            removeProtein_with1Feature = TRUE,
-                                            use_log_file = FALSE)
-
-## Source app functionality
-qc_input = list()
-loadpage_input = list()
-qc_input$norm = "equalizeMedians"
-qc_input$log = 2
-qc_input$names = NULL
-qc_input$features_used	= "all"
-code_n_feat=3
-qc_input$censInt = "NA"
-qc_input$MBi = TRUE
-qc_input$remove50 = FALSE
-qc_input$maxQC = 0.999
-qc_input$null = FALSE
-qc_input$null1 = FALSE
-loadpage_input$DDA_DIA = "LF"
-lf_summarization_loop(testdata, qc_input,loadpage_input, busy_indicator=FALSE)
-
-}

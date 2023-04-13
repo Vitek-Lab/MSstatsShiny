@@ -856,34 +856,13 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
     }
   )
 
-# observeEvent(input$plotresults, {
-#   insertUI(
-#     selector = "#comparison_plots",
-#     ui=tags$div(
-#       if (input$typeplot == "VolcanoPlot") {
-#         js = paste("window.open('", group_comparison(TRUE, TRUE), "VolcanoPlot.pdf')", sep="")
-#         print(js)
-#         runjs(js);
-#       }
-#       else if (input$typeplot == "Heatmap") {
-#         js = paste("window.open('", group_comparison(TRUE, TRUE), "Heatmap.pdf')", sep="")
-#         runjs(js);
-#       }
-#       else if (input$typeplot == "ComparisonPlot") {
-#         js = paste("window.open('", group_comparison(TRUE, TRUE), "ComparisonPlot.pdf')", sep="")
-#         runjs(js);
-#       }
-#     )
-#   )
-# })
-
   observeEvent(input$calculate,{
     enable("Design")
     enable("typeplot")
     enable("WhichComp")
     enable("download_code")
   })
-
+  
   return(
     list(
       ip = input,

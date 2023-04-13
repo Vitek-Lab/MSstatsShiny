@@ -20,14 +20,3 @@ list of LF modeling results
 \description{
 Main LF function to model MSstatsShiny data.
 }
-\examples{
-data("dia_skyline_summarized")
-comparison <- matrix(c(1, -1, 0, 0, 0, 0, 0, 0, 0, 0),nrow=1)
-row.names(comparison) = "1 vs 128"
-colnames(comparison) = c("1", "128", "16", "2", "256", 
-                         "32", "4", "512", "64", "8")
-model_lf_test = lf_model(dia_skyline_summarized, comparison, 
-                         busy_indicator = FALSE)
-
-
-}

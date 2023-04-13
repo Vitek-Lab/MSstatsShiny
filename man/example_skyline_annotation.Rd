@@ -12,8 +12,3 @@ data.frame mapping Skyline run names to the corresponding bioreplicates and
 conditions. Used as input to preprocessing function, converting data into
 MSstats format.
 }
-\examples{
-data(example_skyline_annotation)
-head(example_skyline_annotation)
-
-}

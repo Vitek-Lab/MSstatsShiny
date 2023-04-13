@@ -166,21 +166,21 @@ loadpageServer <- function(id, parent_session) {
       })
       
       output$template = downloadHandler(
-        filename = "templateannotation.csv",
+        filename = "extdata/templateannotation.csv",
         
         content = function(file) {
-          file.copy("templateannotation.csv", file)
+          file.copy("extdata/templateannotation.csv", file)
         },
         contentType = "csv"
       )
       
       output$template1 = downloadHandler(
         filename = function() {
-          paste("templateevidence", "txt", sep = ".")
+          paste("extdata/templateevidence", "txt", sep = ".")
         },
         
         content = function(file) {
-          file.copy("templateevidence.txt", file)
+          file.copy("extdata/templateevidence.txt", file)
         },
         contentType = "txt"
       )
@@ -219,7 +219,8 @@ loadpageServer <- function(id, parent_session) {
       )
 
       onclick("proceed2", {
-        updateTabsetPanel(session = parent_session, inputId = "tablist", selected = "DataProcessing")
+        updateTabsetPanel(session = parent_session, inputId = "tablist", 
+                          selected = "DataProcessing")
       })
       output$summary_tables = renderUI({
         ns <- session$ns

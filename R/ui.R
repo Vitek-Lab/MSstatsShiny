@@ -65,22 +65,6 @@ uiObject <- function() {
     id = "tablist",
     selected = currentTab,
     
-    # tags$head(
-    #   tags$style(HTML("
-    #                 .shiny-output-error-validation {
-    #                 color: red;
-    #                 }
-    #                 h1 {
-    #                 color: #000000;
-    #                 }
-    #                 "))
-    # ),
-    
-    
-    # useShinyjs(),
-    # extendShinyjs(text = jsCode,functions = c("init","enableTab")),
-    # tags$style(css),
-    
     
     tabPanel("Homepage", icon = icon("home"), homeUI("home")),
     tabPanel("1. Data Uploading",value = "Uploaddata", icon = icon("paper-plane"), loadpageUI("loadpage")),
@@ -100,4 +84,3 @@ uiObject <- function() {
 }
 
 uiObject()
-# shinyUI(uiObject())

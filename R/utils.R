@@ -323,7 +323,9 @@ getData <- function(input) {
       mydata = MSstats::DDARawData
     }
     else if(input$DDA_DIA == "DIA"){
-      mydata = read.csv("data/dataset.csv", header = TRUE, sep = ";")
+      mydata = read.csv(system.file("extdata/dataset.csv",
+                                    package = "MSstatsShiny"), 
+                        header = TRUE, sep = ";")
     }
     else if(input$DDA_DIA == "TMT"){
       mydata = PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd,
@@ -423,7 +425,9 @@ getData <- function(input) {
                       stringsAsFactors=FALSE)
       # }
       if(input$DDA_DIA=="DDA" ){
-        data = data[which(data$Fragment.Ion %in% c("precursor", "precursor [M+1]","precursor [M+2]")),]
+        data = data[which(data$Fragment.Ion %in% c("precursor", 
+                                                   "precursor [M+1]",
+                                                   "precursor [M+2]")),]
 
         mydata = SkylinetoMSstatsFormat(data,
                                         annotation = getAnnot(input),

@@ -32,6 +32,3 @@ HTML object
 \description{
 Used in UI files to create HTML vizualizations
 }
-\examples{
-radioTooltip("testid", "test_choice", "test_title")
-}

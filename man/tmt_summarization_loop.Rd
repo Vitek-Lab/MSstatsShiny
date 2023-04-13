@@ -22,35 +22,3 @@ list of TMT summarization results
 \description{
 Main TMT function to calculate MSstatsShiny results.
 }
-\examples{
-data(raw.pd, package = "MSstatsTMT")
-data(annotation.pd, package = "MSstatsTMT")
-
-testdata <- MSstatsTMT::PDtoMSstatsTMTFormat(raw.pd, 
-                                             annotation.pd,
-                                             use_log_file = FALSE
-                                             )
-
-qc_input = list()
-loadpage_input = list()
-qc_input$summarization = "msstats"
-qc_input$norm = "equalizeMedians"
-qc_input$log = 2
-qc_input$names = NULL
-qc_input$features_used	= "all"
-code_n_feat=3
-qc_input$censInt = "NA"
-qc_input$MBi = TRUE
-qc_input$remove50 = FALSE
-qc_input$maxQC = 0.999
-qc_input$null = FALSE
-qc_input$null1 = FALSE
-loadpage_input$DDA_DIA = "LF"
-qc_input$global_norm = TRUE
-qc_input$reference_norm = TRUE
-qc_input$remove_norm_channel = TRUE
-qc_input$maxQC1 = NULL
-summarization_tmt_test = tmt_summarization_loop(testdata, qc_input,loadpage_input, 
-                                               busy_indicator = FALSE)
-
-}

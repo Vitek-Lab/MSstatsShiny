@@ -302,6 +302,4 @@ loadpageUI <- function(id) {
       )
     )
   )
-  
 }
-

@@ -128,7 +128,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input) {
   # preprocess data
   preprocess_data = eventReactive(input$run, {
     
-    qc_input <- reactive({
+   qc_input <- reactive({
       input
     })
     preprocessData(qc_input(),loadpage_input())
