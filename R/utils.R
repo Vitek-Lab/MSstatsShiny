@@ -326,8 +326,8 @@ getData <- function(input) {
       mydata = read.csv("data/dataset.csv", header = TRUE, sep = ";")
     }
     else if(input$DDA_DIA == "TMT"){
-      mydata = PDtoMSstatsTMTFormat(input = raw.pd,
-                                    annotation = annotation.pd,
+      mydata = PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd,
+                                    annotation = MSstatsTMT::annotation.pd,
                                     which.proteinid = input$which.proteinid,
                                     use_log_file = FALSE
       )
