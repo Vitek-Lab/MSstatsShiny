@@ -13,6 +13,7 @@
 # library(MSstatsTMT)
 # library(MSstatsConvert)
 # library(MSstatsPTM)
+# @import shiny shinyBS shinyjs shinybusy DT htmltools Hmisc uuid dplyr data.table tidyr MSstats MSstatsTMT MSstatsConvert MSstatsPTM
 
 jsCode = '
 shinyjs.init = function() {
@@ -56,29 +57,29 @@ color: black !important;
 #' shinyUI(uiObject())
 #' }
 #' @rdname uiObject
+#' @importFrom shiny NS span
 #' @export 
-#' @import shiny shinyBS shinyjs shinybusy DT htmltools Hmisc uuid dplyr data.table tidyr MSstats MSstatsTMT MSstatsConvert MSstatsPTM
 uiObject <- function() {
   ui = navbarPage(
     title = "MSstatsShiny",
     id = "tablist",
     selected = currentTab,
     
-    tags$head(
-      tags$style(HTML("
-                    .shiny-output-error-validation {
-                    color: red;
-                    }
-                    h1 {
-                    color: #000000;
-                    }
-                    "))
-    ),
+    # tags$head(
+    #   tags$style(HTML("
+    #                 .shiny-output-error-validation {
+    #                 color: red;
+    #                 }
+    #                 h1 {
+    #                 color: #000000;
+    #                 }
+    #                 "))
+    # ),
     
     
-    useShinyjs(),
-    extendShinyjs(text = jsCode,functions = c("init","enableTab")),
-    tags$style(css),
+    # useShinyjs(),
+    # extendShinyjs(text = jsCode,functions = c("init","enableTab")),
+    # tags$style(css),
     
     
     tabPanel("Homepage", icon = icon("home"), homeUI("home")),

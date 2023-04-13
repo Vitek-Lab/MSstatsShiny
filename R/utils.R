@@ -342,15 +342,16 @@ getData <- function(input) {
   }
   else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")){
     if (input$filetype == 'maxq') {
-      mydata = MaxQtoMSstatsPTMFormat(ptm_sites_data,
-                                      annot3,
-                                      evidence=ev_maxq2,
-                                      proteinGroups=pg_maxq2,
-                                      annotation.prot=annot3,
-                                      mod.num=input$mod.num,
-                                      TMT.keyword=input$TMT.keyword,
-                                      ptm.keyword=input$PTM.keyword)
-      mydata$PROTEIN = as.data.frame(mydata$PROTEIN)
+      # mydata = MaxQtoMSstatsPTMFormat(ptm_sites_data,
+      #                                 annot3,
+      #                                 evidence=ev_maxq2,
+      #                                 proteinGroups=pg_maxq2,
+      #                                 annotation.prot=annot3,
+      #                                 mod.num=input$mod.num,
+      #                                 TMT.keyword=input$TMT.keyword,
+      #                                 ptm.keyword=input$PTM.keyword)
+      # mydata$PROTEIN = as.data.frame(mydata$PROTEIN)
+      mydata
 
     } else if(input$filetype=='phil'){
       mydata = read.csv(input$ptmdata$datapath)
