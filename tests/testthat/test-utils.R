@@ -1182,10 +1182,10 @@ test_that("dataComparison statmodel PTM PTMTMT: No", {
           mockery::stub(MSstatsShiny::lf_summarization_loop, "show_modal_progress_line", NULL);
           mockery::stub(MSstatsShiny::lf_summarization_loop, "remove_modal_progress", NULL);
           mockery::stub(MSstatsShiny::lf_summarization_loop, "update_modal_progress", NULL);
-          mockery::stub(MSstatsShiny::lf_summarization_loop, "qc_input", mock_input,depth=2);
-          mockery::stub(where=MSstatsShiny::lf_summarization_loop, what="QC_check", how=function(...){
-            mockery::stub(QC_check, "qc_input", mock_input);
-            QC_check(...)});
+          # mockery::stub(MSstatsShiny::lf_summarization_loop, "qc_input", mock_input,depth=2);
+          # mockery::stub(where=MSstatsShiny::lf_summarization_loop, what="QC_check", how=function(...){
+          #   mockery::stub(QC_check, "qc_input", mock_input);
+          #   QC_check(...)});
           MSstatsShiny::lf_summarization_loop(...)});
         preprocessData(...)})
 
