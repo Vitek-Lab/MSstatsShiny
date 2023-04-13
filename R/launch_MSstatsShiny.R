@@ -20,7 +20,8 @@
 #' }
 launch_MSstatsShiny = function(launch_app=TRUE, 
                                port=getOption("shiny.port"), 
-                               host=getOption("shiny.host", "127.0.0.1"),testMode = FALSE){
+                               host=getOption("shiny.host", "127.0.0.1"),
+                               testMode = FALSE){
   
   # appDir = system.file("MSstatsShiny", package = "MSstatsShiny")
   # if (appDir == "") {
@@ -31,8 +32,6 @@ launch_MSstatsShiny = function(launch_app=TRUE,
   # if (launch_app){
   #   runApp(appDir, port=port, host=host)
   # }
-  print(getwd())
-  print(list.files('.'))
   path = "R/"
   shiny_test_mode <- testMode
   if (!is.null(shiny_test_mode) && shiny_test_mode) {

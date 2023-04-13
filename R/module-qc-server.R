@@ -31,7 +31,6 @@ qcServer <- function(input, output, session,parent_session, loadpage_input) {
         selectizeInput(ns("names"), "choose standard", unique(getData(loadpage_input())[2]), multiple = TRUE)
       }
       else{
-        print("helllll")
         selectizeInput(ns("names"), "choose standard", unique(getData(loadpage_input())[1]), multiple = TRUE)
       }
       

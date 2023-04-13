@@ -27,18 +27,23 @@ server <- function(input, output, session) {
   })
   
   observeEvent(input$"statmodel-Design", {
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
+    updateTabsetPanel(session = session, inputId = "tablist", 
+                      selected = "Future")
   })
   observeEvent(input$"home-StartPipeline", {
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
+    updateTabsetPanel(session = session, inputId = "tablist", 
+                      selected = "Uploaddata")
   })
   
   loadpage_input <- loadpageServer("loadpage", parent_session = session)
   qc_input <- callModule(qcServer, "qc",session, reactive(loadpage_input))
-  statmodel_input <- callModule(statmodelServer, "statmodel",session, reactive(loadpage_input),reactive(qc_input))
-  callModule(expdesServer, "expdes",session, reactive(loadpage_input),reactive(qc_input),reactive(statmodel_input))
+  statmodel_input <- callModule(statmodelServer, "statmodel",session, 
+                                reactive(loadpage_input),reactive(qc_input))
+  callModule(expdesServer, "expdes",session, reactive(loadpage_input),
+             reactive(qc_input),reactive(statmodel_input))
   observeEvent(input$proceed, {
-    updateTabsetPanel(session = session, inputId = "tablist", selected = "Uploaddata")
+    updateTabsetPanel(session = session, inputId = "tablist", 
+                      selected = "Uploaddata")
   })
   
   # statmodel= reactiveFileReader(1000, session, "panels/statmodel-ui.R", source)
