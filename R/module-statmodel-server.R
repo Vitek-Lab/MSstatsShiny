@@ -9,6 +9,8 @@
 #' @param parent_session session of the main calling module
 #' @param loadpage_input input object from loadpage UI
 #' @param qc_input input object from QC UI
+#' @param get_data stored function that returns the data from loadpage
+#' @param preprocess_data stored function that returns preprocessed data
 #' 
 #' @return list object with user selected options and matrix build
 #'

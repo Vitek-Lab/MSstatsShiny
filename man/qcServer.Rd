@@ -16,6 +16,8 @@ qcServer(input, output, session, parent_session, loadpage_input, get_data)
 \item{parent_session}{session of the main calling module}
 
 \item{loadpage_input}{input object from loadpage UI}
+
+\item{get_data}{stored function that returns the data from loadpage}
 }
 \value{
 input object with user selected options

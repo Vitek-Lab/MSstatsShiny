@@ -27,6 +27,10 @@ statmodelServer(
 \item{loadpage_input}{input object from loadpage UI}
 
 \item{qc_input}{input object from QC UI}
+
+\item{get_data}{stored function that returns the data from loadpage}
+
+\item{preprocess_data}{stored function that returns preprocessed data}
 }
 \value{
 list object with user selected options and matrix build

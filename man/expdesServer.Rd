@@ -29,6 +29,8 @@ expdesServer(
 \item{qc_input}{input object from QC UI}
 
 \item{statmodel_input}{input object from Statmodel UI}
+
+\item{data_comparison}{function for group comparisons}
 }
 \value{
 list object with user selected options and matrix build

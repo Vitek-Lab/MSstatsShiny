@@ -10,6 +10,7 @@
 #' @param loadpage_input input object from loadpage UI
 #' @param qc_input input object from QC UI
 #' @param statmodel_input input object from Statmodel UI
+#' @param data_comparison function for group comparisons
 #' 
 #' @return list object with user selected options and matrix build
 #'

@@ -8,6 +8,7 @@
 #' @param session session current module
 #' @param parent_session session of the main calling module
 #' @param loadpage_input input object from loadpage UI
+#' @param get_data stored function that returns the data from loadpage
 #' 
 #' @return input object with user selected options
 #'
