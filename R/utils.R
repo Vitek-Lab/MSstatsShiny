@@ -11,11 +11,6 @@ getEvidence <- function(input) {
   # } else {
   evidence = try(read.table(evidence$datapath, sep="\t", header=TRUE), silent=TRUE)
   # }
-  print("***")
-  print(class(evidence))
-  print(typeof(evidence))
-  print(isS4(evidence))
-  print("***")
   # if (class(evidence) == "try-error") {
   #   evidence = "File load error. Please ensure file is in csv format."
   # }
@@ -295,7 +290,7 @@ getAnnot1 <- function(input) {
 }
 
 getData <- function(input) {
-  print("get datattaaaaa beingggg callleddd*********8")
+  print("+++++++++ In getData +++++++++")
   show_modal_spinner()
   ev_maxq = getEvidence(input)
   pg_maxq = getProteinGroups(input)
@@ -840,8 +835,7 @@ library(MSstatsPTM)\n", sep = "")
 
 getSummary1 <- function(input, df,annot_df) {
   # df = getData(input)
-  print("in sumaryyyyyyy1111")
-  print("in sumaryyyyyyy1111")
+  print("+++++++++ In getSummary1 +++++++++")
   # annot_df = getAnnot(input)
   if (input$DDA_DIA != "PTM"){
     df = as.data.frame(df)
@@ -935,8 +929,7 @@ getSummary1 <- function(input, df,annot_df) {
 
 getSummary2 <- function(input,df) {
   # df = getData(input)
-  print("in sumaryyyyyyy2222")
-  print("in sumaryyyyyyy2222")
+  print("+++++++++ In getSummary2 +++++++++")
   if(input$DDA_DIA=="TMT"){
     df = as.data.frame(df)
     df = df %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence, Charge,
@@ -1027,13 +1020,19 @@ getSummary2 <- function(input,df) {
 }
 
 # qc server functions
-preprocessData <- function(qc_input,loadpage_input) {
-  validate(need(getData(loadpage_input), 
-                message = "PLEASE UPLOAD DATASET OR SELECT SAMPLE"))
+preprocessData <- function(qc_input,loadpage_input,input_data ) {
+  print("+++++++++ In preprocessData +++++++++")
+  # validate(need(getData(loadpage_input), 
+  #               message = "PLEASE UPLOAD DATASET OR SELECT SAMPLE"))
+  # 
+  # ## Preprocess input for loop
+  # 
+  # input_data = getData(loadpage_input)
   
-  ## Preprocess input for loop
+  validate(need(input_data,
+                message = "PLEASE UPLOAD DATASET OR SELECT SAMPLE"))
 
-  input_data = getData(loadpage_input)
+  ## Preprocess input for loop
   preprocess_list = list()
   MSstatsLogsSettings(FALSE)
   ## Here we run the underlying functions for MSstats and MSstatsTMT 
@@ -1053,9 +1052,7 @@ preprocessData <- function(qc_input,loadpage_input) {
   } else if(loadpage_input$DDA_DIA == "TMT"){
     
     ## Run MSstatsTMT summarization
-    print("hereee")
     preprocessed = MSstatsShiny::tmt_summarization_loop(input_data, qc_input,loadpage_input)
-    print("thereee")
   } else {
     
     ## Run LF MSstats summarization
@@ -1125,8 +1122,6 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
                             address = FALSE)\n", sep="")
   }
   else{
-    print(qc_input$features_used)
-    print("xxx")
     if (qc_input$features_used == "all"){
       code_n_feat = 'NULL'
     } else if (qc_input$features_used == "topN") {
@@ -1164,8 +1159,9 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
 
 
 # statmodel server functions
-dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix) {
-  input_data = preprocessData(qc_input,loadpage_input)
+dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix,input_data) {
+  print("+++++++++ In Data Comparison +++++++++")
+  # input_data = preprocessData(qc_input,loadpage_input,get_data())
   contrast.matrix = matrix
   if (loadpage_input$DDA_DIA == "PTM" & loadpage_input$PTMTMT == "Yes"){
     model_ptm = MSstatsShiny::tmt_model(input_data$PTM, statmodel_input, contrast.matrix)

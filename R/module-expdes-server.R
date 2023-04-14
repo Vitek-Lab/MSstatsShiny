@@ -13,13 +13,9 @@
 #' 
 #' @return list object with user selected options and matrix build
 #'
-expdesServer <- function(input, output, session,parent_session, loadpage_input, qc_input,statmodel_input) {
+expdesServer <- function(input, output, session,parent_session, loadpage_input, qc_input,statmodel_input,data_comparison) {
   # toggle input elements and plot
   observe({
-    print("ZZZZZZ")
-    print(statmodel_input()$input)
-    print(statmodel_input()$input$def_comp)
-    print("ZZZZZZ")
     if (input$param == "sample") {
       disable("nsample")
       sample_x = TRUE
@@ -40,7 +36,7 @@ expdesServer <- function(input, output, session,parent_session, loadpage_input, 
     FDR_x = input$FDR
     FCR_x = input$desirFC
     future_exp = function(){
-      exp = designSampleSize(data=dataComparison(statmodel_input(),qc_input(),loadpage_input(),statmodel_input()$matrix())$FittedModel,
+      exp = designSampleSize(data=data_comparison()$FittedModel,
                              desiredFC = input$desirFC,
                              FDR = FDR_x,
                              numSample = sample_x,

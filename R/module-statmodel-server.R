@@ -12,21 +12,21 @@
 #' 
 #' @return list object with user selected options and matrix build
 #'
-statmodelServer <- function(input, output, session,parent_session, loadpage_input, qc_input) {
+statmodelServer <- function(input, output, session,parent_session, loadpage_input, qc_input,get_data,preprocess_data) {
   ######### UI #########
   
   # choices of groups for contrast matrix
   
   choices = reactive({
     if (loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "Yes"){
-      levels(preprocessData(qc_input(),loadpage_input())$PTM$ProteinLevelData$Condition)
+      levels(preprocess_data()$PTM$ProteinLevelData$Condition)
     } else if(loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "No"){
-      levels(preprocessData(qc_input(),loadpage_input())$PTM$ProteinLevelData$GROUP)
+      levels(preprocess_data()$PTM$ProteinLevelData$GROUP)
     } else if(loadpage_input()$DDA_DIA=="TMT"){
-      levels(preprocessData(qc_input(),loadpage_input())$ProteinLevelData$Condition)
+      levels(preprocess_data()$ProteinLevelData$Condition)
     }
     else{
-      levels(preprocessData(qc_input(),loadpage_input())$ProteinLevelData$GROUP)
+      levels(preprocess_data()$ProteinLevelData$GROUP)
     }
     
   })
@@ -94,13 +94,13 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   output$WhichProt = renderUI ({
     ns <- session$ns
     selectInput(ns("whichProt"),
-                label = h4("which protein to plot"), unique(getData(loadpage_input())[[1]]))
+                label = h4("which protein to plot"), unique(get_data()[[1]]))
   })
 
   output$WhichProt1 = renderUI ({
     ns <- session$ns
     selectizeInput(ns("whichProt1"),
-                   label = h4("which protein to plot"), c("", unique(getData(loadpage_input())[[1]])))
+                   label = h4("which protein to plot"), c("", unique(get_data()[[1]])))
   })
 
 
@@ -272,7 +272,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
       input
     })
     matrix = matrix_build()
-    dataComparison(statmodel_input(),qc_input(),loadpage_input(),matrix)
+    dataComparison(statmodel_input(),qc_input(),loadpage_input(),matrix,preprocess_data())
   })
 
   data_comparison_code = eventReactive(input$calculate, {
@@ -866,7 +866,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   return(
     list(
       input = input,
-      matrix = matrix_build
+      dataComparison = data_comparison
     )
   )
 }

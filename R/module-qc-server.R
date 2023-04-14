@@ -11,7 +11,7 @@
 #' 
 #' @return input object with user selected options
 #'
-qcServer <- function(input, output, session,parent_session, loadpage_input) {
+qcServer <- function(input, output, session,parent_session, loadpage_input,get_data) {
 
   # output$showplot = renderUI({
   #   print("****")
@@ -28,15 +28,15 @@ qcServer <- function(input, output, session,parent_session, loadpage_input) {
     if (input$standards == "Proteins") {
       if((loadpage_input()$DDA_DIA=="SRM_PRM" && loadpage_input()$filetype=="sky")||(loadpage_input()$DDA_DIA=="DIA" && loadpage_input()$filetype=="ump")){
         
-        selectizeInput(ns("names"), "choose standard", unique(getData(loadpage_input())[2]), multiple = TRUE)
+        selectizeInput(ns("names"), "choose standard", unique(get_data()[2]), multiple = TRUE)
       }
       else{
-        selectizeInput(ns("names"), "choose standard", unique(getData(loadpage_input())[1]), multiple = TRUE)
+        selectizeInput(ns("names"), "choose standard", unique(get_data()[1]), multiple = TRUE)
       }
       
     }
     else if (input$standards == "Peptides") {
-      selectizeInput(ns("names"), "choose standard", unique(getData(loadpage_input())[2]), multiple = TRUE)
+      selectizeInput(ns("names"), "choose standard", unique(get_data()[2]), multiple = TRUE)
     }
     
   })
@@ -44,7 +44,6 @@ qcServer <- function(input, output, session,parent_session, loadpage_input) {
   # toggle censoring input based on type of experiment
   
   observe({
-    print(loadpage_input()$filetype)
     if(!is.null(loadpage_input()$filetype)) {
       runjs("$('[type=radio][name=censInt]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
       enable("censInt")
@@ -68,7 +67,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input) {
   
   output$features = renderUI({
     ns <- session$ns
-    req(getData(loadpage_input()))
+    req(get_data())
     max_feat = reactive({
       ## Old code for only 20 features. Meena thought this should be all uniques
       ## TODO: Need to fix this bc hard to be specific with slider.
@@ -81,9 +80,9 @@ qcServer <- function(input, output, session,parent_session, loadpage_input) {
       #   }
       
       if (loadpage_input()$DDA_DIA =="PTM"){
-        m_feat = nrow(unique(getData(loadpage_input())$PTM[1]))  
+        m_feat = nrow(unique(get_data()$PTM[1]))  
       } else {
-        m_feat = nrow(unique(getData(loadpage_input())[1]))
+        m_feat = nrow(unique(get_data()[1]))
       }
       
       return(m_feat)
@@ -104,24 +103,24 @@ qcServer <- function(input, output, session,parent_session, loadpage_input) {
       if((loadpage_input()$DDA_DIA=="SRM_PRM" && input$filetype=="sky") || (loadpage_input()$DDA_DIA=="DIA" && loadpage_input()$filetype=="ump")){
         selectizeInput(ns("which"), "Show plot for", 
                        choices = c("", "ALL PROTEINS" = "allonly", 
-                                   unique(getData(loadpage_input())[2])))
+                                   unique(get_data()[2])))
       } else {
         selectizeInput(ns("which"), "Show plot for", 
                        choices = c("", "ALL PROTEINS" = "allonly", 
-                                   unique(getData(loadpage_input())[1])))
+                                   unique(get_data()[1])))
       }
     } else if (loadpage_input()$DDA_DIA == "PTM"){
       if (input$type1 == "QCPlot"){
         selectizeInput(ns("which"), "Show plot for", 
                        choices = c("", "ALL PROTEINS" = "allonly", 
-                                   unique(getData(loadpage_input())$PTM[1])))
+                                   unique(get_data()$PTM[1])))
       } else {
         selectizeInput(ns("which"), "Show plot for", 
-                       choices = c("", unique(getData(loadpage_input())$PTM[1])))
+                       choices = c("", unique(get_data()$PTM[1])))
       }
     } else {
       selectizeInput(ns("which"), "Show plot for", 
-                     choices = c("", unique(getData(loadpage_input())[1])))
+                     choices = c("", unique(get_data()[1])))
     }
   })
   
@@ -131,7 +130,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input) {
    qc_input <- reactive({
       input
     })
-    preprocessData(qc_input(),loadpage_input())
+    preprocessData(qc_input(),loadpage_input(),get_data())
   })
   
   preprocess_data_code <- eventReactive(input$calculate, {
@@ -142,7 +141,6 @@ qcServer <- function(input, output, session,parent_session, loadpage_input) {
   })
   
   plotresult = function(saveFile, protein, summary, original, file) {
-    print(input)
     if (input$which != "") {
       # id = as.character(UUIDgenerate(FALSE))
       # id_address = paste("tmp/",id, sep = "")
@@ -487,5 +485,11 @@ qcServer <- function(input, output, session,parent_session, loadpage_input) {
   observeEvent(input$proceed4, {
     updateTabsetPanel(session = parent_session, inputId = "tablist", selected = "StatsModel")
   })
-  return(input)
+  # return(input)
+  return(
+    list(
+      input = input,
+      preprocessData = preprocess_data
+    )
+  )
 }
