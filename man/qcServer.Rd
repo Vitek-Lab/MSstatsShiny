@@ -4,7 +4,7 @@
 \alias{qcServer}
 \title{QC Server module for data processing}
 \usage{
-qcServer(input, output, session, parent_session, loadpage_input)
+qcServer(input, output, session, parent_session, loadpage_input, get_data)
 }
 \arguments{
 \item{input}{input object to capture different ui element values}

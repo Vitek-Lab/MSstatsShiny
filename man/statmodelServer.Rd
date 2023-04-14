@@ -10,7 +10,9 @@ statmodelServer(
   session,
   parent_session,
   loadpage_input,
-  qc_input
+  qc_input,
+  get_data,
+  preprocess_data
 )
 }
 \arguments{

@@ -11,7 +11,8 @@ expdesServer(
   parent_session,
   loadpage_input,
   qc_input,
-  statmodel_input
+  statmodel_input,
+  data_comparison
 )
 }
 \arguments{

@@ -818,7 +818,7 @@ test_that("get summary 1 PTM PTMTMT:Yes", {
     mock_input$PTMTMT <- "Yes"
     stub(getSummary1,"getData",mockGetData(mock_input))
     
-    output <- getSummary1(mock_input)
+    output <- getSummary1(mock_input,getData(mock_input))
     
     expected_names <- c("Number of Conditions","Number of PTM Mixtures","Number of PTM Biological Replicates","Number of PTM MS runs","Number of PTM Technical Replicates","Number of Unmod Mixtures","Number of Unmod Biological Replicates","Number of Unmod MS runs","Number of Unmod Technical Replicates")
     expect_type(output,"list")
@@ -833,7 +833,7 @@ test_that("get summary 1 PTM PTMTMT:No", {
     mock_input$PTMTMT <- "No"
     stub(getSummary1,"getData",mockGetData(mock_input))
     
-    output <- getSummary1(mock_input)
+    output <- getSummary1(mock_input,getData(mock_input))
     
     expected_names <- c("Number of Conditions","Number of PTM Biological Replicates","Number of PTM MS runs","Number of Unmod Conditions","Number of Unmod Biological Replicates","Number of Unmod MS runs")
     expect_type(output,"list")
@@ -847,7 +847,7 @@ test_that("get summary 1 Other:DDA", {
     mock_input$DDA_DIA <- "DDA"
     stub(getSummary1,"getData",mockGetData(mock_input))
     
-    output <- getSummary1(mock_input)
+    output <- getSummary1(mock_input,getData(mock_input))
     
     expected_names <- c("Number of Conditions","Number of Biological Replicates","Number of Technical Replicates","Number of Fractions","Number of MS runs")
     expect_type(output,"list")
@@ -880,7 +880,7 @@ test_that("get summary 2 PTM PTMTMT:Yes", {
     mock_input$PTMTMT <- "Yes"
     stub(getSummary2,"getData",mockGetData(mock_input))
     
-    output <- getSummary2(mock_input)
+    output <- getSummary2(mock_input,getData(mock_input))
     print(rownames(output))
     
     expected_names <- c("Number of PTMs","Number of PTM Features",
@@ -901,7 +901,7 @@ test_that("get summary 2 PTM PTMTMT:No", {
     mock_input$PTMTMT <- "No"
     stub(getSummary2,"getData",mockGetData(mock_input))
     
-    output <- getSummary2(mock_input)
+    output <- getSummary2(mock_input,getData(mock_input))
     print(rownames(output))
     
     expected_names <- c("Number of PTMs","Number of PTM Features","Number of Features/PTM","PTM Intensity Range","Number of Unmod Proteins","Number of Protein Peptides","Number of Protein Features","Number of Features/Peptide","Number of Peptides/Protein","Protein Intensity Range") 
@@ -916,7 +916,7 @@ test_that("get summary 2 Other:DDA", {
     mock_input$DDA_DIA <- "DDA"
     stub(getSummary2,"getData",mockGetData(mock_input))
     
-    output <- getSummary2(mock_input)
+    output <- getSummary2(mock_input,getData(mock_input))
     expected_names <- c("Number of Proteins","Number of Peptides","Number of Features","Number of Peptides/Protein","Number of Features/Peptide","Intensity Range") 
     expect_type(output,"list")
     expect_identical(rownames(output), expected_names)
@@ -932,6 +932,11 @@ stub(preprocessData,"remove_modal_spinner",{},depth = 2)
 
 mockGetData = function(mock_input) {
   output <- getData(mock_input)
+  return(output)
+}
+
+mockPreprocessData = function(mock_input) {
+  output <- preprocessData(mock_input,mock_input,getData(mock_input))
   return(output)
 }
 
@@ -958,7 +963,7 @@ test_that("preprocessData QC, PTM and PTMTMT: No", {
         mockery::stub(MSstatsShiny::lf_summarization_loop, "remove_modal_progress", NULL);
         MSstatsShiny::lf_summarization_loop(...)})
 
-    output <- preprocessData(mock_input,mock_input)
+    output <- preprocessData(mock_input,mock_input,getData(mock_input))
     expected_names <- c("PTM","PROTEIN")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
@@ -989,7 +994,7 @@ test_that("preprocessData QC, PTM and PTMTMT: Yes", {
         mockery::stub(MSstatsShiny::tmt_summarization_loop, "remove_modal_progress", NULL);
         MSstatsShiny::tmt_summarization_loop(...)})
 
-    output <- preprocessData(mock_input,mock_input)
+    output <- preprocessData(mock_input,mock_input,getData(mock_input))
     expected_names <- c("PTM","PROTEIN")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
@@ -1047,7 +1052,7 @@ test_that("preprocessData QC Other", {
         mockery::stub(MSstatsShiny::lf_summarization_loop, "remove_modal_progress", NULL);
         MSstatsShiny::lf_summarization_loop(...)})
 
-    output <- preprocessData(mock_input,mock_input)
+    output <- preprocessData(mock_input,mock_input,getData(mock_input))
     expected_names <- c("FeatureLevelData","ProteinLevelData","SummaryMethod")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
@@ -1118,23 +1123,6 @@ test_that("dataComparison statmodel PTM PTMTMT: Yes", {
     mock_input$filetype = "sample"
     mock_input$summarization = "Median"
 
-    # stub(dataComparison,"loadpage_input",mock_input,2)
-    # stub(dataComparison,"qc_input",mock_input)
-
-    mockery::stub(
-      where = dataComparison,
-      what = "preprocessData",
-      how = function(...){
-        # mockery::stub(preprocessData, "loadpage_input", mock_input,depth=2);
-        mockery::stub(where=preprocessData, what="getData", how=function(...){
-          mockery::stub(getData, "remove_modal_spinner", NULL);
-          getData(...)});
-        mockery::stub(where=preprocessData, what="MSstatsShiny::tmt_summarization_loop", how=function(...){
-          mockery::stub(MSstatsShiny::tmt_summarization_loop, "remove_modal_progress", NULL);
-          # mockery::stub(MSstatsShiny::tmt_summarization_loop, "qc_input", mock_input);
-          MSstatsShiny::tmt_summarization_loop(...)});
-        preprocessData(...)})
-
     mockery::stub(
         where = dataComparison,
         what = "MSstatsShiny::tmt_model",
@@ -1142,10 +1130,19 @@ test_that("dataComparison statmodel PTM PTMTMT: Yes", {
           mockery::stub(MSstatsShiny::tmt_model, "show_modal_progress_line", NULL);
           mockery::stub(MSstatsShiny::tmt_model, "update_modal_progress", NULL);
           mockery::stub(MSstatsShiny::tmt_model, "remove_modal_progress", NULL);
-          # mockery::stub(MSstatsShiny::tmt_model, "input", mock_input);
           MSstatsShiny::tmt_model(...)})
+    
+    mockery::stub(
+      where = preprocessData,
+      what = "MSstatsShiny::tmt_summarization_loop",
+      how = function(...){
+        mockery::stub(MSstatsShiny::tmt_summarization_loop, "qc_input", mock_input,depth=2);
+        mockery::stub(MSstatsShiny::tmt_summarization_loop, "show_modal_progress_line", NULL);
+        mockery::stub(MSstatsShiny::tmt_summarization_loop, "update_modal_progress", NULL);
+        mockery::stub(MSstatsShiny::tmt_summarization_loop, "remove_modal_progress", NULL);
+        MSstatsShiny::tmt_summarization_loop(...)})
 
-    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix)
+    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix,preprocessData(mock_input,mock_input,getData(mock_input)))
     expected_names <- c("PTM.Model","PROTEIN.Model","ADJUSTED.Model")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
@@ -1173,25 +1170,16 @@ test_that("dataComparison statmodel PTM PTMTMT: No", {
 
     stub(dataComparison,"loadpage_input",mock_input,2)
     stub(dataComparison,"qc_input",mock_input)
-
+    
     mockery::stub(
-      where = dataComparison,
-      what = "preprocessData",
+      where = preprocessData,
+      what = "MSstatsShiny::lf_summarization_loop",
       how = function(...){
-        mockery::stub(preprocessData, "loadpage_input", mock_input,depth=2);
-        mockery::stub(where=preprocessData, what="getData", how=function(...){
-          mockery::stub(getData, "remove_modal_spinner", NULL);
-          getData(...)});
-        mockery::stub(where=preprocessData, what="MSstatsShiny::lf_summarization_loop", how=function(...){
-          mockery::stub(MSstatsShiny::lf_summarization_loop, "show_modal_progress_line", NULL);
-          mockery::stub(MSstatsShiny::lf_summarization_loop, "remove_modal_progress", NULL);
-          mockery::stub(MSstatsShiny::lf_summarization_loop, "update_modal_progress", NULL);
-          mockery::stub(MSstatsShiny::lf_summarization_loop, "qc_input", mock_input,depth=2);
-          mockery::stub(where=MSstatsShiny::lf_summarization_loop, what="QC_check", how=function(...){
-            mockery::stub(QC_check, "qc_input", mock_input);
-            QC_check(...)});
-          MSstatsShiny::lf_summarization_loop(...)});
-        preprocessData(...)})
+        mockery::stub(MSstatsShiny::lf_summarization_loop, "qc_input", mock_input,depth=2);
+        mockery::stub(MSstatsShiny::lf_summarization_loop, "show_modal_progress_line", NULL);
+        mockery::stub(MSstatsShiny::lf_summarization_loop, "update_modal_progress", NULL);
+        mockery::stub(MSstatsShiny::lf_summarization_loop, "remove_modal_progress", NULL);
+        MSstatsShiny::lf_summarization_loop(...)})
 
     mockery::stub(
       where = dataComparison,
@@ -1202,7 +1190,7 @@ test_that("dataComparison statmodel PTM PTMTMT: No", {
         mockery::stub(MSstatsShiny::lf_model, "remove_modal_progress", NULL);
         MSstatsShiny::lf_model(...)})
 
-    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix)
+    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix,preprocessData(mock_input,mock_input,getData(mock_input)))
     expected_names <- c("PTM.Model","PROTEIN.Model","ADJUSTED.Model")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
@@ -1286,33 +1274,24 @@ test_that("dataComparison statmodel Other", {
 
     mockery::stub(
       where = dataComparison,
-      what = "preprocessData",
-      how = function(...){
-        mockery::stub(preprocessData, "loadpage_input", mock_input,depth=2);
-        mockery::stub(where=preprocessData, what="getData", how=function(...){
-          mockery::stub(getData, "remove_modal_spinner", NULL);
-          getData(...)});
-        mockery::stub(where=preprocessData, what="MSstatsShiny::lf_summarization_loop", how=function(...){
-          mockery::stub(MSstatsShiny::lf_summarization_loop, "show_modal_progress_line", NULL);
-          mockery::stub(MSstatsShiny::lf_summarization_loop, "remove_modal_progress", NULL);
-          mockery::stub(MSstatsShiny::lf_summarization_loop, "update_modal_progress", NULL);
-          mockery::stub(MSstatsShiny::lf_summarization_loop, "qc_input", mock_input,depth=2);
-          mockery::stub(where=MSstatsShiny::lf_summarization_loop, what="QC_check", how=function(...){
-            mockery::stub(QC_check, "qc_input", mock_input);
-            QC_check(...)});
-          MSstatsShiny::lf_summarization_loop(...)});
-        preprocessData(...)})
-
-    mockery::stub(
-      where = dataComparison,
       what = "MSstatsShiny::lf_model",
       how = function(...){
         mockery::stub(MSstatsShiny::lf_model, "show_modal_progress_line", NULL);
         mockery::stub(MSstatsShiny::lf_model, "update_modal_progress", NULL);
         mockery::stub(MSstatsShiny::lf_model, "remove_modal_progress", NULL);
         MSstatsShiny::lf_model(...)})
+    
+    mockery::stub(
+      where = preprocessData,
+      what = "MSstatsShiny::lf_summarization_loop",
+      how = function(...){
+        mockery::stub(MSstatsShiny::lf_summarization_loop, "qc_input", mock_input,depth=2);
+        mockery::stub(MSstatsShiny::lf_summarization_loop, "show_modal_progress_line", NULL);
+        mockery::stub(MSstatsShiny::lf_summarization_loop, "update_modal_progress", NULL);
+        mockery::stub(MSstatsShiny::lf_summarization_loop, "remove_modal_progress", NULL);
+        MSstatsShiny::lf_summarization_loop(...)})
 
-    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix)
+    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix,preprocessData(mock_input,mock_input,getData(mock_input)))
     expected_names <- c("ComparisonResult","ModelQC","FittedModel")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
