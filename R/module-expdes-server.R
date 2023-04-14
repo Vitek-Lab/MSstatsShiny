@@ -15,8 +15,11 @@
 #'
 expdesServer <- function(input, output, session,parent_session, loadpage_input, qc_input,statmodel_input) {
   # toggle input elements and plot
-  
   observe({
+    print("ZZZZZZ")
+    print(statmodel_input()$input)
+    print(statmodel_input()$input$def_comp)
+    print("ZZZZZZ")
     if (input$param == "sample") {
       disable("nsample")
       sample_x = TRUE

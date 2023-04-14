@@ -295,6 +295,7 @@ getAnnot1 <- function(input) {
 }
 
 getData <- function(input) {
+  print("get datattaaaaa beingggg callleddd*********8")
   show_modal_spinner()
   ev_maxq = getEvidence(input)
   pg_maxq = getProteinGroups(input)
@@ -837,9 +838,11 @@ library(MSstatsPTM)\n", sep = "")
   
 }
 
-getSummary1 <- function(input) {
-  df = getData(input)
-  annot_df = getAnnot(input)
+getSummary1 <- function(input, df,annot_df) {
+  # df = getData(input)
+  print("in sumaryyyyyyy1111")
+  print("in sumaryyyyyyy1111")
+  # annot_df = getAnnot(input)
   if (input$DDA_DIA != "PTM"){
     df = as.data.frame(df)
     df = df %>% filter(!Condition %in% c("Norm", "Empty"))
@@ -930,8 +933,10 @@ getSummary1 <- function(input) {
   
 }
 
-getSummary2 <- function(input) {
-  df = getData(input)
+getSummary2 <- function(input,df) {
+  # df = getData(input)
+  print("in sumaryyyyyyy2222")
+  print("in sumaryyyyyyy2222")
   if(input$DDA_DIA=="TMT"){
     df = as.data.frame(df)
     df = df %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence, Charge,

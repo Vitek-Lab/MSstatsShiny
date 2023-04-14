@@ -144,11 +144,11 @@ loadpageServer <- function(id, parent_session) {
     })
     
     get_summary1 = eventReactive(input$proceed1, {
-      getSummary1(input)
+      getSummary1(input,get_data(),get_annot())
     })
     
     get_summary2 = eventReactive(input$proceed1, {
-      getSummary2(input)
+      getSummary2(input,get_data())
     })
     
     onclick("proceed1", {

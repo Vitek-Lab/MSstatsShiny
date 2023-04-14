@@ -865,7 +865,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   
   return(
     list(
-      ip = input,
+      input = input,
       matrix = matrix_build
     )
   )
