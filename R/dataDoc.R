@@ -18,6 +18,9 @@
 #' transitions in RawData. Variable Intensity is required to be original signal
 #' without any log transformation and can be specified as the peak of height 
 #' or the peak of  area under curve.
+#' @examples
+#' data(example_dia_skyline)
+#' head(example_dia_skyline)
 #'
 NULL
 
@@ -31,6 +34,9 @@ NULL
 #' @docType data
 #'
 #' @format data.frame
+#' @examples
+#' data(example_skyline_annotation)
+#' head(example_skyline_annotation)
 #'
 NULL
 
@@ -45,6 +51,9 @@ NULL
 #' @docType data
 #'
 #' @format list
+#' @examples
+#' data(dia_skyline_summarized)
+#' head(dia_skyline_summarized)
 #'
 NULL
 
@@ -60,6 +69,9 @@ NULL
 #' @docType data
 #'
 #' @format list
+#' @examples
+#' data(dia_skyline_model)
+#' head(dia_skyline_model)
 #'
 NULL
 
@@ -74,6 +86,9 @@ NULL
 #' @docType data
 #'
 #' @format list
+#' @examples
+#' data(tmt_pd_summarized)
+#' head(tmt_pd_summarized)
 #'
 NULL
 
@@ -89,5 +104,8 @@ NULL
 #' @docType data
 #'
 #' @format list
+#' @examples
+#' data(tmt_pd_model)
+#' head(tmt_pd_model)
 #'
 NULL

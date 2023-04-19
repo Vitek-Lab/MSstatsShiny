@@ -13,9 +13,8 @@
 #' @param testMode One of TRUE or FALSE indicating whether or not to run the
 #' application in test mode. Default is FALSE.
 #' @examples
-#' 
-#' ## To run app set launch_app=TRUE
 #' \dontrun{
+#' ## To run app set launch_app=TRUE
 #' launch_MSstatsShiny(launch_app=FALSE,testMode=FALSE)
 #' }
 launch_MSstatsShiny = function(launch_app=TRUE, 

@@ -17,3 +17,8 @@ string
 \description{
 Quick QC value check for LF vs TMT
 }
+\examples{
+qc_input = list(null=TRUE)
+loadpage_input = list(null=TRUE)
+QC_check(qc_input,loadpage_input)
+}

@@ -130,3 +130,9 @@ PDF or console plot
 \description{
 General plotting code to produce all QC plots in the application
 }
+\examples{
+data("dia_skyline_model")
+groupComparisonPlots2(dia_skyline_model$ComparisonResult, type="VolcanoPlot",
+                      address=FALSE)
+
+}

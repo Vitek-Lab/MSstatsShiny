@@ -24,3 +24,8 @@ transitions in RawData. Variable Intensity is required to be original signal
 without any log transformation and can be specified as the peak of height
 or the peak of  area under curve.
 }
+\examples{
+data(example_dia_skyline)
+head(example_dia_skyline)
+
+}

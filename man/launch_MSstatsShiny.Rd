@@ -30,9 +30,8 @@ Main function to run MSstatsShiny. All other functions in this package are
 run automatically.
 }
 \examples{
-
-## To run app set launch_app=TRUE
 \dontrun{
+## To run app set launch_app=TRUE
 launch_MSstatsShiny(launch_app=FALSE,testMode=FALSE)
 }
 }

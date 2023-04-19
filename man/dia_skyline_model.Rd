@@ -14,3 +14,8 @@ Data includes one list with two data.tables named \code{ComparisonResult} and
 \code{ModelQC} provides a report on the quality control checks of each protein
 in the dataset.
 }
+\examples{
+data(dia_skyline_model)
+head(dia_skyline_model)
+
+}
