@@ -222,7 +222,7 @@ getAnnot3 <- function(input) {
   if(is.null(input$annot3)) {
     return(NULL)
   }
-  annot3 = try(read.delim(annot3$datapath), silent=TRUE)
+  annot3 = try(read.delim(annot3$datapath, sep=","), silent=TRUE)
   
   # if (class(annot3) == "try-error") {
   #   annot3 = "File load error. Please ensure file is in csv format."
@@ -294,8 +294,8 @@ getData <- function(input) {
   show_modal_spinner()
   ev_maxq = getEvidence(input)
   pg_maxq = getProteinGroups(input)
-  ev_maxq2 = getEvidence2(input)
-  pg_maxq2 = getProteinGroups2(input)
+  # ev_maxq2 = getEvidence2(input)
+  # pg_maxq2 = getProteinGroups2(input)
   an_maxq = getAnnot1(input)
   raw.frag = getFragSummary(input)
   raw.pep = getPeptideSummary(input)
@@ -303,7 +303,7 @@ getData <- function(input) {
   annot2 = getAnnot2(input)
   annot3 = getAnnot3(input)
   unmod = getGlobal(input)
-  ptm_sites_data = getMaxqPtmSites(input)
+  # ptm_sites_data = getMaxqPtmSites(input)
 
   cat(file=stderr(), "Reached in get_data\n")
 
@@ -340,34 +340,92 @@ getData <- function(input) {
   }
   else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")){
     if (input$filetype == 'maxq') {
-      # mydata = MaxQtoMSstatsPTMFormat(ptm_sites_data,
-      #                                 annot3,
-      #                                 evidence=ev_maxq2,
-      #                                 proteinGroups=pg_maxq2,
-      #                                 annotation.prot=annot3,
-      #                                 mod.num=input$mod.num,
-      #                                 TMT.keyword=input$TMT.keyword,
-      #                                 ptm.keyword=input$PTM.keyword)
-      # mydata$PROTEIN = as.data.frame(mydata$PROTEIN)
-      mydata
+      mydata = read.csv(input$ptm_input$datapath,sep="\t")
+      print(input$globaldata$datapath)
+      mydata_protein = try(read.csv(input$ptm_protein_input$datapath,sep="\t"),silent=TRUE)
+      if (typeof(mydata_protein)=="character"){
+        mydata_protein=NULL
+        use_unmod_peptides=TRUE
+      }
+      pg_maxq_ptm = try(read.csv(input$ptm_pgroup$datapath, sep="\t"),silent=TRUE)
+      annotation = try(read.csv(input$ptm_annot$datapath),silent=TRUE)
+      if (input$PTMTMT_maxq_pd == "Yes"){
+        label = "TMT"
+      } else {
+        label = "LF"
+      }
+      print(label)
+      mydata = MaxQtoMSstatsPTMFormat(evidence=mydata,
+                                      annotation=annotation,
+                                      input$fasta$datapath,
+                                      mod_id=input$mod_id_maxq,
+                                      evidence_prot=mydata_protein,
+                                      proteinGroups=pg_maxq_ptm,
+                                      annotation_protein=annotation,
+                                      use_unmod_peptides=use_unmod_peptides,
+                                      labeling_type=label)
+      mydata$PROTEIN = as.data.frame(mydata$PROTEIN)
+      print(mydata)
 
     } else if(input$filetype=='phil'){
       mydata = read.csv(input$ptmdata$datapath)
-      mydata_protein = read.csv(input$globaldata$datapath)
+      mydata_protein = try(read.csv(input$globaldata$datapath),silent=TRUE)
       annotation = read.csv(input$annotation$datapath)
-      annotation_protein = read.csv(input$globalannotation$datapath)
+      annotation_protein = try(read.csv(input$globalannotation$datapath),silent=TRUE)
       
-      mydata = PhilosophertoMSstatsPTMFormat(mydata,
-                                             annotation,
-                                             mydata_protein,
-                                             annotation_protein,
-                                             mod_id_col = input$mod_id_col,
-                                             localization_cutoff = as.numeric(input$localization_cutoff),
-                                             remove_unlocalized_peptides=input$remove_unlocalized_peptides)
+      mydata = FragPipetoMSstatsPTMFormat(mydata,
+                                         annotation,
+                                         mydata_protein,
+                                         annotation_protein,
+                                         mod_id_col = input$mod_id_col,
+                                         localization_cutoff = as.numeric(input$localization_cutoff),
+                                         remove_unlocalized_peptides=input$remove_unlocalized_peptides)
       
-    }
+    } else if (input$filetype=='PD'){
+      mydata = read.csv(input$ptm_input$datapath)
+      mydata_protein = try(read.csv(input$ptm_protein_input$datapath),silent=TRUE)
+      annotation = read.csv(input$ptm_annot$datapath)
+      
+      if (typeof(mydata_protein)=="character"){
+        mydata_protein=NULL
+        use_unmod_peptides=TRUE
+      }
+      
+      if (input$PTMTMT_maxq_pd == "Yes"){
+        label = "TMT"
+      } else {
+        label = "LF"
+      }
+      
+      mydata = PDtoMSstatsPTMFormat(mydata,
+                                    annotation,
+                                    input$fasta$datapath,
+                                    protein_input=mydata_protein,
+                                    annotation_protein=annotation,
+                                    labeling_type = label,
+                                    mod_id=input$mod_id_pd,
+                                    use_unmod_peptides=use_unmod_peptides,
+                                    which_proteinid = "Master.Protein.Accessions")
+    } else if (input$filetype=='spec'){
+      mydata = read.csv(input$ptm_input$datapath)
+      mydata_protein = try(read.csv(input$ptm_protein_input$datapath),silent=TRUE)
+      annotation = read.csv(input$ptm_annot$datapath)
+      
+      if (typeof(mydata_protein)=="character"){
+        mydata_protein=NULL
+        use_unmod_peptides=TRUE
+      }
+      
+      mydata = SpectronauttoMSstatsPTMFormat(mydata,
+                                             annotation = annotation,
+                                             fasta_path = input$fasta$datapath,
+                                             protein_input = mydata_protein,
+                                             annotation_protein = annotation,
+                                             use_unmod_peptides=use_unmod_peptides,
+                                             intensity = "PeakArea",
+                                             mod_id=input$mod_id_spec)
     
-    else {
+    } else {
       data = read.csv(input$data$datapath, header = TRUE, sep = input$sep,
                       stringsAsFactors=FALSE)
       mydata = list("PTM" = data, "PROTEIN" = unmod)

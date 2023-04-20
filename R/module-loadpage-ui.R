@@ -65,7 +65,7 @@ loadpageUI <- function(id) {
                                  "Progenesis" = "prog", "Proteome Discoverer" = "PD", 
                                  "OpenMS" = "openms", "Spectronaut" = "spec", 
                                  "OpenSWATH" = "open", "DIA-Umpire" = "ump", 
-                                 "SpectroMine" = "spmin", "Philosopher" = "phil"), 
+                                 "SpectroMine" = "spmin", "FragPipe" = "phil"), 
                      selected = character(0)),
         conditionalPanel(
           condition = "input['loadpage-DDA_DIA'] != 'PTM'",
@@ -75,15 +75,6 @@ loadpageUI <- function(id) {
                        choices = c("Protein" = "Protein", "Peptide" = "Peptide"),
                        selected = "Protein")
         ),
-        # conditionalPanel(
-        #   condition = "input['loadpage-DDA_DIA'] != 'PTM'",
-        #   radioButtons(ns("subset"),
-        #                label = h4("4. Subset data", 
-        #                           tipify(icon("question-circle"), 
-        #                                  title = "Whether to use the full dataset or randomly sample a portion. Useful for generating analysis code.")),
-        #                choices = c("True" = TRUE, "False" = FALSE),
-        #                selected = FALSE)
-        # ),
         tags$hr(),
         conditionalPanel(
           condition = "input['loadpage-filetype'] == 'sample' && input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-filetype'] != 'phil'",
@@ -94,8 +85,8 @@ loadpageUI <- function(id) {
                        inline=TRUE)
         ),
         conditionalPanel(
-          condition = "input['loadpage-filetype'] =='10col' || input['loadpage-filetype'] =='prog' || input['loadpage-filetype'] =='PD' || input['loadpage-filetype'] =='open'||
-                   input['loadpage-filetype'] =='openms' || input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' && input['loadpage-DDA_DIA'] != 'PTM'",
+          condition = "(input['loadpage-filetype'] =='10col' || input['loadpage-filetype'] =='prog' || input['loadpage-filetype'] =='PD' || input['loadpage-filetype'] =='open'||
+                   input['loadpage-filetype'] =='openms' || input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil') && input['loadpage-DDA_DIA'] != 'PTM'",
           h4("4. Upload quantification dataset")),
         conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && input['loadpage-DDA_DIA'] != 'PTM' && input['loadpage-DDA_DIA'] != 'PTM_TMT'",
                          h4("4. Upload data in MSstats Format")),
@@ -103,10 +94,10 @@ loadpageUI <- function(id) {
                          h4("4. Upload PTM data in MSstats Format")),
         conditionalPanel(condition = "input['loadpage-filetype'] == 'sky'",
                          h4("4. Upload MSstats report from Skyline")),
-        conditionalPanel(condition = "input['loadpage-filetype'] == 'spec'",
+        conditionalPanel(condition = "input['loadpage-filetype'] == 'spec' && input['loadpage-DDA_DIA'] != 'PTM'",
                          h4("4. Upload MSstats scheme output from Spectronaut")),
         conditionalPanel(
-          condition = "input['loadpage-filetype'] && input['loadpage-filetype'] != 'maxq' && input['loadpage-filetype'] != 'sample' && input['loadpage-filetype'] != 'ump' && input['loadpage-filetype'] != 'MRF' && input['loadpage-filetype'] != 'spec' && input['loadpage-filetype'] != 'spmin' && input['loadpage-DDA_DIA'] != 'PTM'",# && input['loadpage-filetype'] != 'phil'
+          condition = "input['loadpage-filetype'] != 'maxq' && input['loadpage-filetype'] != 'sample' && input['loadpage-filetype'] != 'ump' && input['loadpage-filetype'] != 'MRF' && input['loadpage-filetype'] != 'spec' && input['loadpage-filetype'] != 'spmin' && input['loadpage-DDA_DIA'] != 'PTM'",# && input['loadpage-filetype'] != 'phil'
           fileInput(ns('data'), "", multiple = FALSE, 
                     accept = c("text/csv", 
                                "text/comma-separated-values,text/plain", 
@@ -166,7 +157,7 @@ loadpageUI <- function(id) {
         ),
         tags$br(),
         conditionalPanel(
-          condition = "input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' && input['loadpage-DDA_DIA'] != 'PTM'",
+          condition = "(input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil') && input['loadpage-DDA_DIA'] != 'PTM'",
           h4("5. Upload annotation File", tipify(icon("question-circle"), 
                                                  title = "Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.")),
            #downloadLink("template", "Annotation file template"),
@@ -175,6 +166,7 @@ loadpageUI <- function(id) {
                                "text/comma-separated-values,text/plain", ".csv"))
         ),
         tags$br(),
+        ## PTM Fragpipe input -- --------------------------------------------------------
         conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
                          h4("4. (Optional) Upload unmodified data in MSstats Format"), 
                          fileInput(ns('unmod'), "", multiple = FALSE, 
@@ -200,27 +192,61 @@ loadpageUI <- function(id) {
           fileInput(ns('annot1'), "", multiple = FALSE, 
                     accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
         ),
+        ## PTM input -- --------------------------------------------------------
         conditionalPanel(
-          condition = "input['loadpage-filetype'] == 'maxq' && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
-          h4("4. Upload PTM sites Sites.txt File"),
-          fileInput(ns('maxq_ptm_sites'), "", multiple = FALSE,
+          condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec') && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
+          h4("4. Upload PTM input.txt File"),
+          fileInput(ns('ptm_input'), "", multiple = FALSE,
                     accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
           h4("5. Upload annotation File", tipify(icon("question-circle"), 
                                                  title = "Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.")),
-          fileInput(ns('annot3'), "", multiple = FALSE, 
+          fileInput(ns('ptm_annot'), "", multiple = FALSE, 
                     accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-          h4("6. (Optional) Upload Unmodified Protein evidence.txt File"),
-          fileInput(ns('evidence2'), "", multiple = FALSE, 
-                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+          h4("6. Upload fasta File", tipify(icon("question-circle"), 
+                                                 title = "Upload FASTA file. This file allows us to identify where in the protein sequence a modification occurs.")),
+          fileInput(ns('fasta'), "", multiple = FALSE),
+          h4("7. (Optional) Upload Unmodified Protein input.txt File"),
+          fileInput(ns('ptm_protein_input'), "", multiple = FALSE, 
+                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
+        ),
+        conditionalPanel(
+          condition = "(input['loadpage-filetype'] == 'maxq') && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
           h4("7. (Optional) Upload Unmodified Protein proteinGroups.txt File"),
-          fileInput(ns('pGroup2'), "", multiple = FALSE, 
-                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-          h4("8. TMT Experiment"),
-          radioButtons(ns("PTMTMT"), tipify(icon("question-circle"),
+          fileInput(ns('ptm_pgroup'), "", multiple = FALSE, 
+                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
+        ),
+        conditionalPanel(
+          condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD') && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
+          h4("TMT Experiment"),
+          radioButtons(ns("PTMTMT_maxq_pd"), tipify(icon("question-circle"),
                                         title = "Indicate if experiment was processed using TMT labeling"),
                        c(No='No', Yes='Yes'),
                        selected='Yes', inline=TRUE)
+          ),
+        conditionalPanel(
+          condition = "(input['loadpage-filetype'] == 'maxq') && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",          
+          h4("Modification Label"),
+          textInput(ns("mod_id_maxq"), tipify(icon("question-circle"),
+                                         title = "Indicate if experiment was processed using TMT labeling"),
+                    value="\\(Phospho \\(STY\\)\\)")
         ),
+        conditionalPanel(
+            condition = "(input['loadpage-filetype'] == 'PD') && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",          
+            h4("Modification Label"),
+            textInput(ns("mod_id_pd"), tipify(icon("question-circle"),
+                                              title = "Indicate if experiment was processed using TMT labeling"),
+                         value="\\(Phospho\\)")
+        ),
+        conditionalPanel(
+          condition = "(input['loadpage-filetype'] == 'spec') && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",          
+          h4("Modification Label"),
+          textInput(ns("mod_id_spec"), tipify(icon("question-circle"),
+                                            title = "Indicate if experiment was processed using TMT labeling"),
+                    value="\\[Phospho \\(STY\\)\\]")
+        ),
+        
+        ## UMP -----------------------------------------------------------------
+        
         conditionalPanel(
           condition = "input['loadpage-filetype'] == 'ump'",
           h4("5. Upload FragSummary.xls File"),
@@ -256,26 +282,6 @@ loadpageUI <- function(id) {
         #                                                  tipify(icon("question-circle"), 
         #                                                         title = "Enter the column in your data containing protein names")), 
         #                            value = "ProteinAccessions")),
-        
-        conditionalPanel(condition = "input['loadpage-filetype'] == 'maxq' && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
-                         h4("Select the options for pre-processing"),
-                         textInput(ns("which.proteinid"), h5("Protein Name Column", 
-                                                         tipify(icon("question-circle"), 
-                                                                title = "Enter the column in your data containing protein names")), 
-                                   value = "Proteins"),
-                         radioButtons(ns("mod.num"), h5("Modification Number", tipify(icon("question-circle"), 
-                                                                                  title = "Use single or multiple modifications per peptide")),
-                                      c(Single="Single", Total="Total"),
-                                      inline=TRUE),
-                         textInput(ns("TMT.keyword"), h5("TMT.keyword", 
-                                                     tipify(icon("question-circle"), 
-                                                            title = "The sub-name of columns in sites.data file")), 
-                                   value = "TMT"),
-                         textInput(ns("PTM.keyword"), h5("PTM.keyword", 
-                                                     tipify(icon("question-circle"), 
-                                                            title = "he sub-name of columns in sites.data file")), 
-                                   value = "phos"),
-        ),
         
         conditionalPanel(condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'DDA' && input['loadpage-filetype'] !== 'sample' && input['loadpage-filetype'] !== 'MRF'",
                          h4("Select the options for pre-processing"),
