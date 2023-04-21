@@ -4,10 +4,12 @@
 \alias{QC_check}
 \title{Quick QC value check}
 \usage{
-QC_check(input)
+QC_check(qc_input, loadpage_input)
 }
 \arguments{
-\item{input}{options for data processing input by the user}
+\item{qc_input}{options for data processing input by the user from data processing page.}
+
+\item{loadpage_input}{options for data processing input by the user from data upload page.}
 }
 \value{
 string
@@ -16,6 +18,7 @@ string
 Quick QC value check for LF vs TMT
 }
 \examples{
-input = list(null=TRUE)
-QC_check(input)
+qc_input = list(null=TRUE)
+loadpage_input = list(null=TRUE)
+QC_check(qc_input,loadpage_input)
 }

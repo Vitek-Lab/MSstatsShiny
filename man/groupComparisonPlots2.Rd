@@ -134,5 +134,5 @@ General plotting code to produce all QC plots in the application
 data("dia_skyline_model")
 groupComparisonPlots2(dia_skyline_model$ComparisonResult, type="VolcanoPlot",
                       address=FALSE)
-                      
+
 }
