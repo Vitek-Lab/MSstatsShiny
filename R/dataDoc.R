@@ -1,3 +1,121 @@
+#' Example annotation file for Spectromine
+#' 
+#' data.frame mapping Spectromine run names to the corresponding bioreplicates and 
+#' conditions. Used as input to preprocessing function, converting data into 
+#' MSstats format.
+#' 
+#' @name annotation.mine
+#' @docType data
+#'
+#' @format data.frame
+#' @examples
+#' data(annotation.mine)
+#' head(annotation.mine)
+#'
+NULL
+
+#' Example annotation file for MaxQuant
+#' 
+#' data.frame mapping MaxQuant run names to the corresponding bioreplicates and 
+#' conditions. Used as input to preprocessing function, converting data into 
+#' MSstats format.
+#' 
+#' @name annotation.mq
+#' @docType data
+#'
+#' @format data.frame
+#' @examples
+#' data(annotation.mq)
+#' head(annotation.mq)
+#'
+NULL
+
+#' Example annotation file for PD
+#' 
+#' data.frame mapping PD run names to the corresponding bioreplicates and 
+#' conditions. Used as input to preprocessing function, converting data into 
+#' MSstats format.
+#' 
+#' @name annotation.pd
+#' @docType data
+#'
+#' @format data.frame
+#' @examples
+#' data(annotation.pd)
+#' head(annotation.pd)
+#'
+NULL
+
+#' Example evidence file for MaxQuant
+#' 
+#' data.frame containing output of MaxQuant. Used in examples.
+#' 
+#' @name evidence
+#' @docType data
+#'
+#' @format data.frame
+#' @examples
+#' data(evidence)
+#' head(evidence)
+#'
+NULL
+
+#' Example ProteinGroups file for MaxQuant
+#' 
+#' data.frame containing output of ProteinGroups MaxQuant file. Used in examples.
+#' 
+#' @name proteinGroups
+#' @docType data
+#'
+#' @format data.frame
+#' @examples
+#' data(proteinGroups)
+#' head(proteinGroups)
+#'
+NULL
+
+#' Example output file Spectromine
+#' 
+#' data.frame containing output of Spectromine. Used in examples.
+#' 
+#' @name raw.mine
+#' @docType data
+#'
+#' @format data.frame
+#' @examples
+#' data(raw.mine)
+#' head(raw.mine)
+#'
+NULL
+
+#' Example output file Spectromine
+#' 
+#' data.frame containing output of Spectromine. Used in examples.
+#' 
+#' @name raw.om
+#' @docType data
+#'
+#' @format data.frame
+#' @examples
+#' data(raw.om)
+#' head(raw.om)
+#'
+NULL
+
+#' Example output file PD
+#' 
+#' data.frame containing output of PD. Used in examples.
+#' 
+#' @name raw.pd
+#' @docType data
+#'
+#' @format data.frame
+#' @examples
+#' data(raw.pd)
+#' head(raw.pd)
+#'
+NULL
+
 #' Example of input Sklyine DDA dataset.
 #' 
 #' Used as input data to MSstats workflow. Data includes one data.table which 

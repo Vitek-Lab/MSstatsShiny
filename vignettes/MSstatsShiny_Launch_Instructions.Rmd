@@ -2,7 +2,7 @@
 title: "MSstatsShiny Launch Instructions"
 author: "Devon Kohler (<kohler.d@northeastern.edu>)"
 date: "`r Sys.Date()`"
-output: BiocStyle::pdf_document
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{MSstatsPTM LabelFree Workflow}
   %\VignetteEngine{knitr::rmarkdown}

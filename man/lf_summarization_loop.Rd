@@ -4,12 +4,14 @@
 \alias{lf_summarization_loop}
 \title{Main LF calculation summarization function for MSstatsShiny application}
 \usage{
-lf_summarization_loop(data, input, busy_indicator = TRUE)
+lf_summarization_loop(data, qc_input, loadpage_input, busy_indicator = TRUE)
 }
 \arguments{
 \item{data}{Data converted into MSstats format.}
 
-\item{input}{options for data processing input by the user}
+\item{qc_input}{options for data processing input by the user from data processing page.}
+
+\item{loadpage_input}{options for data processing input by the user from data upload page.}
 
 \item{busy_indicator}{Boolean indicator indicating whether or not to display
 shiny waiting indicator.}
@@ -32,21 +34,20 @@ testdata = MSstats::SkylinetoMSstatsFormat(example_dia_skyline,
                                             use_log_file = FALSE)
 
 ## Source app functionality
-input = list()
-input$norm = "equalizeMedians"
-input$log = 2
-input$names = NULL
-input$features_used	= "all"
+qc_input = list()
+loadpage_input = list()
+qc_input$norm = "equalizeMedians"
+qc_input$log = 2
+qc_input$names = NULL
+qc_input$features_used	= "all"
 code_n_feat=3
-input$censInt = "NA"
-input$features_used	= "all"
-input$MBi = TRUE
-input$remove50 = FALSE
-input$maxQC = 0.999
-input$null = FALSE
-input$null1 = FALSE
-input$DDA_DIA = "LF"
-
-lf_summarization_loop(testdata, input, busy_indicator=FALSE)
+qc_input$censInt = "NA"
+qc_input$MBi = TRUE
+qc_input$remove50 = FALSE
+qc_input$maxQC = 0.999
+qc_input$null = FALSE
+qc_input$null1 = FALSE
+loadpage_input$DDA_DIA = "LF"
+lf_summarization_loop(testdata, qc_input,loadpage_input, busy_indicator=FALSE)
 
 }
