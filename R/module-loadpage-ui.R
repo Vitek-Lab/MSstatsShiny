@@ -87,17 +87,7 @@ loadpageUI <- function(id) {
         conditionalPanel(
           condition = "(input['loadpage-filetype'] =='10col' || input['loadpage-filetype'] =='prog' || input['loadpage-filetype'] =='PD' || input['loadpage-filetype'] =='open'||
                    input['loadpage-filetype'] =='openms' || input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil') && input['loadpage-DDA_DIA'] != 'PTM'",
-          h4("4. Upload quantification dataset")),
-        conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && input['loadpage-DDA_DIA'] != 'PTM' && input['loadpage-DDA_DIA'] != 'PTM_TMT'",
-                         h4("4. Upload data in MSstats Format")),
-        conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
-                         h4("4. Upload PTM data in MSstats Format")),
-        conditionalPanel(condition = "input['loadpage-filetype'] == 'sky'",
-                         h4("4. Upload MSstats report from Skyline")),
-        conditionalPanel(condition = "input['loadpage-filetype'] == 'spec' && input['loadpage-DDA_DIA'] != 'PTM'",
-                         h4("4. Upload MSstats scheme output from Spectronaut")),
-        conditionalPanel(
-          condition = "input['loadpage-filetype'] != 'maxq' && input['loadpage-filetype'] != 'sample' && input['loadpage-filetype'] != 'ump' && input['loadpage-filetype'] != 'MRF' && input['loadpage-filetype'] != 'spec' && input['loadpage-filetype'] != 'spmin' && input['loadpage-DDA_DIA'] != 'PTM'",# && input['loadpage-filetype'] != 'phil'
+          h4("4. Upload quantification dataset"),
           fileInput(ns('data'), "", multiple = FALSE, 
                     accept = c("text/csv", 
                                "text/comma-separated-values,text/plain", 
@@ -107,7 +97,63 @@ loadpageUI <- function(id) {
                                   tipify(icon("question-circle"), 
                                          title = "Choose how columns are separated in the uploaded file")),
                        c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), 
-                       inline = TRUE)),
+                       inline = TRUE)
+        ),
+        conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && input['loadpage-DDA_DIA'] != 'PTM' && input['loadpage-DDA_DIA'] != 'PTM_TMT'",
+                         h4("4. Upload data in MSstats Format"),
+                         fileInput(ns('data'), "", multiple = FALSE, 
+                                   accept = c("text/csv", 
+                                              "text/comma-separated-values,text/plain", 
+                                              ".csv")),
+                         radioButtons(ns("sep"),
+                                      label = h5("Column separator in uploaded file", 
+                                                 tipify(icon("question-circle"), 
+                                                        title = "Choose how columns are separated in the uploaded file")),
+                                      c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), 
+                                      inline = TRUE)
+        ),
+        conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
+                         h4("4. Upload PTM data in MSstats Format"),
+                         fileInput(ns('data'), "", multiple = FALSE, 
+                                   accept = c("text/csv", 
+                                              "text/comma-separated-values,text/plain", 
+                                              ".csv")),
+                         radioButtons(ns("sep"),
+                                      label = h5("Column separator in uploaded file", 
+                                                 tipify(icon("question-circle"), 
+                                                        title = "Choose how columns are separated in the uploaded file")),
+                                      c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), 
+                                      inline = TRUE)
+        ),
+        conditionalPanel(condition = "input['loadpage-filetype'] == 'sky' && input['loadpage-DDA_DIA'] != 'PTM'",
+                         h4("4. Upload MSstats report from Skyline"),
+                         fileInput(ns('data'), "", multiple = FALSE, 
+                                   accept = c("text/csv", 
+                                              "text/comma-separated-values,text/plain", 
+                                              ".csv")),
+                         radioButtons(ns("sep"),
+                                      label = h5("Column separator in uploaded file", 
+                                                 tipify(icon("question-circle"), 
+                                                        title = "Choose how columns are separated in the uploaded file")),
+                                      c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), 
+                                      inline = TRUE)
+        ),
+        conditionalPanel(condition = "input['loadpage-filetype'] == 'spec' && input['loadpage-DDA_DIA'] != 'PTM'",
+                         h4("4. Upload MSstats scheme output from Spectronaut"),
+                         fileInput(ns('data'), "", multiple = FALSE, 
+                                   accept = c("text/csv", 
+                                              "text/comma-separated-values,text/plain", 
+                                              ".csv")),
+                         radioButtons(ns("sep"),
+                                      label = h5("Column separator in uploaded file", 
+                                                 tipify(icon("question-circle"), 
+                                                        title = "Choose how columns are separated in the uploaded file")),
+                                      c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"), 
+                                      inline = TRUE)
+        ),
+#         conditionalPanel(
+#           condition = "input['loadpage-filetype'] != 'maxq' && input['loadpage-filetype'] != 'sample' && input['loadpage-filetype'] != 'ump' && input['loadpage-filetype'] != 'MRF' && (input['loadpage-filetype'] == 'spec' && input['loadpage-DDA_DIA'] != 'PTM') && input['loadpage-filetype'] != 'spmin'",# && input['loadpage-filetype'] != 'phil'
+# ),
         # conditionalPanel(
         #   condition = "input['loadpage-filetype'] && input['loadpage-filetype'] == 'phil'",
         #   fileInput(ns("folder"), "Upload a zip file", accept = ".zip")
@@ -152,7 +198,7 @@ loadpageUI <- function(id) {
         ),
         
         
-        conditionalPanel(condition = "input['loadpage-filetype'] && (input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] =='spmin')",
+        conditionalPanel(condition = "(input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] =='spmin') && input['loadpage-DDA_DIA'] != 'PTM'",
                          fileInput(ns('data1'), "", multiple = FALSE, accept = c(".xls")),
         ),
         tags$br(),
@@ -194,10 +240,13 @@ loadpageUI <- function(id) {
         ),
         ## PTM input -- --------------------------------------------------------
         conditionalPanel(
-          condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec') && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
+          condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'sky') && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
           h4("4. Upload PTM input.txt File"),
           fileInput(ns('ptm_input'), "", multiple = FALSE,
-                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+                    accept = c("text/csv",".xlsx",
+                               "text/comma-separated-values,text/plain",
+                               ".csv",
+                               '.xlsx')),
           h4("5. Upload annotation File", tipify(icon("question-circle"), 
                                                  title = "Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.")),
           fileInput(ns('ptm_annot'), "", multiple = FALSE, 
@@ -207,7 +256,7 @@ loadpageUI <- function(id) {
           fileInput(ns('fasta'), "", multiple = FALSE),
           h4("7. (Optional) Upload Unmodified Protein input.txt File"),
           fileInput(ns('ptm_protein_input'), "", multiple = FALSE, 
-                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
+                    accept = c("text/csv/xlsx", "text/comma-separated-values,text/plain", ".csv", ".xlsx"))
         ),
         conditionalPanel(
           condition = "(input['loadpage-filetype'] == 'maxq') && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
@@ -243,6 +292,13 @@ loadpageUI <- function(id) {
           textInput(ns("mod_id_spec"), tipify(icon("question-circle"),
                                             title = "Indicate if experiment was processed using TMT labeling"),
                     value="\\[Phospho \\(STY\\)\\]")
+        ),
+        conditionalPanel(
+          condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'sky') && (input['loadpage-DDA_DIA'] == 'PTM' || input['loadpage-DDA_DIA'] == 'PTM_TMT')",
+          h4("FASTA file column name"),
+          textInput(ns("mod_id_spec"),  tipify(icon("question-circle"),
+                                              title = "Name of column in FASTA file that matches with Protein name column in input. It is critical the values in both columns match so that the modfication can be identified."),
+                    value="uniprot_iso")
         ),
         
         ## UMP -----------------------------------------------------------------

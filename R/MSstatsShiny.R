@@ -39,6 +39,7 @@
 #' @importFrom utils capture.output head packageVersion read.csv read.delim write.csv
 #' @importFrom stats aggregate
 #' @importFrom methods is
+#' @importFrom readxl read_excel
 #' 
 #' @docType package
 #' @name MSstatsShiny

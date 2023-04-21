@@ -243,7 +243,10 @@ getData <- function(input) {
       if (typeof(mydata_protein)=="character"){
         mydata_protein=NULL
         use_unmod_peptides=TRUE
+      } else {
+        use_unmod_peptides=FALSE
       }
+      
       pg_maxq_ptm = try(read.csv(input$ptm_pgroup$datapath, sep="\t"),silent=TRUE)
       annotation = try(read.csv(input$ptm_annot$datapath),silent=TRUE)
       if (input$PTMTMT_maxq_pd == "Yes"){
@@ -279,13 +282,17 @@ getData <- function(input) {
                                          remove_unlocalized_peptides=input$remove_unlocalized_peptides)
       
     } else if (input$filetype=='PD'){
-      mydata = read.csv(input$ptm_input$datapath)
-      mydata_protein = try(read.csv(input$ptm_protein_input$datapath),silent=TRUE)
+      mydata = read.csv(input$ptm_input$datapath, sep = "\t")
+      mydata_protein = try(
+        read.csv(input$ptm_protein_input$datapath, sep = "\t"),
+        silent=TRUE)
       annotation = read.csv(input$ptm_annot$datapath)
       
       if (typeof(mydata_protein)=="character"){
         mydata_protein=NULL
         use_unmod_peptides=TRUE
+      } else {
+        use_unmod_peptides=FALSE
       }
       
       if (input$PTMTMT_maxq_pd == "Yes"){
@@ -311,6 +318,8 @@ getData <- function(input) {
       if (typeof(mydata_protein)=="character"){
         mydata_protein=NULL
         use_unmod_peptides=TRUE
+      } else {
+        use_unmod_peptides=FALSE
       }
       
       mydata = SpectronauttoMSstatsPTMFormat(mydata,
@@ -322,7 +331,30 @@ getData <- function(input) {
                                              intensity = "PeakArea",
                                              mod_id=input$mod_id_spec)
     
-    } else {
+    } else if (input$filetype=='sky') {
+      mydata = read_excel(input$ptm_input$datapath)
+      mydata_protein = try(read_excel(input$ptm_protein_input$datapath),silent=TRUE)
+      annotation = try(read.csv(input$ptm_annot$datapath),silent=TRUE)
+      
+      if (typeof(mydata_protein)=="character"){
+        mydata_protein=NULL
+        use_unmod_peptides=TRUE
+      } else {
+        use_unmod_peptides=FALSE
+      }
+      
+      if (typeof(annotation)=="character"){
+        annotation = NULL
+      }
+      
+      mydata = SkylinetoMSstatsPTMFormat(mydata, 
+                                         input$fasta$datapath,
+                                         annotation=annotation, 
+                                         input_protein=mydata_protein,
+                                         annotation_protein=annotation,
+                                         use_unmod_peptides=use_unmod_peptides)
+      
+    }else {
       data = read.csv(input$data$datapath, header = TRUE, sep = input$sep,
                       stringsAsFactors=FALSE)
       mydata = list("PTM" = data, "PROTEIN" = unmod)

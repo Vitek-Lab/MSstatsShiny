@@ -62,7 +62,7 @@ loadpageServer <- function(id, parent_session) {
       else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")) {
         runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
         enable("filetype")
-        disable(selector = "[type=radio][value=sky]")
+        # disable(selector = "[type=radio][value=sky]")
         disable(selector = "[type=radio][value=prog]")
         # disable(selector = "[type=radio][value=PD]")
         disable(selector = "[type=radio][value=openms]")
