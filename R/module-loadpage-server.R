@@ -250,7 +250,6 @@ loadpageServer <- function(id, parent_session) {
       })
       
     })
-    # return(input)
     return(
       list(
         input = input,

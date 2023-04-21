@@ -1,22 +1,3 @@
-# library(shiny)
-# library(shinyBS)
-# library(shinyjs)
-# library(shinybusy)
-# library(DT)
-# library(htmltools)
-# library(uuid)
-# library(Hmisc)
-# library(dplyr)
-# library(data.table)
-# library(tidyr)
-# library(MSstats)
-# library(MSstatsTMT)
-# library(MSstatsConvert)
-# library(MSstatsPTM)
-# library(sqldf)
-
-#####################################################
-
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=10000*1024^2)
   session$allowReconnect(TRUE)

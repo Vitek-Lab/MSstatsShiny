@@ -4,16 +4,7 @@ getEvidence <- function(input) {
   if(is.null(input$evidence)) {
     return(NULL)
   }
-  # if (input$subset){
-  #   evidence = try(read.csv.sql(evidence$datapath, sep="\t", 
-  #                               sql = "select * from file order by random() limit 100000"), 
-  #                  silent=TRUE)
-  # } else {
   evidence = try(read.table(evidence$datapath, sep="\t", header=TRUE), silent=TRUE)
-  # }
-  # if (class(evidence) == "try-error") {
-  #   evidence = "File load error. Please ensure file is in csv format."
-  # }
   if (is(evidence,"try-error")) {
     evidence = "File load error. Please ensure file is in csv format."
   }
@@ -27,17 +18,7 @@ getEvidence2 <- function(input) {
   if(is.null(input$evidence2)) {
     return(NULL)
   }
-  # if (input$subset){
-  #   evidence2 = try(read.csv.sql(evidence2$datapath, sep = "\t",
-  #                               sql = "select * from file order by random() limit 100000"), 
-  #                  silent=TRUE)
-  # } else {
   evidence2 = try(read.delim(evidence2$datapath), silent=TRUE)
-  # }
-  
-  # if (class(evidence2) == "try-error"){
-  #   evidence2 = "File load error. Please ensure file is in csv format." 
-  # }
   if (is(evidence2,"try-error")) {
     evidence2 = "File load error. Please ensure file is in csv format." 
   }
@@ -51,18 +32,8 @@ getGlobal <- function(input) {
   if(is.null(input$unmod)) {
     return(NULL)
   }
-  # if (input$subset){
-  #   unmod = try(read.csv.sql(unmod$datapath, sep=",",
-  #                            sql = "select * from file order by random() limit 100000"), 
-  #                   silent=TRUE)
-  # } else {
   unmod = try(read.csv(unmod$datapath, sep=",", header=TRUE, 
                        stringsAsFactors=FALSE), silent=TRUE)
-  # }
-  
-  # if (class(unmod) == "try-error"){
-  #   unmod = "File load error. Please ensure file is in csv format." 
-  # }
   if (is(unmod,"try-error")) {
     unmod = "File load error. Please ensure file is in csv format." 
   }
@@ -77,17 +48,7 @@ getProteinGroups <- function(input) {
   if(is.null(input$pGroup)) {
     return(NULL)
   }
-  # if (input$subset){
-  #   pGroup = try(read.csv.sql(pGroup$datapath, sep="\t",
-  #                            sql = "select * from file order by random() limit 100000"), 
-  #               silent=TRUE)
-  # } else {
   pGroup = try(read.table(pGroup$datapath, sep="\t", header=TRUE), silent=TRUE)
-  # }
-  
-  # if (class(pGroup) == "try-error"){
-  #   pGroup = "File load error. Please ensure file is in csv format." 
-  # }
   if (is(pGroup,"try-error")) {
     pGroup = "File load error. Please ensure file is in csv format." 
   }
@@ -101,17 +62,7 @@ getProteinGroups2 <- function(input) {
   if(is.null(input$pGroup2)) {
     return(NULL)
   }
-  # if (input$subset){
-  #   pGroup2 = try(read.csv.sql(pGroup2$datapath, sep="\t",
-  #                             sql = "select * from file order by random() limit 100000"), 
-  #                silent=TRUE)
-  # } else {
   pGroup2 = try(read.delim(pGroup2$datapath), silent=TRUE)
-  # }
-  
-  # if (class(pGroup2) == "try-error"){
-  #   pGroup2 = "File load error. Please ensure file is in csv format." 
-  # }
   if (is(pGroup2,"try-error")) {
     pGroup2 = "File load error. Please ensure file is in csv format." 
   }
@@ -124,19 +75,8 @@ getFragSummary <- function(input) {
   if(is.null(input$fragSummary)) {
     return(NULL)
   }
-  
-  # if (input$subset){
-  #   fragSummary = try(read.csv.sql(fragSummary$datapath, sep="\t",
-  #                              sql = "select * from file order by random() limit 100000"), 
-  #                 silent=TRUE)
-  # } else {
   fragSummary = try(read.table(fragSummary$datapath, sep="\t", header=TRUE),
                     silent=TRUE)
-  # }
-  
-  # if (class(fragSummary) == "try-error"){
-  #   fragSummary = "File load error. Please ensure file is in excel format." 
-  # }
   if (is(fragSummary,"try-error")) {
     fragSummary = "File load error. Please ensure file is in excel format." 
   }
@@ -149,19 +89,8 @@ getPeptideSummary <- function(input) {
   if(is.null(input$peptideSummary)) {
     return(NULL)
   }
-  
-  # if (input$subset){
-  #   peptideSummary = try(read.csv.sql(peptideSummary$datapath, sep="\t",
-  #                                  sql = "select * from file order by random() limit 100000"), 
-  #                     silent=TRUE)
-  # } else {
   peptideSummary = try(read.table(peptideSummary$datapath, sep="\t", 
                                   header=TRUE), silent=TRUE)
-  # }
-  
-  # if (class(peptideSummary) == "try-error"){
-  #   peptideSummary = "File load error. Please ensure file is in csv format." 
-  # }
   if (is(peptideSummary,"try-error")) {
     peptideSummary = "File load error. Please ensure file is in csv format."
   }
@@ -174,18 +103,8 @@ getProtSummary <- function(input) {
   if(is.null(input$protSummary)) {
     return(NULL)
   }
-  # if (input$subset){
-  #   protSummary = try(read.csv.sql(protSummary$datapath, sep="\t",
-  #                                     sql = "select * from file order by random() limit 100000"), 
-  #                        silent=TRUE)
-  # } else {
   protSummary = try(read.table(protSummary$datapath, sep="\t", header=TRUE),
                     silent=TRUE)
-  # }
-  
-  # if (class(protSummary) == "try-error"){
-  #   protSummary = "File load error. Please ensure file is in csv format." 
-  # }
   if (is(protSummary,"try-error")) {
     protSummary = "File load error. Please ensure file is in csv format." 
   }
@@ -198,17 +117,7 @@ getMaxqPtmSites <- function(input) {
   if(is.null(input$maxq_ptm_sites)) {
     return(NULL)
   }
-  # if (input$subset){
-  #   maxq_ptm_sites = try(read.csv.sql(maxq_ptm_sites$datapath, sep="\t",
-  #                                  sql = "select * from file order by random() limit 100000"), 
-  #                     silent=TRUE)
-  # } else {
   maxq_ptm_sites = try(read.delim(maxq_ptm_sites$datapath), silent=TRUE)
-  # }
-  
-  # if (class(maxq_ptm_sites) == "try-error"){
-  #   maxq_ptm_sites = "File load error. Please ensure file is in csv format." 
-  # }
   if (is(maxq_ptm_sites,"try-error")) {
     maxq_ptm_sites = "File load error. Please ensure file is in csv format." 
   }
@@ -223,10 +132,6 @@ getAnnot3 <- function(input) {
     return(NULL)
   }
   annot3 = try(read.delim(annot3$datapath, sep=","), silent=TRUE)
-  
-  # if (class(annot3) == "try-error") {
-  #   annot3 = "File load error. Please ensure file is in csv format."
-  # }
   if (is(annot3,"try-error")) {
     annot3 = "File load error. Please ensure file is in csv format."
   }
@@ -242,9 +147,6 @@ getAnnot2 <- function(input) {
   }
   annot2=try(read.csv(annot1$datapath, header = TRUE), silent=TRUE)
   
-  # if (class(annot2) == "try-error") {
-  #   annot2 = "File load error. Please ensure file is in csv format."
-  # }
   if (is(annot2,"try-error")) {
     annot2 = "File load error. Please ensure file is in csv format."
   }
@@ -263,9 +165,6 @@ getAnnot <- function(input) {
     return(annotation.pd)
   }
   annot_file = try(read.csv(annot$datapath), silent=TRUE)
-  # if (class(annot_file) == "try-error") {
-  #   annot_file = "File load error. Please ensure file is in csv format."
-  # }
   if(is(annot_file,"try-error")) {
     annot_file = "File load error. Please ensure file is in csv format."
   }
@@ -278,9 +177,7 @@ getAnnot1 <- function(input) {
     return(NULL)
   }
   annot1=try(read.csv(annot1$datapath, header = TRUE), silent=TRUE)
-  # if (class(annot1) == "try-error") {
-  #   annot1 = "File load error. Please ensure file is in csv format."
-  # }
+
   if (is(annot1,"try-error")) {
     annot1 = "File load error. Please ensure file is in csv format."
   }

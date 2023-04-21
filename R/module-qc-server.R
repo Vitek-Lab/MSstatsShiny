@@ -486,7 +486,6 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   observeEvent(input$proceed4, {
     updateTabsetPanel(session = parent_session, inputId = "tablist", selected = "StatsModel")
   })
-  # return(input)
   return(
     list(
       input = input,

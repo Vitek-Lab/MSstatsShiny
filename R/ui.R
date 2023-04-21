@@ -1,20 +1,3 @@
-# library(shiny)
-# library(shinyBS)
-# library(shinyjs)
-# library(shinybusy)
-# library(DT)
-# library(htmltools)
-# library(uuid)
-# library(Hmisc)
-# library(dplyr)
-# library(data.table)
-# library(tidyr)
-# library(MSstats)
-# library(MSstatsTMT)
-# library(MSstatsConvert)
-# library(MSstatsPTM)
-# @import shiny shinyBS shinyjs shinybusy DT htmltools Hmisc uuid dplyr data.table tidyr MSstats MSstatsTMT MSstatsConvert MSstatsPTM
-
 jsCode = '
 shinyjs.init = function() {
 $(document).keypress(function(e) { alert("Key pressed: " + e.which); });
@@ -49,7 +32,6 @@ color: black !important;
 #' @description This functions generates the UI object for MSstatsShiny app. Responsible
 #' for generating 5 nav pages homepage, data upload page, data processing page, statistical
 #' inference and future experiments.
-
 #' @return UI object for shinyUI 
 #' @examples 
 #' \dontrun{
