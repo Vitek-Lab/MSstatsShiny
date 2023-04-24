@@ -8,30 +8,30 @@
 #' @return This function returns nothing, as it sets up the QC UI
 #'
 qcUI <- function(id) {
+  # check custom tooltip: not working
   ns <- NS(id)
   tagList(
     fluidPage(
+      useShinyjs(),
       use_busy_spinner(spin = "fading-circle"),
-      tags$style(HTML('#qc-proceed6{background-color:orange}')),
+      tags$head(
+        tags$style(HTML('#qc-proceed6{background-color:orange}')),
+        tags$link(rel = "stylesheet", type = "text/css", href = "assets/style.css"),
+      ),
       headerPanel("Process and quantify data"),
       p("Feature summarization and missing value imputation. Includes options for vizualizing summarization through data tables and multiple plots. All outputs are available to download in 'csv' format."),
       tags$br(),
       sidebarPanel(
-        
-        
         # transformation
-        
         conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')",
-                         h4("1. Peptide level normalization", 
-                            tipify(icon("question-circle"), 
-                                   title = "Global median normalization on peptide level data, equalizes medians across all the channels and runs")),
+                         h4("1. Peptide level normalization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                            div("Global median normalization on peptide level data, equalizes medians across all the channels and runs", class = "icon-tooltip")),
                          checkboxInput(ns("global_norm"), "Yes", value = TRUE)),
         
         conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'SRM_PRM' || input['loadpage-DDA_DIA'] == 'DDA' || input['loadpage-DDA_DIA'] == 'DIA' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'No')",
                          radioButtons(ns("log"), 
-                                      label= h4("1. Log transformation", 
-                                                tipify(icon("question-circle"), 
-                                                       title = "Logarithmic transformation applied to the Intensity column")), 
+                                      label = h4("1. Log transformation",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                                 div("Logarithmic transformation applied to the Intensity column", class = "icon-tooltip")),
                                       c(log2 = "2", log10 = "10"))),
         
         
@@ -39,34 +39,31 @@ qcUI <- function(id) {
         
         conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')",
                          selectInput(ns("summarization"), 
-                                     label = h4("2. Summarization method", 
-                                                tipify(icon("question-circle"), 
-                                                       title = "Select method to be used for protein summarization. For details on each option please see Help tab")), 
+                                     h4("2. Summarization method",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                        div("Select method to be used for protein summarization. For details on each option please see Help tab", class = "icon-tooltip")),
                                      c("MSstats" = "msstats", 
                                        "Tukeys median polish" = "MedianPolish", 
                                        "Log(Sum)" = "LogSum","Median" = "Median"), 
                                      selected = "log")),
         
         conditionalPanel(condition = "(input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')) && input['qc-summarization'] == 'msstats'",
-                         checkboxInput(ns("null"), label = p("Do not apply cutoff", 
-                                                         tipify(icon("question-circle"), 
-                                                                title = "Maximum quantile for deciding censored missing values, default is 0.999"))),
+                         checkboxInput(ns("null"), label =tags$div("Do not apply cutoff",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                          div("Maximum quantile for deciding censored missing values, default is 0.999", class = "icon-tooltip"))
+                                       ),
                          numericInput(ns("maxQC"), NULL, 0.999, 0.000, 1.000, 0.001)),
         
         # Normalization
         conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'SRM_PRM' || input['loadpage-DDA_DIA'] == 'DDA' || input['loadpage-DDA_DIA'] == 'DIA'",
                          selectInput(ns("norm"), 
-                                     label = h4("2. Normalization", 
-                                                tipify(icon("question-circle"), 
-                                                       title = "Normalization to remove systematic bias between MS runs. For more information visit the Help tab")), 
+                                     label = h4("2. Normalization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                        div("Normalization to remove systematic bias between MS runs. For more information visit the Help tab", class = "icon-tooltip")),
                                      c("none" = "FALSE", "equalize medians" = "equalizeMedians", 
                                        "quantile" = "quantile", "global standards" = "globalStandards"), 
                                      selected = "equalizeMedians")),
         conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'No'",
                          selectInput(ns("norm"), 
-                                     label = h4("2. Normalization", 
-                                                tipify(icon("question-circle"), 
-                                                       title = "Normalization to remove systematic bias between MS runs. For more information visit the Help tab")), 
+                                     label = h4("2. Normalization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                        div("Normalization to remove systematic bias between MS runs. For more information visit the Help tab", class = "icon-tooltip")),
                                      c("none" = "FALSE", "equalize medians" = "equalizeMedians", 
                                        "quantile" = "quantile"), 
                                      selected = "equalizeMedians")),
@@ -78,9 +75,8 @@ qcUI <- function(id) {
         
         conditionalPanel(
           condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')",
-          h4("3. Local protein normalization",
-             tipify(icon("question-circle"), 
-                    title = "Reference channel based normalization between MS runs on protein level data. Requires one reference channel in each MS run, annotated by 'Norm' in Condition column of annotation file")),
+          h4("3. Local protein normalization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+             div("Reference channel based normalization between MS runs on protein level data. Requires one reference channel in each MS run, annotated by 'Norm' in Condition column of annotation file", class = "icon-tooltip")),
           checkboxInput(ns("reference_norm"), "Yes", value = TRUE),
           tags$hr(),
           h4("4. Filtering"),
@@ -96,11 +92,10 @@ qcUI <- function(id) {
           
           #h4("3. Used features"),
           radioButtons(ns("features_used"),
-                       label = h4("3. Feature subset", 
-                                  tipify(icon("question-circle"), 
-                                         title = "What features to use in \
+                       label = h4("3. Feature subset",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                          div("What features to use in \
                                    summarization. All features or a subset of \
-                                   features can be used.")),
+                                   features can be used.", class = "icon-tooltip")),
                        c("Use all features" = "all", "Use top N features" = "topN", 
                          "Remove uninformative features & outliers" = "highQuality")),
           #),
@@ -113,9 +108,8 @@ qcUI <- function(id) {
           ### censoring
           h4("4. Missing values (not random missing or censored)"),
           radioButtons(ns('censInt'), 
-                       label = h5("Assumptions for missing values", 
-                                  tipify(icon("question-circle"), 
-                                         title = "Processing software report missing values differently; please choose the appropriate options to distinguish missing values and if censored/at random")), 
+                       h5("Assumptions for missing values",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                          div("Processing software report missing values differently; please choose the appropriate options to distinguish missing values and if censored/at random", class = "icon-tooltip")),
                        c("assume all NA as censored" = "NA", "assume all between 0 \
                    and 1 as censored" = "0", 
                          "all missing values are random" = "null"), 
@@ -132,8 +126,8 @@ qcUI <- function(id) {
                                      trigger = "hover"),
           
           # max quantile for censored
-          h5("Max quantile for censored", tipify(icon("question-circle"), 
-                                                 title = "Max quantile for censored")),
+          h5("Max quantile for censored",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+             div("Max quantile for censored", class = "icon-tooltip")),
           checkboxInput(ns("null1"), label = "Do not apply cutoff to censor missing values"),
           numericInput(ns("maxQC1"), NULL, 0.999, 0.000, 1.000, 0.001),
           
@@ -141,11 +135,8 @@ qcUI <- function(id) {
           # MBi
           h4("5. Imputation"),
           conditionalPanel(condition = "input['qc-censInt'] == 'NA' || input['qc-censInt'] == '0'",
-                           checkboxInput(ns("MBi"), 
-                                         label = p("Model based imputation", 
-                                                   tipify(icon("question-circle"), 
-                                                          title = "If unchecked the values set as cutoff for censored will be used")), 
-                                         value = TRUE
+                           checkboxInput(ns("MBi"), label=tags$div("Model based imputation",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                                                    div("If unchecked the values set as cutoff for censored will be used", class = "icon-tooltip")),value = TRUE
                            )),
           # # cutoff for censored
           # conditionalPanel(condition = "input.censInt == 'NA' || input.censInt == '0'",
@@ -159,8 +150,8 @@ qcUI <- function(id) {
           tags$style(HTML('#qc-run{background-color:orange}')),
           ### summary method
           
-          h4("6. Summarization", tipify(icon("question-circle"), 
-                                        title = "Run-level summarization method")),
+          h4("6. Summarization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+             div("Run-level summarization method", class = "icon-tooltip")),
           p("method: TMP"),
           p("For linear summarzation please use command line"),
           tags$hr(),
@@ -185,9 +176,8 @@ qcUI <- function(id) {
                  tabPanel("Summarized Results", 
                           wellPanel(
                             fluidRow(
-                              h4("Download summary of protein abundance", 
-                                 tipify(icon("question-circle"), 
-                                        title="Model-based quantification for each condition or for each biological samples per protein.")),
+                              h4("Download summary of protein abundance",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                 div("Model-based quantification for each condition or for each biological samples per protein.", class = "icon-tooltip")),
                               radioButtons(ns("typequant"), 
                                            label = h4("Type of summarization"), 
                                            c("Sample level summarization" = "Sample", 
@@ -206,17 +196,15 @@ qcUI <- function(id) {
                  tabPanel("Summarization Plots",
                           wellPanel(
                             selectInput(ns("type1"),
-                                        label = h5("Select plot type", 
-                                                   tipify(icon("question-circle"), 
-                                                          title="For details on plotting options please see the Help tab.")), 
+                                        label =  h5("Select plot type",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                           div("For details on plotting options please see the Help tab.", class = "icon-tooltip")),
                                         c("Quality Control Plots"="QCPlot", 
                                           "Profile Plots"="ProfilePlot")),
                             conditionalPanel(condition = "input['qc-type1'] === 'ProfilePlot'",
                                              checkboxInput(ns("summ"), "Show plot with summary"),
                                              selectInput(ns("fname"),  
-                                                         label = h5("Feature legend", 
-                                                                    tipify(icon("question-circle"),
-                                                                           title = "Type of legend to use in plot")), 
+                                                         label = h5("Feature legend",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                                            div("Type of legend to use in plot", class = "icon-tooltip")),
                                                          c("Transition level"="Transition", 
                                                            "Peptide level"="Peptide", 
                                                            "No feature legend"="NA"))
