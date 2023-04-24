@@ -8,7 +8,6 @@
 #' @return This function returns nothing, as it sets up the QC UI
 #'
 qcUI <- function(id) {
-  # check custom tooltip: not working
   ns <- NS(id)
   tagList(
     fluidPage(
@@ -107,23 +106,40 @@ qcUI <- function(id) {
           
           ### censoring
           h4("4. Missing values (not random missing or censored)"),
-          radioButtons(ns('censInt'), 
+          
+          # radioButtons(ns('censInt'),
+          #              h5("Assumptions for missing values",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+          #                 div("Processing software report missing values differently; please choose the appropriate options to distinguish missing values and if censored/at random", class = "icon-tooltip")),
+          #              c("assume all NA as censored" = "NA", "assume all between 0 \
+          #          and 1 as censored" = "0",
+          #                "all missing values are random" = "null"),
+          #              selected = "NA"),
+          # MSstatsShiny:::radioTooltip(id = ns("censInt"), choice = "NA", title = "It assumes that all \
+          #        NAs in Intensity column are censored.", placement = "right",
+          #                            trigger = "hover"),
+          # MSstatsShiny:::radioTooltip(id = ns("censInt"), choice = "0", title = "It assumes that all \
+          #        values between 0 and 1 in Intensity column are censored.  NAs \
+          #        will be considered as random missing.", placement = "right",
+          #                            trigger = "hover"),
+          # MSstatsShiny:::radioTooltip(id = ns("censInt"), choice = "null", title = "It assumes that all \
+          #        missing values are randomly missing.", placement = "right",
+          #                            trigger = "hover"),
+          
+          radioButtons(ns('censInt'),
                        h5("Assumptions for missing values",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                           div("Processing software report missing values differently; please choose the appropriate options to distinguish missing values and if censored/at random", class = "icon-tooltip")),
-                       c("assume all NA as censored" = "NA", "assume all between 0 \
-                   and 1 as censored" = "0", 
-                         "all missing values are random" = "null"), 
+                   choiceNames = list(
+                     div("assume all NA as censored",class = "icon-wrapper",
+                         div("It assumes that all NAs in Intensity column are censored.", class = "icon-tooltip")),
+                     div("assume all between 0 and 1 as censored",class = "icon-wrapper",
+                         div("It assumes that all values between 0 and 1 in Intensity column are censored.  NAs will be considered as random missing.", class = "icon-tooltip")),
+                     div("all missing values are random",class = "icon-wrapper",
+                         div("It assumes that all missing values are randomly missing.", class = "icon-tooltip"))
+                   ),
+                   choiceValues = list(
+                     "NA", "0", "null"
+                   ),
                        selected = "NA"),
-          MSstatsShiny:::radioTooltip(id = ns("censInt"), choice = "NA", title = "It assumes that all \
-                 NAs in Intensity column are censored.", placement = "right", 
-                                     trigger = "hover"),
-          MSstatsShiny:::radioTooltip(id = ns("censInt"), choice = "0", title = "It assumes that all \
-                 values between 0 and 1 in Intensity column are censored.  NAs \
-                 will be considered as random missing.", placement = "right",
-                                     trigger = "hover"),
-          MSstatsShiny:::radioTooltip(id = ns("censInt"), choice = "null", title = "It assumes that all \
-                 missing values are randomly missing.", placement = "right", 
-                                     trigger = "hover"),
           
           # max quantile for censored
           h5("Max quantile for censored",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
