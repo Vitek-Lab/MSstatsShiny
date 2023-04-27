@@ -355,13 +355,13 @@ getData <- function(input) {
                                          use_unmod_peptides=use_unmod_peptides)
       
     }else {
-      data = read.csv(input$data$datapath, header = TRUE, sep = input$sep,
+      data = read.csv(input$msstatsptmdata$datapath, header = TRUE, sep = input$sep,
                       stringsAsFactors=FALSE)
       mydata = list("PTM" = data, "PROTEIN" = unmod)
     }
   }
   else if (input$filetype == "msstats"){
-    mydata = read.csv(input$data$datapath, header = TRUE, sep = input$sep,
+    mydata = read.csv(input$msstatsdata$datapath, header = TRUE, sep = input$sep,
                       stringsAsFactors=FALSE)
   }
   else {
@@ -404,7 +404,7 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep=input$sep,
       #                           sql = "select * from file order by random() limit 100000")
       # } else {
-      data = read.csv(infile$datapath, header = TRUE, sep = input$sep,
+      data = read.csv(input$skylinedata$datapath, header = TRUE, sep = input$sep,
                       stringsAsFactors=FALSE)
       # }
       if(input$DDA_DIA=="DDA" ){
@@ -512,7 +512,7 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep="\t",
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
-      data = read.csv(infile$datapath, sep="\t")
+      data = read.csv(input$specdata$datapath, sep="\t")
       # }
       mydata = SpectronauttoMSstatsFormat(data,
                                           annotation = getAnnot(input),
