@@ -492,7 +492,7 @@ test_that("dda dia skyline", {
     mock_input$filetype = "sky"
     mock_input$sep = ","
     
-    mock_input$data$datapath <- system.file("tinytest/raw_data/Skyline/skyline_input.csv",
+    mock_input$skylinedata$datapath <- system.file("tinytest/raw_data/Skyline/skyline_input.csv",
                                             package = "MSstatsConvert")
     
     stub(getData,"getAnnot",NULL)
