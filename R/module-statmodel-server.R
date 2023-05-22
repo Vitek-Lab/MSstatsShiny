@@ -421,7 +421,8 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
 
     } else{
-      tryCatch({plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
+      tryCatch({
+      plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
                                                             type=input$typeplot,
                                                             sig=input$sig,
                                                             FCcutoff=input$FC,
@@ -437,7 +438,6 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
         remove_modal_spinner()
         stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )}
       )
-
     }
 
     remove_modal_spinner()

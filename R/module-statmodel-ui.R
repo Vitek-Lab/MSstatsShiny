@@ -128,7 +128,8 @@ statmodelUI <- function(id) {
                    condition = "input['statmodel-typeplot'] == 'Heatmap'",
                    h4("Note: Only one page will be shown in \
                                    browser. To view all proteins please \
-                                   view this plot as a pdf."),
+                                   view this plot as a pdf. \
+                             Heatmaps require at least two comparisons."),
                    selectInput(ns("logp"), 
                                label = h5("Log transformation of adjusted p-value"),
                                c("base 2" = "2", "base 10" = "10"), selected = "10"),
