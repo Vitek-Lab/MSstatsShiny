@@ -22,7 +22,8 @@ statmodelUI <- function(id) {
         tags$style(HTML('#statmodel-plotresults{background-color:orange}')),
         tags$style(HTML('#statmodel-viewresults{background-color:orange}')),
         tags$style(HTML('#statmodel-submit{background-color:orange}')),
-        tags$style(HTML('#statmodel-clear{background-color:orange}'))
+        tags$style(HTML('#statmodel-clear{background-color:orange}')),
+        tags$link(rel = "stylesheet", type = "text/css", href = "assets/style.css"),
       ),
       use_busy_spinner(spin = "fading-circle"),
       headerPanel("Statistical modeling and inference"),
@@ -37,9 +38,9 @@ statmodelUI <- function(id) {
       sidebarPanel(
         fluidRow(
           radioButtons(ns("def_comp"), label=h4("1. Define comparisons\
-                                                          - contrast matrix", 
-                                            tipify(icon("question-circle"), 
-                                                   title="Define what conditions you want to compare here.")), 
+                                                          - contrast matrix",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                                div("Define what conditions you want to compare here.", class = "icon-tooltip")),
+                       
                        c("All possible pairwise comparisons" = "all_pair", 
                          "Compare all against one" = "all_one", 
                          "Create custom pairwise comparisons" = "custom",
@@ -77,13 +78,13 @@ statmodelUI <- function(id) {
           tags$hr(),
           conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || input['loadpage-input.PTMTMT'] == 'Yes'",
                            radioButtons(ns("moderated"), 
-                                        label= h4("Empirical Bayes moderation", 
-                                                  tipify(icon("question-circle"), 
-                                                         title = "TRUE will moderate t statistic; FALSE (default) uses ordinary t statistic.")), 
+                                        label= h4("Empirical Bayes moderation",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                                  div("TRUE will moderate t statistic; FALSE (default) uses ordinary t statistic.", class = "icon-tooltip")), 
                                         c(True = TRUE, False = FALSE))),
+          
           sliderInput(ns("signif"),
-                      label = h5("Significance level", tipify(icon("question-circle"),
-                                                              title="The alpha used to determine significant results. IE the probability of type I error)")), 
+                      label = h5("Significance level",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                 div("The alpha used to determine significant results. IE the probability of type I error)", class = "icon-tooltip")), 
                       0, 1, 0.05),
         ),
         # table of significant proteins 
@@ -106,9 +107,8 @@ statmodelUI <- function(id) {
                                               label = h5("Log transformation of adjusted p-value"),
                                               c("base 2" = "2", "base 10" = "10"), selected = "10"),
                                   sliderInput(ns("sig"), 
-                                              label = h5("Adjusted p-value cutoff",
-                                                         tipify(icon("question-circle"),
-                                                                title="The cutoff used to determine significant results.)")),
+                                              label = h5("Adjusted p-value cutoff",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                                         div("The cutoff used to determine significant results.)", class = "icon-tooltip")),
                                               0, 1, 0.05),
                                   checkboxInput(ns("FC1"), 
                                                 label = p("Apply specific fold change cutoff for significance")),
@@ -128,7 +128,8 @@ statmodelUI <- function(id) {
                    condition = "input['statmodel-typeplot'] == 'Heatmap'",
                    h4("Note: Only one page will be shown in \
                                    browser. To view all proteins please \
-                                   view this plot as a pdf."),
+                                   view this plot as a pdf. \
+                             Heatmaps require at least two comparisons."),
                    selectInput(ns("logp"), 
                                label = h5("Log transformation of adjusted p-value"),
                                c("base 2" = "2", "base 10" = "10"), selected = "10"),
@@ -143,11 +144,8 @@ statmodelUI <- function(id) {
                    numericInput(ns("nump"), "Number of proteins \
                                         per page", 100, 1, 180, 1),
                    selectInput(ns("cluster"), 
-                               label = h5("Cluster analysis", 
-                                          tipify(
-                                            icon("question-circle"), 
-                                            title= "Determines how to order proteins and comparisons. protein means, comparison means, or both", 
-                                            placement = "top")), 
+                               label = h5("Cluster analysis",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                          div("Determines how to order proteins and comparisons. protein means, comparison means, or both", class = "icon-tooltip")), 
                                c("protein dendogram" = "protein", 
                                  "comparison dendogram" = "comparison", 
                                  "protein and comparison dendograms" = "both"))),
