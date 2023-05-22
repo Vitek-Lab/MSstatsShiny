@@ -8,6 +8,8 @@
 #' @return This function returns nothing, as it sets up the loadpage UI
 #'
 loadpageUI <- function(id) {
+  # fix p tag tooltip
+  # fix custom statsshiny tooltip
   ns <- NS(id)
   tagList(
     fluidPage(
