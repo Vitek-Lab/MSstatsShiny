@@ -20,7 +20,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   # choices of groups for contrast matrix
   
   choices = reactive({
-    if (loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "Yes"){
+    if (loadpage_input()$DDA_DIA == "PTM" & (loadpage_input()$PTMTMT == "Yes" | loadpage_input()$filetype=='phil')){
       levels(preprocess_data()$PTM$ProteinLevelData$Condition)
     } else if(loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "No"){
       levels(preprocess_data()$PTM$ProteinLevelData$GROUP)
@@ -303,7 +303,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
                    remove_empty_channel = TRUE
                    )\n", sep = "")
     } else if (loadpage_input()$DDA_DIA == "PTM"){
-      if (loadpage_input()$PTMTMT == "Yes"){
+      if (loadpage_input()$PTMTMT == "Yes" | loadpage_input()$filetype=='phil'){
         dt = "TMT"
       } else {
         dt = "LabelFree"
@@ -412,7 +412,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
                                                     which.Protein = input$whichProt,
                                                     address=path1(),
                                                     savePDF=pdf)
-        # remove_modal_spinner()
+      remove_modal_spinner()
       },
       error = function(e){
         remove_modal_spinner()
