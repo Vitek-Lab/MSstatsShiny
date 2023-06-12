@@ -632,7 +632,9 @@ test_that("tmt spectromine", {
     stub(getData,"getAnnot",annotation.mine)
     
     output <- getData(mock_input)
-    expected_names <- c("ProteinName","PeptideSequence","Charge","PSM","Mixture","TechRepMixture","Run","Channel","BioReplicate","Condition","Intensity")
+    expected_names <- c("ProteinName","PeptideSequence","Charge","PSM",
+                        "Mixture","TechRepMixture","Run","Channel",
+                        "BioReplicate","Condition","Intensity")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
   })

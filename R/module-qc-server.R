@@ -417,7 +417,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                                         type = input$typequant,
                                         format = input$format,
                                         use_log_file = FALSE)
-    } else if (loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "Yes"){
+    } else if (loadpage_input()$DDA_DIA == "PTM" & (loadpage_input()$PTMTMT == "Yes" | loadpage_input()$filetype=='phil')){
       temp = copy(preprocess_data())
       setnames(temp$PTM$ProteinLevelData, 
                c("Abundance", "Condition", "BioReplicate"), 

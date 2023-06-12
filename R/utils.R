@@ -268,6 +268,7 @@ getData <- function(input) {
       print(mydata)
 
     } else if(input$filetype=='phil'){
+
       mydata = read.csv(input$ptmdata$datapath)
       mydata_protein = try(read.csv(input$globaldata$datapath),silent=TRUE)
       annotation = read.csv(input$annotation$datapath)
@@ -280,6 +281,12 @@ getData <- function(input) {
                                          mod_id_col = input$mod_id_col,
                                          localization_cutoff = as.numeric(input$localization_cutoff),
                                          remove_unlocalized_peptides=input$remove_unlocalized_peptides)
+      
+      mydata$PTM$Condition = as.character(mydata$PTM$Condition)
+      mydata$PTM[mydata$PTM$Condition == "NORM", "Condition"] = "Norm"
+      
+      mydata$PROTEIN$Condition = as.character(mydata$PROTEIN$Condition)
+      mydata$PROTEIN[mydata$PROTEIN$Condition == "NORM", "Condition"] = "Norm"
       
     } else if (input$filetype=='PD'){
       mydata = read.csv(input$ptm_input$datapath, sep = "\t")
@@ -583,9 +590,13 @@ getData <- function(input) {
                                              use_log_file = FALSE)
     }
     else if(input$filetype == 'phil' & input$DDA_DIA=="TMT") {
+      
       mydata = PhilosophertoMSstatsTMTFormat(input = mydata, 
-                                             annotation = get_annot(),
+                                             annotation = getAnnot(input),
                                              use_log_file = FALSE)
+      mydata$Condition = as.character(mydata$Condition)
+      mydata[mydata$Condition == "NORM", "Condition"] = "Norm"
+      mydata$Condition = as.factor(mydata$Condition)
     }
   }
 
@@ -851,7 +862,7 @@ getSummary1 <- function(input, df,annot_df) {
   } else if (input$DDA_DIA == "PTM"){
     ptm_df = as.data.frame(df$PTM)
     unmod_df = as.data.frame(df$PROTEIN)
-    if (input$PTMTMT == "Yes"){
+    if (input$PTMTMT == "Yes" | input$filetype=='phil'){
 
       ptm_df1 = ptm_df %>% summarise("Number of Conditions" = n_distinct(Condition),
                                      "Number of PTM Mixtures" = n_distinct(Mixture),
@@ -918,11 +929,12 @@ getSummary1 <- function(input, df,annot_df) {
 getSummary2 <- function(input,df) {
   # df = getData(input)
   print("+++++++++ In getSummary2 +++++++++")
+  print(input$PTMTMT)
   if(input$DDA_DIA=="TMT"){
     df = as.data.frame(df)
     df = df %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence, Charge,
                                           sep = '_'))
-  } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+  } else if (input$DDA_DIA == "PTM" & (input$PTMTMT == "Yes" | input$filetype=='phil')){
     df_ptm = as.data.frame(df$PTM) %>% mutate("FEATURES" = paste(ProteinName, PeptideSequence,
                                                                  Charge, sep = '_'))
     df_prot = as.data.frame(df$PROTEIN) %>% mutate("FEATURES" = paste(ProteinName, 
@@ -1025,16 +1037,16 @@ preprocessData <- function(qc_input,loadpage_input,input_data ) {
   MSstatsLogsSettings(FALSE)
   ## Here we run the underlying functions for MSstats and MSstatsTMT 
   ## summarization. Done so we can loop over proteins and create a progress bar
-  if (loadpage_input$DDA_DIA == "PTM" & loadpage_input$PTMTMT == "No"){
-    
-    preprocessed_ptm = MSstatsShiny::lf_summarization_loop(input_data$PTM, qc_input, loadpage_input)
-    preprocessed_unmod = MSstatsShiny::lf_summarization_loop(input_data$PROTEIN, qc_input, loadpage_input)
-    preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
-    
-  } else if(loadpage_input$DDA_DIA == "PTM" & loadpage_input$PTMTMT == "Yes"){
+  if(loadpage_input$DDA_DIA == "PTM" & (loadpage_input$PTMTMT == "Yes" | loadpage_input$filetype=='phil')){
     
     preprocessed_ptm = MSstatsShiny::tmt_summarization_loop(input_data$PTM, qc_input,loadpage_input)
     preprocessed_unmod = MSstatsShiny::tmt_summarization_loop(input_data$PROTEIN, qc_input,loadpage_input)
+    preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
+    
+  } else if (loadpage_input$DDA_DIA == "PTM" & loadpage_input$PTMTMT == "No"){
+    
+    preprocessed_ptm = MSstatsShiny::lf_summarization_loop(input_data$PTM, qc_input, loadpage_input)
+    preprocessed_unmod = MSstatsShiny::lf_summarization_loop(input_data$PROTEIN, qc_input, loadpage_input)
     preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
     
   } else if(loadpage_input$DDA_DIA == "TMT"){
@@ -1075,7 +1087,7 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
                             summaryPlot =", qc_input$summ,",\t\t\t\t   
                             address = FALSE)\n", sep="")
   } else if (loadpage_input$DDA_DIA == "PTM"){
-    if (loadpage_input$PTMTMT == "Yes"){
+    if (loadpage_input$PTMTMT == "Yes" | loadpage_input$filetype=='phil'){
       codes = paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
       codes = paste(codes, "summarized = MSstatsPTM::dataSummarizationPTM_TMT(data, 
                      method = '",qc_input$summarization,"\',\t\t\t\t
@@ -1151,7 +1163,7 @@ dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix,input_
   print("+++++++++ In Data Comparison +++++++++")
   # input_data = preprocessData(qc_input,loadpage_input,get_data())
   contrast.matrix = matrix
-  if (loadpage_input$DDA_DIA == "PTM" & loadpage_input$PTMTMT == "Yes"){
+  if (loadpage_input$DDA_DIA == "PTM" & (loadpage_input$PTMTMT == "Yes" | loadpage_input$filetype=='phil')){
     model_ptm = MSstatsShiny::tmt_model(input_data$PTM, statmodel_input, contrast.matrix)
     model_protein = MSstatsShiny::tmt_model(input_data$PROTEIN, statmodel_input, contrast.matrix)
     model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
