@@ -30,8 +30,9 @@ To install the application via Github, please use the following steps.
 
 To cite this application please use the corresponding publicaiton in the journal of proteome research.
 
-MSstatsShiny: A GUI for Versatile, Scalable, and Reproducible Statistical Analyses of Quantitative Proteomic Experiments
-Devon Kohler, Maanasa Kaza, Cristina Pasi, Ting Huang, Mateusz Staniak, Dhaval Mohandas, Eduard Sabido, Meena Choi, and Olga Vitek
+**MSstatsShiny: A GUI for Versatile, Scalable, and Reproducible Statistical Analyses of Quantitative Proteomic Experiments**
+
+Devon Kohler, Maanasa Kaza, Cristina Pasi, Ting Huang, Mateusz Staniak, Dhaval Mohandas, Eduard Sabido, Meena Choi, and Olga Vitek. 
 Journal of Proteome Research 2023 22 (2), 551-556
 DOI: 10.1021/acs.jproteome.2c00603
 
