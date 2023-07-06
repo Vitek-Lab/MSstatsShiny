@@ -26,7 +26,7 @@ To install the application via Github, please use the following steps.
 2. Install the package by executing `devtools::install_github("Vitek-Lab/MSstatsShiny")` in the console.
 3. Run the application by executing `library(MSstatsShiny)` and `launch_MSstatsShiny()` or `MSstatsShiny::launch_MSstatsShiny()` in the console.
 
-## Citeation
+## Citation
 
 To cite this application please use the corresponding publicaiton in the journal of proteome research.
 
