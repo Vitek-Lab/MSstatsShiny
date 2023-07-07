@@ -76,7 +76,7 @@ statmodelUI <- function(id) {
           p("Please add a comparison matrix before modeling."),
           disabled(actionButton(ns("calculate"), "Start")),
           tags$hr(),
-          conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-PTMTMT'] == 'Yes' || input['loadpage-filetype'] == 'phil')",
+          conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-PTMTMT'] == 'Yes')",
                            radioButtons(ns("moderated"), 
                                         label= h4("Empirical Bayes moderation",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                   div("TRUE will moderate t statistic; FALSE (default) uses ordinary t statistic.", class = "icon-tooltip")), 
