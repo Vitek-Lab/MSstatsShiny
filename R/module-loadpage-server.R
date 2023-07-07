@@ -1,11 +1,11 @@
 #' Loadpage Server module for data selection and upload server.
 #'
-#' This function sets up the loadpage server where it consists of several, 
+#' This function sets up the loadpage server where it consists of several,
 #' options for users to select and upload files.
 #'
 #' @param id namespace prefix for the module
 #' @param parent_session session of the main calling module
-#' 
+#'
 #' @return input object with user selected options
 #'
 loadpageServer <- function(id, parent_session) {
@@ -19,6 +19,7 @@ loadpageServer <- function(id, parent_session) {
         disable(selector = "[type=radio][value=open]")
         disable(selector = "[type=radio][value=ump]")
         disable(selector = "[type=radio][value=spmin]")
+        disable(selector = "[type=radio][value=diann]")
         runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
       }
       else if (input$DDA_DIA == "DIA") {
@@ -44,9 +45,10 @@ loadpageServer <- function(id, parent_session) {
         disable(selector = "[type=radio][value=ump]")
         disable(selector = "[type=radio][value=spmin]")
         disable(selector = "[type=radio][value=phil]")
+        disable(selector = "[type=radio][value=diann]")
         runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
       }
-      
+
       else if (input$DDA_DIA == "TMT") {
         runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
         enable("filetype")
@@ -55,8 +57,9 @@ loadpageServer <- function(id, parent_session) {
         disable(selector = "[type=radio][value=spec]")
         disable(selector = "[type=radio][value=open]")
         disable(selector = "[type=radio][value=ump]")
+        disable(selector = "[type=radio][value=diann]")
         runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
-        
+
       }
       else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")) {
         runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
@@ -70,91 +73,92 @@ loadpageServer <- function(id, parent_session) {
         disable(selector = "[type=radio][value=ump]")
         disable(selector = "[type=radio][value=spmin]")
         # disable(selector = "[type=radio][value=phil]")
+        disable(selector = "[type=radio][value=diann]")
         runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
       }
     })
-    
+
     observeEvent(input$filetype,{
       enable("proceed1")
     })
 
-    
+
     get_annot = eventReactive(input$proceed1, {
       getAnnot(input)
     })
 
-    
+
     get_annot1 = reactive({
       getAnnot1(input)
     })
-    
+
     get_annot2 = reactive({
       getAnnot2(input)
     })
-    
+
     get_annot3 = reactive({
       getAnnot3(input)
     })
-    
+
     get_evidence = reactive({
       getEvidence(input)
     })
-    
+
     get_evidence2 = reactive({
       getEvidence2(input)
     })
-    
+
     get_global = reactive({
       getGlobal(input)
     })
-    
+
     get_proteinGroups = reactive({
       getProteinGroups(input)
     })
-    
+
     get_proteinGroups2 = reactive({
       getProteinGroups2(input)
     })
-    
+
     get_FragSummary = reactive({
       getFragSummary(input)
     })
-    
+
     get_peptideSummary = reactive({
       getPeptideSummary(input)
     })
-    
+
     get_protSummary = reactive({
       getProtSummary(input)
     })
-    
+
     get_maxq_ptm_sites = reactive({
       getMaxqPtmSites(input)
     })
-    
-    
+
+
     get_data = eventReactive(input$proceed1, {
       getData(input)
     })
 
-    
+
     get_data_code = eventReactive(input$calculate, {
       getDataCode(input)
     })
-    
+
     get_summary1 = eventReactive(input$proceed1, {
       getSummary1(input,get_data(),get_annot())
     })
-    
+
     get_summary2 = eventReactive(input$proceed1, {
       getSummary2(input,get_data())
     })
-    
+
     onclick("proceed1", {
       get_data()
       get_annot()
       shinyjs::show("summary_tables")
-      
+
       ### outputs ###
       get_summary = reactive({
         if(is.null(get_data())) {
@@ -163,27 +167,27 @@ loadpageServer <- function(id, parent_session) {
         data1 = get_data()
         data_summary = describe(data1)
       })
-      
+
       output$template = downloadHandler(
         filename = "extdata/templateannotation.csv",
-        
+
         content = function(file) {
           file.copy("extdata/templateannotation.csv", file)
         },
         contentType = "csv"
       )
-      
+
       output$template1 = downloadHandler(
         filename = function() {
           paste("extdata/templateevidence", "txt", sep = ".")
         },
-        
+
         content = function(file) {
           file.copy("extdata/templateevidence.txt", file)
         },
         contentType = "txt"
       )
-      
+
       output$summary = renderTable(
         {
           head(get_data())
@@ -199,26 +203,26 @@ loadpageServer <- function(id, parent_session) {
           head(get_data()$PROTEIN)
         }, bordered = TRUE
       )
-      
-      
+
+
       output$summary1 =  renderTable(
         {
           req(get_data())
           get_summary1()
-          
+
         }, colnames = FALSE, bordered = TRUE
       )
-      
+
       output$summary2 =  renderTable(
         {
           req(get_data())
           get_summary2()
-          
+
         }, colnames = FALSE, bordered = TRUE, align='lr'
       )
 
       onclick("proceed2", {
-        updateTabsetPanel(session = parent_session, inputId = "tablist", 
+        updateTabsetPanel(session = parent_session, inputId = "tablist",
                           selected = "DataProcessing")
       })
       output$summary_tables = renderUI({
@@ -231,7 +235,7 @@ loadpageServer <- function(id, parent_session) {
           h4("Summary of experimental design"),
           tableOutput(ns('summary1')),
           tags$br(),
-          h4("Summary of dataset"), 
+          h4("Summary of dataset"),
           tableOutput(ns("summary2")),
           tags$br(),
           conditionalPanel(condition = "input['loadpage-DDA_DIA'] !== 'PTM'",
@@ -247,7 +251,7 @@ loadpageServer <- function(id, parent_session) {
           )
         )
       })
-      
+
     })
     return(
       list(
@@ -256,5 +260,5 @@ loadpageServer <- function(id, parent_session) {
       )
     )
   })
-  
+
 }
