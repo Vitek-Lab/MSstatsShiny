@@ -22,12 +22,12 @@ qcUI <- function(id) {
       tags$br(),
       sidebarPanel(
         # transformation
-        conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')",
+        conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')",
                          h4("1. Peptide level normalization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                             div("Global median normalization on peptide level data, equalizes medians across all the channels and runs", class = "icon-tooltip")),
                          checkboxInput(ns("global_norm"), "Yes", value = TRUE)),
         
-        conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'SRM_PRM' || input['loadpage-DDA_DIA'] == 'DDA' || input['loadpage-DDA_DIA'] == 'DIA' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'No')",
+        conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'LType' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-PTMTMT'] == 'No')",
                          radioButtons(ns("log"), 
                                       label = h4("1. Log transformation",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                  div("Logarithmic transformation applied to the Intensity column", class = "icon-tooltip")),
@@ -36,7 +36,7 @@ qcUI <- function(id) {
         
         tags$hr(),
         
-        conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')",
+        conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')",
                          selectInput(ns("summarization"), 
                                      h4("2. Summarization method",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                         div("Select method to be used for protein summarization. For details on each option please see Help tab", class = "icon-tooltip")),
@@ -45,35 +45,35 @@ qcUI <- function(id) {
                                        "Log(Sum)" = "LogSum","Median" = "Median"), 
                                      selected = "log")),
         
-        conditionalPanel(condition = "(input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')) && input['qc-summarization'] == 'msstats'",
+        conditionalPanel(condition = "(input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')) && input['qc-summarization'] == 'msstats'",
                          checkboxInput(ns("null"), label =tags$div("Do not apply cutoff",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                           div("Maximum quantile for deciding censored missing values, default is 0.999", class = "icon-tooltip"))
                                        ),
                          numericInput(ns("maxQC"), NULL, 0.999, 0.000, 1.000, 0.001)),
         
         # Normalization
-        conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'SRM_PRM' || input['loadpage-DDA_DIA'] == 'DDA' || input['loadpage-DDA_DIA'] == 'DIA'",
+        conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'LType'",
                          selectInput(ns("norm"), 
                                      label = h4("2. Normalization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                         div("Normalization to remove systematic bias between MS runs. For more information visit the Help tab", class = "icon-tooltip")),
                                      c("none" = "FALSE", "equalize medians" = "equalizeMedians", 
                                        "quantile" = "quantile", "global standards" = "globalStandards"), 
                                      selected = "equalizeMedians")),
-        conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'No'",
+        conditionalPanel(condition = "input['loadpage-BIO'] == 'PTM' && input['loadpage-PTMTMT'] == 'No'",
                          selectInput(ns("norm"), 
                                      label = h4("2. Normalization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                         div("Normalization to remove systematic bias between MS runs. For more information visit the Help tab", class = "icon-tooltip")),
                                      c("none" = "FALSE", "equalize medians" = "equalizeMedians", 
                                        "quantile" = "quantile"), 
                                      selected = "equalizeMedians")),
-        conditionalPanel(condition = "input['qc-norm'] == 'globalStandards' &&  (input['loadpage-DDA_DIA'] !== 'PTM' && input['loadpage-DDA_DIA'] !== 'TMT')",
+        conditionalPanel(condition = "input['qc-norm'] == 'globalStandards' &&  (input['loadpage-BIO'] !== 'PTM' && input['loadpage-DDA_DIA'] !== 'TMT')",
                          radioButtons(ns("standards"), "Choose type of standards", 
                                       c("Proteins", "Peptides")),
                          uiOutput(ns("Names"))),
         tags$hr(),
         
         conditionalPanel(
-          condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')",
+          condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-PTMTMT'] == 'Yes')",
           h4("3. Local protein normalization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
              div("Reference channel based normalization between MS runs on protein level data. Requires one reference channel in each MS run, annotated by 'Norm' in Condition column of annotation file", class = "icon-tooltip")),
           checkboxInput(ns("reference_norm"), "Yes", value = TRUE),
@@ -85,7 +85,7 @@ qcUI <- function(id) {
         
         
         conditionalPanel(
-          condition = "input['loadpage-DDA_DIA'] == 'DDA' || input['loadpage-DDA_DIA'] == 'DIA' || input['loadpage-DDA_DIA'] == 'SRM_PRM' || (input['loadpage-DDA_DIA'] == 'PTM' && input['loadpage-PTMTMT'] == 'No')",
+          condition = "input['loadpage-DDA_DIA'] == 'LType'  || (input['loadpage-BIO'] == 'PTM' && input['loadpage-PTMTMT'] == 'No')",
           
           # features
           
@@ -245,11 +245,11 @@ qcUI <- function(id) {
                           #                  tags$h4("Calculation in progress...")),
                           #tags$div(id='download_buttons')
                           tags$br(),
-                          conditionalPanel(condition="input['loadpage-DDA_DIA'] !== 'PTM'",
+                          conditionalPanel(condition="input['loadpage-BIO'] !== 'PTM'",
                                            disabled(downloadButton(ns("prepr_csv"),"Download .csv of feature level data")),
                                            disabled(downloadButton(ns("summ_csv"),"Download .csv of protein level data"))
                           ),
-                          conditionalPanel(condition="input['loadpage-DDA_DIA'] == 'PTM'",
+                          conditionalPanel(condition="input['loadpage-BIO'] == 'PTM'",
                                            disabled(downloadButton(ns("prepr_csv_ptm"),"Download .csv of PTM feature level data")),
                                            disabled(downloadButton(ns("summ_csv_ptm"),"Download .csv of PTM level data")),
                                            tags$br(),
