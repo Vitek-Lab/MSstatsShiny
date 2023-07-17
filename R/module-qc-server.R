@@ -417,7 +417,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                                         type = input$typequant,
                                         format = input$format,
                                         use_log_file = FALSE)
-    } else if (loadpage_input()$BIO == "PTM" & (loadpage_input()$PTMTMT == "Yes" | loadpage_input()$filetype=='phil')){
+    } else if (loadpage_input()$BIO == "PTM" & ((loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA == "TMT") | loadpage_input()$filetype=='phil')){
       temp = copy(preprocess_data())
       setnames(temp$PTM$ProteinLevelData, 
                c("Abundance", "Condition", "BioReplicate"), 
@@ -426,7 +426,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                                         type = input$typequant,
                                         format = input$format,
                                         use_log_file = FALSE)
-    } else if (loadpage_input()$BIO == "PTM" & loadpage_input()$PTMTMT == "No"){
+    } else if (loadpage_input()$BIO == "PTM" & (loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA != "TMT")){
       temp = copy(preprocess_data())
       abundant$results =quantification(temp$PTM,
                                        type = input$typequant,

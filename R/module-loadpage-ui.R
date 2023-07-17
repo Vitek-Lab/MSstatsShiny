@@ -77,14 +77,16 @@ loadpageUI <- function(id) {
                      selected = character(0)),
         
         tags$hr(),
-        conditionalPanel(
-          condition = "input['loadpage-filetype'] == 'sample' && input['loadpage-BIO'] == 'PTM' && input['loadpage-filetype'] != 'phil'",
-          radioButtons(ns("PTMTMT"),
-                       label <- h4("3. TMT Experiment",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                                   div("Indicate whether to use a label free or TMT sample experiment", class = "icon-tooltip")),
-                       c(No='No', Yes='Yes'),
-                       inline=TRUE)
-        ),
+        conditionalPanel( condition="input['loadpage-BIO'] != 'PTM' && input['loadpage-filetype'] == 'sample' && input['loadpage-DDA_DIA'] == 'LType' ", 
+                     radioButtons(ns("LabelFreeType"),
+                     label <- h4("4. Type of Label-Free type",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                 div("Choose the spectral processing tool used to process your data", class = "icon-tooltip")),
+                     choices = c("DDA" = "DDA",
+                                 "DIA" ="DIA",
+                                 "SRM/PRM" ="SRM_PRM"),
+                     selected = character(0))),
+        
+        tags$hr(),
         conditionalPanel(
           condition = "(input['loadpage-filetype'] =='10col' || input['loadpage-filetype'] =='prog' || input['loadpage-filetype'] =='PD' || input['loadpage-filetype'] =='open'||
                    input['loadpage-filetype'] =='openms' || input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil') && input['loadpage-BIO'] != 'PTM'",
@@ -99,7 +101,7 @@ loadpageUI <- function(id) {
                        c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"),
                        inline = TRUE)
         ),
-        conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && input['loadpage-BIO'] != 'PTM' && (input['loadpage-BIO'] != 'PTM' && input['loadpage-DDA_DIA'] != 'TMT')",
+        conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && input['loadpage-BIO'] != 'PTM' && (input['loadpage-BIO'] != 'PTM' && input['loadpage-DDA_DIA'] == 'TMT')",
                          h4("4. Upload data in MSstats Format"),
                          fileInput(ns('msstatsdata'), "", multiple = FALSE,
                                    accept = c("text/csv",
@@ -225,14 +227,10 @@ loadpageUI <- function(id) {
                                    accept = c("text/csv",
                                               "text/comma-separated-values,text/plain",
                                               ".csv")),
-                         tags$br(),
-                         radioButtons(ns("PTMTMT"),
-                                      label = h4("5. TMT Experiment", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                                                 div("Indicate if experiment was processed using TMT labeling",class = "icon-tooltip")),
-                                      c(No='No', Yes='Yes'),
-                                      inline = TRUE)),
+                         tags$br()
+                         ),
         conditionalPanel(
-          condition = "input['loadpage-filetype'] == 'maxq' && (input['loadpage-BIO'] != 'PTM' && (input['loadpage-BIO'] != 'PTM' && input['loadpage-DDA_DIA'] != 'TMT'))",
+          condition = "input['loadpage-filetype'] == 'maxq' && (input['loadpage-BIO'] != 'PTM' && (input['loadpage-BIO'] != 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
           h4("5. Upload evidence.txt File"),
           fileInput(ns('evidence'), "", multiple = FALSE,
                     accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
@@ -270,13 +268,7 @@ loadpageUI <- function(id) {
           fileInput(ns('ptm_pgroup'), "", multiple = FALSE,
                     accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
         ),
-        conditionalPanel(
-          condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
-          radioButtons(ns("PTMTMT_maxq_pd"),
-                       label = h4("TMT Experiment", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                                  div("Indicate if experiment was processed using TMT labelin",class = "icon-tooltip")),
-                       c(No='No', Yes='Yes'),
-                       selected='Yes',inline = TRUE)),
+        
         conditionalPanel(
           condition = "(input['loadpage-filetype'] == 'maxq') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
           h4("Modification Label",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),div("Indicate if experiment was processed using TMT labeling",class = "icon-tooltip")),

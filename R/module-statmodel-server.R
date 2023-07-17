@@ -20,9 +20,9 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   # choices of groups for contrast matrix
   
   choices = reactive({
-    if (loadpage_input()$BIO == "PTM" & (loadpage_input()$PTMTMT == "Yes" | loadpage_input()$filetype=='phil')){
+    if (loadpage_input()$BIO == "PTM" & ((loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA == "TMT") | loadpage_input()$filetype=='phil')){
       levels(preprocess_data()$PTM$ProteinLevelData$Condition)
-    } else if(loadpage_input()$BIO == "PTM" & loadpage_input()$PTMTMT == "No"){
+    } else if(loadpage_input()$BIO == "PTM" & (loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA != "TMT")){
       levels(preprocess_data()$PTM$ProteinLevelData$GROUP)
     } else if(loadpage_input()$DDA_DIA=="TMT"){
       levels(preprocess_data()$ProteinLevelData$Condition)
@@ -303,7 +303,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
                    remove_empty_channel = TRUE
                    )\n", sep = "")
     } else if (loadpage_input()$BIO == "PTM"){
-      if (loadpage_input()$PTMTMT == "Yes" | loadpage_input()$filetype=='phil'){
+      if ((loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA == "TMT") | loadpage_input()$filetype=='phil'){
         dt = "TMT"
       } else {
         dt = "LabelFree"
