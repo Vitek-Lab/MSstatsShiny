@@ -1,7 +1,7 @@
 Package: MSstatsShiny
 Type: Package
 Title: MSstats GUI for Statistical Anaylsis of Proteomics Experiments
-Version: 1.2.3
+Version: 1.3.4
 Description: MSstatsShiny is an R-Shiny graphical user interface (GUI) 
   integrated with the R packages MSstats, MSstatsTMT, and MSstatsPTM. It 
   provides a point and click end-to-end analysis pipeline applicable to a wide 
