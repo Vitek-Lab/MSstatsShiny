@@ -16,7 +16,10 @@ we recommend processing large datasets using a local installation.
 
 ### Bioconductor
 
-For large file processing, it is recommend you use a local install of the application. The easiest way to install the application locally is via [Bioconductor](https://bioconductor.org/packages/release/bioc/html/MSstatsShiny.html)
+To install the application via Bioconductor, please use the following steps.
+
+1. Download [R](https://www.r-project.org/) and [RStudio](https://www.rstudio.com/products/rstudio/download/) - [How to](https://rstudio-education.github.io/hopr/starting.html). **Note R version must be >= 4.2**
+2. Intall the package via [Bioconductor](https://bioconductor.org/packages/release/bioc/html/MSstatsShiny.html)
 
 ### Github
 
