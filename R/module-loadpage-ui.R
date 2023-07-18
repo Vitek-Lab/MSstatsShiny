@@ -211,8 +211,8 @@ loadpageUI <- function(id) {
         ),
         tags$br(),
         conditionalPanel(
-          condition = "(input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil') || input['loadpage-filetype'] == 'diann' && input['loadpage-DDA_DIA'] != 'PTM'",
-          h4("5. Upload annotation File", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+          condition = "(input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' || input['loadpage-filetype'] == 'diann') && input['loadpage-DDA_DIA'] != 'PTM'",
+          h4("5. Upload annotation Filel", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                  div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.",class = "icon-tooltip")),
            #downloadLink("template", "Annotation file template"),
           fileInput(ns('annot'), "", multiple = FALSE,
