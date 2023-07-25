@@ -54,12 +54,12 @@ loadpageUI <- function(id) {
 
         radioButtons(ns("BIO"),
                      label <- h4("1. Biological Question",class = "icon-wrapper",icon("question-circle", lib = "font-awesome" ),
-                                 div("DDA/DIA/SRM/PRM are used for label-free preparation. PTM can either by label-free or TMT.", class = "icon-tooltip")),
+                                 div("Select the biological question of interest.", class = "icon-tooltip")),
                      c("Protein"="Protein", "Peptide"="Peptide","PTM"="PTM")
                      ),
         radioButtons(ns("DDA_DIA"),
                      label <- h4("2. Label Type",class = "icon-wrapper",icon("question-circle", lib = "font-awesome" ),
-                                 div("DDA/DIA/SRM/PRM are used for label-free preparation. PTM can either by label-free or TMT.", class = "icon-tooltip")),
+                                 div("Label-free will process all label-free acquisitions including DDA/DIA/SRM/PRM.", class = "icon-tooltip")),
                      c("Label-Free"="LType", "TMT"="TMT")
         ),
         # upload
@@ -101,7 +101,7 @@ loadpageUI <- function(id) {
                        c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"),
                        inline = TRUE)
         ),
-        conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && input['loadpage-BIO'] != 'PTM' && (input['loadpage-BIO'] != 'PTM' && input['loadpage-DDA_DIA'] == 'TMT')",
+        conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && (input['loadpage-BIO'] != 'PTM' && (input['loadpage-BIO'] != 'PTM' && input['loadpage-DDA_DIA'] != 'TMT'))",
                          h4("4. Upload data in MSstats Format"),
                          fileInput(ns('msstatsdata'), "", multiple = FALSE,
                                    accept = c("text/csv",
@@ -230,14 +230,14 @@ loadpageUI <- function(id) {
                          tags$br()
                          ),
         conditionalPanel(
-          condition = "input['loadpage-filetype'] == 'maxq' && (input['loadpage-BIO'] != 'PTM' && (input['loadpage-BIO'] != 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
-          h4("5. Upload evidence.txt File"),
+          condition = "input['loadpage-filetype'] == 'maxq' && input['loadpage-BIO'] != 'PTM' && (input['loadpage-DDA_DIA'] == 'TMT' || input['loadpage-DDA_DIA'] == 'LType')",
+          h4("4. Upload evidence.txt File"),
           fileInput(ns('evidence'), "", multiple = FALSE,
                     accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-          h4("6. Upload proteinGroups.txt File"),
+          h4("5. Upload proteinGroups.txt File"),
           fileInput(ns('pGroup'), "", multiple = FALSE,
                     accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-          h4("7. Upload annotation File", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+          h4("6. Upload annotation File", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                  div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.",class = "icon-tooltip")),
           fileInput(ns('annot1'), "", multiple = FALSE,
                     accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
