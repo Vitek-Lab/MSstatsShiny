@@ -436,6 +436,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
                                                             savePDF=pdf)
       }, error = function(e){
         remove_modal_spinner()
+        message("An error occurred: ", conditionMessage(e))
         stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )}
       )
     }
@@ -677,7 +678,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
     insertUI(
       selector = paste0("#", ns("comparison_plots")),
       ui=tags$div(
-        plotOutput(ns("comp_plots"), height = "100%", click = "click1"),
+        plotlyOutput(ns("comp_plots"), height = "100%"),
         conditionalPanel(condition = "input['statmodel-typeplot'] == 'VolcanoPlot' && input['loadpage-DDA_DIA']!='TMT'",
                          h5("Click on plot for details"),
                          verbatimTextOutput(ns("info2"))),
@@ -688,8 +689,9 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   }
   )
   
-  observe({output$comp_plots = renderPlot({
-    group_comparison(FALSE, FALSE)}, height = input$height
+  observe({output$comp_plots = renderPlotly({
+    group_comparison(FALSE, FALSE)
+    }
   )
   })
 
@@ -847,6 +849,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
     }
   )
 
+  
   output$plotresults = downloadHandler(
     filename = function() {
       paste("SummaryPlot-", Sys.Date(), ".pdf", sep="")
