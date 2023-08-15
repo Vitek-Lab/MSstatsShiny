@@ -12,44 +12,16 @@ loadpageServer <- function(id, parent_session) {
   moduleServer(id, function(input, output, session) {
     # toggle ui (DDA DIA SRM)
     observe({
-      if (input$DDA_DIA == "DDA") {
+      print("bio")
+      
+      print(input$BIO)
+      if((input$BIO == "Protein" || input$BIO == "Peptide") && input$DDA_DIA == "LType"){
         runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
         enable("filetype")
-        disable(selector = "[type=radio][value=spec]")
-        disable(selector = "[type=radio][value=open]")
-        disable(selector = "[type=radio][value=ump]")
         disable(selector = "[type=radio][value=spmin]")
-        disable(selector = "[type=radio][value=diann]")
         runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
-      }
-      else if (input$DDA_DIA == "DIA") {
-        runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-        enable("filetype")
-        disable(selector = "[type=radio][value=maxq]")
-        disable(selector = "[type=radio][value=prog]")
-        disable(selector = "[type=radio][value=PD]")
-        disable(selector = "[type=radio][value=openms]")
-        disable(selector = "[type=radio][value=spmin]")
-        disable(selector = "[type=radio][value=phil]")
-        runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
-      }
-      else if (input$DDA_DIA == "SRM_PRM") {
-        runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-        enable("filetype")
-        disable(selector = "[type=radio][value=maxq]")
-        disable(selector = "[type=radio][value=prog]")
-        disable(selector = "[type=radio][value=PD]")
-        disable(selector = "[type=radio][value=openms]")
-        disable(selector = "[type=radio][value=spec]")
-        disable(selector = "[type=radio][value=open]")
-        disable(selector = "[type=radio][value=ump]")
-        disable(selector = "[type=radio][value=spmin]")
-        disable(selector = "[type=radio][value=phil]")
-        disable(selector = "[type=radio][value=diann]")
-        runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
-      }
-
-      else if (input$DDA_DIA == "TMT") {
+        
+      } else if ((input$BIO == "Protein" || input$BIO == "Peptide") && input$DDA_DIA == "TMT"){
         runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
         enable("filetype")
         disable(selector = "[type=radio][value=sky]")
@@ -59,23 +31,36 @@ loadpageServer <- function(id, parent_session) {
         disable(selector = "[type=radio][value=ump]")
         disable(selector = "[type=radio][value=diann]")
         runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
-
-      }
-      else if (input$DDA_DIA %in% c("PTM", "PTM_TMT")) {
+        
+      } else if (input$BIO == "PTM" && input$DDA_DIA == "LType"){
         runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
         enable("filetype")
         # disable(selector = "[type=radio][value=sky]")
         disable(selector = "[type=radio][value=prog]")
-        # disable(selector = "[type=radio][value=PD]")
+        disable(selector = "[type=radio][value=PD]")
         disable(selector = "[type=radio][value=openms]")
-        # disable(selector = "[type=radio][value=spec]")
+        disable(selector = "[type=radio][value=spmin]")
+        disable(selector = "[type=radio][value=open]")
+        disable(selector = "[type=radio][value=ump]")
+        disable(selector = "[type=radio][value=phil]")
+        disable(selector = "[type=radio][value=diann]")
+
+        runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })") 
+      }else if (input$BIO == "PTM" && input$DDA_DIA == "TMT"){
+        runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
+        enable("filetype")
+        disable(selector = "[type=radio][value=prog]")
+        disable(selector = "[type=radio][value=openms]")
+        disable(selector = "[type=radio][value=spec]")
         disable(selector = "[type=radio][value=open]")
         disable(selector = "[type=radio][value=ump]")
         disable(selector = "[type=radio][value=spmin]")
-        # disable(selector = "[type=radio][value=phil]")
         disable(selector = "[type=radio][value=diann]")
-        runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
+        disable(selector = "[type=radio][value=sky]")
+        
+        runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })") 
       }
+     
     })
 
     observeEvent(input$filetype,{
@@ -238,11 +223,11 @@ loadpageServer <- function(id, parent_session) {
           h4("Summary of dataset"),
           tableOutput(ns("summary2")),
           tags$br(),
-          conditionalPanel(condition = "input['loadpage-DDA_DIA'] !== 'PTM'",
+          conditionalPanel(condition = "input['loadpage-BIO'] !== 'PTM'",
                            h4("Top 6 rows of the dataset"),
                            tableOutput(ns("summary"))
           ),
-          conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'PTM'",
+          conditionalPanel(condition = "input['loadpage-BIO'] == 'PTM'",
                            h4("Top 6 rows of the PTM dataset"),
                            tableOutput(ns("summary_ptm")),
                            tags$br(),

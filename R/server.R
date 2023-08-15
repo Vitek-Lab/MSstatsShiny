@@ -40,12 +40,12 @@ server <- function(input, output, session) {
   # output$statmodel = renderUI(statmodel())
   # 
   observe({
-    if(input$"loadpage-DDA_DIA" %in% c("TMT", "PTM")){
+    if(input$"loadpage-DDA_DIA" %in% c("TMT") && input$"loadpage-BIO" %in% c("PTM") ){
       hideTab(inputId = "tablist", target = "PQ")
       hideTab(inputId = "tablist", target = "Future")
     }
     
-    if(!(input$"loadpage-DDA_DIA" %in% c("TMT", "PTM"))){
+    if(!(input$"loadpage-DDA_DIA" %in% c("TMT")) && !(input$"loadpage-BIO" %in% c("PTM"))){
       showTab(inputId = "tablist", target = "PQ")
       showTab(inputId = "tablist", target = "Future")
     }

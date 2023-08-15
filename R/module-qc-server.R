@@ -27,7 +27,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   output$Names = renderUI({
     ns <- session$ns
     if (input$standards == "Proteins") {
-      if((loadpage_input()$DDA_DIA=="SRM_PRM" && loadpage_input()$filetype=="sky")||(loadpage_input()$DDA_DIA=="DIA" && loadpage_input()$filetype=="ump")){
+      if((loadpage_input()$DDA_DIA=="LType" && loadpage_input()$filetype=="sky")||(loadpage_input()$DDA_DIA=="LType" && loadpage_input()$filetype=="ump")){
         
         selectizeInput(ns("names"), "choose standard", unique(get_data()[2]), multiple = TRUE)
       }
@@ -80,7 +80,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
       #   m_feat = 20
       #   }
       
-      if (loadpage_input()$DDA_DIA =="PTM"){
+      if (loadpage_input()$BIO =="PTM"){
         m_feat = nrow(unique(get_data()$PTM[1]))  
       } else {
         m_feat = nrow(unique(get_data()[1]))
@@ -100,8 +100,10 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   
   output$Which = renderUI({
     ns <- session$ns
-    if ((loadpage_input()$DDA_DIA!="PTM" && input$type1 == "QCPlot")) {
-      if((loadpage_input()$DDA_DIA=="SRM_PRM" && input$filetype=="sky") || (loadpage_input()$DDA_DIA=="DIA" && loadpage_input()$filetype=="ump")){
+    print("Inside render UI and getting input$type1")
+    print(input$type1)
+    if ((loadpage_input()$BIO!="PTM" && input$type1 == "QCPlot")) {
+      if((loadpage_input()$DDA_DIA=="LType" && loadpage_input()$filetype=="sky") || (loadpage_input()$DDA_DIA=="LType" && loadpage_input()$filetype=="ump")){
         selectizeInput(ns("which"), "Show plot for", 
                        choices = c("", "ALL PROTEINS" = "allonly", 
                                    unique(get_data()[2])))
@@ -110,8 +112,8 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                        choices = c("", "ALL PROTEINS" = "allonly", 
                                    unique(get_data()[1])))
       }
-    } else if (loadpage_input()$DDA_DIA == "PTM"){
-      if (input$type1 == "QCPlot"){
+    } else if (loadpage_input()$BIO == "PTM"){
+      if (loadpage_input()$type1 == "QCPlot"){
         selectizeInput(ns("which"), "Show plot for", 
                        choices = c("", "ALL PROTEINS" = "allonly", 
                                    unique(get_data()$PTM[1])))
@@ -167,7 +169,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                             address = file
         )
         
-      } else if (loadpage_input()$DDA_DIA == "PTM"){
+      } else if (loadpage_input()$BIO == "PTM"){
         
         dataProcessPlotsPTM(preprocess_data(),
                             type=input$type1,
@@ -247,7 +249,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   
   observeEvent(input$run,{
     
-    if(loadpage_input()$DDA_DIA=="PTM"){
+    if(loadpage_input()$BIO=="PTM"){
       enable("prepr_csv_ptm")
       enable("summ_csv_ptm")
       enable("prepr_csv_prot")
@@ -417,7 +419,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                                         type = input$typequant,
                                         format = input$format,
                                         use_log_file = FALSE)
-    } else if (loadpage_input()$DDA_DIA == "PTM" & (loadpage_input()$PTMTMT == "Yes" | loadpage_input()$filetype=='phil')){
+    } else if (loadpage_input()$BIO == "PTM" & ((loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA == "TMT") | loadpage_input()$filetype=='phil')){
       temp = copy(preprocess_data())
       setnames(temp$PTM$ProteinLevelData, 
                c("Abundance", "Condition", "BioReplicate"), 
@@ -426,7 +428,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                                         type = input$typequant,
                                         format = input$format,
                                         use_log_file = FALSE)
-    } else if (loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "No"){
+    } else if (loadpage_input()$BIO == "PTM" & (loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA != "TMT")){
       temp = copy(preprocess_data())
       abundant$results =quantification(temp$PTM,
                                        type = input$typequant,

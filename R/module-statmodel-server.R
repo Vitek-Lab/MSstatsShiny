@@ -20,9 +20,9 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   # choices of groups for contrast matrix
   
   choices = reactive({
-    if (loadpage_input()$DDA_DIA == "PTM" & (loadpage_input()$PTMTMT == "Yes" | loadpage_input()$filetype=='phil')){
+    if (loadpage_input()$BIO == "PTM" & ((loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA == "TMT") | loadpage_input()$filetype=='phil')){
       levels(preprocess_data()$PTM$ProteinLevelData$Condition)
-    } else if(loadpage_input()$DDA_DIA == "PTM" & loadpage_input()$PTMTMT == "No"){
+    } else if(loadpage_input()$BIO == "PTM" & (loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA != "TMT")){
       levels(preprocess_data()$PTM$ProteinLevelData$GROUP)
     } else if(loadpage_input()$DDA_DIA=="TMT"){
       levels(preprocess_data()$ProteinLevelData$Condition)
@@ -39,7 +39,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   
   
   observe({
-    if(loadpage_input()$DDA_DIA == "TMT" | loadpage_input()$DDA_DIA == "PTM"){
+    if(loadpage_input()$DDA_DIA == "TMT" | loadpage_input()$BIO == "PTM"){
       hide("Design")
     }
     else{
@@ -302,8 +302,8 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
                    remove_norm_channel = TRUE,
                    remove_empty_channel = TRUE
                    )\n", sep = "")
-    } else if (loadpage_input()$DDA_DIA == "PTM"){
-      if (loadpage_input()$PTMTMT == "Yes" | loadpage_input()$filetype=='phil'){
+    } else if (loadpage_input()$BIO == "PTM"){
+      if ((loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA == "TMT") | loadpage_input()$filetype=='phil'){
         dt = "TMT"
       } else {
         dt = "LabelFree"
@@ -318,7 +318,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
       codes = paste(codes, "\n# Model-based comparison\n", sep = "")
       codes = paste(codes,"model = MSstats::groupComparison(contrast.matrix, summarized)\n", sep = "")
     }
-    if (loadpage_input()$DDA_DIA == "PTM"){
+    if (loadpage_input()$BIO == "PTM"){
       codes = paste(codes, "groupComparisonPlotsPTM(data=model,
                            type=\"Enter VolcanoPlot, Heatmap, or ComparisonPlot\",
                            which.Comparison=\"all\",
@@ -345,7 +345,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   }
 
   SignificantProteins = eventReactive(input$calculate,{
-    if (loadpage_input()$DDA_DIA == "PTM"){
+    if (loadpage_input()$BIO == "PTM"){
       data_comp = data_comparison()
       sig_unadj = data_comp$PTM.Model[
         data_comp$PTM.Model$adj.pvalue < input$signif]
@@ -387,7 +387,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
       return(path1_id)
     }
 
-    if (loadpage_input()$DDA_DIA=="PTM"){
+    if (loadpage_input()$BIO=="PTM"){
       plot1 = groupComparisonPlotsPTM(data_comparison(),
                                       input$typeplot,
                                       sig=input$sig,
