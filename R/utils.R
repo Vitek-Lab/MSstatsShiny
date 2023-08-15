@@ -587,14 +587,22 @@ getData <- function(input) {
       mydata = SpectroMinetoMSstatsTMTFormat(data, getAnnot(input),
                                              use_log_file = FALSE)
     }
-    else if(input$filetype == 'phil' & input$DDA_DIA=="TMT") {
+    else if(input$filetype == 'phil') {
+      
+      if (input$DDA_DIA=="TMT"){
+      
+        mydata = PhilosophertoMSstatsTMTFormat(input = mydata, 
+                                               annotation = getAnnot(input),
+                                               use_log_file = FALSE)
+        mydata$Condition = as.character(mydata$Condition)
+        mydata[mydata$Condition == "NORM", "Condition"] = "Norm"
+        mydata$Condition = as.factor(mydata$Condition)
+      } else {
+        mydata = FragPipetoMSstatsFormat(input = mydata, 
+                                               annotation = NULL,
+                                               use_log_file = FALSE)
+      }
 
-      mydata = PhilosophertoMSstatsTMTFormat(input = mydata,
-                                             annotation = getAnnot(input),
-                                             use_log_file = FALSE)
-      mydata$Condition = as.character(mydata$Condition)
-      mydata[mydata$Condition == "NORM", "Condition"] = "Norm"
-      mydata$Condition = as.factor(mydata$Condition)
     }
   }
 

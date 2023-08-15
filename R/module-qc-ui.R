@@ -132,12 +132,10 @@ qcUI <- function(id) {
                      div("assume all NA as censored",class = "icon-wrapper",
                          div("It assumes that all NAs in Intensity column are censored.", class = "icon-tooltip")),
                      div("assume all between 0 and 1 as censored",class = "icon-wrapper",
-                         div("It assumes that all values between 0 and 1 in Intensity column are censored.  NAs will be considered as random missing.", class = "icon-tooltip")),
-                     div("all missing values are random",class = "icon-wrapper",
-                         div("It assumes that all missing values are randomly missing.", class = "icon-tooltip"))
+                         div("It assumes that all values between 0 and 1 in Intensity column are censored.  NAs will be considered as random missing.", class = "icon-tooltip"))
                    ),
                    choiceValues = list(
-                     "NA", "0", "null"
+                     "NA", "0"
                    ),
                        selected = "NA"),
           
@@ -146,7 +144,6 @@ qcUI <- function(id) {
              div("Max quantile for censored", class = "icon-tooltip")),
           checkboxInput(ns("null1"), label = "Do not apply cutoff to censor missing values"),
           numericInput(ns("maxQC1"), NULL, 0.999, 0.000, 1.000, 0.001),
-          
           
           # MBi
           h4("5. Imputation"),
