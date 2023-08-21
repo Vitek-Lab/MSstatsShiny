@@ -45,9 +45,53 @@ expdesServer <- function(input, output, session,parent_session, loadpage_input, 
     }
 
     #  plot output
+   designSampleSizePlots_ggplotly <- function(data) {
+  index <- if (length(unique(data$numSample)) > 1) {
+    "numSample"
+  } else if (length(unique(data$power)) > 1) {
+    "power"
+  } else if (length(unique(data$numSample)) == 1 & length(unique(data$power)) == 1) {
+    "numSample"
+  } else {
+    stop("Invalid input")
+  }
+  
+  text.size <- 12
+  axis.size <- 13
+  lab.size <- 17
+  
+  if (index == "numSample") {
+    p <- plot_ly(data, x = ~desiredFC, y = ~numSample, type = "scatter", mode = "lines")
+    p <- plotly::layout(p, xaxis = list(title = "Desired fold change"),
+                yaxis = list(title = "Minimal number of biological replicates"),
+                showlegend = TRUE,
+                annotations = list(text = paste("FDR is", unique(data$FDR),
+                                                "<br>Statistical power is", unique(data$power))),
+                font = list(size = text.size, family = "Arial"),
+                title = "")
+  }
+  
+  if (index == "power") {
+    p <- plot_ly(data, x = ~desiredFC, y = ~power, type = "scatter", mode = "lines")
+    p <- plotly::layout(p, xaxis = list(title = "Desired fold change"),
+                yaxis = list(title = "Power"),
+                showlegend = TRUE,
+                annotations = list(text = paste("Number of replicates is", unique(data$numSample),
+                                                "<br>FDR is", unique(data$FDR))),
+                font = list(size = text.size, family = "Arial"),
+                title = "")
+  }
+  
+  return(p)
+}
 
-    output$result_plot = renderPlot({
-      designSampleSizePlots(future_exp())
+    
+    
+    
+
+
+    output$result_plot = renderPlotly({
+      designSampleSizePlots_ggplotly(future_exp())
     })
 
     #download
