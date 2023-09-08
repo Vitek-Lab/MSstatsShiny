@@ -346,13 +346,14 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
   SignificantProteins = eventReactive(input$calculate,{
     if (loadpage_input()$BIO == "PTM"){
+      
       data_comp = data_comparison()
       sig_unadj = data_comp$PTM.Model[
-        data_comp$PTM.Model$adj.pvalue < input$signif]
+        data_comp$PTM.Model$adj.pvalue < input$signif,]
       sig_prot = data_comp$PROTEIN.Model[
-        data_comp$PROTEIN.Model$adj.pvalue < input$signif]
+        data_comp$PROTEIN.Model$adj.pvalue < input$signif,]
       sig_adj = data_comp$ADJUSTED.Model[
-        data_comp$ADJUSTED.Model$adj.pvalue < input$signif]
+        data_comp$ADJUSTED.Model$adj.pvalue < input$signif,]
       significant = list(PTM.Model=sig_unadj,
                          PROTEIN.Model=sig_prot,
                          ADJUSTED.Model=sig_adj)
