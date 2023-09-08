@@ -345,7 +345,7 @@ test_that("getAnnot2 returns an error message when given invalid input", {
 test_that("getAnnot returns a data frame when given valid input", {
   suppressWarnings({
     mock_input$filetype = "sample"
-    mock_input$DDA_DIA = "DIA"
+    mock_input$DDA_DIA = "LType"
     mock_input$annot$datapath = test_file_tsv
     annot <- getAnnot(mock_input)
     expect_s3_class(annot, "data.frame")
@@ -355,7 +355,7 @@ test_that("getAnnot returns a data frame when given valid input", {
 test_that("getAnnot returns NULL when given a null input", {
   suppressWarnings({
     mock_input$filetype = "sample"
-    mock_input$DDA_DIA = "DIA"
+    mock_input$DDA_DIA = "LType"
     mock_input$annot <- NULL
     annot <- getAnnot(mock_input)
     expect_equal(annot, NULL)
@@ -365,7 +365,7 @@ test_that("getAnnot returns NULL when given a null input", {
 test_that("getAnnot returns an error message when given invalid input", {
   suppressWarnings({
     mock_input$filetype = "sample"
-    mock_input$DDA_DIA = "DIA"
+    mock_input$DDA_DIA = "LType"
     mock_input$annot$datapath <- '/path/to'
     annot <- getAnnot(mock_input)
     expect_equal(annot, "File load error. Please ensure file is in csv format.")
@@ -411,19 +411,24 @@ test_that("Empty file type returns NULL", {
 
 test_that("sample file type returns expected value", {
   mock_input$filetype = "sample"
-  ips_vec <- c("SRM_PRM", "DIA", "DDA")
+  mock_input$BIO <- "Protein"
+  mock_input$DDA_DIA <- "LType"
+  ips_vec <- c("SRM_PRM" , "DDA" ,
+               "DIA")
   for (ddadia in ips_vec) {
-    mock_input$DDA_DIA <- ddadia
+    mock_input$LabelFreeType <- ddadia
     output <- getData(mock_input)
-    expect_is(output, "data.frame")
+    expect_type(output, "list")
   }
 
-  mock_input$DDA_DIA <- "PTM"
+  mock_input$DDA_DIA <- "LType"
+  mock_input$BIO <- "PTM"
   output <- getData(mock_input)
   print(typeof(output))
   expect_type(output,"list")
 
-  mock_input$PTMTMT <- "Yes"
+  mock_input$DDA_DIA <- "TMT"
+  mock_input$BIO <- "PTM"
   output <- getData(mock_input)
   print(typeof(output))
   expect_type(output,"list")
@@ -431,7 +436,9 @@ test_that("sample file type returns expected value", {
 
 test_that("dda maxquant", {
   suppressWarnings({
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$BIO <- "Protein"
+    
+    mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "maxq"
     
     stub(getData,"getEvidence",data.table::fread(system.file("tinytest/raw_data/MaxQuant/mq_ev.csv",
@@ -451,7 +458,8 @@ test_that("dda maxquant", {
 
 test_that("dda pd", {
   suppressWarnings({
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "PD"
     mock_input$sep = ","
     
@@ -469,7 +477,8 @@ test_that("dda pd", {
 
 test_that("dda prog", {
   suppressWarnings({
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "prog"
     mock_input$sep = ","
     
@@ -488,7 +497,8 @@ test_that("dda prog", {
 
 test_that("dda dia skyline", {
   suppressWarnings({
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "sky"
     mock_input$sep = ","
     
@@ -502,7 +512,7 @@ test_that("dda dia skyline", {
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
     
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$DDA_DIA <- "LType"
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
@@ -512,7 +522,8 @@ test_that("dda dia skyline", {
 
 test_that("dda openms", {
   suppressWarnings({
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "openms"
     mock_input$sep = ","
     
@@ -528,7 +539,8 @@ test_that("dda openms", {
 
 test_that("dia diaumpire", {
   suppressWarnings({
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "ump"
     
     stub(getData,"getFragSummary",data.table::fread(system.file("tinytest/raw_data/DIAUmpire/dia_frag.csv",
@@ -549,7 +561,8 @@ test_that("dia diaumpire", {
 
 test_that("dia spectronaut", {
   suppressWarnings({
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "spec"
     
     stub(getData,"getAnnot",NULL)
@@ -565,7 +578,8 @@ test_that("dia spectronaut", {
 
 test_that("dia openswath", {
   suppressWarnings({
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$BIO  <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "open"
     mock_input$sep = "\t"
     
@@ -582,6 +596,7 @@ test_that("dia openswath", {
 
 test_that("tmt maxquant", {
   suppressWarnings({
+    mock_input$BIO <- "Protein" 
     mock_input$DDA_DIA <- "TMT"
     mock_input$filetype = "maxq"
     
@@ -605,6 +620,7 @@ test_that("tmt maxquant", {
 
 test_that("tmt openms", {
   suppressWarnings({
+    mock_input$BIO <- "Protein"
     mock_input$DDA_DIA <- "TMT"
     mock_input$filetype = "openms"
     mock_input$sep = ","
@@ -621,6 +637,7 @@ test_that("tmt openms", {
 
 test_that("tmt spectromine", {
   suppressWarnings({
+    mock_input$BIO <-"Protein"
     mock_input$DDA_DIA <- "TMT"
     mock_input$filetype = "spmin"
     
@@ -657,20 +674,26 @@ test_that("get data code filetype sample", {
   suppressWarnings({
     mock_input$filetype = "sample"
 
-    mock_input$DDA_DIA <- "SRM_PRM"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
+    mock_input$LabelFreeType ="SRM_PRM"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
+    mock_input$LabelFreeType ="DDA"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
+    mock_input$LabelFreeType ="DIA"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
-    mock_input$DDA_DIA <- "PTM"
-    mock_input$PTMTMT <- "Yes"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "TMT"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
   })
@@ -680,11 +703,11 @@ test_that("get data code filetype msstats", {
   suppressWarnings({
     mock_input$filetype = "msstats"
     
-    mock_input$DDA_DIA <- "PTM"
+    mock_input$BIO <- "PTM"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$BIO <- "Protein"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
   })
@@ -692,9 +715,10 @@ test_that("get data code filetype msstats", {
 
 test_that("get data code filetype 10col", {
   suppressWarnings({
+    mock_input$BIO <- "Protein"
     mock_input$filetype = "10col"
     
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
   })
@@ -702,13 +726,14 @@ test_that("get data code filetype 10col", {
 
 test_that("get data code filetype sky", {
   suppressWarnings({
+    mock_input$BIO <- "Protein"
     mock_input$filetype = "sky"
     
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
   })
@@ -717,16 +742,17 @@ test_that("get data code filetype sky", {
 test_that("get data code filetype maxq", {
   suppressWarnings({
     mock_input$filetype = "maxq"
-    
+    mock_input$BIO <- "Protein"
     mock_input$DDA_DIA <- "TMT"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
-    mock_input$DDA_DIA <- "PTM"
+    mock_input$BIO  <- "PTM"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
   })
@@ -735,8 +761,8 @@ test_that("get data code filetype maxq", {
 test_that("get data code filetype prog", {
   suppressWarnings({
     mock_input$filetype = "prog"
-    
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
   })
@@ -745,12 +771,13 @@ test_that("get data code filetype prog", {
 test_that("get data code filetype PD", {
   suppressWarnings({
     mock_input$filetype = "PD"
-    
+    mock_input$BIO <- "Protein"
     mock_input$DDA_DIA <- "TMT"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
   })
@@ -759,32 +786,32 @@ test_that("get data code filetype PD", {
 test_that("get data code filetype spec & open & openms", {
   suppressWarnings({
     mock_input$filetype = "spec"
-    
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
     mock_input$filetype = "open"
     
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
     mock_input$filetype = "openms"
     
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
     mock_input$filetype = "spim"
     
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
     mock_input$filetype = "phil"
     
-    mock_input$DDA_DIA <- "DIA"
+    mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
   })
@@ -816,8 +843,8 @@ mockGetData = function(mock_input) {
 test_that("get summary 1 PTM PTMTMT:Yes", {
   suppressWarnings({
     mock_input$filetype = "sample"
-    mock_input$DDA_DIA <- "PTM"
-    mock_input$PTMTMT <- "Yes"
+    mock_input$BIO <- "PTM"
+    mock_input$DDA_DIA <- "TMT"
     stub(getSummary1,"getData",mockGetData(mock_input))
     
     output <- getSummary1(mock_input,getData(mock_input))
@@ -831,8 +858,8 @@ test_that("get summary 1 PTM PTMTMT:Yes", {
 test_that("get summary 1 PTM PTMTMT:No", {
   suppressWarnings({
     mock_input$filetype = "sample"
-    mock_input$DDA_DIA <- "PTM"
-    mock_input$PTMTMT <- "No"
+    mock_input$BIO <- "PTM"
+    mock_input$DDA_DIA <- "LType"
     stub(getSummary1,"getData",mockGetData(mock_input))
     
     output <- getSummary1(mock_input,getData(mock_input))
@@ -845,8 +872,10 @@ test_that("get summary 1 PTM PTMTMT:No", {
 
 test_that("get summary 1 Other:DDA", {
   suppressWarnings({
+    mock_input$BIO <- "Protein"
     mock_input$filetype = "sample"
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$DDA_DIA <- "LType"
+    mock_input$LabelFreeType <- "DDA"
     stub(getSummary1,"getData",mockGetData(mock_input))
     
     output <- getSummary1(mock_input,getData(mock_input))
@@ -878,8 +907,8 @@ stub(getSummary2,"remove_modal_spinner",{},depth=2)
 test_that("get summary 2 PTM PTMTMT:Yes", {
   suppressWarnings({
     mock_input$filetype = "sample"
-    mock_input$DDA_DIA <- "PTM"
-    mock_input$PTMTMT <- "Yes"
+    mock_input$BIO <- "PTM"
+    mock_input$DDA_DIA <- "TMT"
     stub(getSummary2,"getData",mockGetData(mock_input))
     
     output <- getSummary2(mock_input,getData(mock_input))
@@ -899,8 +928,8 @@ test_that("get summary 2 PTM PTMTMT:Yes", {
 test_that("get summary 2 PTM PTMTMT:No", {
   suppressWarnings({
     mock_input$filetype = "sample"
-    mock_input$DDA_DIA <- "PTM"
-    mock_input$PTMTMT <- "No"
+    mock_input$BIO <- "PTM"
+    mock_input$DDA_DIA <- "LType"
     stub(getSummary2,"getData",mockGetData(mock_input))
     
     output <- getSummary2(mock_input,getData(mock_input))
@@ -915,7 +944,9 @@ test_that("get summary 2 PTM PTMTMT:No", {
 test_that("get summary 2 Other:DDA", {
   suppressWarnings({
     mock_input$filetype = "sample"
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
+    mock_input$LabelFreeType <- "DDA"
     stub(getSummary2,"getData",mockGetData(mock_input))
     
     output <- getSummary2(mock_input,getData(mock_input))
@@ -945,8 +976,8 @@ mockPreprocessData = function(mock_input) {
 # err
 test_that("preprocessData QC, PTM and PTMTMT: No", {
   suppressWarnings({
-    mock_input$DDA_DIA <- "PTM"
-    mock_input$PTMTMT = "No"
+    mock_input$BIO <- "PTM"
+    mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "sample"
     mock_input$norm = "equalizeMedians"
     mock_input$log = "2"
@@ -975,8 +1006,8 @@ test_that("preprocessData QC, PTM and PTMTMT: No", {
 # err
 test_that("preprocessData QC, PTM and PTMTMT: Yes", {
   suppressWarnings({
-    mock_input$DDA_DIA <- "PTM"
-    mock_input$PTMTMT = "Yes"
+    mock_input$BIO <- "PTM"
+    mock_input$DDA_DIA <- "TMT"
     mock_input$filetype = "sample"
     mock_input$norm = "equalizeMedians"
     mock_input$log = "2"
@@ -1035,7 +1066,9 @@ test_that("preprocessData QC, PTM and PTMTMT: Yes", {
 # err
 test_that("preprocessData QC Other", {
   suppressWarnings({
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
+    mock_input$LabelFreeType <- "DDA"
     mock_input$filetype = "sample"
     mock_input$norm = "equalizeMedians"
     mock_input$log = "2"
@@ -1082,8 +1115,9 @@ test_that("get preprocessData code TMT & PTM", {
     output <- preprocessDataCode(mock_input,mock_input)
     expect_type(output,"character")
     
-    mock_input$DDA_DIA <- "PTM"
-    mock_input$PTMTMT <- "Yes"
+    mock_input$BIO <- "PTM"
+    mock_input$DDA_DIA <- "TMT"
+    
     stub(preprocessDataCode,"getDataCode","some test code")
     stub(preprocessDataCode,"loadpage_input",mock_input)
     stub(preprocessDataCode,"qc_input",mock_input)
@@ -1091,7 +1125,8 @@ test_that("get preprocessData code TMT & PTM", {
     output <- preprocessDataCode(mock_input,mock_input)
     expect_type(output,"character")
     
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
     mock_input$features_used <- "all"
     stub(preprocessDataCode,"getDataCode","some test code")
     stub(preprocessDataCode,"loadpage_input",mock_input)
@@ -1120,7 +1155,8 @@ test_that("dataComparison statmodel PTM PTMTMT: Yes", {
     colnames(dummy_matrix) <- conditions
     rownames(dummy_matrix) <- conditions
 
-    mock_input$DDA_DIA <- "PTM"
+    mock_input$BIO <- "PTM"
+    mock_input$DDA_DIA <- "TMT"
     mock_input$PTMTMT = "Yes"
     mock_input$filetype = "sample"
     mock_input$summarization = "Median"
@@ -1163,8 +1199,8 @@ test_that("dataComparison statmodel PTM PTMTMT: No", {
     colnames(dummy_matrix) <- conditions
     rownames(dummy_matrix) <- conditions
 
-    mock_input$DDA_DIA <- "PTM"
-    mock_input$PTMTMT = "No"
+    mock_input$BIO <- "PTM"
+    mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "sample"
     mock_input$MBi = TRUE
     mock_input$log = "2"
@@ -1266,7 +1302,9 @@ test_that("dataComparison statmodel Other", {
     colnames(dummy_matrix) <- conditions
     rownames(dummy_matrix) <- conditions
 
-    mock_input$DDA_DIA <- "DDA"
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
+    mock_input$LabelFreeType <- "DDA"
     mock_input$filetype = "sample"
     mock_input$norm = "equalizeMedians"
     mock_input$log = "2"

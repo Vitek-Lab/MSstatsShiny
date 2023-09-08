@@ -76,7 +76,7 @@ statmodelUI <- function(id) {
           p("Please add a comparison matrix before modeling."),
           disabled(actionButton(ns("calculate"), "Start")),
           tags$hr(),
-          conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-PTMTMT'] == 'Yes')",
+          conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'TMT' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT')",
                            radioButtons(ns("moderated"), 
                                         label= h4("Empirical Bayes moderation",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                   div("TRUE will moderate t statistic; FALSE (default) uses ordinary t statistic.", class = "icon-tooltip")), 
@@ -154,7 +154,7 @@ statmodelUI <- function(id) {
                           Volcano Plot comparison, you must save the results \
                           as a pdf."),
                  conditionalPanel(
-                   condition = "input['loadpage-DDA_DIA'] !== 'PTM'",
+                   condition = "input['loadpage-BIO'] !== 'PTM'",
                    actionButton(ns("viewresults"), 
                                 "View plot in browser (only for one \
                                      comparison/protein)")),
@@ -172,7 +172,7 @@ statmodelUI <- function(id) {
                                tags$br(),
                         )),
                uiOutput(ns("matrix")),
-               conditionalPanel(condition = "input['loadpage-DDA_DIA']=='PTM'",
+               conditionalPanel(condition = "input['loadpage-BIO']=='PTM'",
                                 tabsetPanel(
                                   tabPanel("Adjusted PTM Results", 
                                            uiOutput(ns("adj_table_results"))),
@@ -182,7 +182,7 @@ statmodelUI <- function(id) {
                                            uiOutput(ns("prot_table_results")))
                                 )
                ),
-               conditionalPanel(condition = "input['loadpage-DDA_DIA']!=='PTM'",
+               conditionalPanel(condition = "input['loadpage-BIO']!=='PTM'",
                                 uiOutput(ns("table_results"))
                ),
                tags$br(),
