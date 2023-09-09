@@ -169,17 +169,18 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
         
       } else if (loadpage_input()$DDA_DIA == "PTM"){
         
-        dataProcessPlotsPTM(preprocess_data(),
+        plotly_output<-dataProcessPlotsPTM(preprocess_data(),
                             type=input$type1,
                             which.PTM = protein,
                             summaryPlot = input$summ,
                             address = file
         )
+        return(plotly_output)
         
       } else{
         print("inside dataProcessPlots")
         
-        dataProcessPlots(data = preprocess_data(),
+        plotly_output<- dataProcessPlots_ggplotly(data = preprocess_data(),
                          type=input$type1,
                          featureName = input$fname,
                          ylimUp = FALSE,
@@ -194,8 +195,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
         )
       
         print("outside dataProcessPlots")
-        
-        
+        return(plotly_output)
       }
       
       
@@ -399,6 +399,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
       print("inside else")
       output = plotresult(FALSE, input$which, TRUE, FALSE, FALSE)
     } 
+    return(output)
   })
   
   # quantification
@@ -448,7 +449,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
     return(abundant$results)
   })
   
-  output$theplot = renderPlotly(ggplotly(theplot()))
+  output$theplot = renderPlotly(theplot())
   
   output$stats = renderTable(statistics())
   
