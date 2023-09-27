@@ -171,16 +171,18 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
         
       } else if (loadpage_input()$BIO == "PTM"){
         
-        dataProcessPlotsPTM(preprocess_data(),
+        plotly_output<-dataProcessPlotsPTM(preprocess_data(),
                             type=input$type1,
                             which.PTM = protein,
                             summaryPlot = input$summ,
                             address = file
         )
+        return(plotly_output)
         
       } else{
+        print("inside dataProcessPlots")
         
-        dataProcessPlots(data = preprocess_data(),
+        plotly_output<- dataProcessPlots_ggplotly(data = preprocess_data(),
                          type=input$type1,
                          featureName = input$fname,
                          ylimUp = FALSE,
@@ -193,7 +195,9 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                          save_condition_plot_result = FALSE,
                          address = file
         )
-        
+      
+        print("outside dataProcessPlots")
+        return(plotly_output)
       }
       
       
@@ -373,7 +377,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   output$showplot = renderUI({
     ns<- session$ns
     tagList(
-      plotOutput(ns("theplot")),
+      plotlyOutput(ns("theplot")),
       conditionalPanel(condition = "input['qc-type'] == 'ConditionPlot' && input['qc-which'] != ''",
                        tableOutput(ns("stats"))),
       tags$br(),
@@ -390,12 +394,14 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   
   theplot = reactive({
     if (input$summ == FALSE) {
+      print("inside if")
       output = plotresult(FALSE, input$which, FALSE, TRUE, FALSE)
     }
     else if (input$summ == TRUE) {
+      print("inside else")
       output = plotresult(FALSE, input$which, TRUE, FALSE, FALSE)
     } 
-    return (output)
+    return(output)
   })
   
   # quantification
@@ -445,7 +451,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
     return(abundant$results)
   })
   
-  output$theplot = renderPlot(theplot())
+  output$theplot = renderPlotly(theplot())
   
   output$stats = renderTable(statistics())
   

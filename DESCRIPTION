@@ -23,7 +23,7 @@ Authors@R: c(
     person("Olga", "Vitek", email = "o.vitek@northeastern.edu", role = "aut"))
 License: Artistic-2.0
 Depends: R (>= 4.2)
-Imports: shiny, shinyBS, shinyjs, shinybusy, dplyr, ggplot2, data.table, Hmisc,
+Imports: shiny, shinyBS, shinyjs, shinybusy, dplyr, ggplot2,plotly, data.table, Hmisc,
   MSstats, MSstatsTMT, MSstatsPTM, MSstatsConvert, gplots, marray, DT, readxl,
   ggrepel, uuid, utils, stats, htmltools, methods, tidyr, grDevices, graphics
 Suggests: 
