@@ -113,7 +113,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                                    unique(get_data()[1])))
       }
     } else if (loadpage_input()$BIO == "PTM"){
-      if (loadpage_input()$type1 == "QCPlot"){
+      if (input$type1 == "QCPlot"){
         selectizeInput(ns("which"), "Show plot for", 
                        choices = c("", "ALL PROTEINS" = "allonly", 
                                    unique(get_data()$PTM[1])))
@@ -170,19 +170,42 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
         )
         
       } else if (loadpage_input()$BIO == "PTM"){
+        # fixed error here, but it doesn't use plotly
+        # plotly_output<-dataProcessPlotsPTM(preprocess_data(),
+        #                     type=input$type1,
+        #                     which.PTM = protein,
+        #                     summaryPlot = input$summ,
+        #                     address = file
+        # )
+        # return(plotly_output)
         
-        plotly_output<-dataProcessPlotsPTM(preprocess_data(),
+        dataProcessPlotsPTM(preprocess_data(),
                             type=input$type1,
                             which.PTM = protein,
                             summaryPlot = input$summ,
-                            address = file
-        )
-        return(plotly_output)
+                            address = file)
         
       } else{
         print("inside dataProcessPlots")
         
-        plotly_output<- dataProcessPlots_ggplotly(data = preprocess_data(),
+        # plotly_output<- dataProcessPlots_ggplotly(data = preprocess_data(),
+        #                  type=input$type1,
+        #                  featureName = input$fname,
+        #                  ylimUp = FALSE,
+        #                  ylimDown = FALSE,
+        #                  scale = input$cond_scale,
+        #                  interval = input$interval,
+        #                  which.Protein = protein,
+        #                  originalPlot = original,
+        #                  summaryPlot = input$summ,
+        #                  save_condition_plot_result = FALSE,
+        #                  address = file
+        # )
+
+        print("outside dataProcessPlots")
+        # return(plotly_output)
+        
+        plotly_output <- dataProcessPlots(data = preprocess_data(),
                          type=input$type1,
                          featureName = input$fname,
                          ylimUp = FALSE,
@@ -195,8 +218,8 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                          save_condition_plot_result = FALSE,
                          address = file
         )
-      
-        print("outside dataProcessPlots")
+        print("++++++")
+        print("++++++")
         return(plotly_output)
       }
       
