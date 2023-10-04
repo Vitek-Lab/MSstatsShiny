@@ -179,32 +179,18 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
         # )
         # return(plotly_output)
         
-        dataProcessPlotsPTM(preprocess_data(),
+        plotly_output <- dataProcessPlotsPTM(preprocess_data(),
                             type=input$type1,
                             which.PTM = protein,
                             summaryPlot = input$summ,
                             address = file)
+        print("++++++")
+        print(plotly_output)
+        
+        print("+++")
+        return(plotly_output)
         
       } else{
-        print("inside dataProcessPlots")
-        
-        # plotly_output<- dataProcessPlots_ggplotly(data = preprocess_data(),
-        #                  type=input$type1,
-        #                  featureName = input$fname,
-        #                  ylimUp = FALSE,
-        #                  ylimDown = FALSE,
-        #                  scale = input$cond_scale,
-        #                  interval = input$interval,
-        #                  which.Protein = protein,
-        #                  originalPlot = original,
-        #                  summaryPlot = input$summ,
-        #                  save_condition_plot_result = FALSE,
-        #                  address = file
-        # )
-
-        print("outside dataProcessPlots")
-        # return(plotly_output)
-        
         plotly_output <- dataProcessPlots(data = preprocess_data(),
                          type=input$type1,
                          featureName = input$fname,
@@ -216,10 +202,10 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                          originalPlot = original,
                          summaryPlot = input$summ,
                          save_condition_plot_result = FALSE,
-                         address = file
+                         address = file,
+                         isPlotly = TRUE
         )
-        print("++++++")
-        print("++++++")
+
         return(plotly_output)
       }
       
