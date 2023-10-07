@@ -168,26 +168,17 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                             summaryPlot = input$summ,
                             address = file
         )
+
+        # return(plotly_output)
         
       } else if (loadpage_input()$BIO == "PTM"){
-        # fixed error here, but it doesn't use plotly
-        # plotly_output<-dataProcessPlotsPTM(preprocess_data(),
-        #                     type=input$type1,
-        #                     which.PTM = protein,
-        #                     summaryPlot = input$summ,
-        #                     address = file
-        # )
-        # return(plotly_output)
         
         plotly_output <- dataProcessPlotsPTM(preprocess_data(),
                             type=input$type1,
                             which.PTM = protein,
                             summaryPlot = input$summ,
                             address = file)
-        print("++++++")
-        print(plotly_output)
-        
-        print("+++")
+
         return(plotly_output)
         
       } else{
