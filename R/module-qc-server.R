@@ -159,7 +159,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
       
       if(loadpage_input()$DDA_DIA == "TMT"){
         
-        dataProcessPlotsTMT(preprocess_data(),
+        plotly_output <- dataProcessPlotsTMT(preprocess_data(),
                             type=input$type1,
                             ylimUp = FALSE,
                             ylimDown = FALSE,
@@ -169,7 +169,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                             address = file
         )
 
-        # return(plotly_output)
+        return(plotly_output)
         
       } else if (loadpage_input()$BIO == "PTM"){
         
@@ -178,8 +178,10 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                             which.PTM = protein,
                             summaryPlot = input$summ,
                             address = file)
-
-        return(plotly_output)
+        print("outsidedataProcessPlotsPTM ")
+        print(length(plotly_output))
+        # return which plot here, first?
+        return(plotly_output[[1]])
         
       } else{
         plotly_output <- dataProcessPlots(data = preprocess_data(),
@@ -196,7 +198,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                          address = file,
                          isPlotly = TRUE
         )
-
+  
         return(plotly_output)
       }
       
