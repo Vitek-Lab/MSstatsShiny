@@ -184,7 +184,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
         return(plotly_output[[1]])
         
       } else{
-        plotly_output <- dataProcessPlots(data = preprocess_data(),
+        plot <- dataProcessPlots(data = preprocess_data(),
                          type=input$type1,
                          featureName = input$fname,
                          ylimUp = FALSE,
@@ -198,8 +198,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                          address = file,
                          isPlotly = TRUE
         )
-  
-        return(plotly_output)
+        return(plot)
       }
       
       
