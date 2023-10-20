@@ -1,4 +1,4 @@
-#' Help MSStats UI module for mssatst help page.
+#' Help MSStats UI module for msstats help page.
 #'
 #' This module shows the msstats help page for general documentation
 #'
@@ -6,6 +6,7 @@
 #' 
 #' @return This function returns nothing, as it sets up the MSStats Help UI
 #'
+#' @export
 msstatsHelpUI <- function(id) {
   ns <- NS(id)
   tagList(

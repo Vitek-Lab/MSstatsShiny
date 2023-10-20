@@ -40,6 +40,7 @@ color: black !important;
 #' }
 #' @rdname uiObject
 #' @importFrom shiny NS span
+#' @export
 uiObject <- function() {
   ui = navbarPage(
     title = "MSstatsShiny",
