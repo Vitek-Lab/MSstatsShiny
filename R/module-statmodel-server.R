@@ -14,6 +14,7 @@
 #' 
 #' @return list object with user selected options and matrix build
 #'
+#' @export
 statmodelServer <- function(input, output, session,parent_session, loadpage_input, qc_input,get_data,preprocess_data) {
   ######### UI #########
   
