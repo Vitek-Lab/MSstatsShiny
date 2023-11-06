@@ -14,6 +14,7 @@
 #' 
 #' @return list object with user selected options and matrix build
 #'
+#' @export
 expdesServer <- function(input, output, session,parent_session, loadpage_input, qc_input,statmodel_input,data_comparison) {
   # toggle input elements and plot
   observe({

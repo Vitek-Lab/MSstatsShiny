@@ -12,6 +12,7 @@
 #' 
 #' @return input object with user selected options
 #'
+#' @export
 qcServer <- function(input, output, session,parent_session, loadpage_input,get_data) {
 
   # output$showplot = renderUI({

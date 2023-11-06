@@ -2,7 +2,7 @@
 % Please edit documentation in R/module-mssstats-help-ui.R
 \name{msstatsHelpUI}
 \alias{msstatsHelpUI}
-\title{Help MSStats UI module for mssatst help page.}
+\title{Help MSStats UI module for msstats help page.}
 \usage{
 msstatsHelpUI(id)
 }

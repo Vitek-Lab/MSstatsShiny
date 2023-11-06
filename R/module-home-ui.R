@@ -8,6 +8,7 @@
 #' 
 #' @return This function returns nothing, as it sets up the Home UI
 #'
+#' @export
 homeUI <- function(id) {
   ns <- NS(id)
   tagList(
