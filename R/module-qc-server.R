@@ -114,7 +114,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                                    unique(get_data()[1])))
       }
     } else if (loadpage_input()$BIO == "PTM"){
-      if (loadpage_input()$type1 == "QCPlot"){
+      if (input$type1 == "QCPlot"){
         selectizeInput(ns("which"), "Show plot for", 
                        choices = c("", "ALL PROTEINS" = "allonly", 
                                    unique(get_data()$PTM[1])))
@@ -171,7 +171,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
         )
         
       } else if (loadpage_input()$BIO == "PTM"){
-        
+        print("here")
         dataProcessPlotsPTM(preprocess_data(),
                             type=input$type1,
                             which.PTM = protein,
