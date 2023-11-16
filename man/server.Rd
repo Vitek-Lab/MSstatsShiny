@@ -6,6 +6,13 @@
 \usage{
 server(input, output, session)
 }
+\arguments{
+\item{input}{shiny server input}
+
+\item{output}{shiny server output}
+
+\item{session}{session object for shiny to connect to}
+}
 \value{
 Server object for shinyUI
 }
