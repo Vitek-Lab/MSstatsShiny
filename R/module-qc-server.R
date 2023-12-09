@@ -197,17 +197,25 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                          save_condition_plot_result = FALSE,
                          address = file,
                          isPlotly = TRUE
-        )
+
+        )[[1]]
+        # plot <- dataProcessPlots(data = preprocess_data(),
+        #                          type=input$type1,
+        #                          featureName = input$fname,
+        #                          ylimUp = FALSE,
+        #                          ylimDown = FALSE,
+        #                          scale = input$cond_scale,
+        #                          interval = input$interval,
+        #                          which.Protein = protein,
+        #                          originalPlot = TRUE,
+        #                          summaryPlot = TRUE,
+        #                          save_condition_plot_result = FALSE,
+        #                          address = file,
+        #                          isPlotly = TRUE
+        #                          
+        # )
         return(plot)
       }
-      
-      
-      # if (saveFile) {
-      #   return(id_address)
-      # } 
-      # else {
-      # return (plot)
-      # }
     }
     else {
       return(NULL)

@@ -422,24 +422,46 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
 
     } else{
-      tryCatch({
-      plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
-                                                            type=input$typeplot,
-                                                            sig=input$sig,
-                                                            FCcutoff=input$FC,
-                                                            logBase.pvalue=input$logp,
-                                                            ProteinName=input$pname,
-                                                            numProtein=input$nump, 
-                                                            clustering=input$cluster, 
-                                                            which.Comparison=input$whichComp,
-                                                            which.Protein = input$whichProt,
-                                                            address=path1(),
-                                                            savePDF=pdf)
-      }, error = function(e){
+      # tryCatch({
+      print("lets seee comppp")
+      print(input$whichComp)
+      print(input$whichProt)
+      print("lets seee comppp")
+      # plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
+      #                                                       type=input$typeplot,
+      #                                                       sig=input$sig,
+      #                                                       FCcutoff=input$FC,
+      #                                                       logBase.pvalue=input$logp,
+      #                                                       ProteinName=input$pname,
+      #                                                       numProtein=input$nump,
+      #                                                       clustering=input$cluster,
+      #                                                       which.Comparison=input$whichComp,
+      #                                                       which.Protein = input$whichProt,
+      #                                                       address=path1(),
+      #                                                       savePDF=pdf)
+      if(toupper(input$typeplot) == "VOLCANOPLOT" && input$whichComp == "all") {
         remove_modal_spinner()
-        message("An error occurred: ", conditionMessage(e))
-        stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )}
-      )
+        stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )
+      }
+      
+      plot1 = groupComparisonPlots(data=data_comparison()$ComparisonResult,
+                                   type=input$typeplot,
+                                   sig=input$sig,
+                                   FCcutoff=input$FC,
+                                   logBase.pvalue=as.numeric(input$logp),
+                                   ProteinName=input$pname,
+                                   numProtein=input$nump, 
+                                   clustering=input$cluster, 
+                                   which.Comparison=input$whichComp,
+                                   which.Protein = input$whichProt,
+                                   height = input$height,
+                                   address="Ex_",
+                                   isPlotly = TRUE)[[1]]
+      # }, error = function(e){
+      #   remove_modal_spinner()
+      #   message("An error occurred: ", conditionMessage(e))
+      #   stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )}
+      # )
     }
 
     remove_modal_spinner()
@@ -679,7 +701,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
     insertUI(
       selector = paste0("#", ns("comparison_plots")),
       ui=tags$div(
-        plotlyOutput(ns("comp_plots"), height = "100%"),
+        plotlyOutput(ns("comp_plots"), height = input$height),
         conditionalPanel(condition = "input['statmodel-typeplot'] == 'VolcanoPlot' && input['loadpage-DDA_DIA']!='TMT'",
                          h5("Click on plot for details"),
                          verbatimTextOutput(ns("info2"))),

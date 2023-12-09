@@ -240,7 +240,7 @@ getData <- function(input) {
   }
   else if (input$BIO == 'PTM' || (input$BIO == 'PTM' && input$DDA_DIA == 'TMT')){
     if (input$filetype == 'maxq') {
-      mydata = read.csv(input$ptm_input$datapath,sep="\t")
+      mydata = read.csv(input$ptm_input$datapath,sep="\t") # it needs default tab sep file
       print(input$globaldata$datapath)
       mydata_protein = try(read.csv(input$ptm_protein_input$datapath,sep="\t"),silent=TRUE)
       if (typeof(mydata_protein)=="character"){
@@ -365,13 +365,13 @@ getData <- function(input) {
                                          use_unmod_peptides=use_unmod_peptides)
 
     }else {
-      data = read.csv(input$msstatsptmdata$datapath, header = TRUE, sep = input$sep,
+      data = read.csv(input$msstatsptmdata$datapath, header = TRUE,sep = input$sep_msstatsptmdata, # fixed sep here
                       stringsAsFactors=FALSE)
       mydata = list("PTM" = data, "PROTEIN" = unmod)
     }
   }
   else if (input$filetype == "msstats"){
-    mydata = read.csv(input$msstatsdata$datapath, header = TRUE, sep = input$sep,
+    mydata = read.csv(input$msstatsdata$datapath, header = TRUE,sep = input$sep_msstatsdata, # fixed sep here
                       stringsAsFactors=FALSE)
   }
   else {
@@ -379,7 +379,7 @@ getData <- function(input) {
       infile = input$data1
     }
     else if(input$filetype=='phil' & input$BIO != "PTM"){
-      mydata = read.csv(input$data$datapath)
+      mydata = read.csv(input$data$datapath, sep=input$sep_data)
 
     }
     else{
@@ -405,8 +405,8 @@ getData <- function(input) {
     #   }
     # }
 
-    if(input$filetype == '10col') {
-      mydata = read.csv(infile$datapath, header = TRUE, sep = input$sep)
+    if(input$filetype == '10col') {# this file not in use anymore, can delete?
+      mydata = read.csv(infile$datapath, header = TRUE, sep = input$sep_data) # not tested sep
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
@@ -414,7 +414,7 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep=input$sep,
       #                           sql = "select * from file order by random() limit 100000")
       # } else {
-      data = read.csv(input$skylinedata$datapath, header = TRUE, sep = input$sep,
+      data = read.csv(input$skylinedata$datapath, header = TRUE, sep = input$sep_skylinedata,
                       stringsAsFactors=FALSE)
       # }
         mydata = SkylinetoMSstatsFormat(data,
@@ -451,7 +451,7 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep=input$sep,
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
-      data = read.csv(infile$datapath, header = TRUE, sep = input$sep,
+      data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data,
                       stringsAsFactors=FALSE)
       # }
 
@@ -468,7 +468,7 @@ getData <- function(input) {
         #   data = read.csv.sql(infile$datapath, sep=input$sep,
         #                       sql = "select * from file order by random() limit 100000")
         # } else {
-        data = read.csv(infile$datapath, header = TRUE, sep = input$sep,
+        data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data,
                         stringsAsFactors=FALSE)
         # }
         mydata = PDtoMSstatsTMTFormat(input = data,
@@ -482,7 +482,7 @@ getData <- function(input) {
         #   data = read.csv.sql(infile$datapath, sep=input$sep,
         #                       sql = "select * from file order by random() limit 100000")
         # } else {
-        data = read.csv(infile$datapath, header = TRUE, sep = input$sep,
+        data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data,
                         stringsAsFactors=FALSE)
         # }
         mydata = PDtoMSstatsFormat(data, annotation = getAnnot(input),
@@ -498,7 +498,8 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep="\t",
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
-      data = read.csv(input$specdata$datapath, sep="\t")
+      # data = read.csv(input$specdata$datapath, sep="\t")
+      data = read.csv(input$specdata$datapath, sep=input$sep_specdata)
       # }
       mydata = SpectronauttoMSstatsFormat(data,
                                           annotation = getAnnot(input),
@@ -513,7 +514,8 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep="\t",
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
-      data = read.csv(input$dianndata$datapath, sep="\t")
+      # data = read.csv(input$dianndata$datapath, sep="\t") # hard coded value here
+      data = read.csv(input$dianndata$datapath, sep=input$sep_dianndata)
       # }
       print("datapath")
       print(input$dianndata$datapath)
@@ -532,7 +534,7 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep = input$sep,
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
-      data = read.csv(infile$datapath, header = TRUE, sep = input$sep)
+      data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data)
       # }
       mydata =OpenSWATHtoMSstatsFormat(data,
                                        annotation = getAnnot(input),
@@ -549,7 +551,7 @@ getData <- function(input) {
         #   data = read.csv.sql(infile$datapath, sep = input$sep,
         #                       sql = "select * from file order by random() limit 100000")
         # } else {
-        data = read.csv(infile$datapath, header = TRUE, sep = input$sep)
+        data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data)
         # }
         mydata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)
 
@@ -559,7 +561,7 @@ getData <- function(input) {
         #   data = read.csv.sql(infile$datapath, sep = input$sep,
         #                       sql = "select * from file order by random() limit 100000")
         # } else {
-        data = read.csv(infile$datapath, header = TRUE, sep = input$sep)
+        data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data)
         # }
         unique(data[, c('Run', 'BioReplicate', 'Condition')])
         mydata =OpenMStoMSstatsFormat(data,
@@ -582,7 +584,8 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep = "\t",
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
-      data = read.csv(infile$datapath, sep="\t")
+      # data = read.csv(infile$datapath, sep="\t")
+      data = read.csv(infile$datapath, sep=input$sep_data)
       # }
       mydata = SpectroMinetoMSstatsTMTFormat(data, getAnnot(input),
                                              use_log_file = FALSE)
@@ -651,18 +654,18 @@ library(MSstatsPTM)\n", sep = "")
 
   } else if (input$filetype == "msstats") {
     if (input$BIO == "PTM") {
-      codes = paste(codes, "\nptm_data = read.csv(\'Enter PTM data file path here\')\nglobal_data = read.csv(\'Enter unmod data file path here\')\ndata = list(PTM = ptm_data, PROTEIN = unmod)\n")
+      codes = paste(codes, "\nptm_data = read.csv(\"Enter PTM data file path here\", sep =",input$sep_msstatsptmdata,")\nglobal_data = read.csv(\'Enter unmod data file path here\')\ndata = list(PTM = ptm_data, PROTEIN = unmod)\n")
     } else {
-      codes = paste(codes, "data = read.csv(\'Enter MSstats formatted data file path here\')\n")
+      codes = paste(codes, "data = read.csv(\"Enter MSstats formatted data file path here\", sep=",input$sep_msstatsdata,")\n")
     }
   } else {
 
     if(input$filetype == '10col') {
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep,")\n", sep = "")
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")\n", sep = "")
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
-      codes = paste(codes, "data = read.csv(\"insert your MSstats report from Skyline filepath\", header = TRUE, sep = \",\", stringsAsFactors=F)\n", sep = "")
+      codes = paste(codes, "data = read.csv(\"insert your MSstats report from Skyline filepath\", header = TRUE, sep = ",inputsep_skylinedata,", stringsAsFactors=F)\n", sep = "")
 
       if(input$DDA_DIA=="DDA" ){
         codes = paste(codes, "data = data[which(data$Fragment.Ion %in% c( \"precursor\", \"precursor [M+1]\",\"precursor [M+2]\")), ]\nannot_file = read.csv(\"insert your annotation filepath\")\n", sep = "")
@@ -712,7 +715,7 @@ library(MSstatsPTM)\n", sep = "")
     else if(input$filetype == 'prog') {
       cat(file=stderr(), "Reached in prog\n")
 
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep,")
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")
                        annot_file = read.csv(\"insert your annotation filepath\")\n"
                     , sep = "")
 
@@ -728,7 +731,7 @@ library(MSstatsPTM)\n", sep = "")
 
       if(input$DDA_DIA=="TMT"){
 
-        codes = paste(codes, "data = read.delim(\"insert your quantification dataset filepath\")
+        codes = paste(codes, "data = read.delim(\"insert your quantification dataset filepath\",sep=",input$sep_data,")
                        annot_file = read.csv(\"insert your annotation filepath\")\n"
                       , sep = "")
 
@@ -740,7 +743,7 @@ library(MSstatsPTM)\n", sep = "")
 
       }
       else{
-        codes = paste(codes, "data = read.delim(\"insert your quantification dataset filepath\")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
+        codes = paste(codes, "data = read.delim(\"insert your quantification dataset filepath\",sep=",input$sep_data,")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
                       , sep = "")
 
         codes = paste(codes, "data = PDtoMSstatsFormat(data,
@@ -755,7 +758,7 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'spec') {
 
-      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from Spectronaut filepath\", header = TRUE)\nannot_file = read.csv(\"insert your annotation filepath\", sep='\t')#Optional\n"
+      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from Spectronaut filepath\", header = TRUE, sep = ",input$sep_specdata,")\nannot_file = read.csv(\"insert your annotation filepath\", sep='\t')#Optional\n"
                     , sep = "")
 
       codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
@@ -768,7 +771,7 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'open') {
 
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep,")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
                     , sep = "")
 
       codes = paste(codes, "data = OpenSWATHtoMSstatsFormat(data,
@@ -783,26 +786,26 @@ library(MSstatsPTM)\n", sep = "")
     else if(input$filetype == 'openms') {
       if(input$DDA_DIA=="TMT"){
 
-        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep,")\ndata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)\n"
+        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")\ndata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)\n"
                       , sep = "")
 
       }
       else{
 
-        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep,")\nunique(data[, c('Run', 'BioReplicate', 'Condition')])\ndata = OpenMStoMSstatsFormat(data, removeProtein_with1Feature=TRUE, use_log_file = FALSE)\n"
+        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")\nunique(data[, c('Run', 'BioReplicate', 'Condition')])\ndata = OpenMStoMSstatsFormat(data, removeProtein_with1Feature=TRUE, use_log_file = FALSE)\n"
                       , sep = "")
 
       }
     }
     else if(input$filetype == 'spmin') {
 
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = \"\t\")\nannot_file = read.csv(\"insert your annotation filepath\")\ndata = SpectroMinetoMSstatsTMTFormat(data, annot_file,
+      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")\nannot_file = read.csv(\"insert your annotation filepath\")\ndata = SpectroMinetoMSstatsTMTFormat(data, annot_file,
                                               use_log_file = FALSE)"
                     , sep = "")
     }
     else if(input$filetype == 'phil' & input$DDA_DIA == "TMT") {
 
-      codes = paste(codes,"data = read.csv(\"insert your msstats filepath\")\n"
+      codes = paste(codes,"data = read.csv(\"insert your msstats filepath\",sep=",input$sep_data,")\n"
                     , sep = "")
       codes = paste(codes,"annot_file = read.csv(\"insert your annotation filepath\")\n"
                     , sep = "")
