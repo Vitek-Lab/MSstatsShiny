@@ -509,6 +509,45 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
 
   ########## output ##########
+  
+  # 
+  output$plotresults = downloadHandler(
+    filename = function() {
+      paste("SummaryPlot-", Sys.Date(), ".zip", sep="")
+    },
+    content = function(file) {
+      # pdf(file)
+      # group_comparison(TRUE, TRUE)
+      # dev.off()
+      # doc = .get.plotly.plot.html(list(group_comparison(FALSE, FALSE)),800,600)
+      # print(doc)
+      # writeLines(doc, file)
+      # print(file)
+      # .save.plotly.plot.html(list(group_comparison(FALSE, FALSE)),"",file,800,600)
+      # group_comparison(FALSE, FALSE)
+      files <- list.files(getwd(), pattern = "^Ex_", full.names = TRUE)
+      file_info <- file.info(files)
+      latest_file <- files[which.max(file_info$mtime)]
+      print(latest_file)
+      file.copy(latest_file, file)
+    }
+  )
+  # 
+  # observeEvent(input$plotresults, {
+  #   # print("IN DOWNLOADDD 111")
+  #   # tryCatch({
+  #     MSstats::.save.plotly.plot.html(list(group_comparison(FALSE, FALSE)),"",paste("SummaryPlot-", Sys.Date(), sep=""),800,600)
+  #     print("IN DOWNLOADDD 222")
+  #     showNotification("File downloaded successfully in your local directory")
+  #     print("IN DOWNLOADDD 333")
+  #   # },
+  #   # error=function(cond) {
+  #   #   showNotification("File download failed", type='error')
+  #   #   message(cond)
+  #   #   stop("why")
+  #   # })
+  #   print("IN DOWNLOADDD 444")
+  # })
 
   # download comparison data
 
@@ -873,16 +912,6 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   )
 
   
-  output$plotresults = downloadHandler(
-    filename = function() {
-      paste("SummaryPlot-", Sys.Date(), ".pdf", sep="")
-    },
-    content = function(file) {
-      pdf(file)
-      group_comparison(TRUE, TRUE)
-      dev.off()
-    }
-  )
 
   observeEvent(input$calculate,{
     enable("Design")

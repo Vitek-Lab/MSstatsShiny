@@ -152,13 +152,14 @@ statmodelUI <- function(id) {
                  
                  p("Please note if you want to plot more than one \
                           Volcano Plot comparison, you must save the results \
-                          as a pdf."),
+                          as a HTML."),
                  conditionalPanel(
                    condition = "input['loadpage-BIO'] !== 'PTM'",
                    actionButton(ns("viewresults"), 
                                 "View plot in browser (only for one \
                                      comparison/protein)")),
-                 downloadButton(ns("plotresults"), "Save plot results as pdf")
+                 downloadButton(ns("plotresults"), "Save plot results as Zip")
+                 # actionButton(ns("plotresults"), "Save plot results as HTML")
           )
         )
       ),

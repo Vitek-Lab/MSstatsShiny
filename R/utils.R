@@ -517,7 +517,6 @@ getData <- function(input) {
       # data = read.csv(input$dianndata$datapath, sep="\t") # hard coded value here
       data = read.csv(input$dianndata$datapath, sep=input$sep_dianndata)
       # }
-      print("datapath")
       print(input$dianndata$datapath)
 
       mydata = DIANNtoMSstatsFormat(data,
@@ -766,6 +765,17 @@ library(MSstatsPTM)\n", sep = "")
                                        filter_with_Qvalue = TRUE, ## same as default
                                        qvalue_cutoff = 0.01, ## same as default
                                        fewMeasurements=\"remove\",
+                                       removeProtein_with1Feature = TRUE,
+                                       use_log_file = FALSE)\n", sep = "")
+    }
+    else if(input$filetype == 'diann') {
+      
+      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from DIANN filepath\", header = TRUE, sep = ",input$sep_dianndata,")\nannot_file = read.csv(\"insert your annotation filepath\", sep='\t')#Optional\n"
+                    , sep = "")
+      
+      codes = paste(codes, "data = DIANNtoMSstatsFormat(data,
+                                       annotation = annot_file #Optional,
+                                       qvalue_cutoff = 0.01, ## same as default
                                        removeProtein_with1Feature = TRUE,
                                        use_log_file = FALSE)\n", sep = "")
     }
