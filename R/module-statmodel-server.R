@@ -474,6 +474,14 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
     }
 
   }
+  
+  observe({
+    # Check if the input is NA or not a number
+    if(is.na(input$nump) || !is.numeric(input$nump) || input$nump <= 0) {
+      # Reset to default value or handle the error as needed
+      updateNumericInput(session, "nump", value = 100)
+    }
+  })
 
   # model assumptions plots
 
