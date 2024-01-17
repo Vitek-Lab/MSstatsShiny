@@ -142,7 +142,7 @@ statmodelUI <- function(id) {
                                   0.1)),
                    
                    numericInput(ns("nump"), "Number of proteins \
-                                        per page", 100, 1, 180, 1),
+                                        to display", 100, 1, 180, 1),
                    selectInput(ns("cluster"), 
                                label = h5("Cluster analysis",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                           div("Determines how to order proteins and comparisons. protein means, comparison means, or both", class = "icon-tooltip")), 
