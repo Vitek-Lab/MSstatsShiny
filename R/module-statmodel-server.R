@@ -448,6 +448,8 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
                                    height = input$height,
                                    address="Ex_",
                                    isPlotly = TRUE)[[1]]
+      remove_modal_spinner()
+      return(plot1)
       }, error = function(e){
         remove_modal_spinner()
         message("An error occurred: ", conditionMessage(e))
@@ -455,7 +457,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
       )
     }
 
-    remove_modal_spinner()
+    
 
     if(saveFile1) {
       return(id_address1)
@@ -710,10 +712,22 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
   observeEvent(input$viewresults, {
     ns <- session$ns
+    # TMT and PTM plotly plots are still under development
+    if ((loadpage_input()$DDA_DIA == "TMT") || (loadpage_input()$BIO == "PTM")) {
+      output$comp_plots = renderPlot({
+        group_comparison(FALSE, FALSE)
+      })
+      op <- plotOutput(ns("comp_plots"))
+    } else {
+      output$comp_plots = renderPlotly({
+        group_comparison(FALSE, FALSE)
+      })
+      op <- plotlyOutput(ns("comp_plots"), height = input$height)
+    }
     insertUI(
       selector = paste0("#", ns("comparison_plots")),
       ui=tags$div(
-        plotlyOutput(ns("comp_plots"), height = input$height),
+        op,
         conditionalPanel(condition = "input['statmodel-typeplot'] == 'VolcanoPlot' && input['loadpage-DDA_DIA']!='TMT'",
                          h5("Click on plot for details"),
                          verbatimTextOutput(ns("info2"))),
@@ -723,12 +737,6 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
     )
   }
   )
-  
-  observe({output$comp_plots = renderPlotly({
-    group_comparison(FALSE, FALSE)
-    }
-  )
-  })
 
   plotset = reactive({
 
