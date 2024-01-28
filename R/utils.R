@@ -257,7 +257,6 @@ getData <- function(input) {
       } else {
         label = "LF"
       }
-      print(label)
       mydata = MaxQtoMSstatsPTMFormat(evidence=mydata,
                                       annotation=annotation,
                                       input$fasta$datapath,
@@ -365,13 +364,13 @@ getData <- function(input) {
                                          use_unmod_peptides=use_unmod_peptides)
 
     }else {
-      data = read.csv(input$msstatsptmdata$datapath, header = TRUE,sep = input$sep_msstatsptmdata, # fixed sep here
+      data = read.csv(input$msstatsptmdata$datapath, header = TRUE,sep = input$sep_msstatsptmdata, 
                       stringsAsFactors=FALSE)
       mydata = list("PTM" = data, "PROTEIN" = unmod)
     }
   }
   else if (input$filetype == "msstats"){
-    mydata = read.csv(input$msstatsdata$datapath, header = TRUE,sep = input$sep_msstatsdata, # fixed sep here
+    mydata = read.csv(input$msstatsdata$datapath, header = TRUE,sep = input$sep_msstatsdata, 
                       stringsAsFactors=FALSE)
   }
   else {
@@ -405,8 +404,8 @@ getData <- function(input) {
     #   }
     # }
 
-    if(input$filetype == '10col') {# this file not in use anymore, can delete?
-      mydata = read.csv(infile$datapath, header = TRUE, sep = input$sep_data) # not tested sep
+    if(input$filetype == '10col') {
+      mydata = read.csv(infile$datapath, header = TRUE, sep = input$sep_data) 
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
@@ -498,7 +497,6 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep="\t",
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
-      # data = read.csv(input$specdata$datapath, sep="\t")
       data = read.csv(input$specdata$datapath, sep=input$sep_specdata)
       # }
       mydata = SpectronauttoMSstatsFormat(data,
@@ -514,7 +512,6 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep="\t",
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
-      # data = read.csv(input$dianndata$datapath, sep="\t") # hard coded value here
       data = read.csv(input$dianndata$datapath, sep=input$sep_dianndata)
       # }
       print(input$dianndata$datapath)
@@ -583,7 +580,6 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep = "\t",
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
-      # data = read.csv(infile$datapath, sep="\t")
       data = read.csv(infile$datapath, sep=input$sep_data)
       # }
       mydata = SpectroMinetoMSstatsTMTFormat(data, getAnnot(input),
