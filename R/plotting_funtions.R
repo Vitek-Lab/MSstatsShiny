@@ -83,11 +83,12 @@
 #' @importFrom graphics image mtext par plot.new
 #' @importFrom stats dist hclust qt
 #' @importFrom utils read.table write.table
+#' 
 #' @examples
 #' data("dia_skyline_model")
 #' groupComparisonPlots2(dia_skyline_model$ComparisonResult, type="VolcanoPlot",
 #'                       address=FALSE)
-#' 
+#'                       
 groupComparisonPlots2 = function(data=data,
                                  type=type,
                                  sig=0.05,
@@ -117,6 +118,7 @@ groupComparisonPlots2 = function(data=data,
   ## save process output in each step
   allfiles = list.files()
   filenaming = "msstats"
+  
   if (length(grep(filenaming,allfiles)) == 0) {
     
     finalfile = "msstats.log"
@@ -135,7 +137,7 @@ groupComparisonPlots2 = function(data=data,
     
     finalfile = lastfilename
     processout = as.matrix(read.table(finalfile, header=TRUE, sep="\t"))
-  }
+  }	
   
   processout = rbind(processout, as.matrix(c(" ", " ", "MSstats - groupComparisonPlots function", " "), ncol=1))
   
@@ -399,7 +401,7 @@ groupComparisonPlots2 = function(data=data,
         }
       } else if ( length(which.Comparison) > 1 ) {
         stop( '** Cannnot generate multiple volcano plots in a screen. Please set one comparison at a time.' )
-        
+
       }
     }
     
@@ -761,9 +763,9 @@ groupComparisonPlots2 = function(data=data,
         print(ptemp)
       }
       else {
-        return(ggplotly(ptemp))
+        return(ptemp)
       }
-      
+
     } ## end-loop
     
     # if (address!=FALSE) {
@@ -788,7 +790,7 @@ groupComparisonPlots2 = function(data=data,
         stop( '** Cannnot generate multiple comparison plots in a screen. Please set one protein at a time.' )
       }
     }
-    
+
     ## choose Proteins or not
     if (which.Protein != "all") {
       ## check which.Protein is name of Protein
@@ -887,7 +889,7 @@ groupComparisonPlots2 = function(data=data,
         print(ptemp)
       }
       else {
-        return(ggplotly(ptemp))
+        return(ptemp)
       }
       
       message(paste("Drew compasison plot for ", unique(sub$PROTEIN), "(", i, " of ", length(unique(datatemp$Protein)), ")"))
