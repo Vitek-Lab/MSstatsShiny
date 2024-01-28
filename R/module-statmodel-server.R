@@ -429,23 +429,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
 
     } else{
-      # tryCatch({
-      print("lets seee comppp")
-      print(input$whichComp)
-      print(input$whichProt)
-      print("lets seee comppp")
-      # plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
-      #                                                       type=input$typeplot,
-      #                                                       sig=input$sig,
-      #                                                       FCcutoff=input$FC,
-      #                                                       logBase.pvalue=input$logp,
-      #                                                       ProteinName=input$pname,
-      #                                                       numProtein=input$nump,
-      #                                                       clustering=input$cluster,
-      #                                                       which.Comparison=input$whichComp,
-      #                                                       which.Protein = input$whichProt,
-      #                                                       address=path1(),
-      #                                                       savePDF=pdf)
+      tryCatch({                                                   
       if(toupper(input$typeplot) == "VOLCANOPLOT" && input$whichComp == "all") {
         remove_modal_spinner()
         stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )
@@ -464,11 +448,11 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
                                    height = input$height,
                                    address="Ex_",
                                    isPlotly = TRUE)[[1]]
-      # }, error = function(e){
-      #   remove_modal_spinner()
-      #   message("An error occurred: ", conditionMessage(e))
-      #   stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )}
-      # )
+      }, error = function(e){
+        remove_modal_spinner()
+        message("An error occurred: ", conditionMessage(e))
+        stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )}
+      )
     }
 
     remove_modal_spinner()
@@ -482,8 +466,8 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
   }
   
+  # On Heatmap page to display the num of proteins, bound the input range
   observe({
-    # Check if the input is NA or not a number
     if(is.na(input$nump) || !is.numeric(input$nump) || input$nump <= 0) {
       # Reset to default value or handle the error as needed
       updateNumericInput(session, "nump", value = 100)
@@ -525,21 +509,11 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
   ########## output ##########
   
-  # 
   output$plotresults = downloadHandler(
     filename = function() {
       paste("SummaryPlot-", Sys.Date(), ".zip", sep="")
     },
     content = function(file) {
-      # pdf(file)
-      # group_comparison(TRUE, TRUE)
-      # dev.off()
-      # doc = .get.plotly.plot.html(list(group_comparison(FALSE, FALSE)),800,600)
-      # print(doc)
-      # writeLines(doc, file)
-      # print(file)
-      # .save.plotly.plot.html(list(group_comparison(FALSE, FALSE)),"",file,800,600)
-      # group_comparison(FALSE, FALSE)
       files <- list.files(getwd(), pattern = "^Ex_", full.names = TRUE)
       file_info <- file.info(files)
       latest_file <- files[which.max(file_info$mtime)]
@@ -547,22 +521,6 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
       file.copy(latest_file, file)
     }
   )
-  # 
-  # observeEvent(input$plotresults, {
-  #   # print("IN DOWNLOADDD 111")
-  #   # tryCatch({
-  #     MSstats::.save.plotly.plot.html(list(group_comparison(FALSE, FALSE)),"",paste("SummaryPlot-", Sys.Date(), sep=""),800,600)
-  #     print("IN DOWNLOADDD 222")
-  #     showNotification("File downloaded successfully in your local directory")
-  #     print("IN DOWNLOADDD 333")
-  #   # },
-  #   # error=function(cond) {
-  #   #   showNotification("File download failed", type='error')
-  #   #   message(cond)
-  #   #   stop("why")
-  #   # })
-  #   print("IN DOWNLOADDD 444")
-  # })
 
   # download comparison data
 
