@@ -160,7 +160,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
       
       if(loadpage_input()$DDA_DIA == "TMT"){
         
-        plotly_output <- dataProcessPlotsTMT(preprocess_data(),
+        dataProcessPlotsTMT(preprocess_data(),
                             type=input$type1,
                             ylimUp = FALSE,
                             ylimDown = FALSE,
@@ -170,19 +170,19 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                             address = file
         )
 
-        return(plotly_output)
+        # return(plot)
         
       } else if (loadpage_input()$BIO == "PTM"){
         
-        plotly_output <- dataProcessPlotsPTM(preprocess_data(),
+        dataProcessPlotsPTM(preprocess_data(),
                             type=input$type1,
                             which.PTM = protein,
                             summaryPlot = input$summ,
                             address = file)
-        print("outsidedataProcessPlotsPTM ")
-        print(length(plotly_output))
-        # return which plot here, first?
-        return(plotly_output[[1]])
+        # print("outsidedataProcessPlotsPTM ")
+        # print(length(plotly_output))
+        # # return which plot here, first?
+        # return(plotly_output[[1]])
         
       } else{
         plot <- dataProcessPlots(data = preprocess_data(),
@@ -200,21 +200,6 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                          isPlotly = TRUE
 
         )[[1]]
-        # plot <- dataProcessPlots(data = preprocess_data(),
-        #                          type=input$type1,
-        #                          featureName = input$fname,
-        #                          ylimUp = FALSE,
-        #                          ylimDown = FALSE,
-        #                          scale = input$cond_scale,
-        #                          interval = input$interval,
-        #                          which.Protein = protein,
-        #                          originalPlot = TRUE,
-        #                          summaryPlot = TRUE,
-        #                          save_condition_plot_result = FALSE,
-        #                          address = file,
-        #                          isPlotly = TRUE
-        #                          
-        # )
         return(plot)
       }
     }
@@ -386,29 +371,30 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   
   output$showplot = renderUI({
     ns<- session$ns
+    
+    # TMT and PTM plotly plots are still under development
+    if ((loadpage_input()$DDA_DIA == "TMT") || (loadpage_input()$BIO == "PTM")) {
+      output$theplot = renderPlot(theplot())
+      op <- plotOutput(ns("theplot"))
+    } else {
+      output$theplot = renderPlotly(theplot())
+      op <- plotlyOutput(ns("theplot"))
+    }
+
     tagList(
-      plotlyOutput(ns("theplot")),
+      op,
       conditionalPanel(condition = "input['qc-type'] == 'ConditionPlot' && input['qc-which'] != ''",
                        tableOutput(ns("stats"))),
       tags$br(),
       enable("saveplot")
-      # conditionalPanel(condition = "input.which != ''",
-      #                  enable("saveone")
-      #                  #,
-      #                  # bsTooltip(id = "saveone", title = "Open plot as pdf. \
-      #                  #           Popups must be enabled", placement = "bottom",
-      #                  #           trigger = "hover")
-      # )
     )
   })
   
   theplot = reactive({
     if (input$summ == FALSE) {
-      print("inside if")
       output = plotresult(FALSE, input$which, FALSE, TRUE, FALSE)
     }
     else if (input$summ == TRUE) {
-      print("inside else")
       output = plotresult(FALSE, input$which, TRUE, FALSE, FALSE)
     } 
     return(output)
@@ -461,15 +447,12 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
     return(abundant$results)
   })
   
-  output$theplot = renderPlotly(theplot())
-  
   output$stats = renderTable(statistics())
   
   output$abundance = renderUI({
     ns <- session$ns
     req(abundance())
     if (is.null(abundant$results)) {
-      
       tagList(
         tags$br())
     } else {
