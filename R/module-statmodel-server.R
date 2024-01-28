@@ -14,6 +14,7 @@
 #' 
 #' @return list object with user selected options and matrix build
 #'
+#' @export
 statmodelServer <- function(input, output, session,parent_session, loadpage_input, qc_input,get_data,preprocess_data) {
   ######### UI #########
   
@@ -364,9 +365,15 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
         data_comp$ComparisonResult$adj.pvalue < input$signif, ]
 
     } else {
-      significant = with(data_comparison(), round_df(ComparisonResult[
-        ComparisonResult$adj.pvalue < input$signif, ]))
-
+      # significant = with(data_comparison(), round_df(ComparisonResult[
+      #   ComparisonResult$adj.pvalue < input$signif & 
+      #     !is.na(ComparisonResult$Protein), ]))
+      # print(significant)
+      
+      data_comp = data_comparison()
+      significant = data_comp$ComparisonResult[
+        which(data_comp$ComparisonResult$adj.pvalue < input$signif), ]
+      print(significant)
     }
     return(significant)
   })

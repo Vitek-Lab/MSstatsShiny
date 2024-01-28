@@ -666,27 +666,18 @@ library(MSstatsPTM)\n", sep = "")
       cat(file=stderr(), "Reached here in skyline\n")
       codes = paste(codes, "data = read.csv(\"insert your MSstats report from Skyline filepath\", header = TRUE, sep = ",inputsep_skylinedata,", stringsAsFactors=F)\n", sep = "")
 
-      if(input$DDA_DIA=="DDA" ){
-        codes = paste(codes, "data = data[which(data$Fragment.Ion %in% c( \"precursor\", \"precursor [M+1]\",\"precursor [M+2]\")), ]\nannot_file = read.csv(\"insert your annotation filepath\")\n", sep = "")
-        codes = paste(codes, "data = SkylinetoMSstatsFormat(data,\n\t\t\t\t        annotation = annot_file,\n\t\t\t\t        fewMeasurements=\"remove\",\n\t\t\t\t        removeProtein_with1Feature = ",
-                      input$remove,",\n\t\t\t\t       ", "use_log_file = FALSE)\n", sep = "")
-
-      }
-      else if(input$DDA_DIA=="DIA"){
-
-        codes = paste(codes, "annot_file = read.csv(\"insert your annotation filepath\")\n"
-                      , sep = "")
+      codes = paste(codes, "annot_file = read.csv(\"insert your annotation filepath\")\n"
+                    , sep = "")
 
 
-        codes = paste(codes, "data = SkylinetoMSstatsFormat(data,
-                                       annotation = annot_file,
-                                       filter_with_Qvalue = TRUE,
-                                       qvalue_cutoff = 0.01,
-                                       fewMeasurements=\"remove\",
-                                       removeProtein_with1Feature = TRUE,
-                                       use_log_file = FALSE)\n", sep = "")
+      codes = paste(codes, "data = SkylinetoMSstatsFormat(data,
+                                     annotation = annot_file,
+                                     filter_with_Qvalue = TRUE,
+                                     qvalue_cutoff = 0.01,
+                                     fewMeasurements=\"remove\",
+                                     removeProtein_with1Feature = TRUE,
+                                     use_log_file = FALSE)\n", sep = "")
 
-      }
     }
     else if(input$filetype == 'maxq') {
       cat(file=stderr(), "Reached in maxq\n")
@@ -841,6 +832,12 @@ library(MSstatsPTM)\n", sep = "")
                                        localization_cutoff = ",input$localization_cutoff, ",
                                        remove_unlocalized_peptides = ", as.character(input$remove_unlocalized_peptides),
                                   ")\n"), sep = "")
+    } else if (input$filetype == 'phil'){
+      codes = paste(codes,
+                    "data = read.csv(\"insert your msstats.csv filepath\")\n"
+                    , sep = "")
+      codes = paste(codes, paste0("data = FragPipetoMSstatsFormat(data)\n"), 
+                    sep = "")
     }
   }
 

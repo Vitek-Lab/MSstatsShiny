@@ -7,6 +7,7 @@
 #'
 #' @return This function returns nothing, as it sets up the loadpage UI
 #'
+#' @export
 loadpageUI <- function(id) {
   # fix p tag tooltip
   # fix custom statsshiny tooltip

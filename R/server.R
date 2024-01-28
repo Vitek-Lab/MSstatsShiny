@@ -1,3 +1,12 @@
+#' @title Server function for the MSstatsShiny app
+#' @description This functions generates the Server object for MSstatsShiny app.
+#' 
+#' @param input shiny server input
+#' @param output shiny server output
+#' @param session session object for shiny to connect to
+#' @return Server object for shinyUI 
+#' @importFrom shinyjs toggleClass
+#' @export
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=10000*1024^2)
   session$allowReconnect(TRUE)

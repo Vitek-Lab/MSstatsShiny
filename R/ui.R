@@ -1,3 +1,8 @@
+## Uncomment out these lines to deploy on Shiny Server
+# library(MSstatsShiny)
+# library(shiny)
+# library(shinyjs)
+
 jsCode = '
 shinyjs.init = function() {
 $(document).keypress(function(e) { alert("Key pressed: " + e.which); });
@@ -40,6 +45,7 @@ color: black !important;
 #' }
 #' @rdname uiObject
 #' @importFrom shiny NS span
+#' @export
 uiObject <- function() {
   ui = navbarPage(
     title = "MSstatsShiny",

@@ -8,6 +8,7 @@
 #'
 #' @return input object with user selected options
 #'
+#' @export
 loadpageServer <- function(id, parent_session) {
   moduleServer(id, function(input, output, session) {
     # toggle ui (DDA DIA SRM)
