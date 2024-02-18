@@ -855,10 +855,10 @@ test_that("get summary 1 PTM PTMTMT:Yes", {
     mock_input$filetype = "sample"
     mock_input$BIO <- "PTM"
     mock_input$DDA_DIA <- "TMT"
-    # stub(getSummary1,"getData",mockGetData(mock_input))
+    stub(getSummary1,"getData",mockGetData(mock_input))
     
-    output <- getSummary1(mock_input,MSstatsPTM::raw.input.tmt)
-    
+    output <- getSummary1(mock_input,getData(mock_input))
+
     expected_names <- c("Number of Conditions","Number of PTM Mixtures","Number of PTM Biological Replicates","Number of PTM MS runs","Number of PTM Technical Replicates","Number of Unmod Mixtures","Number of Unmod Biological Replicates","Number of Unmod MS runs","Number of Unmod Technical Replicates")
     expect_type(output,"list")
     expect_identical(rownames(output), expected_names)
@@ -870,9 +870,9 @@ test_that("get summary 1 PTM PTMTMT:No", {
     mock_input$filetype = "sample"
     mock_input$BIO <- "PTM"
     mock_input$DDA_DIA <- "LType"
-    # stub(getSummary1,"getData",mockGetData(mock_input))
+    stub(getSummary1,"getData",mockGetData(mock_input))
     
-    output <- getSummary1(mock_input,MSstatsPTM::raw.input)
+    output <- getSummary1(mock_input,getData(mock_input))
     
     expected_names <- c("Number of Conditions","Number of PTM Biological Replicates","Number of PTM MS runs","Number of Unmod Conditions","Number of Unmod Biological Replicates","Number of Unmod MS runs")
     expect_type(output,"list")
@@ -886,9 +886,9 @@ test_that("get summary 1 Other:DDA", {
     mock_input$filetype = "sample"
     mock_input$DDA_DIA <- "LType"
     mock_input$LabelFreeType <- "DDA"
-    # stub(getSummary1,"getData",mockGetData(mock_input))
+    stub(getSummary1,"getData",mockGetData(mock_input))
     
-    output <- getSummary1(mock_input,MSstats::DDARawData)
+    output <- getSummary1(mock_input,getData(mock_input))
     
     expected_names <- c("Number of Conditions","Number of Biological Replicates","Number of Technical Replicates","Number of Fractions","Number of MS runs")
     expect_type(output,"list")
@@ -919,9 +919,9 @@ test_that("get summary 2 PTM PTMTMT:Yes", {
     mock_input$filetype = "sample"
     mock_input$BIO <- "PTM"
     mock_input$DDA_DIA <- "TMT"
-    # stub(getSummary2,"getData",mockGetData(mock_input))
+    stub(getSummary2,"getData",mockGetData(mock_input))
     
-    output <- getSummary2(mock_input,MSstatsPTM::raw.input.tmt)
+    output <- getSummary2(mock_input,getData(mock_input))
     print(rownames(output))
     
     expected_names <- c("Number of PTMs","Number of PTM Features",
@@ -940,9 +940,9 @@ test_that("get summary 2 PTM PTMTMT:No", {
     mock_input$filetype = "sample"
     mock_input$BIO <- "PTM"
     mock_input$DDA_DIA <- "LType"
-    # stub(getSummary2,"getData",mockGetData(mock_input))
+    stub(getSummary2,"getData",mockGetData(mock_input))
     
-    output <- getSummary2(mock_input,MSstatsPTM::raw.input)
+    output <- getSummary2(mock_input,getData(mock_input))
     print(rownames(output))
     
     expected_names <- c("Number of PTMs","Number of PTM Features","Number of Features/PTM","PTM Intensity Range","Number of Unmod Proteins","Number of Protein Peptides","Number of Protein Features","Number of Features/Peptide","Number of Peptides/Protein","Protein Intensity Range") 
@@ -957,9 +957,9 @@ test_that("get summary 2 Other:DDA", {
     mock_input$BIO <- "Protein"
     mock_input$DDA_DIA <- "LType"
     mock_input$LabelFreeType <- "DDA"
-    # stub(getSummary2,"getData",mockGetData(mock_input))
+    stub(getSummary2,"getData",mockGetData(mock_input))
     
-    output <- getSummary2(mock_input,MSstats::DDARawData)
+    output <- getSummary2(mock_input,getData(mock_input))
     expected_names <- c("Number of Proteins","Number of Peptides","Number of Features","Number of Peptides/Protein","Number of Features/Peptide","Intensity Range") 
     expect_type(output,"list")
     expect_identical(rownames(output), expected_names)
@@ -992,7 +992,7 @@ test_that("preprocessData QC, PTM and PTMTMT: No", {
     mock_input$norm = "equalizeMedians"
     mock_input$log = "2"
 
-    # stub(preprocessData,"getData",mockGetData(mock_input))
+    stub(preprocessData,"getData",mockGetData(mock_input))
     stub(preprocessData,"loadpage_input",mock_input)
     stub(preprocessData,"qc_input",mock_input,2)
 
@@ -1006,14 +1006,13 @@ test_that("preprocessData QC, PTM and PTMTMT: No", {
         mockery::stub(MSstatsShiny::lf_summarization_loop, "remove_modal_progress", NULL);
         MSstatsShiny::lf_summarization_loop(...)})
 
-    output <- preprocessData(mock_input,mock_input,MSstatsPTM::raw.input)
+    output <- preprocessData(mock_input,mock_input,getData(mock_input))
     expected_names <- c("PTM","PROTEIN")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
   })
 })
  
-# err
 test_that("preprocessData QC, PTM and PTMTMT: Yes", {
   suppressWarnings({
     mock_input$BIO <- "PTM"
@@ -1023,7 +1022,7 @@ test_that("preprocessData QC, PTM and PTMTMT: Yes", {
     mock_input$log = "2"
     mock_input$summarization = "msstats"
 
-    # stub(preprocessData,"getData",mockGetData(mock_input))
+    stub(preprocessData,"getData",mockGetData(mock_input))
     stub(preprocessData,"loadpage_input",mock_input)
     stub(preprocessData,"qc_input",mock_input,2)
 
@@ -1037,7 +1036,7 @@ test_that("preprocessData QC, PTM and PTMTMT: Yes", {
         mockery::stub(MSstatsShiny::tmt_summarization_loop, "remove_modal_progress", NULL);
         MSstatsShiny::tmt_summarization_loop(...)})
 
-    output <- preprocessData(mock_input,mock_input,MSstatsPTM::raw.input.tmt)
+    output <- preprocessData(mock_input,mock_input,getData(mock_input))
     expected_names <- c("PTM","PROTEIN")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
@@ -1083,7 +1082,7 @@ test_that("preprocessData QC Other", {
     mock_input$norm = "equalizeMedians"
     mock_input$log = "2"
 
-    # stub(preprocessData,"getData",mockGetData(mock_input))
+    stub(preprocessData,"getData",mockGetData(mock_input))
     stub(preprocessData,"loadpage_input",mock_input)
     stub(preprocessData,"qc_input",mock_input,2)
 
@@ -1097,7 +1096,7 @@ test_that("preprocessData QC Other", {
         mockery::stub(MSstatsShiny::lf_summarization_loop, "remove_modal_progress", NULL);
         MSstatsShiny::lf_summarization_loop(...)})
 
-    output <- preprocessData(mock_input,mock_input,MSstats::DDARawData)
+    output <- preprocessData(mock_input,mock_input,getData(mock_input))
     expected_names <- c("FeatureLevelData","ProteinLevelData","SummaryMethod")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
@@ -1190,7 +1189,7 @@ test_that("dataComparison statmodel PTM PTMTMT: Yes", {
         mockery::stub(MSstatsShiny::tmt_summarization_loop, "remove_modal_progress", NULL);
         MSstatsShiny::tmt_summarization_loop(...)})
 
-    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix,preprocessData(mock_input,mock_input,MSstatsPTM::raw.input.tmt))
+    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix,preprocessData(mock_input,mock_input,getData(mock_input)))
     expected_names <- c("PTM.Model","PROTEIN.Model","ADJUSTED.Model")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
@@ -1238,7 +1237,7 @@ test_that("dataComparison statmodel PTM PTMTMT: No", {
         mockery::stub(MSstatsShiny::lf_model, "remove_modal_progress", NULL);
         MSstatsShiny::lf_model(...)})
 
-    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix,preprocessData(mock_input,mock_input,MSstatsPTM::raw.input))
+    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix,preprocessData(mock_input,mock_input,getData(mock_input)))
     expected_names <- c("PTM.Model","PROTEIN.Model","ADJUSTED.Model")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
@@ -1341,7 +1340,7 @@ test_that("dataComparison statmodel Other", {
         mockery::stub(MSstatsShiny::lf_summarization_loop, "remove_modal_progress", NULL);
         MSstatsShiny::lf_summarization_loop(...)})
 
-    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix,preprocessData(mock_input,mock_input,MSstats::DDARawData))
+    output <- dataComparison(mock_input,mock_input,mock_input,dummy_matrix,preprocessData(mock_input,mock_input,getData(mock_input)))
     expected_names <- c("ComparisonResult","ModelQC","FittedModel")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)

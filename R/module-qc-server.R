@@ -187,7 +187,6 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                             address = file
         )
 
-        # return(plot)
         
       } else if (loadpage_input()$BIO == "PTM"){
         
@@ -196,10 +195,6 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                             which.PTM = protein,
                             summaryPlot = input$summ,
                             address = file)
-        # print("outsidedataProcessPlotsPTM ")
-        # print(length(plotly_output))
-        # # return which plot here, first?
-        # return(plotly_output[[1]])
         
       } else{
         plot <- dataProcessPlots(data = preprocess_data(),

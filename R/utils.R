@@ -190,7 +190,6 @@ getAnnot1 <- function(input) {
 }
 
 getData <- function(input) {
-  print("+++++++++ In getDataDeril +++++++++")
   show_modal_spinner()
   ev_maxq = getEvidence(input)
   pg_maxq = getProteinGroups(input)
@@ -208,14 +207,11 @@ getData <- function(input) {
   cat(file=stderr(), "Reached in get_data\n")
 
   cat(file=stderr(), paste("File type is",input$filetype,"\n"))
-  cat(file=stderr(), "herrr\n")
   if(is.null(input$filetype)) {
     return(NULL)
   }
-  cat(file=stderr(), "herrr\n")
   if(input$filetype == 'sample') {
     if(input$BIO != "PTM" && input$DDA_DIA =='LType' && input$LabelFreeType == "SRM_PRM") {
-      cat(file=stderr(), "herrr\n")
       mydata = MSstats::DDARawData
     }
     else if(input$BIO != "PTM" &&  input$DDA_DIA == 'LType' && input$LabelFreeType == "DDA") {
@@ -344,8 +340,6 @@ getData <- function(input) {
                                              mod_id=input$mod_id_spec)
 
     } else if (input$filetype=='sky') {
-      print(":checll")
-      cat(file=stderr(), "checll\n")
       mydata = read_excel(input$ptm_input$datapath)
       mydata_protein = try(read_excel(input$ptm_protein_input$datapath),silent=TRUE)
       annotation = try(read.csv(input$ptm_annot$datapath),silent=TRUE)
