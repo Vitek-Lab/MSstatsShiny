@@ -9,6 +9,23 @@
 #' @return This function returns nothing, as it sets up the Home UI
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' library(shiny)
+#' 
+#' # Define UI for app that incorporates Help UI
+#' ui <- fluidPage(
+#'   homeUI("home")
+#' )
+#'
+#' # Define server logic to interact with Help UI
+#' server <- function(input, output, session) {
+#'   # Placeholder for server-side logic of Help module
+#' }
+#'
+#' # Run the application
+#' shinyApp(ui = ui, server = server)
+#' }
 homeUI <- function(id) {
   ns <- NS(id)
   tagList(

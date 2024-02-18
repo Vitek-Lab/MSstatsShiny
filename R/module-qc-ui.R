@@ -8,6 +8,17 @@
 #' @return This function returns nothing, as it sets up the QC UI
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' library(shiny)
+#' ui <- fluidPage(
+#'   qcUI("qc")
+#' )
+#' server <- function(input, output, session) {
+#'   # Server logic for qcUI
+#' }
+#' shinyApp(ui, server)
+#' }
 qcUI <- function(id) {
   ns <- NS(id)
   tagList(

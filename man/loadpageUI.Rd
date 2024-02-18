@@ -16,3 +16,21 @@ This function returns nothing, as it sets up the loadpage UI
 This function sets up the loadpage UI where it consists of several,
 options for users to select and upload files.
 }
+\examples{
+\dontrun{
+library(shiny)
+
+# Define UI for app that incorporates Help UI
+ui <- fluidPage(
+  loadpageUI("loadpage")
+)
+
+# Define server logic to interact with Help UI
+server <- function(input, output, session) {
+  # Placeholder for server-side logic of Help module
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+}
+}

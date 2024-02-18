@@ -15,6 +15,23 @@
 #' @return list object with user selected options and matrix build
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' library(shiny)
+#' 
+#' # Define UI for app that calls the Expdes Server
+#' ui <- fluidPage(
+#'   # UI elements for Expdes Server inputs
+#' )
+#'
+#' # Define server logic required to call Expdes Server
+#' server <- function(input, output, session) {
+#'   callModule(expdesServer, "expdes", parent_session = session)
+#' }
+#'
+#' # Run the application 
+#' shinyApp(ui = ui, server = server)
+#' }
 expdesServer <- function(input, output, session,parent_session, loadpage_input, qc_input,statmodel_input,data_comparison) {
   # toggle input elements and plot
   observe({
@@ -63,7 +80,7 @@ expdesServer <- function(input, output, session,parent_session, loadpage_input, 
   
   if (index == "numSample") {
     p <- plot_ly(data, x = ~desiredFC, y = ~numSample, type = "scatter", mode = "lines")
-    p <- plotly::layout(p, xaxis = list(title = "Desired fold change"),
+    p <- layout(p, xaxis = list(title = "Desired fold change"),
                 yaxis = list(title = "Minimal number of biological replicates"),
                 showlegend = TRUE,
                 annotations = list(text = paste("FDR is", unique(data$FDR),
@@ -74,7 +91,7 @@ expdesServer <- function(input, output, session,parent_session, loadpage_input, 
   
   if (index == "power") {
     p <- plot_ly(data, x = ~desiredFC, y = ~power, type = "scatter", mode = "lines")
-    p <- plotly::layout(p, xaxis = list(title = "Desired fold change"),
+    p <- layout(p, xaxis = list(title = "Desired fold change"),
                 yaxis = list(title = "Power"),
                 showlegend = TRUE,
                 annotations = list(text = paste("Number of replicates is", unique(data$numSample),

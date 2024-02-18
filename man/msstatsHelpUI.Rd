@@ -15,3 +15,15 @@ This function returns nothing, as it sets up the MSStats Help UI
 \description{
 This module shows the msstats help page for general documentation
 }
+\examples{
+\dontrun{
+library(shiny)
+ui <- fluidPage(
+  msstatsHelpUI("msstats-help")
+)
+server <- function(input, output, session) {
+  # Server logic for msstatsHelpUI
+}
+shinyApp(ui, server)
+}
+}

@@ -16,3 +16,22 @@ This function returns nothing, as it sets up the Expdes UI
 This function sets up the Expdes UI where it consists of several,
 options for users to select and generate plots.
 }
+\examples{
+\dontrun{
+library(shiny)
+library(shinyjs)
+
+# Define UI for app that incorporates Expdes UI
+ui <- fluidPage(
+  expdesUI("expdes")
+)
+
+# Define server logic to interact with Expdes UI
+server <- function(input, output, session) {
+  # Placeholder for server-side logic of Expdes module
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+}
+}

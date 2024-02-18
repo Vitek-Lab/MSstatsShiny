@@ -190,7 +190,7 @@ getAnnot1 <- function(input) {
 }
 
 getData <- function(input) {
-  print("+++++++++ In getData +++++++++")
+  print("+++++++++ In getDataDeril +++++++++")
   show_modal_spinner()
   ev_maxq = getEvidence(input)
   pg_maxq = getProteinGroups(input)
@@ -208,11 +208,14 @@ getData <- function(input) {
   cat(file=stderr(), "Reached in get_data\n")
 
   cat(file=stderr(), paste("File type is",input$filetype,"\n"))
+  cat(file=stderr(), "herrr\n")
   if(is.null(input$filetype)) {
     return(NULL)
   }
+  cat(file=stderr(), "herrr\n")
   if(input$filetype == 'sample') {
     if(input$BIO != "PTM" && input$DDA_DIA =='LType' && input$LabelFreeType == "SRM_PRM") {
+      cat(file=stderr(), "herrr\n")
       mydata = MSstats::DDARawData
     }
     else if(input$BIO != "PTM" &&  input$DDA_DIA == 'LType' && input$LabelFreeType == "DDA") {
@@ -341,6 +344,8 @@ getData <- function(input) {
                                              mod_id=input$mod_id_spec)
 
     } else if (input$filetype=='sky') {
+      print(":checll")
+      cat(file=stderr(), "checll\n")
       mydata = read_excel(input$ptm_input$datapath)
       mydata_protein = try(read_excel(input$ptm_protein_input$datapath),silent=TRUE)
       annotation = try(read.csv(input$ptm_annot$datapath),silent=TRUE)
@@ -450,6 +455,7 @@ getData <- function(input) {
       #   data = read.csv.sql(infile$datapath, sep=input$sep,
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
+      
       data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data,
                       stringsAsFactors=FALSE)
       # }
@@ -484,6 +490,7 @@ getData <- function(input) {
         data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data,
                         stringsAsFactors=FALSE)
         # }
+        print(data)
         mydata = PDtoMSstatsFormat(data, annotation = getAnnot(input),
                                    removeProtein_with1Peptide = input$remove,
                                    use_log_file = FALSE)
@@ -660,7 +667,7 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
-      codes = paste(codes, "data = read.csv(\"insert your MSstats report from Skyline filepath\", header = TRUE, sep = ",inputsep_skylinedata,", stringsAsFactors=F)\n", sep = "")
+      codes = paste(codes, "data = read.csv(\"insert your MSstats report from Skyline filepath\", header = TRUE, sep = ",input$sep_skylinedata,", stringsAsFactors=F)\n", sep = "")
 
       codes = paste(codes, "annot_file = read.csv(\"insert your annotation filepath\")\n"
                     , sep = "")
@@ -1162,7 +1169,7 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
                            ylimDown = FALSE,
                            which.Protein = \"Enter Protein to Plot Here\",
                            summaryPlot = TRUE,
-                           address = FALSE)\n", sep="")
+                           address = FALSE,isPlotly=TRUE)\n", sep="")
   }
 
   return(codes)

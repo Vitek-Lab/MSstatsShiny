@@ -9,6 +9,23 @@
 #' @return input object with user selected options
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' library(shiny)
+#' 
+#' # Define UI for app that calls the loadpageServer Server
+#' ui <- fluidPage(
+#'   # UI elements for loadpageServer Server inputs
+#' )
+#'
+#' # Define server logic required to call Expdes Server
+#' server <- function(input, output, session) {
+#'   callModule(loadpageServer, "loadpage", parent_session = session)
+#' }
+#'
+#' # Run the application 
+#' shinyApp(ui = ui, server = server)
+#' }
 loadpageServer <- function(id, parent_session) {
   moduleServer(id, function(input, output, session) {
     # toggle ui (DDA DIA SRM)

@@ -39,3 +39,21 @@ list object with user selected options and matrix build
 This function sets up the Statmodel server to process data based on user
 selected inputs
 }
+\examples{
+\dontrun{
+library(shiny)
+
+# Define UI for app that calls the Expdes Server
+ui <- fluidPage(
+  # UI elements for Expdes Server inputs
+)
+
+# Define server logic required to call Expdes Server
+server <- function(input, output, session) {
+  callModule(statmodelServer, "statmodel", parent_session = session)
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
+}
+}

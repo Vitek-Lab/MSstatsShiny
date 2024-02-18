@@ -13,6 +13,23 @@
 #' @return input object with user selected options
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' library(shiny)
+#' 
+#' # Define UI for app that calls the qc Server
+#' ui <- fluidPage(
+#'   # UI elements for qc Server inputs
+#' )
+#'
+#' # Define server logic required to call Expdes Server
+#' server <- function(input, output, session) {
+#'   callModule(qcServer, "qc", parent_session = session)
+#' }
+#'
+#' # Run the application 
+#' shinyApp(ui = ui, server = server)
+#' }
 qcServer <- function(input, output, session,parent_session, loadpage_input,get_data) {
 
   # output$showplot = renderUI({

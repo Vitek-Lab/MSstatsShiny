@@ -17,3 +17,21 @@ This function generates the home user interface for MSstatsShiny, a web tool
 for the statistical analysis of quantitative proteomic data built around the
 R packages MSstats, MSstatsTMT, and MSstatsPTM.
 }
+\examples{
+\dontrun{
+library(shiny)
+
+# Define UI for app that incorporates Help UI
+ui <- fluidPage(
+  homeUI("home")
+)
+
+# Define server logic to interact with Help UI
+server <- function(input, output, session) {
+  # Placeholder for server-side logic of Help module
+}
+
+# Run the application
+shinyApp(ui = ui, server = server)
+}
+}
