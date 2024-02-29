@@ -19,20 +19,6 @@ This function sets up the loadpage server where it consists of several,
 options for users to select and upload files.
 }
 \examples{
-\dontrun{
-library(shiny)
+NA
 
-# Define UI for app that calls the loadpageServer Server
-ui <- fluidPage(
-  # UI elements for loadpageServer Server inputs
-)
-
-# Define server logic required to call Expdes Server
-server <- function(input, output, session) {
-  callModule(loadpageServer, "loadpage", parent_session = session)
-}
-
-# Run the application 
-shinyApp(ui = ui, server = server)
-}
 }

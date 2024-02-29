@@ -38,14 +38,12 @@ color: black !important;
 #' for generating 5 nav pages homepage, data upload page, data processing page, statistical
 #' inference and future experiments.
 #' @return UI object for shinyUI 
-#' @examples 
-#' \dontrun{
-#' library(shiny)
-#' shinyUI(uiObject())
-#' }
 #' @rdname uiObject
 #' @importFrom shiny NS span
 #' @export
+#' @examples 
+#' NA
+#' 
 uiObject <- function() {
   ui = navbarPage(
     title = "MSstatsShiny",

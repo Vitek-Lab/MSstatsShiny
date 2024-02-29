@@ -14,24 +14,9 @@
 #' 
 #' @return list object with user selected options and matrix build
 #'
-#' @export
 #' @examples
-#' \dontrun{
-#' library(shiny)
+#' NA
 #' 
-#' # Define UI for app that calls the Expdes Server
-#' ui <- fluidPage(
-#'   # UI elements for Expdes Server inputs
-#' )
-#'
-#' # Define server logic required to call Expdes Server
-#' server <- function(input, output, session) {
-#'   callModule(expdesServer, "expdes", parent_session = session)
-#' }
-#'
-#' # Run the application 
-#' shinyApp(ui = ui, server = server)
-#' }
 expdesServer <- function(input, output, session,parent_session, loadpage_input, qc_input,statmodel_input,data_comparison) {
   # toggle input elements and plot
   observe({

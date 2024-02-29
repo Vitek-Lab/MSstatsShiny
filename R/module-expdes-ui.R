@@ -7,25 +7,9 @@
 #' 
 #' @return This function returns nothing, as it sets up the Expdes UI
 #'
-#' @export
 #' @examples
-#' \dontrun{
-#' library(shiny)
-#' library(shinyjs)
-#'
-#' # Define UI for app that incorporates Expdes UI
-#' ui <- fluidPage(
-#'   expdesUI("expdes")
-#' )
-#'
-#' # Define server logic to interact with Expdes UI
-#' server <- function(input, output, session) {
-#'   # Placeholder for server-side logic of Expdes module
-#' }
-#'
-#' # Run the application
-#' shinyApp(ui = ui, server = server)
-#' }
+#' NA
+#' 
 expdesUI <- function(id) {
   ns <- NS(id)
   tagList(

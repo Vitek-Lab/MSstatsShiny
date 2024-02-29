@@ -7,18 +7,9 @@
 #' 
 #' @return This function returns nothing, as it sets up the Statmodel UI
 #'
-#' @export
 #' @examples
-#' \dontrun{
-#' library(shiny)
-#' ui <- fluidPage(
-#'   statmodelUI("stat")
-#' )
-#' server <- function(input, output, session) {
-#'   # Server logic for statmodelUI
-#' }
-#' shinyApp(ui, server)
-#' }
+#' NA
+#' 
 statmodelUI <- function(id) {
   ns <- NS(id)
   tagList(

@@ -16,20 +16,6 @@ This function returns nothing, as it sets up the Help UI
 This module shows the help page for general documentation
 }
 \examples{
-\dontrun{
-library(shiny)
+NA
 
-# Define UI for app that incorporates Help UI
-ui <- fluidPage(
-  helpUI("help")
-)
-
-# Define server logic to interact with Help UI
-server <- function(input, output, session) {
-  # Placeholder for server-side logic of Help module
-}
-
-# Run the application
-shinyApp(ui = ui, server = server)
-}
 }

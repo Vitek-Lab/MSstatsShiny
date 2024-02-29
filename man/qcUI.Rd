@@ -17,14 +17,6 @@ This function sets up the QC UI where it consists of several,
 options for users to process data based on previously selected fragments.
 }
 \examples{
-\dontrun{
-library(shiny)
-ui <- fluidPage(
-  qcUI("qc")
-)
-server <- function(input, output, session) {
-  # Server logic for qcUI
-}
-shinyApp(ui, server)
-}
+NA
+
 }

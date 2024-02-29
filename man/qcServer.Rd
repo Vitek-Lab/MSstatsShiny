@@ -27,20 +27,6 @@ This function sets up the QC server to process data based on user
 selected inputs
 }
 \examples{
-\dontrun{
-library(shiny)
+NA
 
-# Define UI for app that calls the qc Server
-ui <- fluidPage(
-  # UI elements for qc Server inputs
-)
-
-# Define server logic required to call Expdes Server
-server <- function(input, output, session) {
-  callModule(qcServer, "qc", parent_session = session)
-}
-
-# Run the application 
-shinyApp(ui = ui, server = server)
-}
 }

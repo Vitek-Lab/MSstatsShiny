@@ -17,14 +17,6 @@ This function sets up the Statmodel UI where it consists of several,
 options for users to select and upload files.
 }
 \examples{
-\dontrun{
-library(shiny)
-ui <- fluidPage(
-  statmodelUI("stat")
-)
-server <- function(input, output, session) {
-  # Server logic for statmodelUI
-}
-shinyApp(ui, server)
-}
+NA
+
 }

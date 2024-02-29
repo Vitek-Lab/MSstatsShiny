@@ -6,18 +6,9 @@
 #' 
 #' @return This function returns nothing, as it sets up the MSStatstmts Help UI
 #'
-#' @export
 #' @examples
-#' \dontrun{
-#' library(shiny)
-#' ui <- fluidPage(
-#'   msstatsTmtHelpUI("tmt")
-#' )
-#' server <- function(input, output, session) {
-#'   # Server logic for msstatsTmtHelpUI
-#' }
-#' shinyApp(ui, server)
-#' }
+#' NA
+#' 
 msstatsTmtHelpUI <- function(id) {
   ns <- NS(id)
   tagList(
