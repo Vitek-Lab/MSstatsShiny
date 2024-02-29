@@ -7,6 +7,7 @@
 #' 
 #' @return This function returns nothing, as it sets up the Expdes UI
 #'
+#' @export
 #' @examples
 #' NA
 #' 

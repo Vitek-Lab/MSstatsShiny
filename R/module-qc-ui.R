@@ -7,6 +7,7 @@
 #' 
 #' @return This function returns nothing, as it sets up the QC UI
 #'
+#' @export
 #' @examples
 #' NA
 #' 

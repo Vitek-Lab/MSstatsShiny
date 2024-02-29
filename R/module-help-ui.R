@@ -6,6 +6,7 @@
 #' 
 #' @return This function returns nothing, as it sets up the Help UI
 #'
+#' @export
 #' @examples
 #' NA
 #' 

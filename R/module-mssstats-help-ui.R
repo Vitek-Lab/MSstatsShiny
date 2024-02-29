@@ -6,6 +6,7 @@
 #' 
 #' @return This function returns nothing, as it sets up the MSStats Help UI
 #'
+#' @export
 #' @examples
 #' NA
 #' 

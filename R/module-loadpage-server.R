@@ -8,6 +8,7 @@
 #'
 #' @return input object with user selected options
 #'
+#' @export
 #' @examples
 #' NA
 #' 

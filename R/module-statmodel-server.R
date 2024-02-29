@@ -14,6 +14,7 @@
 #' 
 #' @return list object with user selected options and matrix build
 #'
+#' @export
 #' @examples
 #' NA
 #' 
