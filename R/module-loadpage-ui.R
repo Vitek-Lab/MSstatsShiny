@@ -210,9 +210,9 @@ loadpageUI <- function(id) {
         ),
 
 
-        conditionalPanel(condition = "(input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] =='spmin') && input['loadpage-BIO'] != 'PTM'",
-                         fileInput(ns('data1'), "", multiple = FALSE, accept = c(".xls")),
-        ),
+        # conditionalPanel(condition = "(input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] =='spmin') && input['loadpage-BIO'] != 'PTM'",
+        #                  fileInput(ns('data1'), "", multiple = FALSE, accept = c(".xls")),
+        # ),
         tags$br(),
         conditionalPanel(
           condition = "(input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' || input['loadpage-filetype'] == 'diann') && input['loadpage-BIO'] != 'PTM'",
