@@ -8,6 +8,9 @@
 #' @return This function returns nothing, as it sets up the loadpage UI
 #'
 #' @export
+#' @examples
+#' NA
+#' 
 loadpageUI <- function(id) {
   # fix p tag tooltip
   # fix custom statsshiny tooltip
@@ -93,10 +96,8 @@ loadpageUI <- function(id) {
                    input['loadpage-filetype'] =='openms' || input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil') && input['loadpage-BIO'] != 'PTM'",
           h4("4. Upload quantification dataset"),
           fileInput(ns('data'), "", multiple = FALSE,
-                    accept = c("text/csv",
-                               "text/comma-separated-values,text/plain",
-                               ".csv")),
-          radioButtons(ns("sep"),
+                    accept = NULL),
+          radioButtons(ns("sep_data"),
                        label = h5("Column separator in uploaded file", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                          div("Choose how columns are separated in the uploaded file",class = "icon-tooltip")),
                        c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"),
@@ -105,10 +106,8 @@ loadpageUI <- function(id) {
         conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && (input['loadpage-BIO'] != 'PTM' && (input['loadpage-BIO'] != 'PTM' && input['loadpage-DDA_DIA'] != 'TMT'))",
                          h4("4. Upload data in MSstats Format"),
                          fileInput(ns('msstatsdata'), "", multiple = FALSE,
-                                   accept = c("text/csv",
-                                              "text/comma-separated-values,text/plain",
-                                              ".csv")),
-                         radioButtons(ns("sep"),
+                                   accept = NULL),
+                         radioButtons(ns("sep_msstatsdata"),
                                       label = h5("Column separator in uploaded file", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                         div("Choose how columns are separated in the uploaded file",class = "icon-tooltip")),
                                       c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"),
@@ -117,10 +116,8 @@ loadpageUI <- function(id) {
         conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
                          h4("4. Upload PTM data in MSstats Format"),
                          fileInput(ns('msstatsptmdata'), "", multiple = FALSE,
-                                   accept = c("text/csv",
-                                              "text/comma-separated-values,text/plain",
-                                              ".csv")),
-                         radioButtons(ns("sep"),
+                                   accept = NULL),
+                         radioButtons(ns("sep_msstatsptmdata"),
                                       label = h5("Column separator in uploaded file", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                         div("Choose how columns are separated in the uploaded file",class = "icon-tooltip")),
                                       c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"),
@@ -129,10 +126,8 @@ loadpageUI <- function(id) {
         conditionalPanel(condition = "input['loadpage-filetype'] == 'sky' && input['loadpage-BIO'] != 'PTM'",
                          h4("4. Upload MSstats report from Skyline"),
                          fileInput(ns('skylinedata'), "", multiple = FALSE,
-                                   accept = c("text/csv",
-                                              "text/comma-separated-values,text/plain",
-                                              ".csv")),
-                         radioButtons(ns("sep"),
+                                   accept = NULL),
+                         radioButtons(ns("sep_skylinedata"),
                                       label = h5("Column separator in uploaded file", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                         div("Choose how columns are separated in the uploaded file",class = "icon-tooltip")),
                                       c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"),
@@ -141,10 +136,8 @@ loadpageUI <- function(id) {
         conditionalPanel(condition = "input['loadpage-filetype'] == 'diann' && input['loadpage-BIO'] != 'PTM'",
                          h4("4. Upload MSstats report from DIANN"),
                          fileInput(ns('dianndata'), "", multiple = FALSE,
-                                   accept = c("text/csv",
-                                              "text/comma-separated-values,text/plain",
-                                              ".csv")),
-                         radioButtons(ns("sep"),
+                                   accept = NULL),
+                         radioButtons(ns("sep_dianndata"),
                                       label = h5("Column separator in uploaded file", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                  div("Choose how columns are separated in the uploaded file",class = "icon-tooltip")),
                                       c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"),
@@ -153,46 +146,28 @@ loadpageUI <- function(id) {
         conditionalPanel(condition = "input['loadpage-filetype'] == 'spec' && input['loadpage-BIO'] != 'PTM'",
                          h4("4. Upload MSstats scheme output from Spectronaut"),
                          fileInput(ns('specdata'), "", multiple = FALSE,
-                         accept = c("text/csv",".xlsx",
-                                    "text/comma-separated-values,text/plain",
-                                    ".csv",
-                                    '.xlsx')),
-                         radioButtons(ns("sep"),
+                         accept = NULL),
+                         radioButtons(ns("sep_specdata"),
                                       label = h5("Column separator in uploaded file", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                         div("Choose how columns are separated in the uploaded file",class = "icon-tooltip")),
                                       c(Comma=",",Semicolon=";", Tab="\t",Pipe="|"),
                                       inline = TRUE)
         ),
-#         conditionalPanel(
-#           condition = "input['loadpage-filetype'] != 'maxq' && input['loadpage-filetype'] != 'sample' && input['loadpage-filetype'] != 'ump' && input['loadpage-filetype'] != 'MRF' && (input['loadpage-filetype'] == 'spec' && input['loadpage-DDA_DIA'] != 'PTM') && input['loadpage-filetype'] != 'spmin'",# && input['loadpage-filetype'] != 'phil'
-# ),
-        # conditionalPanel(
-        #   condition = "input['loadpage-filetype'] && input['loadpage-filetype'] == 'phil'",
-        #   fileInput(ns("folder"), "Upload a zip file", accept = ".zip")
-        # ),
 
         conditionalPanel(
           condition = "input['loadpage-filetype'] == 'phil' && input['loadpage-BIO'] == 'PTM'",
           h4("3. Upload PTM msstats dataset"),
           fileInput(ns('ptmdata'), "", multiple = FALSE,
-                    accept = c("text/csv",
-                               "text/comma-separated-values,text/plain",
-                               ".csv")),
+                    accept = NULL),
           h4("4. Upload PTM annotation file"),
           fileInput(ns('annotation'), "", multiple = FALSE,
-                    accept = c("text/csv",
-                               "text/comma-separated-values,text/plain",
-                               ".csv")),
+                    accept = c(".csv")),
           h4("5. Upload global profling msstats dataset (optional)"),
           fileInput(ns('globaldata'), "", multiple = FALSE,
-                    accept = c("text/csv",
-                               "text/comma-separated-values,text/plain",
-                               ".csv")),
+                    accept = NULL),
           h4("6. Upload global profling annotation file (optional)"),
           fileInput(ns('globalannotation'), "", multiple = FALSE,
-                    accept = c("text/csv",
-                               "text/comma-separated-values,text/plain",
-                               ".csv")),
+                    accept = c(".csv")),
           h4("Select the options for pre-processing"),
           textInput(ns("mod_id_col"), h5("Please enter the name of the modification id column", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                             div("Only part of the string is required. For example if your mod id column is named 'STY:1221.12' you only need to enter 'STY' here.",class = "icon-tooltip")),
@@ -205,69 +180,57 @@ loadpageUI <- function(id) {
                        c(Yes=TRUE, No=FALSE),
                        inline=TRUE)
         ),
-
-
-        conditionalPanel(condition = "(input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] =='spmin') && input['loadpage-BIO'] != 'PTM'",
-                         fileInput(ns('data1'), "", multiple = FALSE, accept = c(".xls")),
-        ),
         tags$br(),
         conditionalPanel(
           condition = "(input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' || input['loadpage-filetype'] == 'diann') && input['loadpage-BIO'] != 'PTM'",
           h4("5. Upload annotation File", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                  div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.",class = "icon-tooltip")),
-           #downloadLink("template", "Annotation file template"),
           fileInput(ns('annot'), "", multiple = FALSE,
-                    accept = c("text/csv",
-                               "text/comma-separated-values,text/plain", ".csv"))
+                    accept = c(".csv"))
         ),
         tags$br(),
         ## PTM Fragpipe input -- --------------------------------------------------------
         conditionalPanel(condition = "input['loadpage-filetype'] == 'msstats' && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
                          h4("4. (Optional) Upload unmodified data in MSstats Format"),
                          fileInput(ns('unmod'), "", multiple = FALSE,
-                                   accept = c("text/csv",
-                                              "text/comma-separated-values,text/plain",
-                                              ".csv")),
+                                   accept = NULL),
                          tags$br()
                          ),
         conditionalPanel(
           condition = "input['loadpage-filetype'] == 'maxq' && input['loadpage-BIO'] != 'PTM' && (input['loadpage-DDA_DIA'] == 'TMT' || input['loadpage-DDA_DIA'] == 'LType')",
           h4("4. Upload evidence.txt File"),
           fileInput(ns('evidence'), "", multiple = FALSE,
-                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+                    accept = NULL),
           h4("5. Upload proteinGroups.txt File"),
           fileInput(ns('pGroup'), "", multiple = FALSE,
-                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+                    accept = NULL),
           h4("6. Upload annotation File", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                  div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.",class = "icon-tooltip")),
           fileInput(ns('annot1'), "", multiple = FALSE,
-                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
+                    accept = c(".csv"))
         ),
         ## PTM input -- --------------------------------------------------------
         conditionalPanel(
           condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'sky') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
           h4("4. Upload PTM input.txt File"),
           fileInput(ns('ptm_input'), "", multiple = FALSE,
-                    accept = c("text/csv",".xlsx",
-                               "text/comma-separated-values,text/plain",
-                               ".csv",
-                               '.xlsx')),
+                    accept = NULL),
           h4("5. Upload annotation File", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                  div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.",class = "icon-tooltip")),
           fileInput(ns('ptm_annot'), "", multiple = FALSE,
-                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+                    accept = c(".csv")),
           h4("6. Upload fasta File", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                  div("Upload FASTA file. This file allows us to identify where in the protein sequence a modification occurs.",class = "icon-tooltip")),
           fileInput(ns('fasta'), "", multiple = FALSE),
           h4("7. (Optional) Upload Unmodified Protein input.txt File"),
           fileInput(ns('ptm_protein_input'), "", multiple = FALSE,
-                    accept = c("text/csv/xlsx", "text/comma-separated-values,text/plain", ".csv", ".xlsx"))
+                    accept = NULL)
         ),
         conditionalPanel(
           condition = "(input['loadpage-filetype'] == 'maxq') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
           h4("7. (Optional) Upload Unmodified Protein proteinGroups.txt File"),
           fileInput(ns('ptm_pgroup'), "", multiple = FALSE,
-                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
+                    accept = NULL)
         ),
         
         conditionalPanel(
@@ -301,17 +264,17 @@ loadpageUI <- function(id) {
           condition = "input['loadpage-filetype'] == 'ump'",
           h4("5. Upload FragSummary.xls File"),
           fileInput(ns('fragSummary'), "", multiple = FALSE,
-                    accept = c("xls", "text/comma-separated-values,text/plain", ".xls")),
+                    accept = NULL),
           h4("6. Upload PeptideSummary.xls File"),
           fileInput(ns('peptideSummary'), "", multiple = FALSE,
-                    accept = c("xls", "text/comma-separated-values,text/plain", ".xls")),
+                    accept = NULL),
           h4("7. Upload ProtSummary.xls File"),
           fileInput(ns('protSummary'), "", multiple = FALSE,
-                    accept = c("xls", "text/comma-separated-values,text/plain", ".xls")),
+                    accept = NULL),
           h4("8. Upload Annotation File", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                  div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.",class = "icon-tooltip")),
           fileInput(ns('annot2'), "", multiple = FALSE,
-                    accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
+                    accept = c(".csv"))
         ),
         tags$hr(),
         conditionalPanel(condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'TMT' && input['loadpage-filetype'] == 'PD'",
@@ -324,12 +287,6 @@ loadpageUI <- function(id) {
                          textInput(ns("which.proteinid"), h5("Protein Name Column", class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                                 div("Enter the column in your data containing protein names",class = "icon-tooltip")),
                                    value = "Proteins")),
-        # conditionalPanel(condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'TMT' && input['loadpage-filetype'] == 'phil'",
-        #                  h4("Select the options for pre-processing"),
-        #                  textInput(ns("which.proteinid"), h5("Protein Name Column",
-        #                                                  tipify(icon("question-circle"),
-        #                                                         title = "Enter the column in your data containing protein names")),
-        #                            value = "ProteinAccessions")),
 
         conditionalPanel(condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] !== 'sample' && input['loadpage-filetype'] !== 'MRF'",
                          h4("Select the options for pre-processing"),

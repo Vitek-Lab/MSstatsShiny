@@ -44,6 +44,9 @@ mock_input <- list(
   data = list(
     datapath = NULL
   ),
+  mydata = list(
+    datapath = NULL
+  ),
   data1 = list(
     datapath = NULL
   ),
@@ -75,7 +78,9 @@ mock_input <- list(
   remove_norm_channel = TRUE,
   maxQC1 = NULL,
   summ = TRUE,
-  moderated = TRUE
+  moderated = TRUE,
+  sep_skylinedata = NULL,
+  sep_data = NULL
 )
 
 ################################################################################
@@ -409,7 +414,7 @@ test_that("Empty file type returns NULL", {
   expect_equal(output, NULL)
 })
 
-test_that("sample file type returns expected value", {
+ test_that("sample file type returns expected value", {
   mock_input$filetype = "sample"
   mock_input$BIO <- "Protein"
   mock_input$DDA_DIA <- "LType"
@@ -462,6 +467,7 @@ test_that("dda pd", {
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "PD"
     mock_input$sep = ","
+    mock_input$sep_data = ","
     
     mock_input$data$datapath <- system.file("tinytest/raw_data/PD/pd_input.csv",
                                             package = "MSstatsConvert")
@@ -481,6 +487,7 @@ test_that("dda prog", {
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "prog"
     mock_input$sep = ","
+    mock_input$sep_data = ","
     
     mock_input$data$datapath <- system.file("tinytest/raw_data/Progenesis/progenesis_input.csv",
                                             package = "MSstatsConvert")
@@ -501,17 +508,18 @@ test_that("dda dia skyline", {
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "sky"
     mock_input$sep = ","
-    
+    mock_input$sep_skylinedata = ","
+
     mock_input$skylinedata$datapath <- system.file("tinytest/raw_data/Skyline/skyline_input.csv",
                                             package = "MSstatsConvert")
-    
+
     stub(getData,"getAnnot",NULL)
-    
+
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
-    
+
     mock_input$DDA_DIA <- "LType"
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
@@ -526,6 +534,7 @@ test_that("dda openms", {
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "openms"
     mock_input$sep = ","
+    mock_input$sep_data = ","
     
     mock_input$data$datapath <- system.file("tinytest/raw_data/OpenMS/openms_input.csv",
                                             package = "MSstatsConvert")
@@ -730,6 +739,7 @@ test_that("get data code filetype sky", {
     mock_input$filetype = "sky"
     
     mock_input$DDA_DIA <- "LType"
+    mock_input$sep_skylinedata <- ","
     output <- getDataCode(mock_input)
     expect_type(output,"character")
     
@@ -848,7 +858,7 @@ test_that("get summary 1 PTM PTMTMT:Yes", {
     stub(getSummary1,"getData",mockGetData(mock_input))
     
     output <- getSummary1(mock_input,getData(mock_input))
-    
+
     expected_names <- c("Number of Conditions","Number of PTM Mixtures","Number of PTM Biological Replicates","Number of PTM MS runs","Number of PTM Technical Replicates","Number of Unmod Mixtures","Number of Unmod Biological Replicates","Number of Unmod MS runs","Number of Unmod Technical Replicates")
     expect_type(output,"list")
     expect_identical(rownames(output), expected_names)
@@ -1003,7 +1013,6 @@ test_that("preprocessData QC, PTM and PTMTMT: No", {
   })
 })
  
-# err
 test_that("preprocessData QC, PTM and PTMTMT: Yes", {
   suppressWarnings({
     mock_input$BIO <- "PTM"

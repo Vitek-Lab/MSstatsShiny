@@ -16,3 +16,7 @@ This function returns nothing, as it sets up the Expdes UI
 This function sets up the Expdes UI where it consists of several,
 options for users to select and generate plots.
 }
+\examples{
+NA
+
+}

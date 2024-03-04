@@ -16,3 +16,7 @@ This function returns nothing, as it sets up the Statmodel UI
 This function sets up the Statmodel UI where it consists of several,
 options for users to select and upload files.
 }
+\examples{
+NA
+
+}

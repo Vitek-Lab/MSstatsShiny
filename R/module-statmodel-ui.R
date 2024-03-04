@@ -8,6 +8,9 @@
 #' @return This function returns nothing, as it sets up the Statmodel UI
 #'
 #' @export
+#' @examples
+#' NA
+#' 
 statmodelUI <- function(id) {
   ns <- NS(id)
   tagList(
@@ -143,7 +146,7 @@ statmodelUI <- function(id) {
                                   0.1)),
                    
                    numericInput(ns("nump"), "Number of proteins \
-                                        per page", 100, 1, 180, 1),
+                                        to display", 100, 1, 180, 1),
                    selectInput(ns("cluster"), 
                                label = h5("Cluster analysis",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                           div("Determines how to order proteins and comparisons. protein means, comparison means, or both", class = "icon-tooltip")), 
@@ -153,13 +156,14 @@ statmodelUI <- function(id) {
                  
                  p("Please note if you want to plot more than one \
                           Volcano Plot comparison, you must save the results \
-                          as a pdf."),
+                          as a HTML."),
                  conditionalPanel(
                    condition = "input['loadpage-BIO'] !== 'PTM'",
                    actionButton(ns("viewresults"), 
                                 "View plot in browser (only for one \
                                      comparison/protein)")),
-                 downloadButton(ns("plotresults"), "Save plot results as pdf")
+                 downloadButton(ns("plotresults"), "Save plot results as Zip")
+                 # actionButton(ns("plotresults"), "Save plot results as HTML")
           )
         )
       ),
