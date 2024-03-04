@@ -1,0 +1,12 @@
+name: asdfasdfa
+title: asdfasdfa
+username: msstats-apps
+account: msstats-apps
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 10258972
+bundleId:
+url: https://msstats-apps.shinyapps.io/asdfasdfa/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

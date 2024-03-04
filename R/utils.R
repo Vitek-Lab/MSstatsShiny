@@ -758,11 +758,11 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'diann') {
       
-      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from DIANN filepath\", header = TRUE, sep = ",input$sep_dianndata,")\nannot_file = read.csv(\"insert your annotation filepath\", sep='\t')#Optional\n"
+      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from DIANN filepath\", header = TRUE, sep = '\\t')\nannot_file = read.csv(\"insert your annotation filepath\")#Optional\n"
                     , sep = "")
       
       codes = paste(codes, "data = DIANNtoMSstatsFormat(data,
-                                       annotation = annot_file #Optional,
+                                       annotation = annot_file, #Optional
                                        qvalue_cutoff = 0.01, ## same as default
                                        removeProtein_with1Feature = TRUE,
                                        use_log_file = FALSE)\n", sep = "")
