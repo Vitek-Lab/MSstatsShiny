@@ -9,6 +9,9 @@
 #' @return input object with user selected options
 #'
 #' @export
+#' @examples
+#' NA
+#' 
 loadpageServer <- function(id, parent_session) {
   moduleServer(id, function(input, output, session) {
     # toggle ui (DDA DIA SRM)
@@ -64,10 +67,104 @@ loadpageServer <- function(id, parent_session) {
      
     })
 
-    observeEvent(input$filetype,{
-      enable("proceed1")
-    })
+    # observeEvent(input$filetype,{
+    #   enable("proceed1")
+    # })
 
+    # can remove separator is.null check because shiny by default assigns the first value as the default value for radiobutton
+    observe({
+      disable("proceed1")
+      if(((input$BIO == "Protein") || (input$BIO == "Peptide"))) {
+        if(input$DDA_DIA == "LType") {
+          if ((!is.null(input$filetype) && length(input$filetype) > 0)) {
+            if (input$filetype == "sample") {
+              if(!is.null(input$LabelFreeType)) {
+                enable("proceed1")
+              }
+            } else if (input$filetype == "msstats") {
+              if(!is.null(input$msstatsdata) && !is.null(input$sep_msstatsdata)) {
+                enable("proceed1")
+              }
+            } else if (input$filetype == "sky") {
+              print(input$sep_skylinedata)
+              if(!is.null(input$skylinedata) && !is.null(input$sep_skylinedata)) { # && !is.null(input$annot)
+                enable("proceed1")
+              }
+            } else if (input$filetype == "maxq") {
+              if(!is.null(input$evidence) && !is.null(input$pGroup)) { # && !is.null(input$annot1)
+                enable("proceed1")
+              }
+            } else if (input$filetype == "prog" || input$filetype == "PD" || input$filetype == "open" || input$filetype == "phil") {
+              if(!is.null(input$data) && !is.null(input$sep_data)) { # && !is.null(input$annot)
+                enable("proceed1")
+              }
+            } else if (input$filetype == "openms") {
+              if(!is.null(input$data) && !is.null(input$sep_data)) {
+                enable("proceed1")
+              }
+            } else if (input$filetype == "spec") {
+              if(!is.null(input$specdata) && !is.null(input$sep_specdata)) { # && !is.null(input$annot)
+                enable("proceed1")
+              }
+            } else if (input$filetype == "ump") {
+              if(!is.null(input$fragSummary) && !is.null(input$peptideSummary) && !is.null(input$protSummary)) {  #&& !is.null(input$annot2)
+                enable("proceed1")
+              }
+            } else if (input$filetype == "diann") {
+              if(!is.null(input$dianndata) && !is.null(input$sep_dianndata)) { # && !is.null(input$annot)
+                enable("proceed1")
+              }
+            }
+          }
+        } else if (input$DDA_DIA == "TMT") {
+          if ((!is.null(input$filetype) && length(input$filetype) > 0)) {
+            if(input$filetype == "sample" || input$filetype == "msstats") {
+              enable("proceed1")
+            }
+            if (input$filetype == "maxq") {
+              if(!is.null(input$evidence) && !is.null(input$pGroup)) { # && !is.null(input$annot1)
+                enable("proceed1")
+              }
+            } else if (input$filetype == "PD") {
+              if(!is.null(input$data) && !is.null(input$sep_data)) { # && !is.null(input$annot)
+                enable("proceed1")
+              }
+            } else if (input$filetype == "openms") {
+              if(!is.null(input$data) && !is.null(input$sep_data)) {
+                enable("proceed1")
+              }
+            } else if (input$filetype == "spmin" || input$filetype == "phil") {
+              if(!is.null(input$data) && !is.null(input$sep_data)) { # && !is.null(input$annot)
+                enable("proceed1")
+              }
+            }
+          }
+        }
+        
+      }
+      else if ((input$BIO == "PTM")) {
+        if (input$DDA_DIA == "LType" || input$DDA_DIA == "TMT") {
+          if ((!is.null(input$filetype) && length(input$filetype) > 0)) {
+            if (input$filetype == "sample") {
+              enable("proceed1")
+            } else if (input$filetype == "msstats") {
+              if(!is.null(input$msstatsptmdata) && !is.null(input$sep_msstatsptmdata)) {
+                enable("proceed1")
+              }
+            } else if (input$filetype == "sky" || input$filetype == "maxq" || input$filetype == "spec" || input$filetype == "PD") {
+              if(!is.null(input$ptm_input) && !is.null(input$fasta)) { # && !is.null(input$ptm_annot)
+                enable("proceed1")
+              }
+            }
+            else if (input$filetype == "phil") {
+              if(!is.null(input$ptmdata)) { # && !is.null(input$annotation)
+                enable("proceed1")
+              }
+            }
+          }
+        }
+      }
+    })
 
     get_annot = eventReactive(input$proceed1, {
       getAnnot(input)

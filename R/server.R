@@ -7,6 +7,9 @@
 #' @return Server object for shinyUI 
 #' @importFrom shinyjs toggleClass
 #' @export
+#' @examples
+#' NA
+#' 
 server <- function(input, output, session) {
   options(shiny.maxRequestSize=10000*1024^2)
   session$allowReconnect(TRUE)

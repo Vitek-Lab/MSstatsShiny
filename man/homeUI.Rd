@@ -17,3 +17,7 @@ This function generates the home user interface for MSstatsShiny, a web tool
 for the statistical analysis of quantitative proteomic data built around the
 R packages MSstats, MSstatsTMT, and MSstatsPTM.
 }
+\examples{
+NA
+
+}

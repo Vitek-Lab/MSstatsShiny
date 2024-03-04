@@ -15,6 +15,9 @@
 #' @return list object with user selected options and matrix build
 #'
 #' @export
+#' @examples
+#' NA
+#' 
 statmodelServer <- function(input, output, session,parent_session, loadpage_input, qc_input,get_data,preprocess_data) {
   ######### UI #########
   
@@ -329,7 +332,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
       codes = paste(codes, "groupComparisonPlots(data=model$ComparisonResult,
                            type=\"Enter VolcanoPlot, Heatmap, or ComparisonPlot\",
                            which.Comparison=\"all\",
-                           which.Protein=\"all\",
+                           which.Protein=\"all\",isPlotly=FALSE,
                            address=\"\")\n", sep="")
     }
 
@@ -429,26 +432,35 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
 
     } else{
-      tryCatch({
-      plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
-                                                            type=input$typeplot,
-                                                            sig=input$sig,
-                                                            FCcutoff=input$FC,
-                                                            logBase.pvalue=input$logp,
-                                                            ProteinName=input$pname,
-                                                            numProtein=input$nump, 
-                                                            clustering=input$cluster, 
-                                                            which.Comparison=input$whichComp,
-                                                            which.Protein = input$whichProt,
-                                                            address=path1(),
-                                                            savePDF=pdf)
+      tryCatch({                                                   
+      if(toupper(input$typeplot) == "VOLCANOPLOT" && input$whichComp == "all") {
+        remove_modal_spinner()
+        stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )
+      }
+      
+      plot1 = groupComparisonPlots(data=data_comparison()$ComparisonResult,
+                                   type=input$typeplot,
+                                   sig=input$sig,
+                                   FCcutoff=input$FC,
+                                   logBase.pvalue=as.numeric(input$logp),
+                                   ProteinName=input$pname,
+                                   numProtein=input$nump, 
+                                   clustering=input$cluster, 
+                                   which.Comparison=input$whichComp,
+                                   which.Protein = input$whichProt,
+                                   height = input$height,
+                                   address="Ex_",
+                                   isPlotly = TRUE)[[1]]
+      remove_modal_spinner()
+      return(plot1)
       }, error = function(e){
         remove_modal_spinner()
+        message("An error occurred: ", conditionMessage(e))
         stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )}
       )
     }
 
-    remove_modal_spinner()
+    
 
     if(saveFile1) {
       return(id_address1)
@@ -458,6 +470,14 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
     }
 
   }
+  
+  # On Heatmap page to display the num of proteins, bound the input range
+  observe({
+    if(is.na(input$nump) || !is.numeric(input$nump) || input$nump <= 0) {
+      # Reset to default value or handle the error as needed
+      updateNumericInput(session, "nump", value = 100)
+    }
+  })
 
   # model assumptions plots
 
@@ -493,6 +513,19 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
 
   ########## output ##########
+  
+  output$plotresults = downloadHandler(
+    filename = function() {
+      paste("SummaryPlot-", Sys.Date(), ".zip", sep="")
+    },
+    content = function(file) {
+      files <- list.files(getwd(), pattern = "^Ex_", full.names = TRUE)
+      file_info <- file.info(files)
+      latest_file <- files[which.max(file_info$mtime)]
+      print(latest_file)
+      file.copy(latest_file, file)
+    }
+  )
 
   # download comparison data
 
@@ -682,10 +715,22 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
   observeEvent(input$viewresults, {
     ns <- session$ns
+    # TMT and PTM plotly plots are still under development
+    if ((loadpage_input()$DDA_DIA == "TMT") || (loadpage_input()$BIO == "PTM")) {
+      output$comp_plots = renderPlot({
+        group_comparison(FALSE, FALSE)
+      })
+      op <- plotOutput(ns("comp_plots"))
+    } else {
+      output$comp_plots = renderPlotly({
+        group_comparison(FALSE, FALSE)
+      })
+      op <- plotlyOutput(ns("comp_plots"), height = input$height)
+    }
     insertUI(
       selector = paste0("#", ns("comparison_plots")),
       ui=tags$div(
-        plotOutput(ns("comp_plots"), height = "100%", click = "click1"),
+        op,
         conditionalPanel(condition = "input['statmodel-typeplot'] == 'VolcanoPlot' && input['loadpage-DDA_DIA']!='TMT'",
                          h5("Click on plot for details"),
                          verbatimTextOutput(ns("info2"))),
@@ -695,11 +740,6 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
     )
   }
   )
-  
-  observe({output$comp_plots = renderPlot({
-    group_comparison(FALSE, FALSE)}, height = input$height
-  )
-  })
 
   plotset = reactive({
 
@@ -855,16 +895,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
     }
   )
 
-  output$plotresults = downloadHandler(
-    filename = function() {
-      paste("SummaryPlot-", Sys.Date(), ".pdf", sep="")
-    },
-    content = function(file) {
-      pdf(file)
-      group_comparison(TRUE, TRUE)
-      dev.off()
-    }
-  )
+  
 
   observeEvent(input$calculate,{
     enable("Design")

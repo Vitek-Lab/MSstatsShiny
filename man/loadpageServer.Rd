@@ -18,3 +18,7 @@ input object with user selected options
 This function sets up the loadpage server where it consists of several,
 options for users to select and upload files.
 }
+\examples{
+NA
+
+}

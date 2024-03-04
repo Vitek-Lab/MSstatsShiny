@@ -8,6 +8,9 @@
 #' @return This function returns nothing, as it sets up the QC UI
 #'
 #' @export
+#' @examples
+#' NA
+#' 
 qcUI <- function(id) {
   ns <- NS(id)
   tagList(

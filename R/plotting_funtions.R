@@ -83,11 +83,12 @@
 #' @importFrom graphics image mtext par plot.new
 #' @importFrom stats dist hclust qt
 #' @importFrom utils read.table write.table
+#' 
 #' @examples
 #' data("dia_skyline_model")
 #' groupComparisonPlots2(dia_skyline_model$ComparisonResult, type="VolcanoPlot",
 #'                       address=FALSE)
-#' 
+#'                       
 groupComparisonPlots2 = function(data=data,
                                  type=type,
                                  sig=0.05,
@@ -117,59 +118,60 @@ groupComparisonPlots2 = function(data=data,
   ## save process output in each step
   allfiles = list.files()
   filenaming = "msstats"
+  
   if (length(grep(filenaming,allfiles)) == 0) {
-
+    
     finalfile = "msstats.log"
     processout = NULL
-
+    
   } else {
-
+    
     num = 0
     finalfile = "msstats.log"
-
+    
     while(is.element(finalfile, allfiles)) {
       num = num + 1
       lastfilename = finalfile ## in order to rea
       finalfile = paste(paste(filenaming, num, sep="-"), ".log", sep="")
     }
-
+    
     finalfile = lastfilename
     processout = as.matrix(read.table(finalfile, header=TRUE, sep="\t"))
-  }
-
+  }	
+  
   processout = rbind(processout, as.matrix(c(" ", " ", "MSstats - groupComparisonPlots function", " "), ncol=1))
-
+  
   ## make upper letter
   type = toupper(type)
-
+  
   if (length(setdiff(type, c("HEATMAP", "VOLCANOPLOT", "COMPARISONPLOT"))) != 0) {
-
+    
     processout = rbind(processout, c(paste("Input for type=", type, ". However,'type' should be one of \"Heatmap\", \"VolcanoPlot\",\"ComparisonPlot\".", sep="")))
     write.table(processout, file=finalfile, row.names=FALSE)
-
+    
     stop(paste("Input for type=", type, ". However,'type' should be one of \"Heatmap\", \"VolcanoPlot\",\"ComparisonPlot\".", sep=""))
   }
-
+  
   ## check logBase.pvalue is 2,10 or not
   if (logBase.pvalue != 2 & logBase.pvalue != 10) {
     processout = rbind(processout, c("ERROR : (-) Logarithm transformation for adjusted p-values : log2 or log10 only - stop"))
     write.table(processout, file=finalfile, row.names=FALSE)
-
+    
     stop("Only -log2 or -log10 for logarithm transformation for adjusted p-values are posssible.\n")
   }
-
+  
   if (which.Comparison != "all") {
     ## check which.comparison is name of comparison
     if (is.character(which.Comparison)) {
-
+      
       temp.name = which.Comparison
-
+      
       ## message if name of comparison is wrong.
       if (length(setdiff(temp.name, unique(data$Label))) > 0) {
-
+        
         processout = rbind(processout, paste("Please check labels of comparions. Result does not have this comparison. -", paste(temp.name, collapse=", "), sep=" "))
         write.table(processout, file=finalfile, row.names=FALSE)
-
+        
         stop(paste("Please check labels of comparions. Result does not have this comparison. -", paste(temp.name, collapse=", "), sep=" "))
       }
     }

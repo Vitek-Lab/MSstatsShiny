@@ -15,3 +15,7 @@ This function returns nothing, as it sets up the Help UI
 \description{
 This module shows the help page for general documentation
 }
+\examples{
+NA
+
+}

@@ -26,3 +26,7 @@ input object with user selected options
 This function sets up the QC server to process data based on user
 selected inputs
 }
+\examples{
+NA
+
+}

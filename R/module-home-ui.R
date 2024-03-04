@@ -9,6 +9,9 @@
 #' @return This function returns nothing, as it sets up the Home UI
 #'
 #' @export
+#' @examples
+#' NA
+#' 
 homeUI <- function(id) {
   ns <- NS(id)
   tagList(

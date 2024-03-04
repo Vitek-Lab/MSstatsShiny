@@ -19,3 +19,7 @@ Server object for shinyUI
 \description{
 This functions generates the Server object for MSstatsShiny app.
 }
+\examples{
+NA
+
+}

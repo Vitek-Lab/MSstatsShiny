@@ -16,3 +16,7 @@ This function returns nothing, as it sets up the loadpage UI
 This function sets up the loadpage UI where it consists of several,
 options for users to select and upload files.
 }
+\examples{
+NA
+
+}
