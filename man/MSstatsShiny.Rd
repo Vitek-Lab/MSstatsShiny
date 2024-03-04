@@ -2,6 +2,7 @@
 % Please edit documentation in R/MSstatsShiny.R
 \docType{package}
 \name{MSstatsShiny}
+\alias{MSstatsShiny-package}
 \alias{MSstatsShiny}
 \title{MSstatsShiny: An R-shiny based package for detecting differencially abundant
 proteins, integrated with the MSstats family of packages.}
@@ -30,3 +31,27 @@ experiments.
 }
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item Report bugs at \url{https://github.com/Vitek-Lab/MSstatsShiny/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Devon Kohler \email{kohler.d@northeastern.edu}
+
+Authors:
+\itemize{
+  \item Deril Raju \email{raju.d@northeastern.edu}
+  \item Maanasa Kaza \email{maanasakaza@gmail.com}
+  \item Cristina Pasi \email{cristinapasi@gmail.com}
+  \item Ting Huang \email{thuang0703@gmail.com}
+  \item Mateusz Staniak \email{mateusz.staniak@math.uni.wroc.pl}
+  \item Dhaval Mohandas \email{dhavalmohandas@gmail.com}
+  \item Eduard Sabido \email{eduard.sabido@crg.cat}
+  \item Meena Choi \email{choi.meena@gene.com}
+  \item Olga Vitek \email{o.vitek@northeastern.edu}
+}
+
+}

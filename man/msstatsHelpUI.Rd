@@ -15,3 +15,7 @@ This function returns nothing, as it sets up the MSStats Help UI
 \description{
 This module shows the msstats help page for general documentation
 }
+\examples{
+NA
+
+}

@@ -8,6 +8,9 @@
 #' @return This function returns nothing, as it sets up the Expdes UI
 #'
 #' @export
+#' @examples
+#' NA
+#' 
 expdesUI <- function(id) {
   ns <- NS(id)
   tagList(
@@ -30,7 +33,7 @@ expdesUI <- function(id) {
         fluidRow(
           column(9,
                  h4("Plot"),
-                 plotOutput(ns("result_plot"), hover = "plot_hover"),
+                 plotlyOutput(ns("result_plot")),
                  verbatimTextOutput(ns("info")),
                  downloadButton(ns("download_future"), "Download plot")
           )

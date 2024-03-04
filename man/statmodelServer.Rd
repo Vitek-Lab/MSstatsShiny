@@ -39,3 +39,7 @@ list object with user selected options and matrix build
 This function sets up the Statmodel server to process data based on user
 selected inputs
 }
+\examples{
+NA
+
+}

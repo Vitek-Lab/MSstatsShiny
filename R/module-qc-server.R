@@ -13,6 +13,9 @@
 #' @return input object with user selected options
 #'
 #' @export
+#' @examples
+#' NA
+#' 
 qcServer <- function(input, output, session,parent_session, loadpage_input,get_data) {
 
   # output$showplot = renderUI({
@@ -169,19 +172,18 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                             summaryPlot = input$summ,
                             address = file
         )
+
         
       } else if (loadpage_input()$BIO == "PTM"){
-        print("here")
+        
         dataProcessPlotsPTM(preprocess_data(),
                             type=input$type1,
                             which.PTM = protein,
                             summaryPlot = input$summ,
-                            address = file
-        )
+                            address = file)
         
       } else{
-        
-        dataProcessPlots(data = preprocess_data(),
+        plot <- dataProcessPlots(data = preprocess_data(),
                          type=input$type1,
                          featureName = input$fname,
                          ylimUp = FALSE,
@@ -192,18 +194,12 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                          originalPlot = original,
                          summaryPlot = input$summ,
                          save_condition_plot_result = FALSE,
-                         address = file
-        )
-        
+                         address = file,
+                         isPlotly = TRUE
+
+        )[[1]]
+        return(plot)
       }
-      
-      
-      # if (saveFile) {
-      #   return(id_address)
-      # } 
-      # else {
-      # return (plot)
-      # }
     }
     else {
       return(NULL)
@@ -373,19 +369,22 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   
   output$showplot = renderUI({
     ns<- session$ns
+    
+    # TMT and PTM plotly plots are still under development
+    if ((loadpage_input()$DDA_DIA == "TMT") || (loadpage_input()$BIO == "PTM")) {
+      output$theplot = renderPlot(theplot())
+      op <- plotOutput(ns("theplot"))
+    } else {
+      output$theplot = renderPlotly(theplot())
+      op <- plotlyOutput(ns("theplot"))
+    }
+
     tagList(
-      plotOutput(ns("theplot")),
+      op,
       conditionalPanel(condition = "input['qc-type'] == 'ConditionPlot' && input['qc-which'] != ''",
                        tableOutput(ns("stats"))),
       tags$br(),
       enable("saveplot")
-      # conditionalPanel(condition = "input.which != ''",
-      #                  enable("saveone")
-      #                  #,
-      #                  # bsTooltip(id = "saveone", title = "Open plot as pdf. \
-      #                  #           Popups must be enabled", placement = "bottom",
-      #                  #           trigger = "hover")
-      # )
     )
   })
   
@@ -396,7 +395,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
     else if (input$summ == TRUE) {
       output = plotresult(FALSE, input$which, TRUE, FALSE, FALSE)
     } 
-    return (output)
+    return(output)
   })
   
   # quantification
@@ -446,15 +445,12 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
     return(abundant$results)
   })
   
-  output$theplot = renderPlot(theplot())
-  
   output$stats = renderTable(statistics())
   
   output$abundance = renderUI({
     ns <- session$ns
     req(abundance())
     if (is.null(abundant$results)) {
-      
       tagList(
         tags$br())
     } else {

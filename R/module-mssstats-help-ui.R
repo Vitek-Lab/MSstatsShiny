@@ -7,6 +7,9 @@
 #' @return This function returns nothing, as it sets up the MSStats Help UI
 #'
 #' @export
+#' @examples
+#' NA
+#' 
 msstatsHelpUI <- function(id) {
   ns <- NS(id)
   tagList(

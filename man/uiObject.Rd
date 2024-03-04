@@ -15,8 +15,6 @@ for generating 5 nav pages homepage, data upload page, data processing page, sta
 inference and future experiments.
 }
 \examples{
-\dontrun{
-library(shiny)
-shinyUI(uiObject())
-}
+NA
+
 }
