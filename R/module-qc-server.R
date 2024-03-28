@@ -162,16 +162,19 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
       # }
       
       if(loadpage_input()$DDA_DIA == "TMT"){
-        
-        dataProcessPlotsTMT(preprocess_data(),
+        print("in tmt")
+        print(input$type1)
+        plot <- dataProcessPlotsTMT(preprocess_data(),
                             type=input$type1,
                             ylimUp = FALSE,
                             ylimDown = FALSE,
                             which.Protein = protein,
                             originalPlot = TRUE,
                             summaryPlot = input$summ,
-                            address = file
-        )
+                            address = file,
+                            isPlotly = TRUE
+        )[[1]]
+        return(plot)
 
         
       } else if (loadpage_input()$BIO == "PTM"){
@@ -371,7 +374,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
     ns<- session$ns
     
     # TMT and PTM plotly plots are still under development
-    if ((loadpage_input()$DDA_DIA == "TMT") || (loadpage_input()$BIO == "PTM")) {
+    if ((loadpage_input()$DDA_DIA == "TMT--") || (loadpage_input()$BIO == "PTM")) {
       output$theplot = renderPlot(theplot())
       op <- plotOutput(ns("theplot"))
     } else {
