@@ -388,16 +388,6 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   
   output$showplot = renderUI({
     ns<- session$ns
-    
-    # PTM plotly plots are still under development
-    # if (loadpage_input()$BIO == "PTM_") {
-    #   output$theplot = renderPlot(theplot())
-    #   op <- plotOutput(ns("theplot"))
-    # } else {
-    #   output$theplot = renderPlotly(theplot())
-    #   op <- plotlyOutput(ns("theplot"))
-    # }
-    
     output$theplot = renderPlotly(theplot())
     op <- plotlyOutput(ns("theplot"))
 
