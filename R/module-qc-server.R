@@ -170,17 +170,19 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                             which.Protein = protein,
                             originalPlot = original,
                             summaryPlot = input$summ,
-                            address = file, isPlotly = TRUE
+                            address="Ex_", isPlotly = TRUE
         )[[1]]
-        return(plot)
+        # return(plot)
         
       } else if (loadpage_input()$BIO == "PTM"){
         
-        dataProcessPlotsPTM(preprocess_data(),
+        plot <- dataProcessPlotsPTM(preprocess_data(),
                             type=input$type1,
                             which.PTM = protein,
+                            originalPlot = original,
                             summaryPlot = input$summ,
-                            address = file)
+                            address="Ex_", isPlotly = TRUE)[[1]]
+        # return(plot)
         
       } else{
         plot <- dataProcessPlots(data = preprocess_data(),
@@ -194,12 +196,14 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                          originalPlot = original,
                          summaryPlot = input$summ,
                          save_condition_plot_result = FALSE,
-                         address = file,
+                         address="Ex_",
                          isPlotly = TRUE
 
         )[[1]]
-        return(plot)
+        # return(plot)
       }
+      enable("plotresults_qc")
+      return(plot)
     }
     else {
       return(NULL)
@@ -367,17 +371,35 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   #   }
   # })
   
+  
+  ### OUTPUT ####
+  output$plotresults_qc = downloadHandler(
+    filename = function() {
+      paste("SummaryPlot-", Sys.Date(), ".zip", sep="")
+    },
+    content = function(file) {
+      files <- list.files(getwd(), pattern = "^Ex_", full.names = TRUE)
+      file_info <- file.info(files)
+      latest_file <- files[which.max(file_info$mtime)]
+      print(latest_file)
+      file.copy(latest_file, file)
+    }
+  )
+  
   output$showplot = renderUI({
     ns<- session$ns
     
     # PTM plotly plots are still under development
-    if (loadpage_input()$BIO == "PTM") {
-      output$theplot = renderPlot(theplot())
-      op <- plotOutput(ns("theplot"))
-    } else {
-      output$theplot = renderPlotly(theplot())
-      op <- plotlyOutput(ns("theplot"))
-    }
+    # if (loadpage_input()$BIO == "PTM_") {
+    #   output$theplot = renderPlot(theplot())
+    #   op <- plotOutput(ns("theplot"))
+    # } else {
+    #   output$theplot = renderPlotly(theplot())
+    #   op <- plotlyOutput(ns("theplot"))
+    # }
+    
+    output$theplot = renderPlotly(theplot())
+    op <- plotlyOutput(ns("theplot"))
 
     tagList(
       op,

@@ -399,15 +399,31 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
     }
 
     if (loadpage_input()$BIO=="PTM"){
-      plot1 = groupComparisonPlotsPTM(data_comparison(),
-                                      input$typeplot,
-                                      sig=input$sig,
-                                      FCcutoff=input$FC,
-                                      logBase.pvalue=as.integer(input$logp),
-                                      ProteinName = input$pname,
-                                      which.Comparison = input$whichComp,
-                                      address = FALSE)
-
+      tryCatch({
+        if(toupper(input$typeplot) == "COMPARISONPLOT") {
+          remove_modal_spinner()
+          stop( 'Comparison Plot is not offered by MSstatsPTM at the moment' )
+        }
+        plot = groupComparisonPlotsPTM(data_comparison(),
+                                        input$typeplot,
+                                        sig=input$sig,
+                                        FCcutoff=input$FC,
+                                        logBase.pvalue=as.integer(input$logp),
+                                        ProteinName = input$pname,
+                                        numProtein=input$nump,
+                                        which.Comparison = input$whichComp,
+                                        address = "Ex_",
+                                        isPlotly = TRUE)
+        if(length(plot) == 3) { # return adjusted if we have it
+          plot1 = plot[[3]]
+        } else {
+          plot1 = plot[[1]]
+        }
+        remove_modal_spinner()
+      },error = function(e){
+        remove_modal_spinner()
+        stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf. **' )}
+      )
 
     } else if(loadpage_input()$DDA_DIA=="TMT"){
       tryCatch({
@@ -717,18 +733,10 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
 
   observeEvent(input$viewresults, {
     ns <- session$ns
-    # PTM plotly plots are still under development
-    if (loadpage_input()$BIO == "PTM") {
-      output$comp_plots = renderPlot({
-        group_comparison(FALSE, FALSE)
-      })
-      op <- plotOutput(ns("comp_plots"))
-    } else {
-      output$comp_plots = renderPlotly({
-        group_comparison(FALSE, FALSE)
-      })
-      op <- plotlyOutput(ns("comp_plots"), height = input$height)
-    }
+    output$comp_plots = renderPlotly({
+      group_comparison(FALSE, FALSE)
+    })
+    op <- plotlyOutput(ns("comp_plots"), height = input$height)
     insertUI(
       selector = paste0("#", ns("comparison_plots")),
       ui=tags$div(

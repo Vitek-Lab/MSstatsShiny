@@ -158,7 +158,10 @@ statmodelUI <- function(id) {
                           Volcano Plot comparison, you must save the results \
                           as a HTML."),
                  conditionalPanel(
-                   condition = "input['loadpage-BIO'] !== 'PTM'",
+                   condition = "input['loadpage-BIO'] == 'PTM' && input['statmodel-typeplot'] == 'ComparisonPlot'",
+                   p("Comparison Plot is not offered by MSstatsPTM at the moment")),
+                 conditionalPanel(
+                   condition = "input['loadpage-BIO'] !== 'PTM_'",
                    actionButton(ns("viewresults"), 
                                 "View plot in browser (only for one \
                                      comparison/protein)")),

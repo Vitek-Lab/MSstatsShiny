@@ -227,7 +227,7 @@ qcUI <- function(id) {
                                                            "No feature legend"="NA"))
                                              
                             ),
-                            
+                            p("Use the camera icon on the top right of the plot to download as PNG"),
                             uiOutput(ns("Which")),
                             tags$br()
                           ),
@@ -235,8 +235,10 @@ qcUI <- function(id) {
                           #                  tags$br(),
                           #                  tags$br(),
                           #                  tags$h4("Calculation in progress...")),
-                          uiOutput(ns("showplot")),
+                          disabled(downloadButton(ns("plotresults_qc"), "Save plot results as Zip")),
+                          uiOutput(ns("showplot"))
                           # disabled(downloadButton(ns("saveplot"), "Save this plot"))
+                          
                  ),
                  tabPanel("Download Data", 
                           #verbatimTextOutput('effect'),
