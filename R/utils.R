@@ -415,7 +415,7 @@ getData <- function(input) {
       data = read.csv(input$skylinedata$datapath, header = TRUE, sep = input$sep_skylinedata,
                       stringsAsFactors=FALSE)
       # }
-        mydata = SkylinetoMSstatsFormat(data,
+        mydata = MSstatsConvert::SkylinetoMSstatsFormat(data,
                                         annotation = getAnnot(input),
                                         filter_with_Qvalue = TRUE,
                                         qvalue_cutoff = 0.01,
@@ -433,7 +433,7 @@ getData <- function(input) {
 
       }
       else{
-        mydata = MaxQtoMSstatsFormat(evidence= ev_maxq, annotation= an_maxq,
+        mydata = MSstatsConvert::MaxQtoMSstatsFormat(evidence= ev_maxq, annotation= an_maxq,
                                      proteinGroups= pg_maxq,
                                      useUniquePeptide = TRUE,
                                      summaryforMultipleRows = max,
@@ -454,7 +454,7 @@ getData <- function(input) {
                       stringsAsFactors=FALSE)
       # }
 
-      mydata = ProgenesistoMSstatsFormat(data, annotation = getAnnot(input),
+      mydata = MSstatsConvert::ProgenesistoMSstatsFormat(data, annotation = getAnnot(input),
                                          removeProtein_with1Peptide = TRUE,
                                          use_log_file = FALSE)
       colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] = 'PeptideSequence'
@@ -485,7 +485,7 @@ getData <- function(input) {
                         stringsAsFactors=FALSE)
         # }
         print(data)
-        mydata = PDtoMSstatsFormat(data, annotation = getAnnot(input),
+        mydata = MSstatsConvert::PDtoMSstatsFormat(data, annotation = getAnnot(input),
                                    removeProtein_with1Peptide = input$remove,
                                    use_log_file = FALSE)
         colnames(mydata)[colnames(mydata) == 'PeptideModifiedSequence'] = 'PeptideSequence'
@@ -500,7 +500,7 @@ getData <- function(input) {
       # } else {
       data = read.csv(input$specdata$datapath, sep=input$sep_specdata)
       # }
-      mydata = SpectronauttoMSstatsFormat(data,
+      mydata = MSstatsConvert::SpectronauttoMSstatsFormat(data,
                                           annotation = getAnnot(input),
                                           filter_with_Qvalue = TRUE, ## same as default
                                           qvalue_cutoff = 0.01, ## same as default
@@ -517,7 +517,7 @@ getData <- function(input) {
       # }
       print(input$dianndata$datapath)
 
-      mydata = DIANNtoMSstatsFormat(data,
+      mydata = MSstatsConvert::DIANNtoMSstatsFormat(data,
                                           annotation = getAnnot(input),
                                           qvalue_cutoff = 0.01, ## same as default
                                           removeProtein_with1Feature = TRUE,
@@ -533,7 +533,7 @@ getData <- function(input) {
       # } else {
       data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data)
       # }
-      mydata =OpenSWATHtoMSstatsFormat(data,
+      mydata = MSstatsConvert::OpenSWATHtoMSstatsFormat(data,
                                        annotation = getAnnot(input),
                                        filter_with_mscore = TRUE, ## same as default
                                        mscore_cutoff = 0.01, ## same as default
@@ -561,7 +561,7 @@ getData <- function(input) {
         data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data)
         # }
         unique(data[, c('Run', 'BioReplicate', 'Condition')])
-        mydata =OpenMStoMSstatsFormat(data,
+        mydata = MSstatsConvert::OpenMStoMSstatsFormat(data,
                                       removeProtein_with1Feature=TRUE,
                                       use_log_file = FALSE)
 
@@ -569,7 +569,7 @@ getData <- function(input) {
 
     }
     else if(input$filetype == 'ump') {
-      mydata = DIAUmpiretoMSstatsFormat(raw.frag, raw.pep, raw.pro,
+      mydata = MSstatsConvert::DIAUmpiretoMSstatsFormat(raw.frag, raw.pep, raw.pro,
                                         annot2,
                                         useSelectedFrag = TRUE,
                                         useSelectedPep = FALSE,
@@ -597,7 +597,7 @@ getData <- function(input) {
         mydata[mydata$Condition == "NORM", "Condition"] = "Norm"
         mydata$Condition = as.factor(mydata$Condition)
       } else {
-        mydata = FragPipetoMSstatsFormat(input = mydata, 
+        mydata = MSstatsConvert::FragPipetoMSstatsFormat(input = mydata, 
                                                annotation = NULL,
                                                use_log_file = FALSE)
       }
