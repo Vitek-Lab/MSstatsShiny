@@ -13,9 +13,9 @@
 server <- function(input, output, session) {
   isWebServer <- Sys.getenv("SHINY_ENV") != ""
   if (isWebServer) {
-    options(shiny.maxRequestSize=10*1024^2)
+    options(shiny.maxRequestSize=10*1024^2) # 10MB
   } else {
-    options(shiny.maxRequestSize=10000*1024^2)
+    options(shiny.maxRequestSize=10000*1024^2) # 10GB
   }
   session$allowReconnect(TRUE)
   observe({
