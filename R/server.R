@@ -11,7 +11,12 @@
 #' NA
 #' 
 server <- function(input, output, session) {
-  options(shiny.maxRequestSize=10000*1024^2)
+  isWebServer <- Sys.getenv("SHINY_ENV") != ""
+  if (isWebServer) {
+    options(shiny.maxRequestSize=10*1024^2)
+  } else {
+    options(shiny.maxRequestSize=10000*1024^2)
+  }
   session$allowReconnect(TRUE)
   observe({
     toggleClass(condition = TRUE,
