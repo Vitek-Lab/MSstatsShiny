@@ -32,10 +32,10 @@ networkUI <- function(id) {
               status = "primary",
               solidHeader = TRUE,
               width = 12,
-              fileInput(ns("dataUpload"), "Upload CSV File", accept = c(".csv")),
+              fileInput(ns("dataUpload"), "Upload CSV File", accept = c(".csv"), buttonLabel = "Browse...", placeholder = "No file selected"),
               radioButtons(ns("proteinIdType"), "Protein ID Type",
                            choices = list("Uniprot Mnemonic" = "Uniprot_Mnemonic", "Uniprot" = "Uniprot"),
-                           selected = "Uniprot_Mnemonic"),
+                           selected = "Uniprot"),
               sliderInput(ns("pValue"), "P Value", min = 0, max = 1, value = 0.5),
               sliderInput(ns("logFC"), "Log Fold Change (logFC)", min = 0, max = 10, value = 5),
               actionButton(ns("showNetwork"), "Display Network", class = "btn-primary")
@@ -55,12 +55,19 @@ networkUI <- function(id) {
               )
             ),
             box(
+              title = "Nodes Table",
+              status = "info",
+              solidHeader = TRUE,
+              width = 12,
+              DTOutput(ns("nodesTable"))
+            ),
+            box(
               title = "Edges Table",
               status = "warning",
               solidHeader = TRUE,
               width = 12,
               DTOutput(ns("edgesTable"))
-            )
+            ),
           )
         )
       )

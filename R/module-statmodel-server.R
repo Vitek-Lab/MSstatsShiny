@@ -376,7 +376,6 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
       data_comp = data_comparison()
       significant = data_comp$ComparisonResult[
         which(data_comp$ComparisonResult$adj.pvalue < input$signif), ]
-      print(significant)
     }
     return(significant)
   })
@@ -909,6 +908,7 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   return(
     list(
       input = input,
+      significant = SignificantProteins,
       dataComparison = data_comparison
     )
   )

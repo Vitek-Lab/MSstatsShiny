@@ -1,7 +1,14 @@
-networkServer <- function(input, output, session, parent_session) {
-    
+networkServer <- function(input, output, session, parent_session, significant) {
+
     # Reactive for uploaded CSV data
     df <- reactive({
+        if (is.null(input$dataUpload) && !is.null(significant())) {
+            df <- significant()
+            if (!is.null(df) && "Protein" %in% names(df)) {
+                df$Protein <- as.character(significant()$Protein)
+                return(df)
+            }
+        }
         req(input$dataUpload)
         tryCatch({
             read.csv(input$dataUpload$datapath)
@@ -30,6 +37,7 @@ networkServer <- function(input, output, session, parent_session) {
     # Create a reactive expression to generate the JavaScript code for Cytoscape
     renderNetwork <- reactive({
         # Annotate protein info and filter the subnetwork based on p-value
+
         annotated_df <- annotateProteinInfoFromIndra(df(), proteinIdType())
         subnetwork <- getSubnetworkFromIndra(annotated_df, pValue())
 
@@ -90,7 +98,10 @@ networkServer <- function(input, output, session, parent_session) {
         });
         ")
         # Return the JavaScript code to be executed
-        return(list(js_code = js_code, edges_table = subnetwork$edges))
+        return(list(js_code = js_code,
+            edges_table = subnetwork$edges,
+            nodes_table = subnetwork$nodes
+        ))
     })
 
     # Observe the button click to trigger network rendering and table display
@@ -102,9 +113,14 @@ networkServer <- function(input, output, session, parent_session) {
         render_data <- renderNetwork()
         js_code <- render_data$js_code
         edges_table <- render_data$edges_table
+        nodes_table <- render_data$nodes_table
         
         # Send the JavaScript code to the frontend to render Cytoscape.js
         session$sendCustomMessage(type = 'runCytoscape', message = js_code)
+
+        output$nodesTable <- renderDT({
+            datatable(nodes_table, options = list(pageLength = 10, searchable = TRUE))
+        })
         
         # Render the table of edges
         output$edgesTable <- renderDT({
