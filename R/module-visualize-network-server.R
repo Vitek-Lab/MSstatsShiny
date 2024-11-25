@@ -96,6 +96,12 @@ networkServer <- function(input, output, session, parent_session, significant) {
                 fit: true
             }
         });
+        // Capture the event when an edge is clicked
+        cy.on('tap', 'edge', function(evt) {
+            var edge = evt.target;
+            const edgeId = edge.id();
+            Shiny.setInputValue('network-edgeClicked', { id: edge.id() });
+        });
         ")
         # Return the JavaScript code to be executed
         return(list(js_code = js_code,
@@ -122,9 +128,40 @@ networkServer <- function(input, output, session, parent_session, significant) {
             datatable(nodes_table, options = list(pageLength = 10, searchable = TRUE))
         })
         
-        # Render the table of edges
         output$edgesTable <- renderDT({
-            datatable(edges_table, options = list(pageLength = 10, searchable = TRUE))
+            datatable(edges_table, options = list(pageLength = 10, searchable = TRUE), selection = 'single')
         })
+
     })
+
+    # Observe the event when an edge is clicked
+    observeEvent(input$edgeClicked, {
+        edge_id <- input$edgeClicked$id
+        edge_parts <- strsplit(edge_id, "-")[[1]]
+        
+        if(length(edge_parts) >= 3) {
+            
+            source <- edge_parts[1]
+            target <- edge_parts[2]
+            interaction <- edge_parts[3]
+            
+            # Get edges table
+            edges_table <- renderNetwork()$edges_table
+            
+            # Find matching row
+            row_index <- which(edges_table$source == source & 
+                            edges_table$target == target & 
+                            edges_table$interaction == interaction)
+
+            if (length(row_index) > 0) {
+                # Bring the highlighted row to the top
+                edges_table <- edges_table[c(row_index, setdiff(1:nrow(edges_table), row_index)), ]
+                
+                output$edgesTable <- renderDT({
+                    datatable(edges_table, options = list(pageLength = 10, searchable = TRUE), selection = list(mode = 'single', selected = 1))
+                })
+            }
+
+        }})
+
 }
