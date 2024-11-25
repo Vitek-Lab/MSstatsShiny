@@ -37,9 +37,18 @@ networkServer <- function(input, output, session, parent_session, significant) {
     # Create a reactive expression to generate the JavaScript code for Cytoscape
     renderNetwork <- reactive({
         # Annotate protein info and filter the subnetwork based on p-value
-
-        annotated_df <- annotateProteinInfoFromIndra(df(), proteinIdType())
-        subnetwork <- getSubnetworkFromIndra(annotated_df, pValue())
+        annotated_df <- tryCatch({
+                annotateProteinInfoFromIndra(df(), proteinIdType())
+            }, error = function(e) {
+                showNotification(paste("Error in annotation:", e$message), type = "error")
+                return(NULL)
+            })
+        subnetwork <- tryCatch({
+                getSubnetworkFromIndra(annotated_df, pValue())
+            }, error = function(e) {
+                showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
+                return(NULL)
+        })
 
         # Create the JavaScript code to initialize Cytoscape.js
         node_elements <- apply(subnetwork$nodes, 1, function(row) {
