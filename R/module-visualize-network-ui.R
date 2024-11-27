@@ -55,19 +55,19 @@ networkUI <- function(id) {
               )
             ),
             box(
-              title = "Nodes Table",
-              status = "info",
-              solidHeader = TRUE,
-              width = 12,
-              DTOutput(ns("nodesTable"))
-            ),
-            box(
               title = "Edges Table",
               status = "warning",
               solidHeader = TRUE,
               width = 12,
               DTOutput(ns("edgesTable"))
             ),
+            box(
+              title = "Nodes Table",
+              status = "info",
+              solidHeader = TRUE,
+              width = 12,
+              DTOutput(ns("nodesTable"))
+            )
           )
         )
       )
