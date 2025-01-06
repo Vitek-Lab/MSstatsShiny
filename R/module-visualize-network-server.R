@@ -1,11 +1,13 @@
-networkServer <- function(input, output, session, parent_session, significant) {
+#' @importFrom MSstatsBioNet annotateProteinInfoFromIndra getSubnetworkFromIndra
+
+visualizeNetworkServer <- function(input, output, session, parent_session, significant) {
 
     # Reactive for uploaded CSV data
     df <- reactive({
         if (is.null(input$dataUpload) && !is.null(significant())) {
             df <- significant()
             if (!is.null(df) && "Protein" %in% names(df)) {
-                df$Protein <- as.character(significant()$Protein)
+                df$Protein <- as.character(df$Protein)
                 return(df)
             }
         }
@@ -109,7 +111,11 @@ networkServer <- function(input, output, session, parent_session, significant) {
         cy.on('tap', 'edge', function(evt) {
             var edge = evt.target;
             const edgeId = edge.id();
-            Shiny.setInputValue('network-edgeClicked', { id: edge.id() });
+            Shiny.setInputValue('network-edgeClicked', { 
+                source: edge.data('source'),
+                target: edge.data('target'),
+                interaction: edge.data('interaction')
+            });
         });
         ")
         # Return the JavaScript code to be executed
@@ -145,32 +151,30 @@ networkServer <- function(input, output, session, parent_session, significant) {
 
     # Observe the event when an edge is clicked
     observeEvent(input$edgeClicked, {
-        edge_id <- input$edgeClicked$id
-        edge_parts <- strsplit(edge_id, "-")[[1]]
+       
+        edge <- input$edgeClicked
+            
+        source <- edge$source
+        target <- edge$target
+        interaction <- edge$interaction
         
-        if(length(edge_parts) >= 3) {
-            
-            source <- edge_parts[1]
-            target <- edge_parts[2]
-            interaction <- edge_parts[3]
-            
-            # Get edges table
-            edges_table <- renderNetwork()$edges_table
-            
-            # Find matching row
-            row_index <- which(edges_table$source == source & 
-                            edges_table$target == target & 
-                            edges_table$interaction == interaction)
+        # Get edges table
+        edges_table <- renderNetwork()$edges_table
+        
+        # Find matching row
+        row_index <- which(edges_table$source == source & 
+                        edges_table$target == target & 
+                        edges_table$interaction == interaction)
 
-            if (length(row_index) > 0) {
-                # Bring the highlighted row to the top
-                edges_table <- edges_table[c(row_index, setdiff(1:nrow(edges_table), row_index)), ]
-                
-                output$edgesTable <- renderDT({
-                    datatable(edges_table, options = list(pageLength = 10, searchable = TRUE), selection = list(mode = 'single', selected = 1))
-                })
-            }
+        if (length(row_index) > 0) {
+            # Bring the highlighted row to the top
+            edges_table <- edges_table[c(row_index, setdiff(1:nrow(edges_table), row_index)), ]
+            
+            output$edgesTable <- renderDT({
+                datatable(edges_table, options = list(pageLength = 10, searchable = TRUE), selection = list(mode = 'single', selected = 1))
+            })
+        }
 
-        }})
+        })
 
 }

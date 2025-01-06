@@ -49,7 +49,7 @@ server <- function(input, output, session) {
                       selected = "Uploaddata")
   })
   
-  callModule(networkServer, "network", session, significant)
+  callModule(visualizeNetworkServer, "network", session, significant)
   
   # statmodel= reactiveFileReader(1000, session, "panels/statmodel-ui.R", source)
   # output$statmodel = renderUI(statmodel())
