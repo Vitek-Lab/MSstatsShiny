@@ -1,11 +1,11 @@
 #' @importFrom MSstatsBioNet annotateProteinInfoFromIndra getSubnetworkFromIndra
 
-visualizeNetworkServer <- function(input, output, session, parent_session, significant) {
+visualizeNetworkServer <- function(input, output, session, parent_session, dataComparison) {
 
     # Reactive for uploaded CSV data
     df <- reactive({
-        if (is.null(input$dataUpload) && !is.null(significant())) {
-            df <- significant()
+        if (is.null(input$dataUpload) && !is.null(dataComparison()$ComparisonResult)) {
+            df <- dataComparison()$ComparisonResult
             if (!is.null(df) && "Protein" %in% names(df)) {
                 df$Protein <- as.character(df$Protein)
                 return(df)
@@ -39,16 +39,19 @@ visualizeNetworkServer <- function(input, output, session, parent_session, signi
     # Create a reactive expression to generate the JavaScript code for Cytoscape
     renderNetwork <- reactive({
         # Annotate protein info and filter the subnetwork based on p-value
+
         annotated_df <- tryCatch({
                 annotateProteinInfoFromIndra(df(), proteinIdType())
             }, error = function(e) {
                 showNotification(paste("Error in annotation:", e$message), type = "error")
                 return(NULL)
             })
+
         subnetwork <- tryCatch({
                 getSubnetworkFromIndra(annotated_df, pValue())
             }, error = function(e) {
                 showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
+                print(e$message)
                 return(NULL)
         })
 

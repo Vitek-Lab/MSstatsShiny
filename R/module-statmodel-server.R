@@ -909,7 +909,6 @@ statmodelServer <- function(input, output, session,parent_session, loadpage_inpu
   return(
     list(
       input = input,
-      significant = SignificantProteins,
       dataComparison = data_comparison
     )
   )

@@ -40,7 +40,6 @@ server <- function(input, output, session) {
                                 reactive(loadpage_input),reactive(qc_input),get_data,preprocess_data)
   statmodel_input = statmodel_values$input
   data_comparison = statmodel_values$dataComparison
-  significant = statmodel_values$significant
   
   callModule(expdesServer, "expdes",session, reactive(loadpage_input),
              reactive(qc_input),reactive(statmodel_input),data_comparison)
@@ -49,7 +48,7 @@ server <- function(input, output, session) {
                       selected = "Uploaddata")
   })
   
-  callModule(visualizeNetworkServer, "network", session, significant)
+  callModule(visualizeNetworkServer, "network", session, data_comparison)
   
   # statmodel= reactiveFileReader(1000, session, "panels/statmodel-ui.R", source)
   # output$statmodel = renderUI(statmodel())
