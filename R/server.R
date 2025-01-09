@@ -48,6 +48,8 @@ server <- function(input, output, session) {
                       selected = "Uploaddata")
   })
   
+  callModule(visualizeNetworkServer, "network", session, data_comparison)
+  
   # statmodel= reactiveFileReader(1000, session, "panels/statmodel-ui.R", source)
   # output$statmodel = renderUI(statmodel())
   # 

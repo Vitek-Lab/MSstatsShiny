@@ -56,6 +56,7 @@ uiObject <- function() {
     tabPanel("2. Data Processing", value = "DataProcessing", icon = icon("gears"), qcUI("qc")),
     tabPanel("3. Statistical Inference", value = "StatsModel", icon = icon("magic"), statmodelUI("statmodel")),
     tabPanel("4. Future Experiments", value = "Future", icon = icon("flask"), expdesUI("expdes")),
+    tabPanel("5. Network Interpretation", value = "VisualizeNetwork", icon = icon("network-wired"), networkUI("network")),
     navbarMenu("Help", icon = icon("ambulance"),
                tabPanel("Shiny Help", helpUI("help")),
                tabPanel("MSstats Vignette", msstatsHelpUI("msstatsHelp")),
