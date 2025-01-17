@@ -518,17 +518,20 @@ getData <- function(input) {
       print(input$dianndata$datapath)
       
       qvalue_cutoff = 0.01
+      MBR = FALSE
       if (input$q_val) {
         qvalue_cutoff = input$q_cutoff
+        MBR = input$MBR
       }
 
       mydata = DIANNtoMSstatsFormat(data,
                                     annotation = getAnnot(input),
                                     qvalue_cutoff = qvalue_cutoff,
+                                    MBR = MBR,
                                     removeProtein_with1Feature = TRUE,
                                     removeFewMeasurements = FALSE,
-                                    use_log_file = FALSE,
-                                    MBR = FALSE)
+                                    use_log_file = FALSE
+      )
       print("Mydata from mstats")
       print(mydata)
     }
