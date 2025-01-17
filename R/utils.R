@@ -516,12 +516,19 @@ getData <- function(input) {
       data = read.csv(input$dianndata$datapath, sep=input$sep_dianndata)
       # }
       print(input$dianndata$datapath)
+      
+      qvalue_cutoff = 0.01
+      if (input$q_val) {
+        qvalue_cutoff = input$q_cutoff
+      }
 
       mydata = DIANNtoMSstatsFormat(data,
-                                          annotation = getAnnot(input),
-                                          qvalue_cutoff = 0.01, ## same as default
-                                          removeProtein_with1Feature = TRUE,
-                                          use_log_file = FALSE)
+                                    annotation = getAnnot(input),
+                                    qvalue_cutoff = qvalue_cutoff,
+                                    removeProtein_with1Feature = TRUE,
+                                    removeFewMeasurements = FALSE,
+                                    use_log_file = FALSE,
+                                    MBR = FALSE)
       print("Mydata from mstats")
       print(mydata)
     }
