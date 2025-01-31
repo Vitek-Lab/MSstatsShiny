@@ -298,6 +298,9 @@ loadpageUI <- function(id) {
                          conditionalPanel(condition = "input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'spec'|| input['loadpage-filetype'] == 'diann' ",
                                           checkboxInput(ns("q_val"), "Filter with Q-value"),
                                           conditionalPanel(condition = "input['loadpage-q_val']",
+                                                           conditionalPanel(condition = "input['loadpage-filetype'] == 'diann'",
+                                                                            checkboxInput(ns("MBR"), "MBR Enabled", value = FALSE)
+                                                           ),
                                                            numericInput(ns("q_cutoff"), "Q-value cutoff", 0.01, 0, 1, 0.01))),
                          conditionalPanel(condition = "input['loadpage-filetype'] == 'open'",
                                           checkboxInput(ns("m_score"), "Filter with M-score"),
