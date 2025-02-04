@@ -1,3 +1,5 @@
+#' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar dashboardBody sidebarMenu menuItem tabItems tabItem box
+#' @importFrom DT DTOutput
 networkUI <- function(id) {
   ns <- NS(id)
   tagList(
