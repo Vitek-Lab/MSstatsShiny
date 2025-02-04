@@ -1,5 +1,5 @@
 #' @importFrom MSstatsBioNet annotateProteinInfoFromIndra getSubnetworkFromIndra
-
+#' @importFrom DT renderDT datatable
 visualizeNetworkServer <- function(input, output, session, parent_session, dataComparison) {
 
     # Reactive for uploaded CSV data
@@ -48,7 +48,7 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
             })
 
         subnetwork <- tryCatch({
-                getSubnetworkFromIndra(annotated_df, pValue())
+                getSubnetworkFromIndra(annotated_df, pvalueCutoff = pValue())
             }, error = function(e) {
                 showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
                 print(e$message)
