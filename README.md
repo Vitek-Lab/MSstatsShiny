@@ -63,7 +63,7 @@ library(MSstatsShiny)
 MSstatsShiny::launch_MSstatsShiny()
 ```
 
-![Step1A](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step1A.png)
+![Step1A](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step1A.png)
 
 Click the `Run MSstats Pipeline` button to move to the data upload step.
 
@@ -87,13 +87,13 @@ Click the `Run MSstats Pipeline` button to move to the data upload step.
 
 For this dataset, keep the default setting of `Protein` for the biological question and `Label-Free` for the label type.
 
-![Step2A](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step2A.png)
+![Step2A](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step2A.png)
 
 ### Type of File
 
 This is where you select the tool that you used to produce ID/quant. For this case study, select `Fragpipe` for the type of file.
 
-![Step2B](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step2B.png)
+![Step2B](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step2B.png)
 
 ### Attach Quantification Dataset
 
@@ -101,7 +101,7 @@ Each tool produces a quantification report that can be uploaded to MSstatsShiny 
 
 Upload `msstats.csv` from this [link](https://github.com/Vitek-Lab/MSstatsShiny/tree/devel/inst/extdata/tutorial) as the quantification dataset. Keep the default setting of `comma` for column separator.
 
-![Step2C](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step2C.png)
+![Step2C](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step2C.png)
 
 ### Upload Annotation File
 
@@ -109,7 +109,7 @@ The annotation file defines the experimental design, notably which BioReplicate 
 
 Because the experiment is paired, assign the same BioReplicate ID to the tumour and NAT runs originating from the same patient. This signals the paired design to MSstats. The image below illustrates how the annotation file is set up for paired designs.
 
-![Step2D](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step2D.png)
+![Step2D](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step2D.png)
 
 ### Select the options for pre-processing
 
@@ -121,7 +121,7 @@ Because the experiment is paired, assign the same BioReplicate ID to the tumour 
 
 After attaching the dataset, the upload button should be enabled.
 
-![Step2E](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step2E.png)
+![Step2E](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step2E.png)
 
 ### Output
 
@@ -129,7 +129,7 @@ You should see a summary of your dataset and the top 6 rows of your dataset. Cli
 
 ## Step 3: Data Processing
 
-![Step3A](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step3A.png)
+![Step3A](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step3A.png)
 
 ### Log Transformation
 
@@ -277,11 +277,11 @@ Click `Run protein summarization` to start processing your data. You should see 
 
 After data processing is complete, click `Update Summarized Results` to see a table of summarized protein log intensity values.
 
-![Step4A](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step4A.png)
+![Step4A](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step4A.png)
 
 You can download protein and feature level intensity values at the `Download Data` tab.
 
-![Step4E](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step4E.png)
+![Step4E](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step4E.png)
 
 ## Step 4: Data Processing Plots
 
@@ -293,7 +293,7 @@ On the Summarization Plots tab, there are two types of plots:
 
 We first assess QC plots. Under the `Select plot type` dropdown, click `Quality Control` Plots. Under the `Show plot for` dropdown, click the `ALL PROTEINS` option. We should expect to see the medians of these boxplots to be equal.
 
-![Step4B](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step4B.png)
+![Step4B](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step4B.png)
 
 We next assess profile plots. Under the `Select plot type` dropdown, click `Profile Plots`.
 
@@ -301,11 +301,11 @@ Under the `Feature legend` dropdown, click the option `Transition level`. Under 
 
 Lower-abundance features show greater variation and contain more imputed values, indicated by the **open circles**.
 
-![Step4C](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step4C.png)
+![Step4C](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step4C.png)
 
 Click the checkbox `show plot with summary`. This will show the summarized value based on Tukey’s median polish for each run.
 
-![Step4D](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step4D.png)
+![Step4D](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step4D.png)
 
 ## Step 5: Group Comparison
 
@@ -319,13 +319,13 @@ Click the checkbox `show plot with summary`. This will show the summarized value
 
 For now, we will use Create custom pairwise comparisons to directly compare the control condition with the tumor condition. Click the `Add` button to confirm the contrast.
 
-![Step5A](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step5A.png)
+![Step5A](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step5A.png)
 
 > **Note**: You will also see a button at the top `Download analysis code`. After performing statistical analysis, you can click this button to download the R code that was used to perform the whole analysis. This is useful for reproducibility and for users who want to run the analysis outside the Shiny app.
 
 The significance level toggle acts as a filter to only proteins with an adjusted pvalue below a user-defined threshold. Next, click the Start button to begin the statistical analysis. This should trigger a progress bar.
 
-![Step5B](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step5B.png)
+![Step5B](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step5B.png)
 
 You should see a table to the right displaying the statistical results. There are the following columns:
 
@@ -361,7 +361,7 @@ You should see a table to the right displaying the statistical results. There ar
 
 For this tutorial, we will plot a volcano plot. Select `Volcano plot` as your plot type. Then select `T vs NAT` for the `Select comparison to plot` dropdown. Click View plot in browser to generate graphs.
 
-![Step6A](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step6A.png)
+![Step6A](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step6A.png)
 
 Going back to the data processing step, take a look at the profile plots for protein Q16795.
 
@@ -385,11 +385,11 @@ Tune the parameters of FDR and power. You will notice:
 -   As you decrease FDR, sample size needed will increase.
 -   As your desired fold change decreases, the sample size needed will increase.
 
-![Step7A](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step7A.png)
+![Step7A](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step7A.png)
 
 Switching to the `power` parameter, you can determine the power for a desired fold change given a predetermined sample size. This is especially useful if you're an experimentalist with a fixed number of samples and you want to know the power of your experiment to expect to detect a certain fold change.
 
-![Step7B](https://github.com/Vitek-Lab/MSstatsShiny/blob/devel/man/figures/Step7B.png)
+![Step7B](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step7B.png)
 
 # Citation
 
