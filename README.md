@@ -79,7 +79,7 @@ Click the `Run MSstats Pipeline` button to move to the data upload step.
 
     -   Peptide: Differential abundance analysis of specific peptides across conditions.
 
-    -   PTM: Differential abundance analysis of PTMs across conditions.  See this [paper](https://www.mcponline.org/article/S1535-9476(22)00285-7/fulltext) for more information on how MSstatsPTM performs differential abundance analysis of PTMs via bottom-up MS proteomics.
+    -   PTM: Differential abundance analysis of PTMs across conditions. See this [paper](https://www.mcponline.org/article/S1535-9476(22)00285-7/fulltext) for more information on how MSstatsPTM performs differential abundance analysis of PTMs via bottom-up MS proteomics.
 
 -   Label Type:
 
@@ -108,10 +108,10 @@ Upload `msstats.csv` from this [link](https://github.com/Vitek-Lab/MSstatsShiny/
 ### Upload Annotation File
 
 The annotation file defines the experimental design, notably which BioReplicate and Condition are associated with a particular MS run. You can see `annotation.csv` from this [link](https://github.com/Vitek-Lab/MSstatsShiny/tree/devel/inst/extdata/tutorial) as an example of an annotation file.
+
 Keep in mind that we must indicate that this is a paired design to MSstats. To do this, each pair of runs that corresponds to the same bioreplicate should be assigned the same ID in the BioReplicate column. In a standard group comparison design, each bioreplicate will have a unique ID. The image below illustrates how the annotation file is set up for paired designs.
 
 ![Step2D](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/inst/extdata/tutorial/images/Step2D.png)
-
 
 ### Select the options for pre-processing
 
@@ -127,7 +127,237 @@ After attaching the dataset, the upload button should be enabled.
 
 ### Output
 
-You should see a summary of your dataset and the top 6 rows of your dataset.  Click `Next step` to proceed to data processing.
+You should see a summary of your dataset and the top 6 rows of your dataset. Click `Next step` to proceed to data processing.
+
+## Step 3: Data Processing
+
+### Log Transformation
+
+Because MS data is naturally left skewed, we log transform our intensities to bring intensities closer to a normal distribution. Although the distribution of our data may not be perfectly normally distributed after this transformation, the Central Limit Theorem guarantees that our statistical methods should perform adequately with any distribution given a large enough sample size.
+
+-   Log2: Transform intensities using a log2 scale. Keep this option selected.
+
+-   Log10: Transform intensities using a log10 scale.
+
+### Normalization
+
+Reference: [Kohler et al, Nature Protocols, 2024](https://www.nature.com/articles/s41596-024-01000-3)
+
+-   Equalize Medians: Equalize medians of all log feature intensities in each run. **NOTE: For SRM/PRM data, this option will normalize light-labeled peptides using heavy-labeled peptides as a global standard.**
+
+    -   Assumptions:
+
+        -   All steps of data collection and acquisition were randomized
+
+        -   Most of the proteins in the experiment are the same and have the same concentration for all of the runs
+
+        -   The experimental artifacts affect every peptide in a run by the same constant amount
+
+    -   Effect:
+
+        -   The normalization estimates the artifact deviations in each run with a single quantity, reducing overfitting
+
+        -   The normalization reduces bias and variance of the estimated log fold change
+
+-   Quantile: Equalize the distributions of all log feature intensities in each run
+
+    -   Assumptions:
+
+        -   All steps of data collection and acquisition were randomized
+
+        -   Most of the proteins in the experiment are the same and have the same concentration for all of the runs
+
+        -   The experimental artifacts affect every peptide **non-linearly, as a function of its log intensity**
+
+    -   Effect:
+
+        -   The normalization estimates the artifact deviations in each run with a **complex non-linear function, potentially leading to overfitting**
+
+        -   **The normalization reduces bias and variance of the estimated log fold change but may over-correct**
+
+-   Global Standards: Equalize median log-intensities of spiked-in reference peptides or proteins. Apply adjustment to the remainder of log feature intensities.
+
+    -   Assumptions:
+
+        -   All steps of data collection and acquisition were randomized
+
+        -   The reference peptides or proteins are present in each run and have the same concentration for all of the runs
+
+        -   All experimental artifacts occur only after standards were added
+
+        -   The experimental artifacts affect every protein in a run by the same constant amount
+
+    -   Effect:
+
+        -   The normalization estimates the artifact deviations in each run with a single quantity, which reduces overfitting
+
+        -   The normalization estimates the artifact deviations from a small number of peptides, which may increase overfitting
+
+        -   The normalization does not eliminate artifacts that occurred before adding spiked references
+
+        -   The normalization reduces bias and variance of the estimated log fold change
+
+-   None: Do not apply any normalization
+
+    -   Assumption:
+
+        -   All steps of data collection and acquisition were randomized
+
+        -   The experiment has no systematic artifacts or has been normalized in another custom manner
+
+    -   Effect:
+
+        -   All patterns of variation of interest and of nuisance variation are preserved
+
+For this case study, we will use the `equalize medians` option because we assume most proteins will not change in abundance across conditions.
+
+### Feature Subset
+
+Recall that a feature is a transition in SRM/PRM, a fragment in DIA, and a precursor in DDA for a particular peptide.
+
+-   Use all features: Uses all features to leverage all available information to infer the underlying protein abundance.
+
+-   Use top N features: Selects a pre-specified number of features with the highest average intensity across all runs for each protein.This option is useful if you believe that the features with lower average intensity are less reliable, or in cases in which some of the proteins have a very large number of features (such as in DIA experiments). For any individual protein, it is usually possible to determine changes in abundance by looking at the peaks with highest intensity; in these cases, using all features results in redundancy while greatly increasing the computational processing time.
+
+-   Remove uninformative features & outliers: Attempts to select the ‘best’ features by removing features that have too many missing values, that are too noisy or have outliers.
+
+For this case study, we will use all features, but later, we can use top N features and assess profile plots & differences in differential abundance analysis results.
+
+### Missing Values
+
+**Assumptions for missing values**
+
+Different data processing tools have different ways of reporting missing values.
+
+-   Assume all NA as censored: This option assumes that any NA value in the dataset is a value missing due to low abundance.
+
+-   Assume all between 0 and 1 as censored: This option assumes that any log-transformed value between 0 and 1 is a value missing due to low abundance. NAs are treated as missing at random.
+
+For our dataset, select Assume all NA as censored. Fragpipe only reports NAs, which we will assume are values missing at low abundance.
+
+**Max quantile for censored**
+
+Reference: Figure 3 in [Kohler et al, JPR, 2023](https://pubs.acs.org/doi/10.1021/acs.jproteome.2c00834).
+
+-   Do not apply cutoff to censor missing values: If unchecked, all log intensities past a certain quantile will be marked as missing due to low abundance.
+
+    -   By default, this quantile is 0.1% quantile (defined using the value 0.999 in the image)
+
+        -   To maximize the between-tools consistency of the analysis for low-abundant analytes MSstats learns, separately for each experiment and tool, a threshold for “high-confidence” log2-intensities. The threshold is a tuning parameter, defined as the 0.1th percentile of the log2-intensities in the linear regime of the dynamic range, and estimated as follows. Define qpthe pth percentile of all the log2-intensities that exceed 0. In particular, the median is q~50~, the 25th percentile is q~25~, and the 75th percentile is q~75~ (dotted lines in [Figure 3](https://pubs.acs.org/doi/10.1021/acs.jproteome.2c00834#fig3)). MSstats estimates q~0.1~ as q~0.1~ = q~25~ - (q~99.9~ - q~75~)
+
+For this study, we will leave this unchecked and keep the default threshold.
+
+### Imputation
+
+-   Model based Imputation [Checked]: Infer missing feature intensities by using an accelerated failure time model. It will not impute for runs in which all features are missing
+
+    -   Assumption: Features are missing for reasons of low abundance (e.g., features are missing not at random)
+
+    -   Effect: If the assumption is true, imputation will remove bias toward high intensities in the summarization step. Otherwise, bias will be introduced via inaccurate imputation
+
+-   None: Do not apply imputation
+
+    -   Assumption: Assume no information about reasons for missingness or that features are missing at random
+
+    -   Effect: If the assumption is true, no new bias will be introduced. Otherwise, if features are missing for reasons of low abundance, summarized values will be biased toward high intensities
+
+For this study, we will apply imputation. But we can also observe how intensities increase if we do not apply imputation.
+
+### Summarization
+
+-   TMP: Tukey’s median polish is used to estimate protein level abundances from feature level abundances since it is robust to noise and outliers (in contrast to sum/mean normalization). This is the default setting.
+
+### Other Parameters
+
+-   Remove runs with over 50% missing values: If enabled, this option removes the proteins where every run has at least 50% missing values for each peptide. We will keep this option disabled.
+
+Click `Run protein summarization` to start processing your data. You should see a progress bar upon clicking.
+
+### Data Processing Results
+
+After data processing is complete, click `Update Summarized Results` to see a table of summarized protein log intensity values.
+
+You can download protein and feature level intensity values at the `Download Data` tab.
+
+## Step 4: Data Processing Plots
+
+On the Summarization Plots tab, there are two types of plots:
+
+-   Quality Control Plots: This plot displays box plots of intensity values for each run. This plot helps with assessing the effects of normalization on a dataset.
+
+-   Profile Plots: This plot displays feature level intensity values for each run for a specific protein. This plot helps with assessing feature selection and missing values in a dataset.
+
+We first assess QC plots. Under the `Select plot type` dropdown, click `Quality Control` Plots. Under the `Show plot for` dropdown, click the `ALL PROTEINS` option.
+
+We next assess profile plots. Under the `Select plot type` dropdown, click `Profile Plots`.
+
+Under the `Feature legend` dropdown, click the option `Transition level`. Under the `Show plot for` dropdown, click the protein `Q5HYK3`.
+
+Click the checkbox `show plot with summary`. This will show the summarized value based on Tukey’s median polish for each run. Do you think this protein will be detected as significant?
+
+## Step 5: Group Comparison
+
+-   All possible pairwise comparisons: MSstats will perform differential abundance analysis on all pairs of conditions. For example, if you have 3 conditions A, B, & C, MSstats will perform analysis on A vs B, A vs C, and B vs C.
+
+-   Compare all against one: User chooses one condition and MSstats performs differential abundance analysis on that one condition vs all remaining conditions. For example, if you have 3 conditions A, B, & C, and a user sets condition A to be compared against, MSstats will perform analysis on A vs B and A vs C.
+
+-   Create custom pairwise comparisons: User chooses two conditions to compare against. For example, if you have 3 conditions A, B, & C, the user can choose to compare A vs B.
+
+Create custom non-pairwise comparisons: User defines a contrast matrix. This is especially useful for more complex comparisons, e.g. comparisons with block designs.
+
+For now, we will use Create custom pairwise comparisons to directly compare the control condition with the tumor condition. Click the Add button to confirm the contrast.
+
+The significance level toggle acts as a filter to only proteins with an adjusted pvalue below a user-defined threshold. Next, click the Start button to begin the statistical analysis. This should trigger a progress bar.
+
+You should see a table to the right displaying the statistical results. There are the following columns:
+
+-   **Protein:** The name of the protein for which the comparison is made.
+
+-   **Label:** The label of the comparison, typically derived from the 'contrast.matrix'.
+
+-   **log2FC:** The log2 fold change between the conditions being compared. The base of the logarithm is specified by the 'log_base' parameter.
+
+-   **SE:** The standard error of the log2 fold change estimate.
+
+-   **Tvalue:** The t-statistic value for the comparison.
+
+-   **DF:** The degrees of freedom associated with the t-statistic.
+
+-   **Pvalue:** The p-value for the statistical test of the comparison.
+
+-   **Adj.pvalue:** The adjusted p-value using the Benjamini-Hochberg method for controlling the false discovery rate.
+
+-   **Issue:** Any issues encountered during the comparison. NA indicates no issues. "oneConditionMissing" occurs when data for one of the conditions being compared is entirely missing for a particular protein, which can be particularly interesting to investigate further.
+
+-   **MissingPercentage:** The percentage of missing features for a given protein across all runs. This column is included only if missing values were imputed.
+
+-   **ImputationPercentage:** The percentage of features that were imputed for a given protein across all runs. This column is included only if missing values were imputed.
+
+## Step 6: Comparison Plots
+
+-   Volcano Plot: Generates an interactive volcano plot across all proteins for a specified comparison. Significant up-regulated proteins will be marked in red and significant down-regulated proteins will be marked in blue.
+
+-   Heatmap: Generates a heatmap of logFCs across all proteins and comparisons. Useful for getting a high level view of which proteins to start investigating when there are multiple comparisons.
+
+-   Comparison Plot: Plots a 95% confidence interval for a particular protein. Useful for verifying the uncertainty of a protein’s logFC and if its confidence interval crosses
+
+Keep default settings for all other parameters. Click View plot in browser to generate graphs.
+
+Going back to the data processing step, take a look at the profile plots for protein Q5HYK3.
+
+Repeat these steps except for Q16795.
+
+## Step 7: Sample Size Calculation
+
+In the `4. Future Experiments tab`, to illustrate the relationship of desired fold change and the calculated minimal number sample size to reproduce the desired fold change in a new experiment, we can consider 2 factors:
+
+-   Power: The probability of detecting a significant protein when, in fact, the protein is significant.
+
+-   FDR: The proportion of significant proteins that are false positives.
+
+Tune the parameters of FDR and power. What do you notice occurs to the curve if you increase power? What about decreasing power? What happens if you increase FDR? What about decreasing FDR?
+
+Switching to the `power` parameter, you can determine the power for a desired fold change given a predetermined sample size.
 
 ## Citation
 
