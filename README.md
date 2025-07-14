@@ -1,6 +1,6 @@
-This repository contains the code for the R Shiny app MSstatsShiny, which utilizes MSstats, MSstatsTMT, and MSstatsPTM to analyze proteomics experiments.
-
 # MSstatsShiny Tutorial
+
+This repository contains the code for the R Shiny app MSstatsShiny, which utilizes MSstats, MSstatsTMT, and MSstatsPTM to analyze proteomics experiments.
 
 This tutorial will walk through the steps on MSstatsShiny for performing differential abundance analysis for a dataset from Fragpipe. We use a case study of a DIA experiment that was analyzed using the FragPipe computational tool. The dataset originates from a clear cell renal cell carcinoma (ccRCC) study described in this [paper](https://pubmed.ncbi.nlm.nih.gov/31675502/). In the original study, researchers from the CPTAC profiled tumor (T) samples, together with normal adjacent tissue (NAT) samples from each cancer patient, indicating a paired design.
 
@@ -365,9 +365,9 @@ For this tutorial, we will plot a volcano plot.  Select `Volcano plot` as your p
 
 Going back to the data processing step, take a look at the profile plots for protein Q16795.
 
-### Rerun Data Processing
+### Rerun Data Processing - Feature Selection
 
-Process the data again but with the `Remove uninformative features & outliers` option selected. Repeat these steps except for Q5HYK3.  
+Process the data again but with the `Remove uninformative features & outliers` option selected. Repeat steps 2-6 and observe what happens to protein Q5HYK3.  
 
 What do you notice about the differences in the profile plots? How does this affect the differential abundance analysis results?
 
