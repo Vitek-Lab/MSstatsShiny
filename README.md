@@ -6,7 +6,7 @@ This repository contains the code for the R Shiny app MSstatsShiny, which utiliz
 
 This tutorial will walk through the steps on MSstatsShiny for performing differential abundance analysis for a dataset from Fragpipe. We use a case study of a DIA experiment that was analyzed using the FragPipe computational tool. The dataset originates from a clear cell renal cell carcinoma (ccRCC) study described in this paper. In the original study, researchers from the CPTAC profiled tumor (T) samples, together with normal adjacent tissue (NAT) samples from each cancer patient, indicating a paired design.
 
-## Installation
+## Step 1: Installation
 
 All datasets for this tutorial can be found at this [link](https://github.com/Vitek-Lab/MSstatsShiny/tree/devel/inst/extdata/tutorial)
 
@@ -59,7 +59,7 @@ The online application is located at <http://www.msstatsshiny.com/>. The online 
 library(MSstatsShiny)
 ```
 
-## Step 1: Launch MSstatsShiny
+### Launch MSstatsShiny
 
 ```{r}
 MSstatsShiny::launch_MSstatsShiny()
