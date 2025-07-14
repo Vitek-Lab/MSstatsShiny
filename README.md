@@ -321,6 +321,8 @@ Create custom non-pairwise comparisons: User defines a contrast matrix. This is 
 
 For now, we will use Create custom pairwise comparisons to directly compare the control condition with the tumor condition. Click the `Add` button to confirm the contrast.
 
+> **Note**: You'll will also see a button at the top `Download analysis code`.  After performing statistical analysis, you can click this button to download the R code that was used to perform the whole analysis. This is useful for reproducibility and for users who want to run the analysis outside of the Shiny app.
+
 ![Step5A](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step5A.png)
 
 The significance level toggle acts as a filter to only proteins with an adjusted pvalue below a user-defined threshold. Next, click the Start button to begin the statistical analysis. This should trigger a progress bar.
@@ -378,7 +380,11 @@ In the `4. Future Experiments tab`, to illustrate the relationship of desired fo
 
 -   FDR: The proportion of significant proteins that are false positives.
 
-Tune the parameters of FDR and power. What do you notice occurs to the curve if you increase power? What about decreasing power? What happens if you increase FDR? What about decreasing FDR?
+Tune the parameters of FDR and power. You will notice:
+
+- As you increase power, sample size needed will increase.
+- As you decrease FDR, sample size needed will increase.
+- As your desired fold change decreases, the sample size needed will increase.
 
 ![Step7A](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step7A.png)
 
