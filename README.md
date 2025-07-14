@@ -281,7 +281,7 @@ After data processing is complete, click `Update Summarized Results` to see a ta
 
 You can download protein and feature level intensity values at the `Download Data` tab.
 
-![Step4E](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step4A.png)
+![Step4E](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step4E.png)
 
 ## Step 4: Data Processing Plots
 
@@ -301,11 +301,11 @@ Under the `Feature legend` dropdown, click the option `Transition level`. Under 
 
 Notice how lower abundance features have more variation.  Also notice how lower abundance features have more imputed values, as indicated by the **open circles**.
 
-![Step4C](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step4B.png)
+![Step4C](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step4C.png)
 
 Click the checkbox `show plot with summary`. This will show the summarized value based on Tukey’s median polish for each run. 
 
-![Step4D](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step4B.png)
+![Step4D](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step4D.png)
 
 ## Step 5: Group Comparison
 
