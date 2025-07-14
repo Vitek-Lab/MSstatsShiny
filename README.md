@@ -49,7 +49,7 @@ devtools::install_github("Vitek-Lab/MSstatsShiny", build_vignettes = TRUE)
 
 ### Online
 
-The online application is located at <http://www.msstatsshiny.com/>. The online version is constrained to processing only input files smaller than 100 MB. Due to this, we recommend processing large datasets using a local installation.
+The online application is located at <http://www.msstatsshiny.com/>. The online version is constrained to processing only input files smaller than 100 MB; therefore, we recommend processing large datasets using a local installation.
 
 ### Load Package
 
@@ -107,7 +107,7 @@ Upload `msstats.csv` from this [link](https://github.com/Vitek-Lab/MSstatsShiny/
 
 The annotation file defines the experimental design, notably which BioReplicate and Condition are associated with a particular MS run. You can see `annotation.csv` from this [link](https://github.com/Vitek-Lab/MSstatsShiny/tree/devel/inst/extdata/tutorial) as an example of an annotation file.
 
-Keep in mind that we must indicate that this is a paired design to MSstats. To do this, each pair of runs that corresponds to the same bioreplicate should be assigned the same ID in the BioReplicate column. In a standard group comparison design, each bioreplicate will have a unique ID. The image below illustrates how the annotation file is set up for paired designs.
+Because the experiment is paired, assign the same BioReplicate ID to the tumour and NAT runs originating from the same patient. This signals the paired design to MSstats. The image below illustrates how the annotation file is set up for paired designs.
 
 ![Step2D](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step2D.png)
 
@@ -149,7 +149,7 @@ Reference: [Kohler et al, Nature Protocols, 2024](https://www.nature.com/article
 
         -   All steps of data collection and acquisition were randomized
 
-        -   Most of the proteins in the experiment are the same and have the same concentration for all of the runs
+        -   Most proteins in the experiment are the same and have the same concentration for all runs
 
         -   The experimental artifacts affect every peptide in a run by the same constant amount
 
@@ -191,7 +191,7 @@ Reference: [Kohler et al, Nature Protocols, 2024](https://www.nature.com/article
 
         -   The normalization estimates the artifact deviations in each run with a single quantity, which reduces overfitting
 
-        -   The normalization estimates the artifact deviations from a small number of peptides, which may increase overfitting
+        -   The normalization estimates the artifact deviations from only a few reference peptides, which may increase over-fitting
 
         -   The normalization does not eliminate artifacts that occurred before adding spiked references
 
@@ -217,7 +217,7 @@ Recall that a feature is a transition in SRM/PRM, a fragment in DIA, and a precu
 
 -   Use all features: Uses all features to leverage all available information to infer the underlying protein abundance.
 
--   Use top N features: Selects a pre-specified number of features with the highest average intensity across all runs for each protein.This option is useful if you believe that the features with lower average intensity are less reliable, or in cases in which some of the proteins have a very large number of features (such as in DIA experiments). For any individual protein, it is usually possible to determine changes in abundance by looking at the peaks with highest intensity; in these cases, using all features results in redundancy while greatly increasing the computational processing time.
+-   Use top N features: Selects a pre-specified number of features with the highest average intensity across all runs for each protein.This option is useful if you believe that the features with lower average intensity are less reliable, or in cases where some proteins have an unusually large number of features (such as DIA experiments). For any individual protein, it is usually possible to determine changes in abundance by looking at the peaks with highest intensity; in these cases, using all features results in redundancy while greatly increasing the computational processing time.
 
 -   Remove uninformative features & outliers: Attempts to select the ‘best’ features by removing features that have too many missing values, that are too noisy or have outliers.
 
@@ -225,7 +225,7 @@ For this case study, we will use all features, but later, we can use `Remove uni
 
 ### Missing Values
 
-**Assumptions for missing values**
+#### Assumptions for missing values
 
 Different data processing tools have different ways of reporting missing values.
 
@@ -235,7 +235,7 @@ Different data processing tools have different ways of reporting missing values.
 
 For our dataset, select Assume all NA as censored. Fragpipe only reports NAs, which we will assume are values missing at low abundance.
 
-**Max quantile for censored**
+#### Max quantile for censored
 
 Reference: Figure 3 in [Kohler et al, JPR, 2023](https://pubs.acs.org/doi/10.1021/acs.jproteome.2c00834).
 
@@ -247,7 +247,7 @@ Reference: Figure 3 in [Kohler et al, JPR, 2023](https://pubs.acs.org/doi/10.102
 
 For this study, we will leave this unchecked and keep the default threshold.
 
-### Imputation
+#### Imputation
 
 -   Model based Imputation [Checked]: Infer missing feature intensities by using an accelerated failure time model. It will not impute for runs in which all features are missing
 
@@ -291,19 +291,19 @@ On the Summarization Plots tab, there are two types of plots:
 
 -   Profile Plots: This plot displays feature level intensity values for each run for a specific protein. This plot helps with assessing feature selection and missing values in a dataset.
 
-We first assess QC plots. Under the `Select plot type` dropdown, click `Quality Control` Plots. Under the `Show plot for` dropdown, click the `ALL PROTEINS` option.  We should expect to see the medians of these boxplots to be equal.  
+We first assess QC plots. Under the `Select plot type` dropdown, click `Quality Control` Plots. Under the `Show plot for` dropdown, click the `ALL PROTEINS` option. We should expect to see the medians of these boxplots to be equal.
 
 ![Step4B](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step4B.png)
 
 We next assess profile plots. Under the `Select plot type` dropdown, click `Profile Plots`.
 
-Under the `Feature legend` dropdown, click the option `Transition level`. Under the `Show plot for` dropdown, click the protein `O43242`.  
+Under the `Feature legend` dropdown, click the option `Transition level`. Under the `Show plot for` dropdown, click the protein `O43242`.
 
-Notice how lower abundance features have more variation.  Also notice how lower abundance features have more imputed values, as indicated by the **open circles**.
+Lower-abundance features show greater variation and contain more imputed values, indicated by the **open circles**.
 
 ![Step4C](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step4C.png)
 
-Click the checkbox `show plot with summary`. This will show the summarized value based on Tukey’s median polish for each run. 
+Click the checkbox `show plot with summary`. This will show the summarized value based on Tukey’s median polish for each run.
 
 ![Step4D](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step4D.png)
 
@@ -321,7 +321,7 @@ For now, we will use Create custom pairwise comparisons to directly compare the 
 
 ![Step5A](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step5A.png)
 
-> **Note**: You will also see a button at the top `Download analysis code`.  After performing statistical analysis, you can click this button to download the R code that was used to perform the whole analysis. This is useful for reproducibility and for users who want to run the analysis outside of the Shiny app.
+> **Note**: You will also see a button at the top `Download analysis code`. After performing statistical analysis, you can click this button to download the R code that was used to perform the whole analysis. This is useful for reproducibility and for users who want to run the analysis outside the Shiny app.
 
 The significance level toggle acts as a filter to only proteins with an adjusted pvalue below a user-defined threshold. Next, click the Start button to begin the statistical analysis. This should trigger a progress bar.
 
@@ -359,7 +359,7 @@ You should see a table to the right displaying the statistical results. There ar
 
 -   Comparison Plot: Plots a 95% confidence interval for a particular protein. Useful for verifying the uncertainty of a protein’s logFC and if its confidence interval crosses
 
-For this tutorial, we will plot a volcano plot.  Select `Volcano plot` as your plot type.  Then select `T vs NAT` for the `Select comparison to plot` dropdown. Click View plot in browser to generate graphs.
+For this tutorial, we will plot a volcano plot. Select `Volcano plot` as your plot type. Then select `T vs NAT` for the `Select comparison to plot` dropdown. Click View plot in browser to generate graphs.
 
 ![Step6A](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step6A.png)
 
@@ -367,7 +367,7 @@ Going back to the data processing step, take a look at the profile plots for pro
 
 ### Rerun Data Processing - Feature Selection
 
-Process the data again but with the `Remove uninformative features & outliers` option selected. Repeat steps 2-6 and observe what happens to protein Q5HYK3.  
+Process the data again but with the `Remove uninformative features & outliers` option selected. Repeat steps 2-6 and observe what happens to protein Q5HYK3.
 
 What do you notice about the differences in the profile plots? How does this affect the differential abundance analysis results?
 
@@ -381,13 +381,13 @@ In the `4. Future Experiments tab`, to illustrate the relationship of desired fo
 
 Tune the parameters of FDR and power. You will notice:
 
-- As you increase power, sample size needed will increase.
-- As you decrease FDR, sample size needed will increase.
-- As your desired fold change decreases, the sample size needed will increase.
+-   As you increase power, sample size needed will increase.
+-   As you decrease FDR, sample size needed will increase.
+-   As your desired fold change decreases, the sample size needed will increase.
 
 ![Step7A](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step7A.png)
 
-Switching to the `power` parameter, you can determine the power for a desired fold change given a predetermined sample size.  This is especially useful if you're an experimentalist with a fixed number of samples and you want to know the power of your experiment to expect to detect a certain fold change.
+Switching to the `power` parameter, you can determine the power for a desired fold change given a predetermined sample size. This is especially useful if you're an experimentalist with a fixed number of samples and you want to know the power of your experiment to expect to detect a certain fold change.
 
 ![Step7B](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step7B.png)
 
@@ -395,6 +395,6 @@ Switching to the `power` parameter, you can determine the power for a desired fo
 
 To cite this application please use the corresponding publication in the journal of proteome research.
 
-**MSstatsShiny: A GUI for Versatile, Scalable, and Reproducible Statistical Analyses of Quantitative Proteomic Experiments**
+## MSstatsShiny: A GUI for Versatile, Scalable, and Reproducible Statistical Analyses of Quantitative Proteomic Experiments
 
 Devon Kohler, Maanasa Kaza, Cristina Pasi, Ting Huang, Mateusz Staniak, Dhaval Mohandas, Eduard Sabido, Meena Choi, and Olga Vitek. Journal of Proteome Research 2023 22 (2), 551-556 DOI: 10.1021/acs.jproteome.2c00603
