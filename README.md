@@ -131,6 +131,8 @@ You should see a summary of your dataset and the top 6 rows of your dataset. Cli
 
 ## Step 3: Data Processing
 
+![Step3A](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step3A.png)
+
 ### Log Transformation
 
 Because MS data is naturally left skewed, we log transform our intensities to bring intensities closer to a normal distribution. Although the distribution of our data may not be perfectly normally distributed after this transformation, the Central Limit Theorem guarantees that our statistical methods should perform adequately with any distribution given a large enough sample size.
@@ -291,7 +293,7 @@ On the Summarization Plots tab, there are two types of plots:
 
 -   Profile Plots: This plot displays feature level intensity values for each run for a specific protein. This plot helps with assessing feature selection and missing values in a dataset.
 
-We first assess QC plots. Under the `Select plot type` dropdown, click `Quality Control` Plots. Under the `Show plot for` dropdown, click the `ALL PROTEINS` option.
+We first assess QC plots. Under the `Select plot type` dropdown, click `Quality Control` Plots. Under the `Show plot for` dropdown, click the `ALL PROTEINS` option.  We should expect to see the medians of these boxplots to be equal.  
 
 ![Step4B](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step4B.png)
 
