@@ -1,10 +1,8 @@
-# MSstatsShiny README
-
 This repository contains the code for the R Shiny app MSstatsShiny, which utilizes MSstats, MSstatsTMT, and MSstatsPTM to analyze proteomics experiments.
 
 # MSstatsShiny Tutorial
 
-This tutorial will walk through the steps on MSstatsShiny for performing differential abundance analysis for a dataset from Fragpipe. We use a case study of a DIA experiment that was analyzed using the FragPipe computational tool. The dataset originates from a clear cell renal cell carcinoma (ccRCC) study described in this paper. In the original study, researchers from the CPTAC profiled tumor (T) samples, together with normal adjacent tissue (NAT) samples from each cancer patient, indicating a paired design.
+This tutorial will walk through the steps on MSstatsShiny for performing differential abundance analysis for a dataset from Fragpipe. We use a case study of a DIA experiment that was analyzed using the FragPipe computational tool. The dataset originates from a clear cell renal cell carcinoma (ccRCC) study described in this [paper](https://pubmed.ncbi.nlm.nih.gov/31675502/). In the original study, researchers from the CPTAC profiled tumor (T) samples, together with normal adjacent tissue (NAT) samples from each cancer patient, indicating a paired design.
 
 ## Step 1: Installation
 
@@ -317,13 +315,13 @@ Click the checkbox `show plot with summary`. This will show the summarized value
 
 -   Create custom pairwise comparisons: User chooses two conditions to compare against. For example, if you have 3 conditions A, B, & C, the user can choose to compare A vs B.
 
-Create custom non-pairwise comparisons: User defines a contrast matrix. This is especially useful for more complex comparisons, e.g. comparisons with block designs.
+-   Create custom non-pairwise comparisons: User defines a contrast matrix. This is especially useful for more complex comparisons, e.g. comparisons with block designs.
 
 For now, we will use Create custom pairwise comparisons to directly compare the control condition with the tumor condition. Click the `Add` button to confirm the contrast.
 
-> **Note**: You'll will also see a button at the top `Download analysis code`.  After performing statistical analysis, you can click this button to download the R code that was used to perform the whole analysis. This is useful for reproducibility and for users who want to run the analysis outside of the Shiny app.
-
 ![Step5A](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step5A.png)
+
+> **Note**: You will also see a button at the top `Download analysis code`.  After performing statistical analysis, you can click this button to download the R code that was used to perform the whole analysis. This is useful for reproducibility and for users who want to run the analysis outside of the Shiny app.
 
 The significance level toggle acts as a filter to only proteins with an adjusted pvalue below a user-defined threshold. Next, click the Start button to begin the statistical analysis. This should trigger a progress bar.
 
@@ -370,6 +368,7 @@ Going back to the data processing step, take a look at the profile plots for pro
 ### Rerun Data Processing
 
 Process the data again but with the `Remove uninformative features & outliers` option selected. Repeat these steps except for Q5HYK3.  
+
 What do you notice about the differences in the profile plots? How does this affect the differential abundance analysis results?
 
 ## Step 7: Sample Size Calculation
