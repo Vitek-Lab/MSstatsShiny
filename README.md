@@ -65,7 +65,9 @@ library(MSstatsShiny)
 MSstatsShiny::launch_MSstatsShiny()
 ```
 
-Click the `Run MSstats Pipeline` button to move to the data upload step. 
+![alt text](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/inst/extdata/tutorial/images/Step1A.png)
+
+Click the `Run MSstats Pipeline` button to move to the data upload step.
 
 ## Step 2: Data Upload
 
