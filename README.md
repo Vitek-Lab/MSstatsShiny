@@ -1,4 +1,4 @@
-# README
+# MSstatsShiny README
 
 This repository contains the code for the R Shiny app MSstatsShiny, which utilizes MSstats, MSstatsTMT, and MSstatsPTM to analyze proteomics experiments.
 
@@ -392,7 +392,7 @@ Switching to the `power` parameter, you can determine the power for a desired fo
 
 ![Step7B](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/man/figures/Step7B.png)
 
-## Citation
+# Citation
 
 To cite this application please use the corresponding publication in the journal of proteome research.
 
