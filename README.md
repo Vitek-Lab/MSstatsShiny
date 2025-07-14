@@ -65,7 +65,7 @@ library(MSstatsShiny)
 MSstatsShiny::launch_MSstatsShiny()
 ```
 
-![alt text](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/inst/extdata/tutorial/images/Step1A.png)
+![Step1A](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/inst/extdata/tutorial/images/Step1A.png)
 
 Click the `Run MSstats Pipeline` button to move to the data upload step.
 
@@ -89,17 +89,29 @@ Click the `Run MSstats Pipeline` button to move to the data upload step.
 
 For this dataset, keep the default setting of `Protein` for the biological question and `Label-Free` for the label type.
 
+![Step2A](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/inst/extdata/tutorial/images/Step2A.png)
+
+### Type of File
+
+This is where you select the tool that you used to produce ID/quant. For this case study, select `Fragpipe` for the type of file.
+
+![Step2B](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/inst/extdata/tutorial/images/Step2B.png)
+
 ### Attach Quantification Dataset
 
 Each tool produces a quantification report that can be uploaded to MSstatsShiny to begin data conversion. For example, Fragpipe has this [tutorial](https://fragpipe.nesvilab.org/docs/tutorial_msstats.html) where you can export your quantifications in the format of MSstats.
 
 Upload `msstats.csv` from this [link](https://github.com/Vitek-Lab/MSstatsShiny/tree/devel/inst/extdata/tutorial) as the quantification dataset. Keep the default setting of `comma` for column separator.
 
+![Step2C](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/inst/extdata/tutorial/images/Step2C.png)
+
 ### Upload Annotation File
 
 The annotation file defines the experimental design, notably which BioReplicate and Condition are associated with a particular MS run. You can see `annotation.csv` from this [link](https://github.com/Vitek-Lab/MSstatsShiny/tree/devel/inst/extdata/tutorial) as an example of an annotation file.
-
 Keep in mind that we must indicate that this is a paired design to MSstats. To do this, each pair of runs that corresponds to the same bioreplicate should be assigned the same ID in the BioReplicate column. In a standard group comparison design, each bioreplicate will have a unique ID. The image below illustrates how the annotation file is set up for paired designs.
+
+![Step2D](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/inst/extdata/tutorial/images/Step2D.png)
+
 
 ### Select the options for pre-processing
 
@@ -110,6 +122,8 @@ Keep in mind that we must indicate that this is a paired design to MSstats. To d
 -   Remove proteins with 1 feature: If enabled, MSstats will remove any proteins that have only 1 peptide spectral match across all runs. We won’t enable this for now.
 
 After attaching the dataset, the upload button should be enabled.
+
+![Step2E](https://github.com/Vitek-Lab/MSstatsShiny/blob/tutorial/inst/extdata/tutorial/images/Step2E.png)
 
 ### Output
 
