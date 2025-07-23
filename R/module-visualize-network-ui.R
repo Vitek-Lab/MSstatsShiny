@@ -181,14 +181,59 @@ createDataUploadBox <- function(ns) {
   )
 }
 
+createColorLegend <- function() {
+  div(
+    style = "position: absolute; top: 10px; right: 10px; background-color: rgba(255, 255, 255, 0.9); 
+             border: 1px solid #ddd; border-radius: 5px; padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+             z-index: 1000; min-width: 150px;",
+    
+    # Legend title
+    div(
+      style = "font-weight: bold; font-size: 12px; margin-bottom: 8px; text-align: center; color: #333;",
+      "LogFC Legend"
+    ),
+    
+    # Color gradient bar
+    div(
+      style = "height: 20px; width: 100%; background: linear-gradient(to right, #ADD8E6, #D3D3D3, #FFA590); 
+               border: 1px solid #ccc; border-radius: 3px; margin-bottom: 5px;"
+    ),
+    
+    # Labels container
+    div(
+      style = "display: flex; justify-content: space-between; font-size: 10px; color: #666;",
+      tags$span("Downregulated", style = "font-weight: bold;"),
+      tags$span("0", style = "font-weight: bold;"),
+      tags$span("Upregulated", style = "font-weight: bold;")
+    ),
+    
+    # Additional info
+    div(
+      style = "margin-top: 8px; font-size: 9px; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 5px;",
+      "Node colors represent log fold change values"
+    )
+  )
+}
+
 createNetworkVisualizationBox <- function(ns) {
   box(
     title = "Network Visualization",
     status = "success",
     solidHeader = TRUE,
     width = 12,
-    tags$div(id = ns("cy"),
-             style = "width: 100%; height: 500px; display: flex; justify-content: center; align-items: center;")
+    # Container with relative positioning for the legend
+    div(
+      style = "position: relative; width: 100%; height: 500px;",
+      
+      # Main network container
+      tags$div(
+        id = ns("cy"),
+        style = "width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;"
+      ),
+      
+      # Color legend overlay
+      createColorLegend()
+    )
   )
 }
 
