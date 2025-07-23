@@ -107,8 +107,7 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes, so
 # HELPER FUNCTIONS - Cytoscape Visualization
 # =============================================================================
 
-# Updated createNodeElements function to include color information
-createNodeElements <- function(nodes) {
+createNodeElements <- function(nodes, displayLabelType = "id") {
   # Map logFC to colors if logFC column exists
   if ("logFC" %in% names(nodes)) {
     node_colors <- mapLogFCToColor(nodes$logFC)
@@ -116,8 +115,22 @@ createNodeElements <- function(nodes) {
     node_colors <- rep("#D3D3D3", nrow(nodes))  # Default color
   }
   
+  # Determine which column to use for labels
+  label_column <- if(displayLabelType == "hgncName" && "hgncName" %in% names(nodes)) {
+    "hgncName"
+  } else {
+    "id"
+  }
+  
   apply(cbind(nodes, color = node_colors), 1, function(row) {
-    paste0("{ data: { id: '", row['id'], "', label: '", row['id'], "', color: '", row['color'], "' } }")
+    # Use the appropriate label, fallback to id if hgncName is missing/empty
+    display_label <- if(label_column == "hgncName" && !is.na(row['hgncName']) && row['hgncName'] != "") {
+      row['hgncName']
+    } else {
+      row['id']
+    }
+    
+    paste0("{ data: { id: '", row['id'], "', label: '", display_label, "', color: '", row['color'], "' } }")
   })
 }
 
@@ -341,17 +354,27 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
                                     params$statementTypes, params$sources)
     if (is.null(subnetwork)) return(NULL)
     
-    # Create Cytoscape elements
-    node_elements <- createNodeElements(subnetwork$nodes)
-    edge_elements <- createEdgeElements(subnetwork$edges)
+    return(list(
+      nodes_table = subnetwork$nodes,
+      edges_table = subnetwork$edges
+    ))
+  })
+  
+  networkVisualization <- reactive({
+    network_data <- renderNetwork()
+    if (is.null(network_data)) return(NULL)
+    
+    # Create Cytoscape elements with current display label setting
+    node_elements <- createNodeElements(network_data$nodes_table, input$displayLabelType)
+    edge_elements <- createEdgeElements(network_data$edges_table)
     
     # Generate JavaScript code
     js_code <- generateCytoscapeJS(node_elements, edge_elements)
     
     return(list(
       js_code = js_code,
-      edges_table = subnetwork$edges,
-      nodes_table = subnetwork$nodes
+      edges_table = network_data$edges_table,
+      nodes_table = network_data$nodes_table
     ))
   })
   
@@ -365,7 +388,7 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     # Disable the button during processing
     shinyjs::disable("showNetwork")
     
-    render_data <- renderNetwork()
+    render_data <- networkVisualization()
     if (is.null(render_data)) {
       # Hide loading indicator and re-enable button if there's an error
       shinyjs::hide("loadingIndicator")

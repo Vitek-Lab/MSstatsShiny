@@ -62,6 +62,14 @@ createProteinIdRadioButtons <- function(ns) {
                selected = "Uniprot")
 }
 
+createDisplayLabelRadioButtons <- function(ns) {
+  radioButtons(ns("displayLabelType"),
+               "Node Label Display",
+               choices = list("Protein Name" = "id",
+                              "Gene Name" = "hgncName"),
+               selected = "id")
+}
+
 createParameterSliders <- function(ns) {
   tagList(
     sliderInput(ns("pValue"), 
@@ -173,8 +181,9 @@ createDataUploadBox <- function(ns) {
     width = 12,
     createDataSourceInfo(ns),
     createFileUploadInput(ns),
-    createLabelDropdown(ns),  # Add the new dropdown here
+    createLabelDropdown(ns),  
     createProteinIdRadioButtons(ns),
+    createDisplayLabelRadioButtons(ns),
     createParameterSliders(ns),
     createFilterDropdowns(ns),
     createDisplayNetworkButton(ns)
