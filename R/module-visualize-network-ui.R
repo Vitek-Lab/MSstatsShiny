@@ -38,8 +38,8 @@ networkUI <- function(id) {
               radioButtons(ns("proteinIdType"), "Protein ID Type",
                            choices = list("Uniprot Mnemonic" = "Uniprot_Mnemonic", "Uniprot" = "Uniprot"),
                            selected = "Uniprot"),
-              sliderInput(ns("pValue"), "P Value", min = 0, max = 1, value = 0.5),
-              sliderInput(ns("logFC"), "Log Fold Change (logFC)", min = 0, max = 10, value = 5),
+              sliderInput(ns("pValue"), "P Value", min = 0, max = 1, value = 0.05),
+              sliderInput(ns("evidence"), "Evidence Cutoff", min = 0, max = 50, value = 5),
               actionButton(ns("showNetwork"), "Display Network", class = "btn-primary")
             )
           )

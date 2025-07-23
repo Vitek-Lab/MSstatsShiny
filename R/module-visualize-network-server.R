@@ -31,9 +31,9 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
         as.numeric(input$pValue)
     })
 
-    logFC <- reactive({
-        req(input$logFC)
-        as.numeric(input$logFC)
+    evidence <- reactive({
+        req(input$evidence)
+        as.numeric(input$evidence)
     })
 
     # Create a reactive expression to generate the JavaScript code for Cytoscape
@@ -46,14 +46,20 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
                 showNotification(paste("Error in annotation:", e$message), type = "error")
                 return(NULL)
             })
+        
+        print(pValue())
+        print(evidence())
 
         subnetwork <- tryCatch({
-                getSubnetworkFromIndra(annotated_df, pvalueCutoff = pValue())
+                getSubnetworkFromIndra(annotated_df, pvalueCutoff = pValue(), 
+                                       evidence_count_cutoff = evidence())
             }, error = function(e) {
                 showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
                 print(e$message)
                 return(NULL)
         })
+        
+        print(subnetwork$edges)
 
         # Create the JavaScript code to initialize Cytoscape.js
         node_elements <- apply(subnetwork$nodes, 1, function(row) {
@@ -131,7 +137,7 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     # Observe the button click to trigger network rendering and table display
     observeEvent(input$showNetwork, {
         # Ensure that all required inputs are valid before rendering the network
-        req(df(), proteinIdType(), pValue(), logFC())
+        req(df(), proteinIdType(), pValue(), evidence())
         
         # When the "Display Network" button is clicked, run the network rendering logic
         render_data <- renderNetwork()
