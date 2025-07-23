@@ -181,21 +181,16 @@ createNodesTableBox <- function(ns) {
 # =============================================================================
 
 createNetworkSettingsTab <- function(ns) {
-  tabItem(
-    tabName = "networkSettings",
-    fluidRow(
-      createDataUploadBox(ns)
-    )
-  )
-}
-
-createNetworkVisualizationTab <- function(ns) {
-  tabItem(
-    tabName = "networkVisualization",
-    fluidRow(
-      createNetworkVisualizationBox(ns),
-      createEdgesTableBox(ns),
-      createNodesTableBox(ns)
+  fluidRow(
+    # Left column - Settings
+    column(width = 4,
+           createDataUploadBox(ns)
+    ),
+    # Right column - Visualization and Tables
+    column(width = 8,
+           createNetworkVisualizationBox(ns),
+           createEdgesTableBox(ns),
+           createNodesTableBox(ns)
     )
   )
 }
@@ -204,33 +199,13 @@ createNetworkVisualizationTab <- function(ns) {
 # HELPER FUNCTIONS - Navigation
 # =============================================================================
 
-createSidebarMenu <- function() {
-  sidebarMenu(
-    menuItem("Network Settings", 
-             tabName = "networkSettings", 
-             icon = icon("sliders-h")),
-    menuItem("Network Visualization", 
-             tabName = "networkVisualization", 
-             icon = icon("project-diagram"))
-  )
-}
-
 createDashboardHeader <- function() {
   dashboardHeader(title = "Protein Interaction Network")
 }
 
-createDashboardSidebar <- function() {
-  dashboardSidebar(
-    createSidebarMenu()
-  )
-}
-
 createDashboardBody <- function(ns) {
   dashboardBody(
-    tabItems(
-      createNetworkSettingsTab(ns),
-      createNetworkVisualizationTab(ns)
-    )
+    createNetworkSettingsTab(ns)
   )
 }
 
@@ -238,7 +213,7 @@ createDashboardBody <- function(ns) {
 # MAIN UI FUNCTION
 # =============================================================================
 
-#' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar dashboardBody sidebarMenu menuItem tabItems tabItem box
+#' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar dashboardBody menuItem tabItems tabItem box
 #' @importFrom DT DTOutput
 networkUI <- function(id) {
   ns <- NS(id)
@@ -248,7 +223,7 @@ networkUI <- function(id) {
     createCytoscapeScripts(),
     dashboardPage(
       createDashboardHeader(),
-      createDashboardSidebar(),
+      dashboardSidebar(disable = TRUE),
       createDashboardBody(ns)
     )
   )
