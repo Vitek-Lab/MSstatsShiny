@@ -158,11 +158,20 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
 
 renderDataTables <- function(output, nodes_table, edges_table) {
   output$nodesTable <- renderDT({
-    datatable(nodes_table, options = list(pageLength = 10, searchable = TRUE))
+    datatable(nodes_table, 
+              options = list(pageLength = 10, 
+                             searchable = TRUE,
+                             scrollX = TRUE,
+                             autoWidth = TRUE))
   })
   
   output$edgesTable <- renderDT({
-    datatable(edges_table, options = list(pageLength = 10, searchable = TRUE), selection = 'single')
+    datatable(edges_table, 
+              options = list(pageLength = 10, 
+                             searchable = TRUE,
+                             scrollX = TRUE,
+                             autoWidth = TRUE), 
+              selection = 'single')
   })
 }
 
@@ -182,7 +191,10 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
     
     output$edgesTable <- renderDT({
       datatable(reordered_table, 
-                options = list(pageLength = 10, searchable = TRUE), 
+                options = list(pageLength = 10, 
+                               searchable = TRUE,
+                               scrollX = TRUE,
+                               autoWidth = TRUE), 
                 selection = list(mode = 'single', selected = 1))
     })
   }

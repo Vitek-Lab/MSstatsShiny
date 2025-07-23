@@ -171,7 +171,9 @@ createEdgesTableBox <- function(ns) {
     status = "warning",
     solidHeader = TRUE,
     width = 12,
-    DTOutput(ns("edgesTable"))
+    div(style = "overflow-x: auto;",
+        DTOutput(ns("edgesTable"))
+    )
   )
 }
 
@@ -181,7 +183,9 @@ createNodesTableBox <- function(ns) {
     status = "info",
     solidHeader = TRUE,
     width = 12,
-    DTOutput(ns("nodesTable"))
+    div(style = "overflow-x: auto;",
+        DTOutput(ns("nodesTable"))
+    )
   )
 }
 
