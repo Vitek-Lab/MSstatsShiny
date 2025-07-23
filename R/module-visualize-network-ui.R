@@ -45,6 +45,15 @@ createDataSourceInfo <- function(ns) {
   )
 }
 
+# Add this new helper function for the label dropdown
+createLabelDropdown <- function(ns) {
+  selectInput(ns("selectedLabel"),
+              "Select Comparison",
+              choices = NULL,  # Will be populated dynamically
+              selected = NULL,
+              multiple = FALSE)
+}
+
 createProteinIdRadioButtons <- function(ns) {
   radioButtons(ns("proteinIdType"), 
                "Protein ID Type",
@@ -164,6 +173,7 @@ createDataUploadBox <- function(ns) {
     width = 12,
     createDataSourceInfo(ns),
     createFileUploadInput(ns),
+    createLabelDropdown(ns),  # Add the new dropdown here
     createProteinIdRadioButtons(ns),
     createParameterSliders(ns),
     createFilterDropdowns(ns),

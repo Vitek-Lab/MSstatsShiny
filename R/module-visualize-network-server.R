@@ -20,6 +20,23 @@ loadCsvData <- function(input, dataComparison) {
   })
 }
 
+# Helper function to update the label dropdown choices
+updateLabelChoices <- function(session, df) {
+  if (!is.null(df) && "Label" %in% names(df)) {
+    unique_labels <- unique(df$Label)
+    # Remove any NA values
+    unique_labels <- unique_labels[!is.na(unique_labels)]
+    
+    updateSelectInput(session, "selectedLabel",
+                      choices = c(setNames(unique_labels, unique_labels)))
+  } else {
+    # If no Label column exists, disable the dropdown
+    updateSelectInput(session, "selectedLabel",
+                      choices = c("No Label column found" = "none"),
+                      selected = "none")
+  }
+}
+
 getInputParameters <- function(input) {
   # Require that both filters have at least one selection
   req(input$statementTypes, input$sources)
@@ -43,7 +60,8 @@ getInputParameters <- function(input) {
     pValue = as.numeric(req(input$pValue)),
     evidence = as.numeric(req(input$evidence)),
     statementTypes = statementTypes,
-    sources = sources
+    sources = sources,
+    selectedLabel = req(input$selectedLabel)
   )
 }
 
@@ -51,6 +69,16 @@ getInputParameters <- function(input) {
 # =============================================================================
 # HELPER FUNCTIONS - Data Processing
 # =============================================================================
+
+# Helper function to filter data by selected label
+filterDataByLabel <- function(df, selectedLabel) {
+  if ("Label" %in% names(df)) {
+    filtered_df <- df[df$Label == selectedLabel & !is.na(df$Label), ]
+    return(filtered_df)
+  } else {
+    return(df)
+  }
+}
 
 annotateProteinData <- function(df, proteinIdType) {
   tryCatch({
@@ -224,8 +252,19 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   renderNetwork <- reactive({
     params <- getInputParameters(input)
     
+    # Get the original data
+    original_df <- df()
+    if (is.null(original_df)) return(NULL)
+    
+    # Filter by selected label first
+    filtered_df <- filterDataByLabel(original_df, params$selectedLabel)
+    if (nrow(filtered_df) == 0) {
+      showNotification("No data found for selected label", type = "warning")
+      return(NULL)
+    }
+    
     # Annotate protein info and filter the subnetwork
-    annotated_df <- annotateProteinData(df(), params$proteinIdType)
+    annotated_df <- annotateProteinData(filtered_df, params$proteinIdType)
     if (is.null(annotated_df)) return(NULL)
     
     subnetwork <- extractSubnetwork(annotated_df, params$pValue, params$evidence, 
@@ -281,5 +320,10 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     edges_table <- renderNetwork()$edges_table
     
     highlightEdgeInTable(output, edge_data, edges_table)
+  })
+  
+  observeEvent(df(), {
+    current_df <- df()
+    updateLabelChoices(session, current_df)
   })
 }
