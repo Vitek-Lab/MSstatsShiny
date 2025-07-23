@@ -21,12 +21,32 @@ loadCsvData <- function(input, dataComparison) {
 }
 
 getInputParameters <- function(input) {
+  # Require that both filters have at least one selection
+  req(input$statementTypes, input$sources)
+  
+  # Handle "all" selections for statement type
+  statementTypes <- if("all" %in% req(input$statementTypes)) {
+    NULL
+  } else {
+    input$statementTypes
+  }
+  
+  # Handle "all" selections for sources
+  sources <- if("all" %in% input$sources) {
+    NULL
+  } else {
+    input$sources
+  }
+  
   list(
     proteinIdType = req(input$proteinIdType),
     pValue = as.numeric(req(input$pValue)),
-    evidence = as.numeric(req(input$evidence))
+    evidence = as.numeric(req(input$evidence)),
+    statementTypes = statementTypes,
+    sources = sources
   )
 }
+
 
 # =============================================================================
 # HELPER FUNCTIONS - Data Processing
@@ -41,11 +61,13 @@ annotateProteinData <- function(df, proteinIdType) {
   })
 }
 
-extractSubnetwork <- function(annotated_df, pValue, evidence) {
+extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes, sources) {
   tryCatch({
     getSubnetworkFromIndra(annotated_df, 
                            pvalueCutoff = pValue, 
-                           evidence_count_cutoff = evidence)
+                           evidence_count_cutoff = evidence,
+                           statement_types = statementTypes,
+                           sources_filter = sources)
   }, error = function(e) {
     showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
     print(e$message)
@@ -183,17 +205,13 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   renderNetwork <- reactive({
     params <- getInputParameters(input)
     
-    print(params$pValue)
-    print(params$evidence)
-    
     # Annotate protein info and filter the subnetwork
     annotated_df <- annotateProteinData(df(), params$proteinIdType)
     if (is.null(annotated_df)) return(NULL)
     
-    subnetwork <- extractSubnetwork(annotated_df, params$pValue, params$evidence)
+    subnetwork <- extractSubnetwork(annotated_df, params$pValue, params$evidence, 
+                                    params$statementTypes, params$sources)
     if (is.null(subnetwork)) return(NULL)
-    
-    print(subnetwork$edges)
     
     # Create Cytoscape elements
     node_elements <- createNodeElements(subnetwork$nodes)
