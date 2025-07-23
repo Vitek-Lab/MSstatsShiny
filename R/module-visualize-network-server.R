@@ -107,9 +107,17 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes, so
 # HELPER FUNCTIONS - Cytoscape Visualization
 # =============================================================================
 
+# Updated createNodeElements function to include color information
 createNodeElements <- function(nodes) {
-  apply(nodes, 1, function(row) {
-    paste0("{ data: { id: '", row['id'], "', label: '", row['id'], "' } }")
+  # Map logFC to colors if logFC column exists
+  if ("logFC" %in% names(nodes)) {
+    node_colors <- mapLogFCToColor(nodes$logFC)
+  } else {
+    node_colors <- rep("#D3D3D3", nrow(nodes))  # Default color
+  }
+  
+  apply(cbind(nodes, color = node_colors), 1, function(row) {
+    paste0("{ data: { id: '", row['id'], "', label: '", row['id'], "', color: '", row['color'], "' } }")
   })
 }
 
@@ -128,9 +136,39 @@ createEdgeElements <- function(edges) {
   return(edge_elements)
 }
 
+# Helper function to map logFC values to colors
+mapLogFCToColor <- function(logFC_values) {
+  # Define the color palette
+  colors <- c("#ADD8E6", "#ADD8E6", "#D3D3D3", "#FFA590", "#FFA590")
+  
+  # Handle case where all values are the same or missing
+  if (all(is.na(logFC_values)) || length(unique(logFC_values[!is.na(logFC_values)])) <= 1) {
+    return(rep("#D3D3D3", length(logFC_values)))
+  }
+  
+  # Get range of logFC values
+  min_logFC <- min(logFC_values, na.rm = TRUE)
+  max_logFC <- max(logFC_values, na.rm = TRUE)
+  
+  # Create color mapping function
+  color_map <- colorRamp(colors)
+  
+  # Normalize logFC values to [0, 1] range
+  normalized_values <- (logFC_values - min_logFC) / (max_logFC - min_logFC)
+  
+  # Handle NA values
+  normalized_values[is.na(normalized_values)] <- 0.5  # Default to middle color
+  
+  # Get RGB colors and convert to hex
+  rgb_colors <- color_map(normalized_values)
+  hex_colors <- rgb(rgb_colors[,1], rgb_colors[,2], rgb_colors[,3], maxColorValue = 255)
+  
+  return(hex_colors)
+}
+
 generateCytoscapeJS <- function(node_elements, edge_elements) {
   elements <- c(node_elements, edge_elements)
-  
+
   paste0("
     cytoscape.use(cytoscapeDagre);
     var cy = cytoscape({
@@ -140,8 +178,15 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
             {
                 selector: 'node',
                 style: {
-                    'background-color': '#66ccff',
-                    'label': 'data(label)'
+                    'background-color': 'data(color)',
+                    'label': 'data(label)',
+                    'width': 30,
+                    'height': 30,
+                    'font-size': '12px',
+                    'text-valign': 'center',
+                    'text-halign': 'center',
+                    'border-width': 2,
+                    'border-color': '#333'
                 }
             },
             {
@@ -167,6 +212,7 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
             fit: true
         }
     });
+    
     // Capture the event when an edge is clicked
     cy.on('tap', 'edge', function(evt) {
         var edge = evt.target;
