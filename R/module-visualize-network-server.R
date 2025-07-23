@@ -168,7 +168,7 @@ mapLogFCToColor <- function(logFC_values) {
 
 generateCytoscapeJS <- function(node_elements, edge_elements) {
   elements <- c(node_elements, edge_elements)
-
+  
   paste0("
     cytoscape.use(cytoscapeDagre);
     var cy = cytoscape({
@@ -180,13 +180,34 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
                 style: {
                     'background-color': 'data(color)',
                     'label': 'data(label)',
-                    'width': 30,
-                    'height': 30,
-                    'font-size': '12px',
+                    'width': function(ele) {
+                        // Calculate width based on label length, with minimum and maximum sizes
+                        var label = ele.data('label') || '';
+                        var labelLength = label.length;
+                        return Math.max(60, Math.min(labelLength * 8 + 20, 150));
+                    },
+                    'height': function(ele) {
+                        // Calculate height based on label length, with minimum size
+                        var label = ele.data('label') || '';
+                        var labelLength = label.length;
+                        return Math.max(40, Math.min(labelLength * 2 + 30, 60));
+                    },
+                    'shape': 'round-rectangle',
+                    'font-size': '11px',
+                    'font-weight': 'bold',
+                    'color': '#000',
                     'text-valign': 'center',
                     'text-halign': 'center',
+                    'text-wrap': 'wrap',
+                    'text-max-width': function(ele) {
+                        // Ensure text doesn't exceed node width
+                        var label = ele.data('label') || '';
+                        var labelLength = label.length;
+                        return Math.max(50, Math.min(labelLength * 8 + 10, 140));
+                    },
                     'border-width': 2,
-                    'border-color': '#333'
+                    'border-color': '#333',
+                    'padding': '5px'
                 }
             },
             {
@@ -201,7 +222,8 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
                     'edge-offset': 10,
                     'text-margin-y': -10,
                     'text-halign': 'center',
-                    'edge-text-rotation': 'autorotate'
+                    'edge-text-rotation': 'autorotate',
+                    'font-size': '10px'
                 }
             }
         ],
@@ -209,7 +231,9 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
             name: 'dagre',
             rankDir: 'TB',
             animate: true,
-            fit: true
+            fit: true,
+            padding: 30,
+            spacingFactor: 1.25
         }
     });
     
