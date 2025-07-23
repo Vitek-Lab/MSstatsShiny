@@ -231,14 +231,29 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   observeEvent(input$showNetwork, {
     req(df(), getInputParameters(input))
     
+    # Show loading indicator
+    shinyjs::show("loadingIndicator")
+    
+    # Disable the button during processing
+    shinyjs::disable("showNetwork")
+    
     render_data <- renderNetwork()
-    if (is.null(render_data)) return()
+    if (is.null(render_data)) {
+      # Hide loading indicator and re-enable button if there's an error
+      shinyjs::hide("loadingIndicator")
+      shinyjs::enable("showNetwork")
+      return()
+    }
     
     # Send JavaScript code to frontend
     session$sendCustomMessage(type = 'runCytoscape', message = render_data$js_code)
     
     # Render data tables
     renderDataTables(output, render_data$nodes_table, render_data$edges_table)
+    
+    # Hide loading indicator and re-enable button when done
+    shinyjs::hide("loadingIndicator")
+    shinyjs::enable("showNetwork")
   })
   
   # Observe edge click events

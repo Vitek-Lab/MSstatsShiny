@@ -122,9 +122,18 @@ createFilterDropdowns <- function(ns) {
 }
 
 createDisplayNetworkButton <- function(ns) {
-  actionButton(ns("showNetwork"), 
-               "Display Network", 
-               class = "btn-primary")
+  tagList(
+    actionButton(ns("showNetwork"), 
+                 "Display Network", 
+                 class = "btn-primary"),
+    br(), br(),
+    div(id = ns("loadingIndicator"),
+        style = "display: none; text-align: center;",
+        tags$i(class = "fa fa-spinner fa-spin fa-2x", style = "color: #3c8dbc;"),
+        br(),
+        tags$span("Processing network data...", style = "color: #3c8dbc; font-weight: bold;")
+    )
+  )
 }
 
 # =============================================================================
