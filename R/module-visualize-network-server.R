@@ -207,6 +207,13 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
 #' @importFrom MSstatsBioNet annotateProteinInfoFromIndra getSubnetworkFromIndra
 #' @importFrom DT renderDT datatable
 visualizeNetworkServer <- function(input, output, session, parent_session, dataComparison) {
+  # Output to control conditional panels
+  output$hasValidDataComparison <- reactive({
+    !is.null(dataComparison()) &&
+      !is.null(dataComparison()$ComparisonResult) && 
+      !is.null(dataComparison()$ComparisonResult$Protein)
+  })
+  outputOptions(output, "hasValidDataComparison", suspendWhenHidden = FALSE)
   
   # Main reactive expressions
   df <- reactive({

@@ -22,11 +22,27 @@ createCytoscapeScripts <- function() {
 # =============================================================================
 
 createFileUploadInput <- function(ns) {
-  fileInput(ns("dataUpload"), 
-            "Upload CSV File", 
-            accept = c(".csv"), 
-            buttonLabel = "Browse...", 
-            placeholder = "No file selected")
+  conditionalPanel(
+    condition = "!output.hasValidDataComparison",
+    ns = ns,
+    fileInput(ns("dataUpload"), 
+              "Upload CSV File", 
+              accept = c(".csv"), 
+              buttonLabel = "Browse...", 
+              placeholder = "No file selected")
+  )
+}
+
+createDataSourceInfo <- function(ns) {
+  conditionalPanel(
+    condition = "output.hasValidDataComparison",
+    ns = ns,
+    div(style = "padding: 10px; background-color: #d9edf7; border: 1px solid #bce8f1; border-radius: 4px; margin-bottom: 15px;",
+        tags$i(class = "fa fa-info-circle", style = "color: #31708f; margin-right: 8px;"),
+        tags$span("Using data from comparison analysis.", 
+                  style = "color: #31708f; font-weight: bold;")
+    )
+  )
 }
 
 createProteinIdRadioButtons <- function(ns) {
@@ -146,6 +162,7 @@ createDataUploadBox <- function(ns) {
     status = "primary",
     solidHeader = TRUE,
     width = 12,
+    createDataSourceInfo(ns),
     createFileUploadInput(ns),
     createProteinIdRadioButtons(ns),
     createParameterSliders(ns),
