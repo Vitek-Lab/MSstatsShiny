@@ -73,11 +73,14 @@ createDisplayLabelRadioButtons <- function(ns) {
 createParameterSliders <- function(ns) {
   tagList(
     sliderInput(ns("pValue"), 
-                "P Value", 
+                "Adjusted P-Value", 
                 min = 0, max = 1, value = 0.05),
     sliderInput(ns("evidence"), 
                 "Evidence Cutoff", 
-                min = 0, max = 50, value = 5)
+                min = 0, max = 50, value = 5),
+    sliderInput(ns("absLogFC"),
+                "Absolute LogFC Cutoff",
+                min = 0, max = 5, value = 0.5, step = 0.1)
   )
 }
 
@@ -150,7 +153,24 @@ createFilterDropdowns <- function(ns) {
                                "CROG" = "crog",
                                "CREEDS" = "creeds"),
                 selected = "all",
-                multiple = TRUE)
+                multiple = TRUE),
+    div(
+      style = "position: relative;",
+      # Standard selectInput with normal label
+      selectInput(ns("selectedProteins"),
+                  "Force Include Proteins (optional)",
+                  choices = NULL,  # Will be populated dynamically
+                  selected = NULL,
+                  multiple = TRUE),
+      # Separate tooltip positioned over the label area
+      div(
+        class = "icon-wrapper",
+        style = "position: absolute; top: 8px; right: 10px; z-index: 1000;",
+        icon("question-circle", lib = "font-awesome"),
+        div("Select specific proteins to force to include in the network query. These proteins will be included in the network analysis regardless of other filtering criteria. Leave empty to include all proteins that meet the filtering conditions.", 
+            class = "icon-tooltip")
+      )
+    )
   )
 }
 

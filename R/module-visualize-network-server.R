@@ -37,6 +37,24 @@ updateLabelChoices <- function(session, df) {
   }
 }
 
+# Updated helper function to update the protein choices dropdown
+updateProteinChoices <- function(session, df) {
+  if (!is.null(df) && "Protein" %in% names(df)) {
+    unique_proteins <- unique(df$Protein)
+    # Remove any NA values
+    unique_proteins <- unique_proteins[!is.na(unique_proteins)]
+    # Sort proteins alphabetically
+    unique_proteins <- sort(unique_proteins)
+    
+    updateSelectInput(session, "selectedProteins",
+                      choices = setNames(unique_proteins, unique_proteins))
+  } else {
+    # If no Protein column exists, clear the dropdown
+    updateSelectInput(session, "selectedProteins",
+                      choices = NULL)
+  }
+}
+
 getInputParameters <- function(input) {
   # Require that both filters have at least one selection
   req(input$statementTypes, input$sources)
@@ -55,13 +73,22 @@ getInputParameters <- function(input) {
     input$sources
   }
   
+  # Handle protein selection (NULL if nothing selected)
+  selectedProteins <- if(is.null(input$selectedProteins) || length(input$selectedProteins) == 0) {
+    NULL
+  } else {
+    input$selectedProteins
+  }
+  
   list(
     proteinIdType = req(input$proteinIdType),
     pValue = as.numeric(req(input$pValue)),
     evidence = as.numeric(req(input$evidence)),
+    absLogFC = as.numeric(req(input$absLogFC)),
     statementTypes = statementTypes,
     sources = sources,
-    selectedLabel = req(input$selectedLabel)
+    selectedLabel = req(input$selectedLabel),
+    selectedProteins = selectedProteins
   )
 }
 
@@ -89,13 +116,16 @@ annotateProteinData <- function(df, proteinIdType) {
   })
 }
 
-extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes, sources) {
+extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes, 
+                              sources, absLogFC, selectedProteins) {
   tryCatch({
     getSubnetworkFromIndra(annotated_df, 
                            pvalueCutoff = pValue, 
                            evidence_count_cutoff = evidence,
                            statement_types = statementTypes,
-                           sources_filter = sources)
+                           sources_filter = sources,
+                           logfc_cutoff = absLogFC,
+                           force_include_proteins = selectedProteins)
   }, error = function(e) {
     showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
     print(e$message)
@@ -351,7 +381,8 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     if (is.null(annotated_df)) return(NULL)
     
     subnetwork <- extractSubnetwork(annotated_df, params$pValue, params$evidence, 
-                                    params$statementTypes, params$sources)
+                                    params$statementTypes, params$sources,
+                                    params$absLogFC, params$selectedProteins)
     if (is.null(subnetwork)) return(NULL)
     
     return(list(
@@ -418,5 +449,6 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   observeEvent(df(), {
     current_df <- df()
     updateLabelChoices(session, current_df)
+    updateProteinChoices(session, current_df)
   })
 }
