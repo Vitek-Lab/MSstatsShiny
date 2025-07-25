@@ -521,13 +521,6 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
             category: edge.data('category')
         });
     });
-    
-    // Add double-click to fit view
-    cy.on('dblclick', function(evt) {
-        if (evt.target === cy) {
-            cy.fit();
-        }
-    });
     ")
 }
 
