@@ -478,8 +478,22 @@ createNetworkSettingsTab <- function(ns) {
 # =============================================================================
 
 createDashboardHeader <- function() {
-  dashboardHeader(title = "Protein Regulatory Network")
+  dashboardHeader(
+    title = div(
+      style = "display: flex; align-items: center; flex-wrap: wrap;",
+      h4(
+        "Powered by ",
+        style = "margin: 0; margin-right: 15px;",
+        img(
+          src = "https://raw.githubusercontent.com/gyorilab/indra_db/master/doc/indra_db_logo.png", # Replace with your actual logo path
+          height = "30px",
+          style = "vertical-align: middle; margin: 0 3px;"
+        )
+      )
+    )
+  )
 }
+
 
 createDashboardBody <- function(ns) {
   dashboardBody(
