@@ -167,15 +167,33 @@ createNodeElements <- function(nodes, displayLabelType = "id") {
 }
 
 createEdgeElements <- function(edges) {
+  if (nrow(edges) == 0) return(list())
+  
+  # First consolidate edges
+  consolidated_edges <- consolidateEdges(edges)
+  
   edge_elements <- list()
   
-  for (i in 1:nrow(edges)) {
-    row <- edges[i,]
-    edge_key <- paste(row['source'], row['target'], row['interaction'], sep = "-")
-    edge_elements[[edge_key]] <- paste0("{ data: { source: '", row['source'], 
-                                        "', target: '", row['target'], 
-                                        "', id: '", edge_key, 
-                                        "', interaction: '", row['interaction'], "' } }")
+  for (i in 1:nrow(consolidated_edges)) {
+    row <- consolidated_edges[i,]
+    edge_key <- paste(row$source, row$target, row$interaction, sep = "-")
+    
+    # Get styling for this edge
+    style <- getEdgeStyle(row$interaction, row$category, row$edge_type)
+    
+    # Create edge data with styling information
+    edge_data <- paste0("{ data: { source: '", row$source, 
+                        "', target: '", row$target, 
+                        "', id: '", edge_key,
+                        "', interaction: '", row$interaction,
+                        "', edge_type: '", row$edge_type,
+                        "', category: '", row$category,
+                        "', color: '", style$color,
+                        "', line_style: '", style$style,
+                        "', arrow_shape: '", style$arrow,
+                        "', width: ", style$width, " } }")
+    
+    edge_elements[[edge_key]] <- edge_data
   }
   
   return(edge_elements)
@@ -212,6 +230,178 @@ mapLogFCToColor <- function(logFC_values) {
   return(hex_colors)
 }
 
+# Define relationship categories and their properties
+getRelationshipProperties <- function() {
+  list(
+    complex = list(
+      types = c("Complex"),
+      color = "#8B4513",        # Brown
+      style = "solid",
+      arrow = "none",           # Undirected
+      width = 4,
+      consolidate = "undirected"
+    ),
+    regulatory = list(
+      types = c("Inhibit", "Activate", "IncreaseAmount", "DecreaseAmount"),
+      colors = list(
+        "Inhibit" = "#FF4444",           # Red
+        "Activate" = "#44AA44",          # Green  
+        "IncreaseAmount" = "#4488FF",    # Blue
+        "DecreaseAmount" = "#FF8844"     # Orange
+      ),
+      style = "solid",
+      arrow = "triangle",
+      width = 3,
+      consolidate = "bidirectional"
+    ),
+    ptm = list(
+      types = c("Phosphorylation"),
+      color = "#9932CC",        # Purple
+      style = "dashed",
+      arrow = "triangle",
+      width = 2,
+      consolidate = "directed"
+    ),
+    other = list(
+      color = "#666666",        # Gray
+      style = "dotted",
+      arrow = "triangle", 
+      width = 2,
+      consolidate = "directed"
+    )
+  )
+}
+
+# Consolidate bidirectional edges based on relationship type
+consolidateEdges <- function(edges) {
+  if (nrow(edges) == 0) return(edges)
+  
+  relationship_props <- getRelationshipProperties()
+  consolidated_edges <- list()
+  processed_pairs <- c()
+  
+  for (i in 1:nrow(edges)) {
+    edge <- edges[i, ]
+    pair_key <- paste(sort(c(edge$source, edge$target)), edge$interaction, collapse = "-")
+    reverse_key <- paste(sort(c(edge$source, edge$target), decreasing = TRUE), edge$interaction, sep = "-")
+    
+    # Skip if we've already processed this pair
+    if (pair_key %in% processed_pairs) next
+    
+    # Determine relationship category
+    interaction_type <- edge$interaction
+    category <- "other"
+    for (cat_name in names(relationship_props)) {
+      if (interaction_type %in% relationship_props[[cat_name]]$types) {
+        category <- cat_name
+        break
+      }
+    }
+    
+    # Find reverse edge if it exists
+    reverse_edges <- edges[edges$source == edge$target & 
+                             edges$target == edge$source & 
+                             edges$interaction == edge$interaction, ]
+    
+    consolidation_type <- relationship_props[[category]]$consolidate
+    
+    if (nrow(reverse_edges) > 0 && consolidation_type %in% c("undirected", "bidirectional")) {
+      # Create consolidated edge
+      if (consolidation_type == "undirected") {
+        # For complex relationships - create undirected edge
+        consolidated_edge <- data.frame(
+          source = edge$source,
+          target = edge$target,
+          interaction = edge$interaction,
+          edge_type = "undirected",
+          category = category,
+          stringsAsFactors = FALSE
+        )
+      } else {
+        # For regulatory relationships - create bidirectional edge
+        consolidated_edge <- data.frame(
+          source = edge$source,
+          target = edge$target,
+          interaction = paste(edge$interaction, "(bidirectional)"),
+          edge_type = "bidirectional", 
+          category = category,
+          stringsAsFactors = FALSE
+        )
+      }
+      
+      # Copy any additional columns from original edge
+      other_cols <- setdiff(names(edge), c("source", "target", "interaction"))
+      for (col in other_cols) {
+        consolidated_edge[[col]] <- edge[[col]]
+      }
+      
+      edge_key <- paste(edge$source, edge$target, consolidated_edge$interaction, sep = "-")
+      consolidated_edges[[edge_key]] <- consolidated_edge
+      
+      # Mark both directions as processed
+      processed_pairs <- c(processed_pairs, pair_key)
+      
+    } else {
+      # Keep as directed edge
+      directed_edge <- edge
+      directed_edge$edge_type <- "directed"
+      directed_edge$category <- category
+      
+      edge_key <- paste(edge$source, edge$target, edge$interaction, sep = "-")
+      consolidated_edges[[edge_key]] <- directed_edge
+    }
+  }
+  
+  # Convert list back to data frame
+  if (length(consolidated_edges) > 0) {
+    result <- do.call(rbind, consolidated_edges)
+    rownames(result) <- NULL
+    return(result)
+  } else {
+    return(edges[0, ])  # Return empty data frame with same structure
+  }
+}
+
+# Get edge styling properties based on category and interaction type
+getEdgeStyle <- function(interaction, category, edge_type) {
+  relationship_props <- getRelationshipProperties()
+  
+  if (category %in% names(relationship_props)) {
+    props <- relationship_props[[category]]
+    
+    # Handle regulatory relationships with specific colors
+    if (category == "regulatory" && "colors" %in% names(props)) {
+      base_interaction <- gsub(" \\(bidirectional\\)", "", interaction)
+      color <- if (base_interaction %in% names(props$colors)) {
+        props$colors[[base_interaction]]
+      } else {
+        "#666666"  # Default gray
+      }
+    } else {
+      color <- props$color
+    }
+    
+    # Adjust arrow type based on edge type
+    arrow <- if (edge_type == "undirected") {
+      "none"
+    } else if (edge_type == "bidirectional") {
+      "triangle"  # Will be handled specially in CSS
+    } else {
+      props$arrow
+    }
+    
+    return(list(
+      color = color,
+      style = props$style,
+      arrow = arrow,
+      width = props$width
+    ))
+  } else {
+    # Default styling for unknown relationships
+    return(relationship_props$other)
+  }
+}
+
 generateCytoscapeJS <- function(node_elements, edge_elements) {
   elements <- c(node_elements, edge_elements)
   
@@ -227,13 +417,11 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
                     'background-color': 'data(color)',
                     'label': 'data(label)',
                     'width': function(ele) {
-                        // Calculate width based on label length, with minimum and maximum sizes
                         var label = ele.data('label') || '';
                         var labelLength = label.length;
                         return Math.max(60, Math.min(labelLength * 8 + 20, 150));
                     },
                     'height': function(ele) {
-                        // Calculate height based on label length, with minimum size
                         var label = ele.data('label') || '';
                         var labelLength = label.length;
                         return Math.max(40, Math.min(labelLength * 2 + 30, 60));
@@ -246,7 +434,6 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
                     'text-halign': 'center',
                     'text-wrap': 'wrap',
                     'text-max-width': function(ele) {
-                        // Ensure text doesn't exceed node width
                         var label = ele.data('label') || '';
                         var labelLength = label.length;
                         return Math.max(50, Math.min(labelLength * 8 + 10, 140));
@@ -259,17 +446,49 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
             {
                 selector: 'edge',
                 style: {
-                    'width': 3,
-                    'line-color': '#ccc',
+                    'width': 'data(width)',
+                    'line-color': 'data(color)',
+                    'line-style': 'data(line_style)',
                     'label': 'data(interaction)',
                     'curve-style': 'bezier',
-                    'target-arrow-shape': 'triangle',
-                    'target-arrow-color': '#234',
-                    'edge-offset': 10,
-                    'text-margin-y': -10,
-                    'text-halign': 'center',
+                    'target-arrow-shape': 'data(arrow_shape)',
+                    'target-arrow-color': 'data(color)',
+                    'source-arrow-shape': function(ele) {
+                        return ele.data('edge_type') === 'bidirectional' ? 'triangle' : 'none';
+                    },
+                    'source-arrow-color': 'data(color)',
                     'edge-text-rotation': 'autorotate',
-                    'font-size': '10px'
+                    'text-margin-y': -12,
+                    'text-halign': 'center',
+                    'font-size': '9px',
+                    'font-weight': 'bold',
+                    'color': 'data(color)',
+                    'text-background-color': '#ffffff',
+                    'text-background-opacity': 0.8,
+                    'text-background-padding': '2px'
+                }
+            },
+            // Special styling for different edge categories
+            {
+                selector: 'edge[category = \"complex\"]',
+                style: {
+                    'line-style': 'solid',
+                    'target-arrow-shape': 'none',
+                    'source-arrow-shape': 'none'
+                }
+            },
+            {
+                selector: 'edge[category = \"ptm\"]',
+                style: {
+                    'line-style': 'dashed',
+                    'width': 2
+                }
+            },
+            {
+                selector: 'edge[edge_type = \"bidirectional\"]',
+                style: {
+                    'source-arrow-shape': 'triangle',
+                    'target-arrow-shape': 'triangle'
                 }
             }
         ],
@@ -279,9 +498,48 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
             animate: true,
             fit: true,
             padding: 30,
-            spacingFactor: 1.25
+            spacingFactor: 1.5,
+            // Adjust layout parameters for better edge visibility
+            nodeSep: 50,
+            edgeSep: 20,
+            rankSep: 80
         }
     });
+    
+    // Add legend for edge types
+    var legend = document.getElementById('network-legend');
+    if (!legend) {
+        legend = document.createElement('div');
+        legend.id = 'network-legend';
+        legend.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.9);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 12px;
+            font-family: Arial, sans-serif;
+            z-index: 1000;
+            max-width: 200px;
+        `;
+        legend.innerHTML = `
+            <div style='font-weight: bold; margin-bottom: 8px;'>Edge Types</div>
+            <div style='margin: 3px 0;'><span style='color: #8B4513; font-weight: bold;'>━━</span> Complex</div>
+            <div style='margin: 3px 0;'><span style='color: #44AA44; font-weight: bold;'>━▶</span> Activate</div>
+            <div style='margin: 3px 0;'><span style='color: #FF4444; font-weight: bold;'>━▶</span> Inhibit</div>
+            <div style='margin: 3px 0;'><span style='color: #4488FF; font-weight: bold;'>━▶</span> Increase Amount</div>
+            <div style='margin: 3px 0;'><span style='color: #FF8844; font-weight: bold;'>━▶</span> Decrease Amount</div>
+            <div style='margin: 3px 0;'><span style='color: #9932CC; font-weight: bold;'>┅▶</span> PTM</div>
+            <div style='margin: 3px 0;'><span style='color: #666666; font-weight: bold;'>┄▶</span> Other</div>
+            <div style='margin-top: 8px; font-size: 10px; color: #666;'>
+                ◀━▶ = Bidirectional<br/>
+                ━━ = Undirected
+            </div>
+        `;
+        document.getElementById('network-cy').appendChild(legend);
+    }
     
     // Capture the event when an edge is clicked
     cy.on('tap', 'edge', function(evt) {
@@ -290,8 +548,17 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
         Shiny.setInputValue('network-edgeClicked', { 
             source: edge.data('source'),
             target: edge.data('target'),
-            interaction: edge.data('interaction')
+            interaction: edge.data('interaction'),
+            edge_type: edge.data('edge_type'),
+            category: edge.data('category')
         });
+    });
+    
+    // Add double-click to fit view
+    cy.on('dblclick', function(evt) {
+        if (evt.target === cy) {
+            cy.fit();
+        }
     });
     ")
 }
@@ -309,8 +576,11 @@ renderDataTables <- function(output, nodes_table, edges_table) {
                              autoWidth = TRUE))
   })
   
+  # Show consolidated edges in the table
+  consolidated_edges <- consolidateEdges(edges_table)
+  
   output$edgesTable <- renderDT({
-    datatable(edges_table, 
+    datatable(consolidated_edges, 
               options = list(pageLength = 10, 
                              searchable = TRUE,
                              scrollX = TRUE,
@@ -324,14 +594,17 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
   target <- edge_data$target
   interaction <- edge_data$interaction
   
+  # Work with consolidated edges
+  consolidated_edges <- consolidateEdges(edges_table)
+  
   # Find matching row
-  row_index <- which(edges_table$source == source & 
-                       edges_table$target == target & 
-                       edges_table$interaction == interaction)
+  row_index <- which(consolidated_edges$source == source & 
+                       consolidated_edges$target == target & 
+                       consolidated_edges$interaction == interaction)
   
   if (length(row_index) > 0) {
     # Bring the highlighted row to the top
-    reordered_table <- edges_table[c(row_index, setdiff(1:nrow(edges_table), row_index)), ]
+    reordered_table <- consolidated_edges[c(row_index, setdiff(1:nrow(consolidated_edges), row_index)), ]
     
     output$edgesTable <- renderDT({
       datatable(reordered_table, 
