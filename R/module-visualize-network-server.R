@@ -40,18 +40,20 @@ updateLabelChoices <- function(session, df) {
 # Updated helper function to update the protein choices dropdown
 updateProteinChoices <- function(session, df) {
   if (!is.null(df) && "Protein" %in% names(df)) {
-    unique_proteins <- unique(df$Protein)
-    # Remove any NA values
-    unique_proteins <- unique_proteins[!is.na(unique_proteins)]
-    # Sort proteins alphabetically
-    unique_proteins <- sort(unique_proteins)
-    
-    updateSelectInput(session, "selectedProteins",
-                      choices = setNames(unique_proteins, unique_proteins))
+    updateSelectizeInput(
+      session,
+      "selectedProteins",
+      choices = df$Protein,
+      server  = TRUE
+    )
   } else {
     # If no Protein column exists, clear the dropdown
-    updateSelectInput(session, "selectedProteins",
-                      choices = NULL)
+    updateSelectizeInput(
+      session,
+      "selectedProteins",
+      choices = NULL,
+      server  = TRUE
+    )
   }
 }
 
@@ -348,6 +350,8 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
 #' @importFrom MSstatsBioNet annotateProteinInfoFromIndra getSubnetworkFromIndra
 #' @importFrom DT renderDT datatable
 visualizeNetworkServer <- function(input, output, session, parent_session, dataComparison) {
+  
+  
   # Output to control conditional panels
   output$hasValidDataComparison <- reactive({
     !is.null(dataComparison()) &&
@@ -450,5 +454,6 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     current_df <- df()
     updateLabelChoices(session, current_df)
     updateProteinChoices(session, current_df)
+    
   })
 }

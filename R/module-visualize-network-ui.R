@@ -156,12 +156,16 @@ createFilterDropdowns <- function(ns) {
                 multiple = TRUE),
     div(
       style = "position: relative;",
-      # Standard selectInput with normal label
-      selectInput(ns("selectedProteins"),
-                  "Force Include Proteins (optional)",
-                  choices = NULL,  # Will be populated dynamically
-                  selected = NULL,
-                  multiple = TRUE),
+      selectizeInput(
+        inputId  = ns("selectedProteins"),
+        label    = "Force Include Proteins (optional):",
+        choices  = NULL,        # start empty
+        multiple = TRUE,
+        options  = list(
+          placeholder = "Type to search…",
+          maxOptions  = 10      # how many matches to show at once
+        )
+      ),
       # Separate tooltip positioned over the label area
       div(
         class = "icon-wrapper",
