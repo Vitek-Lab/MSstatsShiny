@@ -299,110 +299,93 @@ createDataUploadBox <- function(ns) {
 
 createNetworkLegends <- function() {
   div(
-    style = "position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 10px;",
+    style = "position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 5px;",
     
-    # LogFC Legend
+    # LogFC Legend - Compact version
     div(
-      style = "background-color: rgba(255, 255, 255, 0.9); border: 1px solid #ddd; border-radius: 5px; 
-               padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 150px;",
+      style = "background-color: rgba(255, 255, 255, 0.95); border: 1px solid #ddd; border-radius: 3px; 
+               padding: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 120px; max-width: 140px;",
       
       # Legend title
       div(
-        style = "font-weight: bold; font-size: 12px; margin-bottom: 8px; text-align: center; color: #333;",
-        "LogFC Legend"
+        style = "font-weight: bold; font-size: 10px; margin-bottom: 4px; text-align: center; color: #333;",
+        "LogFC"
       ),
       
-      # Color gradient bar
+      # Color gradient bar - smaller
       div(
-        style = "height: 20px; width: 100%; background: linear-gradient(to right, #ADD8E6, #D3D3D3, #FFA590); 
-                 border: 1px solid #ccc; border-radius: 3px; margin-bottom: 5px;"
+        style = "height: 12px; width: 100%; background: linear-gradient(to right, #ADD8E6, #D3D3D3, #FFA590); 
+                 border: 1px solid #ccc; border-radius: 2px; margin-bottom: 3px;"
       ),
       
-      # Labels container
+      # Labels container - more compact
       div(
-        style = "display: flex; justify-content: space-between; font-size: 10px; color: #666;",
-        tags$span("Downregulated", style = "font-weight: bold;"),
+        style = "display: flex; justify-content: space-between; font-size: 8px; color: #666;",
+        tags$span("Down", style = "font-weight: bold;"),
         tags$span("0", style = "font-weight: bold;"),
-        tags$span("Upregulated", style = "font-weight: bold;")
-      ),
-      
-      # Additional info
-      div(
-        style = "margin-top: 8px; font-size: 9px; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 5px;",
-        "Node colors represent log fold change values"
+        tags$span("Up", style = "font-weight: bold;")
       )
     ),
     
-    # Edge Legend
+    # Edge Legend - Much more compact
     div(
-      style = "background-color: rgba(255, 255, 255, 0.9); border: 1px solid #ddd; border-radius: 5px; 
-               padding: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); min-width: 150px;",
+      style = "background-color: rgba(255, 255, 255, 0.95); border: 1px solid #ddd; border-radius: 3px; 
+               padding: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 120px; max-width: 140px;",
       
       # Legend title
       div(
-        style = "font-weight: bold; font-size: 12px; margin-bottom: 8px; text-align: center; color: #333;",
-        "Edge Types"
+        style = "font-weight: bold; font-size: 10px; margin-bottom: 4px; text-align: center; color: #333;",
+        "Edges"
       ),
       
-      # Edge type entries
+      # Edge type entries - much more compact
       div(
-        style = "font-size: 10px; line-height: 1.4;",
+        style = "font-size: 8px; line-height: 1.2;",
         
-        # Complex
+        # Two-column layout with proper row alignment
         div(
-          style = "margin: 3px 0; display: flex; align-items: center;",
-          tags$span("━━", style = "color: #8B4513; font-weight: bold; margin-right: 6px; font-size: 12px;"),
-          tags$span("Complex", style = "color: #333;")
-        ),
-        
-        # Activate
-        div(
-          style = "margin: 3px 0; display: flex; align-items: center;",
-          tags$span("━▶", style = "color: #44AA44; font-weight: bold; margin-right: 6px; font-size: 12px;"),
-          tags$span("Activation", style = "color: #333;")
-        ),
-        
-        # Inhibit
-        div(
-          style = "margin: 3px 0; display: flex; align-items: center;",
-          tags$span("━▶", style = "color: #FF4444; font-weight: bold; margin-right: 6px; font-size: 12px;"),
-          tags$span("Inhibition", style = "color: #333;")
-        ),
-        
-        # Increase Amount
-        div(
-          style = "margin: 3px 0; display: flex; align-items: center;",
-          tags$span("━▶", style = "color: #4488FF; font-weight: bold; margin-right: 6px; font-size: 12px;"),
-          tags$span("Increase Amount", style = "color: #333;")
-        ),
-        
-        # Decrease Amount
-        div(
-          style = "margin: 3px 0; display: flex; align-items: center;",
-          tags$span("━▶", style = "color: #FF8844; font-weight: bold; margin-right: 6px; font-size: 12px;"),
-          tags$span("Decrease Amount", style = "color: #333;")
-        ),
-        
-        # Phosphorylation
-        div(
-          style = "margin: 3px 0; display: flex; align-items: center;",
-          tags$span("┅▶", style = "color: #9932CC; font-weight: bold; margin-right: 6px; font-size: 12px;"),
-          tags$span("Phosphorylation", style = "color: #333;")
-        ),
-        
-        # Other
-        div(
-          style = "margin: 3px 0; display: flex; align-items: center;",
-          tags$span("┄▶", style = "color: #666666; font-weight: bold; margin-right: 6px; font-size: 12px;"),
-          tags$span("Other", style = "color: #333;")
+          div(
+            style = "display: flex; justify-content: space-between; margin: 1px 0;",
+            div(
+              style = "display: flex; align-items: center; flex: 1;",
+              tags$span("━", style = "color: #8B4513; font-weight: bold; margin-right: 3px; font-size: 10px;"),
+              tags$span("Complex", style = "color: #333; font-size: 7px;")
+            ),
+            div(
+              style = "display: flex; align-items: center; flex: 1; padding-left: 4px;",
+              tags$span("┅", style = "color: #9932CC; font-weight: bold; margin-right: 3px; font-size: 10px;"),
+              tags$span("Phospho", style = "color: #333; font-size: 7px;")
+            )
+          ),
+
+          div(
+            style = "display: flex; justify-content: space-between; margin: 1px 0;",
+            div(
+              style = "display: flex; align-items: center; flex: 1;",
+              tags$span("▶", style = "color: #44AA44; font-weight: bold; margin-right: 3px; font-size: 8px;"),
+              tags$span("Activate", style = "color: #333; font-size: 7px;")
+            ),
+            div(
+              style = "display: flex; align-items: center; flex: 1; padding-left: 4px;",
+              tags$span("▶", style = "color: #FF4444; font-weight: bold; margin-right: 3px; font-size: 8px;"),
+              tags$span("Inhibit", style = "color: #333; font-size: 7px;")
+            )
+          ),
+          
+          div(
+            style = "display: flex; justify-content: space-between; margin: 1px 0;",
+            div(
+              style = "display: flex; align-items: center; flex: 1;",
+              tags$span("▶", style = "color: #4488FF; font-weight: bold; margin-right: 3px; font-size: 8px;"),
+              tags$span("Increase", style = "color: #333; font-size: 7px;")
+            ),
+            div(
+              style = "display: flex; align-items: center; flex: 1; padding-left: 4px;",
+              tags$span("▶", style = "color: #FF8844; font-weight: bold; margin-right: 3px; font-size: 8px;"),
+              tags$span("Decrease", style = "color: #333; font-size: 7px;")
+            )
+          )
         )
-      ),
-      
-      # Direction indicators
-      div(
-        style = "margin-top: 8px; font-size: 9px; color: #666; text-align: center; border-top: 1px solid #eee; padding-top: 5px;",
-        div("◀━▶ = Bidirectional"),
-        div("━━ = Undirected")
       )
     )
   )
