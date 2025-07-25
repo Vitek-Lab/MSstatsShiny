@@ -402,6 +402,7 @@ getEdgeStyle <- function(interaction, category, edge_type) {
   }
 }
 
+
 generateCytoscapeJS <- function(node_elements, edge_elements) {
   elements <- c(node_elements, edge_elements)
   
@@ -478,7 +479,7 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
                 }
             },
             {
-                selector: 'edge[category = \"phosphorylation\"]',
+                selector: 'edge[category = \"ptm\"]',
                 style: {
                     'line-style': 'dashed',
                     'width': 2
@@ -506,40 +507,7 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
         }
     });
     
-    // Add legend for edge types
-    var legend = document.getElementById('network-legend');
-    if (!legend) {
-        legend = document.createElement('div');
-        legend.id = 'network-legend';
-        legend.style.cssText = `
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255,255,255,0.9);
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            font-size: 12px;
-            font-family: Arial, sans-serif;
-            z-index: 1000;
-            max-width: 200px;
-        `;
-        legend.innerHTML = `
-            <div style='font-weight: bold; margin-bottom: 8px;'>Edge Types</div>
-            <div style='margin: 3px 0;'><span style='color: #8B4513; font-weight: bold;'>━━</span> Complex</div>
-            <div style='margin: 3px 0;'><span style='color: #44AA44; font-weight: bold;'>━▶</span> Activate</div>
-            <div style='margin: 3px 0;'><span style='color: #FF4444; font-weight: bold;'>━▶</span> Inhibit</div>
-            <div style='margin: 3px 0;'><span style='color: #4488FF; font-weight: bold;'>━▶</span> Increase Amount</div>
-            <div style='margin: 3px 0;'><span style='color: #FF8844; font-weight: bold;'>━▶</span> Decrease Amount</div>
-            <div style='margin: 3px 0;'><span style='color: #9932CC; font-weight: bold;'>┅▶</span> Phosphorylation</div>
-            <div style='margin: 3px 0;'><span style='color: #666666; font-weight: bold;'>┄▶</span> Other</div>
-            <div style='margin-top: 8px; font-size: 10px; color: #666;'>
-                ◀━▶ = Bidirectional<br/>
-                ━━ = Undirected
-            </div>
-        `;
-        document.getElementById('network-cy').appendChild(legend);
-    }
+
     
     // Capture the event when an edge is clicked
     cy.on('tap', 'edge', function(evt) {
