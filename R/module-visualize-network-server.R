@@ -242,10 +242,10 @@ getRelationshipProperties <- function() {
       consolidate = "undirected"
     ),
     regulatory = list(
-      types = c("Inhibit", "Activate", "IncreaseAmount", "DecreaseAmount"),
+      types = c("Inhibition", "Activation", "IncreaseAmount", "DecreaseAmount"),
       colors = list(
-        "Inhibit" = "#FF4444",           # Red
-        "Activate" = "#44AA44",          # Green  
+        "Inhibition" = "#FF4444",           # Red
+        "Activation" = "#44AA44",          # Green  
         "IncreaseAmount" = "#4488FF",    # Blue
         "DecreaseAmount" = "#FF8844"     # Orange
       ),
@@ -254,7 +254,7 @@ getRelationshipProperties <- function() {
       width = 3,
       consolidate = "bidirectional"
     ),
-    ptm = list(
+    phosphorylation = list(
       types = c("Phosphorylation"),
       color = "#9932CC",        # Purple
       style = "dashed",
@@ -478,7 +478,7 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
                 }
             },
             {
-                selector: 'edge[category = \"ptm\"]',
+                selector: 'edge[category = \"phosphorylation\"]',
                 style: {
                     'line-style': 'dashed',
                     'width': 2
@@ -531,7 +531,7 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
             <div style='margin: 3px 0;'><span style='color: #FF4444; font-weight: bold;'>━▶</span> Inhibit</div>
             <div style='margin: 3px 0;'><span style='color: #4488FF; font-weight: bold;'>━▶</span> Increase Amount</div>
             <div style='margin: 3px 0;'><span style='color: #FF8844; font-weight: bold;'>━▶</span> Decrease Amount</div>
-            <div style='margin: 3px 0;'><span style='color: #9932CC; font-weight: bold;'>┅▶</span> PTM</div>
+            <div style='margin: 3px 0;'><span style='color: #9932CC; font-weight: bold;'>┅▶</span> Phosphorylation</div>
             <div style='margin: 3px 0;'><span style='color: #666666; font-weight: bold;'>┄▶</span> Other</div>
             <div style='margin-top: 8px; font-size: 10px; color: #666;'>
                 ◀━▶ = Bidirectional<br/>
