@@ -43,7 +43,7 @@ updateProteinChoices <- function(session, df) {
     updateSelectizeInput(
       session,
       "selectedProteins",
-      choices = df$Protein,
+      choices = unique(df$Protein),
       server  = TRUE
     )
   } else {
@@ -192,8 +192,9 @@ mapLogFCToColor <- function(logFC_values) {
   }
   
   # Get range of logFC values
-  min_logFC <- min(c(logFC_values, -5), na.rm = TRUE)
-  max_logFC <- max(c(logFC_values, 5), na.rm = TRUE)
+  default_max <- 2
+  max_logFC <- max(c(abs(logFC_values), default_max))
+  min_logFC <- -1 * max_logFC
   
   # Create color mapping function
   color_map <- colorRamp(colors)

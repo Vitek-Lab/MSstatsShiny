@@ -171,7 +171,7 @@ createFilterDropdowns <- function(ns) {
         class = "icon-wrapper",
         style = "position: absolute; top: 8px; right: 10px; z-index: 1000;",
         icon("question-circle", lib = "font-awesome"),
-        div("Select specific proteins to force to include in the network query. These proteins will be included in the network analysis regardless of other filtering criteria. Leave empty to include all proteins that meet the filtering conditions.", 
+        div("Select specific proteins to force to include in the network analysis regardless of other filtering criteria.", 
             class = "icon-tooltip")
       )
     )
