@@ -25,11 +25,20 @@ createFileUploadInput <- function(ns) {
   conditionalPanel(
     condition = "!output.hasValidDataComparison",
     ns = ns,
-    fileInput(ns("dataUpload"), 
-              "Upload CSV File", 
-              accept = c(".csv"), 
-              buttonLabel = "Browse...", 
-              placeholder = "No file selected")
+    div(
+      tags$label(
+        "Upload CSV File:",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Upload a CSV file with differential abundance results. The file must contain at least three columns: Protein (identifier), log2FC (log2 fold change), and adj.pvalue (adjusted p-value).", 
+            class = "icon-tooltip")
+      ),
+      fileInput(ns("dataUpload"), 
+                label = NULL,  # Remove since we're handling it above
+                accept = c(".csv"), 
+                buttonLabel = "Browse...", 
+                placeholder = "No file selected")
+    )
   )
 }
 
@@ -47,113 +56,189 @@ createDataSourceInfo <- function(ns) {
 
 # Add this new helper function for the label dropdown
 createLabelDropdown <- function(ns) {
-  selectInput(ns("selectedLabel"),
-              "Select Comparison",
-              choices = NULL,  # Will be populated dynamically
-              selected = NULL,
-              multiple = FALSE)
+  div(
+    tags$label(
+      "Select Comparison:",
+      class = "icon-wrapper",
+      icon("question-circle", lib = "font-awesome"),
+      div("Choose which experimental comparison to analyze from your uploaded data.", 
+          class = "icon-tooltip")
+    ),
+    selectInput(ns("selectedLabel"),
+                label = NULL,  # Remove since we're handling it above
+                choices = NULL,  # Will be populated dynamically
+                selected = NULL,
+                multiple = FALSE)
+  )
 }
 
 createProteinIdRadioButtons <- function(ns) {
-  radioButtons(ns("proteinIdType"), 
-               "Protein ID Type",
-               choices = list("Uniprot Mnemonic" = "Uniprot_Mnemonic", 
-                              "Uniprot" = "Uniprot"),
-               selected = "Uniprot")
+  div(
+    tags$label(
+      "Protein ID Type:",
+      class = "icon-wrapper",
+      icon("question-circle", lib = "font-awesome"),
+      div("Select the type of protein identifier used in your data. Uniprot Mnemonic uses readable names (e.g., P53_HUMAN), while Uniprot uses alphanumeric codes (e.g., P04637).", 
+          class = "icon-tooltip")
+    ),
+    radioButtons(ns("proteinIdType"), 
+                 label = NULL,  # Remove since we're handling it above
+                 choices = list("Uniprot Mnemonic" = "Uniprot_Mnemonic", 
+                                "Uniprot" = "Uniprot"),
+                 selected = "Uniprot")
+  )
 }
 
 createDisplayLabelRadioButtons <- function(ns) {
-  radioButtons(ns("displayLabelType"),
-               "Node Label Display",
-               choices = list("Protein Name" = "id",
-                              "Gene Name" = "hgncName"),
-               selected = "id")
+  div(
+    tags$label(
+      "Node Label Display:",
+      class = "icon-wrapper",
+      icon("question-circle", lib = "font-awesome"),
+      div("Choose how protein nodes are labeled in the network visualization. Protein Name shows the full protein name, Gene Name shows the HGNC gene symbol.", 
+          class = "icon-tooltip")
+    ),
+    radioButtons(ns("displayLabelType"),
+                 label = NULL,  # Remove since we're handling it above
+                 choices = list("Protein Name" = "id",
+                                "Gene Name" = "hgncName"),
+                 selected = "id")
+  )
 }
 
 createParameterSliders <- function(ns) {
   tagList(
-    sliderInput(ns("pValue"), 
-                "Adjusted P-Value", 
-                min = 0, max = 1, value = 0.05),
-    sliderInput(ns("evidence"), 
-                "Evidence Cutoff", 
-                min = 0, max = 50, value = 5),
-    sliderInput(ns("absLogFC"),
-                "Absolute LogFC Cutoff",
-                min = 0, max = 5, value = 0.5, step = 0.1)
+    div(
+      tags$label(
+        "Adjusted P-Value:",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Statistical significance threshold. Only proteins with adjusted p-values below this cutoff will be included in the network.", 
+            class = "icon-tooltip")
+      ),
+      sliderInput(ns("pValue"), 
+                  label = NULL,  # Remove since we're handling it above
+                  min = 0, max = 1, value = 0.05)
+    ),
+    div(
+      tags$label(
+        "Absolute LogFC Cutoff:",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Minimum absolute log fold change value for including proteins. Higher values focus on more dramatically changed proteins.", 
+            class = "icon-tooltip")
+      ),
+      sliderInput(ns("absLogFC"),
+                  label = NULL,  # Remove since we're handling it above
+                  min = 0, max = 5, value = 0.5, step = 0.1)
+    ),
+    div(
+      tags$label(
+        "Evidence Cutoff:",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Minimum number of supporting evidence lines required for including a protein regulatory relationship. Each count reflects a separate line of support—such as a sentence in a paper or an entry in a curated database—not necessarily distinct publications. Higher values increase confidence but may reduce network size.", 
+            class = "icon-tooltip")
+      ),
+      sliderInput(ns("evidence"), 
+                  label = NULL,  # Remove since we're handling it above
+                  min = 0, max = 50, value = 5)
+    )
   )
 }
 
 createFilterDropdowns <- function(ns) {
   tagList(
-    selectInput(ns("statementTypes"),
-                "Statement Types",
-                choices = list("All Types" = "all",
-                               "Complex" = "Complex",
-                               "Inhibition" = "Inhibition", 
-                               "Activation" = "Activation",
-                               "Increase Amount" = "IncreaseAmount",
-                               "Decrease Amount" = "DecreaseAmount",
-                               "Phosphorylation" = "Phosphorylation",
-                               "Dephosphorylation" = "Dephosphorylation",
-                               "Ubiquitination" = "Ubiquitination",
-                               "Deubiquitination" = "Deubiquitination",
-                               "Sumoylation" = "Sumoylation",
-                               "Desumoylation" = "Desumoylation",
-                               "Hydroxylation" = "Hydroxylation",
-                               "Dehydroxylation" = "Dehydroxylation",
-                               "Acetylation" = "Acetylation",
-                               "Deacetylation" = "Deacetylation",
-                               "Glycosylation" = "Glycosylation",
-                               "Deglycosylation" = "Deglycosylation",
-                               "Farnesylation" = "Farnesylation",
-                               "Defarnesylation" = "Defarnesylation",
-                               "Geranylgeranylation" = "Geranylgeranylation",
-                               "Degeranylgeranylation" = "Degeranylgeranylation",
-                               "Palmitoylation" = "Palmitoylation",
-                               "Depalmitoylation" = "Depalmitoylation",
-                               "Myristoylation" = "Myristoylation",
-                               "Demyristoylation" = "Demyristoylation",
-                               "Ribosylation" = "Ribosylation",
-                               "Deribosylation" = "Deribosylation",
-                               "Methylation" = "Methylation",
-                               "Demethylation" = "Demethylation"),
-                selected = "all",
-                multiple = TRUE),
-    selectInput(ns("sources"),
-                "Sources",
-                choices = list("All Sources" = "all",
-                               "Reach" = "reach",
-                               "Trips" = "trips",
-                               "Sparser" = "sparser",
-                               "Medscan" = "medscan",
-                               "TEES" = "tees",
-                               "ISI" = "isi",
-                               "Geneways" = "geneways",
-                               "RLIMS-P" = "rlimsp",
-                               "Eidos" = "eidos",
-                               "GNBR" = "gnbr",
-                               "SemRep" = "semrep",
-                               "BEL" = "bel",
-                               "BioPAX" = "biopax",
-                               "SIGNOR" = "signor",
-                               "BioGRID" = "biogrid",
-                               "HPRD" = "hprd",
-                               "TRRUST" = "trrust",
-                               "PhosphoELM" = "phosphoelm",
-                               "VirHostNet" = "virhostnet",
-                               "OmniPath" = "omnipath",
-                               "UbiBrowser" = "ubibrowser",
-                               "ACSN" = "acsn",
-                               "WormBase" = "wormbase",
-                               "CTD" = "ctd",
-                               "DrugBank" = "drugbank",
-                               "DGI" = "dgi",
-                               "TAS" = "tas",
-                               "CROG" = "crog",
-                               "CREEDS" = "creeds"),
-                selected = "all",
-                multiple = TRUE),
+    div(
+      tags$label(
+        "Statement Types:",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Filter regulatory relationships by biological mechanism type. Select specific regulation types or 'All Types' to include all available mechanisms.", 
+            class = "icon-tooltip")
+      ),
+      selectInput(ns("statementTypes"),
+                  label = NULL,  # Remove since we're handling it above
+                  choices = list("All Types" = "all",
+                                 "Complex" = "Complex",
+                                 "Inhibition" = "Inhibition", 
+                                 "Activation" = "Activation",
+                                 "Increase Amount" = "IncreaseAmount",
+                                 "Decrease Amount" = "DecreaseAmount",
+                                 "Phosphorylation" = "Phosphorylation",
+                                 "Dephosphorylation" = "Dephosphorylation",
+                                 "Ubiquitination" = "Ubiquitination",
+                                 "Deubiquitination" = "Deubiquitination",
+                                 "Sumoylation" = "Sumoylation",
+                                 "Desumoylation" = "Desumoylation",
+                                 "Hydroxylation" = "Hydroxylation",
+                                 "Dehydroxylation" = "Dehydroxylation",
+                                 "Acetylation" = "Acetylation",
+                                 "Deacetylation" = "Deacetylation",
+                                 "Glycosylation" = "Glycosylation",
+                                 "Deglycosylation" = "Deglycosylation",
+                                 "Farnesylation" = "Farnesylation",
+                                 "Defarnesylation" = "Defarnesylation",
+                                 "Geranylgeranylation" = "Geranylgeranylation",
+                                 "Degeranylgeranylation" = "Degeranylgeranylation",
+                                 "Palmitoylation" = "Palmitoylation",
+                                 "Depalmitoylation" = "Depalmitoylation",
+                                 "Myristoylation" = "Myristoylation",
+                                 "Demyristoylation" = "Demyristoylation",
+                                 "Ribosylation" = "Ribosylation",
+                                 "Deribosylation" = "Deribosylation",
+                                 "Methylation" = "Methylation",
+                                 "Demethylation" = "Demethylation"),
+                  selected = "all",
+                  multiple = TRUE)
+    ),
+    div(
+      tags$label(
+        "Sources:",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Filter regulatory relationships by data source. Different sources use various methods to identify protein regulatory relationships (literature mining, manual curation, etc.).", 
+            class = "icon-tooltip")
+      ),
+      selectInput(ns("sources"),
+                  label = NULL,  # Remove since we're handling it above
+                  choices = list("All Sources" = "all",
+                                 "Text Mining Systems" = list(
+                                   "REACH" = "reach",
+                                   "TRIPS/DRUM" = "trips",
+                                   "Sparser" = "sparser",
+                                   "Eidos" = "eidos",
+                                   "TEES" = "tees",
+                                   "MedScan" = "medscan",
+                                   "RLIMS-P" = "rlimsp",
+                                   "ISI/AMR" = "isi",
+                                   "Geneways" = "geneways",
+                                   "GNBR" = "gnbr",
+                                   "SemRep" = "semrep"
+                                 ),
+                                 "Curated Databases" = list(
+                                   "BEL" = "bel",
+                                   "BioPAX" = "biopax",
+                                   "SIGNOR" = "signor",
+                                   "BioGRID" = "biogrid",
+                                   "HPRD" = "hprd",
+                                   "TRRUST" = "trrust",
+                                   "PhosphoELM" = "phosphoelm",
+                                   "VirHostNet" = "virhostnet",
+                                   "OmniPath" = "omnipath",
+                                   "UbiBrowser" = "ubibrowser",
+                                   "ACSN" = "acsn",
+                                   "WormBase" = "wormbase",
+                                   "CTD" = "ctd",
+                                   "DrugBank" = "drugbank",
+                                   "DGI" = "dgi",
+                                   "TAS" = "tas",
+                                   "CROG" = "crog",
+                                   "CREEDS" = "creeds"
+                                 )),
+                  selected = "all",
+                  multiple = TRUE)
+    ),
     div(
       tags$label(
         "Force Include Proteins (optional):",
@@ -316,7 +401,7 @@ createNetworkSettingsTab <- function(ns) {
 # =============================================================================
 
 createDashboardHeader <- function() {
-  dashboardHeader(title = "Protein Interaction Network")
+  dashboardHeader(title = "Protein Regulatory Network")
 }
 
 createDashboardBody <- function(ns) {
