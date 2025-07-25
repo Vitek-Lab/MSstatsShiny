@@ -557,15 +557,16 @@ renderDataTables <- function(output, nodes_table, edges_table) {
 highlightEdgeInTable <- function(output, edge_data, edges_table) {
   source <- edge_data$source
   target <- edge_data$target
-  interaction <- edge_data$interaction
+  interaction <- gsub(" \\(bidirectional\\)", "", edge_data$interaction)
   edge_type <- edge_data$edge_type
   
   # Find matching rows
   if (edge_type %in% c("undirected", "bidirectional")) {
+    
     # For undirected or bidirectional edges, match source and target regardless of order
-    row_indices <- which((edges_table$source == source & edges_table$target == target) |
-                       (edges_table$source == target & edges_table$target == source) &
-                       edges_table$interaction == interaction)
+    row_indices <- which(((edges_table$source == source & edges_table$target == target) |
+                       (edges_table$source == target & edges_table$target == source)) &
+                       (edges_table$interaction == interaction))
   } else {
     # For directed edges, match exactly
     row_indices <- which(edges_table$source == source & 
@@ -575,7 +576,7 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
   
   if (length(row_indices) > 0) {
     # Bring the highlighted row to the top
-    reordered_table <- edges_table[c(row_indices, setdiff(1:nrow(edges_table), row_indices)), ]
+    reordered_table <- edges_table[row_indices, ]
     
     output$edgesTable <- renderDT({
       datatable(reordered_table, 
