@@ -544,11 +544,8 @@ renderDataTables <- function(output, nodes_table, edges_table) {
                              autoWidth = TRUE))
   })
   
-  # Show consolidated edges in the table
-  consolidated_edges <- consolidateEdges(edges_table)
-  
   output$edgesTable <- renderDT({
-    datatable(consolidated_edges, 
+    datatable(edges_table, 
               options = list(pageLength = 10, 
                              searchable = TRUE,
                              scrollX = TRUE,
@@ -561,18 +558,24 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
   source <- edge_data$source
   target <- edge_data$target
   interaction <- edge_data$interaction
+  edge_type <- edge_data$edge_type
   
-  # Work with consolidated edges
-  consolidated_edges <- consolidateEdges(edges_table)
+  # Find matching rows
+  if (edge_type %in% c("undirected", "bidirectional")) {
+    # For undirected or bidirectional edges, match source and target regardless of order
+    row_indices <- which((edges_table$source == source & edges_table$target == target) |
+                       (edges_table$source == target & edges_table$target == source) &
+                       edges_table$interaction == interaction)
+  } else {
+    # For directed edges, match exactly
+    row_indices <- which(edges_table$source == source & 
+                       edges_table$target == target & 
+                       edges_table$interaction == interaction)
+  }
   
-  # Find matching row
-  row_index <- which(consolidated_edges$source == source & 
-                       consolidated_edges$target == target & 
-                       consolidated_edges$interaction == interaction)
-  
-  if (length(row_index) > 0) {
+  if (length(row_indices) > 0) {
     # Bring the highlighted row to the top
-    reordered_table <- consolidated_edges[c(row_index, setdiff(1:nrow(consolidated_edges), row_index)), ]
+    reordered_table <- edges_table[c(row_indices, setdiff(1:nrow(edges_table), row_indices)), ]
     
     output$edgesTable <- renderDT({
       datatable(reordered_table, 
