@@ -192,8 +192,8 @@ mapLogFCToColor <- function(logFC_values) {
   }
   
   # Get range of logFC values
-  min_logFC <- min(logFC_values, na.rm = TRUE)
-  max_logFC <- max(logFC_values, na.rm = TRUE)
+  min_logFC <- min(c(logFC_values, -5), na.rm = TRUE)
+  max_logFC <- max(c(logFC_values, 5), na.rm = TRUE)
   
   # Create color mapping function
   color_map <- colorRamp(colors)
