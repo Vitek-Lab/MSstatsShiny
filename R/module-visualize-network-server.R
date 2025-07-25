@@ -323,7 +323,7 @@ generateCytoscapeConfig <- function(node_elements, edge_elements,
     default_layout
   }
   
-  # Define the style configuration
+  # Define the style configuration (same as before)
   style_config <- list(
     list(
       selector = "node",
@@ -517,7 +517,7 @@ convertLayoutToJS <- function(layout_list) {
 #' @return JavaScript code string with Shiny event handlers
 generateCytoscapeJSForShiny <- function(node_elements, edge_elements, container_id = "network-cy") {
   
-  # Define Shiny-specific event handlers
+  # Define Shiny-specific event handlers for both edges and nodes
   shiny_event_handlers <- list(
     edge_click = "function(evt) {
         var edge = evt.target;
@@ -528,6 +528,15 @@ generateCytoscapeJSForShiny <- function(node_elements, edge_elements, container_
             interaction: edge.data('interaction'),
             edge_type: edge.data('edge_type'),
             category: edge.data('category')
+        });
+    }",
+    node_click = "function(evt) {
+        var node = evt.target;
+        const nodeId = node.id();
+        Shiny.setInputValue('network-nodeClicked', { 
+            id: node.data('id'),
+            label: node.data('label'),
+            color: node.data('color')
         });
     }"
   )
@@ -561,6 +570,27 @@ renderDataTables <- function(output, nodes_table, edges_table) {
                              autoWidth = TRUE), 
               selection = 'single')
   })
+}
+
+highlightNodeInTable <- function(output, node_data, nodes_table) {
+  node_id <- node_data$id
+  
+  # Find matching row based on node ID
+  row_index <- which(nodes_table$id == node_id)
+  
+  if (length(row_index) > 0) {
+    # Create a filtered table with just the clicked node
+    filtered_table <- nodes_table[row_index, , drop = FALSE]
+    
+    output$nodesTable <- renderDT({
+      datatable(filtered_table, 
+                options = list(pageLength = 10, 
+                               searchable = TRUE,
+                               scrollX = TRUE,
+                               autoWidth = TRUE), 
+                selection = list(mode = 'single', selected = 1))
+    })
+  }
 }
 
 highlightEdgeInTable <- function(output, edge_data, edges_table) {
@@ -847,6 +877,14 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     edges_table <- renderNetwork()$edges_table
     
     highlightEdgeInTable(output, edge_data, edges_table)
+  })
+  
+  # Observe node click events
+  observeEvent(input$nodeClicked, {
+    node_data <- input$nodeClicked
+    nodes_table <- renderNetwork()$nodes_table
+    
+    highlightNodeInTable(output, node_data, nodes_table)
   })
   
   observeEvent(df(), {
