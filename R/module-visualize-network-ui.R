@@ -155,24 +155,22 @@ createFilterDropdowns <- function(ns) {
                 selected = "all",
                 multiple = TRUE),
     div(
-      style = "position: relative;",
+      tags$label(
+        "Force Include Proteins (optional):",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Select specific proteins to include in the network analysis regardless of other filtering criteria.", 
+            class = "icon-tooltip")
+      ),
       selectizeInput(
         inputId  = ns("selectedProteins"),
-        label    = "Force Include Proteins (optional):",
-        choices  = NULL,        # start empty
+        label    = NULL,  # Remove since we're handling it above
+        choices  = NULL,
         multiple = TRUE,
         options  = list(
           placeholder = "Type to search…",
-          maxOptions  = 10      # how many matches to show at once
+          maxOptions  = 10
         )
-      ),
-      # Separate tooltip positioned over the label area
-      div(
-        class = "icon-wrapper",
-        style = "position: absolute; top: 8px; right: 10px; z-index: 1000;",
-        icon("question-circle", lib = "font-awesome"),
-        div("Select specific proteins to force to include in the network analysis regardless of other filtering criteria.", 
-            class = "icon-tooltip")
       )
     )
   )
