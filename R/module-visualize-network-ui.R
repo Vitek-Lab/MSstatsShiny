@@ -359,14 +359,14 @@ createNetworkLegends <- function() {
         div(
           style = "margin: 3px 0; display: flex; align-items: center;",
           tags$span("━▶", style = "color: #44AA44; font-weight: bold; margin-right: 6px; font-size: 12px;"),
-          tags$span("Activate", style = "color: #333;")
+          tags$span("Activation", style = "color: #333;")
         ),
         
         # Inhibit
         div(
           style = "margin: 3px 0; display: flex; align-items: center;",
           tags$span("━▶", style = "color: #FF4444; font-weight: bold; margin-right: 6px; font-size: 12px;"),
-          tags$span("Inhibit", style = "color: #333;")
+          tags$span("Inhibition", style = "color: #333;")
         ),
         
         # Increase Amount
@@ -383,11 +383,11 @@ createNetworkLegends <- function() {
           tags$span("Decrease Amount", style = "color: #333;")
         ),
         
-        # PTM
+        # Phosphorylation
         div(
           style = "margin: 3px 0; display: flex; align-items: center;",
           tags$span("┅▶", style = "color: #9932CC; font-weight: bold; margin-right: 6px; font-size: 12px;"),
-          tags$span("PTM", style = "color: #333;")
+          tags$span("Phosphorylation", style = "color: #333;")
         ),
         
         # Other

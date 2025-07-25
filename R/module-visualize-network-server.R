@@ -1,203 +1,7 @@
-
 # =============================================================================
-# HELPER FUNCTIONS - Data Management
+# CYTOSCAPE VISUALIZATION PACKAGE FUNCTIONS
+# These functions should go in your separate package
 # =============================================================================
-
-loadCsvData <- function(input, dataComparison) {
-  if (is.null(input$dataUpload) && !is.null(dataComparison()$ComparisonResult)) {
-    df <- dataComparison()$ComparisonResult
-    if (!is.null(df) && "Protein" %in% names(df)) {
-      df$Protein <- as.character(df$Protein)
-      return(df)
-    }
-  }
-  req(input$dataUpload)
-  tryCatch({
-    read.csv(input$dataUpload$datapath)
-  }, error = function(e) {
-    showNotification(paste("Error reading file:", e$message), type = "error")
-    return(NULL)
-  })
-}
-
-# Helper function to update the label dropdown choices
-updateLabelChoices <- function(session, df) {
-  if (!is.null(df) && "Label" %in% names(df)) {
-    unique_labels <- unique(df$Label)
-    # Remove any NA values
-    unique_labels <- unique_labels[!is.na(unique_labels)]
-    
-    updateSelectInput(session, "selectedLabel",
-                      choices = c(setNames(unique_labels, unique_labels)))
-  } else {
-    # If no Label column exists, disable the dropdown
-    updateSelectInput(session, "selectedLabel",
-                      choices = c("No Label column found" = "none"),
-                      selected = "none")
-  }
-}
-
-# Updated helper function to update the protein choices dropdown
-updateProteinChoices <- function(session, df) {
-  if (!is.null(df) && "Protein" %in% names(df)) {
-    updateSelectizeInput(
-      session,
-      "selectedProteins",
-      choices = unique(df$Protein),
-      server  = TRUE
-    )
-  } else {
-    # If no Protein column exists, clear the dropdown
-    updateSelectizeInput(
-      session,
-      "selectedProteins",
-      choices = NULL,
-      server  = TRUE
-    )
-  }
-}
-
-getInputParameters <- function(input) {
-  # Require that both filters have at least one selection
-  req(input$statementTypes, input$sources)
-  
-  # Handle "all" selections for statement type
-  statementTypes <- if("all" %in% req(input$statementTypes)) {
-    NULL
-  } else {
-    input$statementTypes
-  }
-  
-  # Handle "all" selections for sources
-  sources <- if("all" %in% input$sources) {
-    NULL
-  } else {
-    input$sources
-  }
-  
-  # Handle protein selection (NULL if nothing selected)
-  selectedProteins <- if(is.null(input$selectedProteins) || length(input$selectedProteins) == 0) {
-    NULL
-  } else {
-    input$selectedProteins
-  }
-  
-  list(
-    proteinIdType = req(input$proteinIdType),
-    pValue = as.numeric(req(input$pValue)),
-    evidence = as.numeric(req(input$evidence)),
-    absLogFC = as.numeric(req(input$absLogFC)),
-    statementTypes = statementTypes,
-    sources = sources,
-    selectedLabel = req(input$selectedLabel),
-    selectedProteins = selectedProteins
-  )
-}
-
-
-# =============================================================================
-# HELPER FUNCTIONS - Data Processing
-# =============================================================================
-
-# Helper function to filter data by selected label
-filterDataByLabel <- function(df, selectedLabel) {
-  if ("Label" %in% names(df)) {
-    filtered_df <- df[df$Label == selectedLabel & !is.na(df$Label), ]
-    return(filtered_df)
-  } else {
-    return(df)
-  }
-}
-
-annotateProteinData <- function(df, proteinIdType) {
-  tryCatch({
-    annotateProteinInfoFromIndra(df, proteinIdType)
-  }, error = function(e) {
-    showNotification(paste("Error in annotation:", e$message), type = "error")
-    return(NULL)
-  })
-}
-
-extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes, 
-                              sources, absLogFC, selectedProteins) {
-  tryCatch({
-    getSubnetworkFromIndra(annotated_df, 
-                           pvalueCutoff = pValue, 
-                           evidence_count_cutoff = evidence,
-                           statement_types = statementTypes,
-                           sources_filter = sources,
-                           logfc_cutoff = absLogFC,
-                           force_include_proteins = selectedProteins)
-  }, error = function(e) {
-    showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
-    print(e$message)
-    return(NULL)
-  })
-}
-
-# =============================================================================
-# HELPER FUNCTIONS - Cytoscape Visualization
-# =============================================================================
-
-createNodeElements <- function(nodes, displayLabelType = "id") {
-  # Map logFC to colors if logFC column exists
-  if ("logFC" %in% names(nodes)) {
-    node_colors <- mapLogFCToColor(nodes$logFC)
-  } else {
-    node_colors <- rep("#D3D3D3", nrow(nodes))  # Default color
-  }
-  
-  # Determine which column to use for labels
-  label_column <- if(displayLabelType == "hgncName" && "hgncName" %in% names(nodes)) {
-    "hgncName"
-  } else {
-    "id"
-  }
-  
-  apply(cbind(nodes, color = node_colors), 1, function(row) {
-    # Use the appropriate label, fallback to id if hgncName is missing/empty
-    display_label <- if(label_column == "hgncName" && !is.na(row['hgncName']) && row['hgncName'] != "") {
-      row['hgncName']
-    } else {
-      row['id']
-    }
-    
-    paste0("{ data: { id: '", row['id'], "', label: '", display_label, "', color: '", row['color'], "' } }")
-  })
-}
-
-createEdgeElements <- function(edges) {
-  if (nrow(edges) == 0) return(list())
-  
-  # First consolidate edges
-  consolidated_edges <- consolidateEdges(edges)
-  
-  edge_elements <- list()
-  
-  for (i in 1:nrow(consolidated_edges)) {
-    row <- consolidated_edges[i,]
-    edge_key <- paste(row$source, row$target, row$interaction, sep = "-")
-    
-    # Get styling for this edge
-    style <- getEdgeStyle(row$interaction, row$category, row$edge_type)
-    
-    # Create edge data with styling information
-    edge_data <- paste0("{ data: { source: '", row$source, 
-                        "', target: '", row$target, 
-                        "', id: '", edge_key,
-                        "', interaction: '", row$interaction,
-                        "', edge_type: '", row$edge_type,
-                        "', category: '", row$category,
-                        "', color: '", style$color,
-                        "', line_style: '", style$style,
-                        "', arrow_shape: '", style$arrow,
-                        "', width: ", style$width, " } }")
-    
-    edge_elements[[edge_key]] <- edge_data
-  }
-  
-  return(edge_elements)
-}
 
 # Helper function to map logFC values to colors
 mapLogFCToColor <- function(logFC_values) {
@@ -402,115 +206,320 @@ getEdgeStyle <- function(interaction, category, edge_type) {
   }
 }
 
+createNodeElements <- function(nodes, displayLabelType = "id") {
+  # Map logFC to colors if logFC column exists
+  if ("logFC" %in% names(nodes)) {
+    node_colors <- mapLogFCToColor(nodes$logFC)
+  } else {
+    node_colors <- rep("#D3D3D3", nrow(nodes))  # Default color
+  }
+  
+  # Determine which column to use for labels
+  label_column <- if(displayLabelType == "hgncName" && "hgncName" %in% names(nodes)) {
+    "hgncName"
+  } else {
+    "id"
+  }
+  
+  apply(cbind(nodes, color = node_colors), 1, function(row) {
+    # Use the appropriate label, fallback to id if hgncName is missing/empty
+    display_label <- if(label_column == "hgncName" && !is.na(row['hgncName']) && row['hgncName'] != "") {
+      row['hgncName']
+    } else {
+      row['id']
+    }
+    
+    paste0("{ data: { id: '", row['id'], "', label: '", display_label, "', color: '", row['color'], "' } }")
+  })
+}
 
-generateCytoscapeJS <- function(node_elements, edge_elements) {
+createEdgeElements <- function(edges) {
+  if (nrow(edges) == 0) return(list())
+  
+  # First consolidate edges
+  consolidated_edges <- consolidateEdges(edges)
+  
+  edge_elements <- list()
+  
+  for (i in 1:nrow(consolidated_edges)) {
+    row <- consolidated_edges[i,]
+    edge_key <- paste(row$source, row$target, row$interaction, sep = "-")
+    
+    # Get styling for this edge
+    style <- getEdgeStyle(row$interaction, row$category, row$edge_type)
+    
+    # Create edge data with styling information
+    edge_data <- paste0("{ data: { source: '", row$source, 
+                        "', target: '", row$target, 
+                        "', id: '", edge_key,
+                        "', interaction: '", row$interaction,
+                        "', edge_type: '", row$edge_type,
+                        "', category: '", row$category,
+                        "', color: '", style$color,
+                        "', line_style: '", style$style,
+                        "', arrow_shape: '", style$arrow,
+                        "', width: ", style$width, " } }")
+    
+    edge_elements[[edge_key]] <- edge_data
+  }
+  
+  return(edge_elements)
+}
+
+#' Generate Cytoscape visualization configuration
+#' 
+#' This function creates a complete Cytoscape configuration object that can be
+#' used to render a network visualization. It's decoupled from any specific
+#' UI framework.
+#' 
+#' @param node_elements List of node elements created by createNodeElements()
+#' @param edge_elements List of edge elements created by createEdgeElements()
+#' @param container_id ID of the HTML container element (default: 'cytoscape-container')
+#' @param event_handlers Optional list of event handler configurations
+#' @param layout_options Optional list of layout configuration options
+#' 
+#' @return List containing:
+#'   - elements: Combined node and edge elements
+#'   - style: Cytoscape style configuration
+#'   - layout: Layout configuration
+#'   - container_id: Container element ID
+#'   - js_code: Complete JavaScript code (for backward compatibility)
+#' 
+#' @examples
+#' # Basic usage
+#' config <- generateCytoscapeConfig(node_elements, edge_elements)
+#' 
+#' # With custom container and event handlers
+#' config <- generateCytoscapeConfig(
+#'   node_elements, 
+#'   edge_elements,
+#'   container_id = "my-network",
+#'   event_handlers = list(
+#'     edge_click = "function(evt) { console.log('Edge clicked:', evt.target.id()); }"
+#'   )
+#' )
+generateCytoscapeConfig <- function(node_elements, edge_elements, 
+                                    container_id = "cytoscape-container",
+                                    event_handlers = NULL,
+                                    layout_options = NULL) {
+  
+  # Default layout options
+  default_layout <- list(
+    name = "dagre",
+    rankDir = "TB",
+    animate = TRUE,
+    fit = TRUE,
+    padding = 30,
+    spacingFactor = 1.5,
+    nodeSep = 50,
+    edgeSep = 20,
+    rankSep = 80
+  )
+  
+  # Merge with custom layout options if provided
+  layout_config <- if (!is.null(layout_options)) {
+    modifyList(default_layout, layout_options)
+  } else {
+    default_layout
+  }
+  
+  # Define the style configuration
+  style_config <- list(
+    list(
+      selector = "node",
+      style = list(
+        `background-color` = "data(color)",
+        label = "data(label)",
+        width = "function(ele) { var label = ele.data('label') || ''; var labelLength = label.length; return Math.max(60, Math.min(labelLength * 8 + 20, 150)); }",
+        height = "function(ele) { var label = ele.data('label') || ''; var labelLength = label.length; return Math.max(40, Math.min(labelLength * 2 + 30, 60)); }",
+        shape = "round-rectangle",
+        `font-size` = "11px",
+        `font-weight` = "bold",
+        color = "#000",
+        `text-valign` = "center",
+        `text-halign` = "center",
+        `text-wrap` = "wrap",
+        `text-max-width` = "function(ele) { var label = ele.data('label') || ''; var labelLength = label.length; return Math.max(50, Math.min(labelLength * 8 + 10, 140)); }",
+        `border-width` = 2,
+        `border-color` = "#333",
+        padding = "5px"
+      )
+    ),
+    list(
+      selector = "edge",
+      style = list(
+        width = "data(width)",
+        `line-color` = "data(color)",
+        `line-style` = "data(line_style)",
+        label = "data(interaction)",
+        `curve-style` = "bezier",
+        `target-arrow-shape` = "data(arrow_shape)",
+        `target-arrow-color` = "data(color)",
+        `source-arrow-shape` = "function(ele) { return ele.data('edge_type') === 'bidirectional' ? 'triangle' : 'none'; }",
+        `source-arrow-color` = "data(color)",
+        `edge-text-rotation` = "autorotate",
+        `text-margin-y` = -12,
+        `text-halign` = "center",
+        `font-size` = "9px",
+        `font-weight` = "bold",
+        color = "data(color)",
+        `text-background-color` = "#ffffff",
+        `text-background-opacity` = 0.8,
+        `text-background-padding` = "2px"
+      )
+    ),
+    list(
+      selector = "edge[category = 'complex']",
+      style = list(
+        `line-style` = "solid",
+        `target-arrow-shape` = "none",
+        `source-arrow-shape` = "none"
+      )
+    ),
+    list(
+      selector = "edge[category = 'phosphorylation']",
+      style = list(
+        `line-style` = "dashed",
+        width = 2
+      )
+    ),
+    list(
+      selector = "edge[edge_type = 'bidirectional']",
+      style = list(
+        `source-arrow-shape` = "triangle",
+        `target-arrow-shape` = "triangle"
+      )
+    )
+  )
+  
+  # Combine elements
   elements <- c(node_elements, edge_elements)
   
-  paste0("
+  # Create the main configuration object
+  config <- list(
+    elements = elements,
+    style = style_config,
+    layout = layout_config,
+    container_id = container_id,
+    event_handlers = event_handlers
+  )
+  
+  # Generate JavaScript code for backward compatibility
+  config$js_code <- generateJavaScriptCode(config)
+  
+  return(config)
+}
+
+#' Generate JavaScript code from Cytoscape configuration
+#' 
+#' Internal function to convert configuration object to JavaScript code
+#' 
+#' @param config Configuration object from generateCytoscapeConfig()
+#' @return Character string containing JavaScript code
+generateJavaScriptCode <- function(config) {
+  
+  # Convert R list to JSON-like string for JavaScript
+  elements_js <- paste(config$elements, collapse = ", ")
+  
+  # Convert style configuration to JavaScript
+  style_js <- convertStyleToJS(config$style)
+  
+  # Convert layout configuration to JavaScript
+  layout_js <- convertLayoutToJS(config$layout)
+  
+  # Build event handlers JavaScript
+  event_handlers_js <- ""
+  if (!is.null(config$event_handlers)) {
+    handlers <- sapply(names(config$event_handlers), function(event) {
+      handler_code <- config$event_handlers[[event]]
+      switch(event,
+             "edge_click" = paste0("cy.on('tap', 'edge', ", handler_code, ");"),
+             "node_click" = paste0("cy.on('tap', 'node', ", handler_code, ");"),
+             handler_code  # Custom event handler
+      )
+    })
+    event_handlers_js <- paste(handlers, collapse = "\n    ")
+  }
+  
+  # Generate the complete JavaScript code
+  js_code <- paste0("
     cytoscape.use(cytoscapeDagre);
     var cy = cytoscape({
-        container: document.getElementById('network-cy'),
-        elements: [", paste(elements, collapse = ", "), "],
-        style: [
-            {
-                selector: 'node',
-                style: {
-                    'background-color': 'data(color)',
-                    'label': 'data(label)',
-                    'width': function(ele) {
-                        var label = ele.data('label') || '';
-                        var labelLength = label.length;
-                        return Math.max(60, Math.min(labelLength * 8 + 20, 150));
-                    },
-                    'height': function(ele) {
-                        var label = ele.data('label') || '';
-                        var labelLength = label.length;
-                        return Math.max(40, Math.min(labelLength * 2 + 30, 60));
-                    },
-                    'shape': 'round-rectangle',
-                    'font-size': '11px',
-                    'font-weight': 'bold',
-                    'color': '#000',
-                    'text-valign': 'center',
-                    'text-halign': 'center',
-                    'text-wrap': 'wrap',
-                    'text-max-width': function(ele) {
-                        var label = ele.data('label') || '';
-                        var labelLength = label.length;
-                        return Math.max(50, Math.min(labelLength * 8 + 10, 140));
-                    },
-                    'border-width': 2,
-                    'border-color': '#333',
-                    'padding': '5px'
-                }
-            },
-            {
-                selector: 'edge',
-                style: {
-                    'width': 'data(width)',
-                    'line-color': 'data(color)',
-                    'line-style': 'data(line_style)',
-                    'label': 'data(interaction)',
-                    'curve-style': 'bezier',
-                    'target-arrow-shape': 'data(arrow_shape)',
-                    'target-arrow-color': 'data(color)',
-                    'source-arrow-shape': function(ele) {
-                        return ele.data('edge_type') === 'bidirectional' ? 'triangle' : 'none';
-                    },
-                    'source-arrow-color': 'data(color)',
-                    'edge-text-rotation': 'autorotate',
-                    'text-margin-y': -12,
-                    'text-halign': 'center',
-                    'font-size': '9px',
-                    'font-weight': 'bold',
-                    'color': 'data(color)',
-                    'text-background-color': '#ffffff',
-                    'text-background-opacity': 0.8,
-                    'text-background-padding': '2px'
-                }
-            },
-            // Special styling for different edge categories
-            {
-                selector: 'edge[category = \"complex\"]',
-                style: {
-                    'line-style': 'solid',
-                    'target-arrow-shape': 'none',
-                    'source-arrow-shape': 'none'
-                }
-            },
-            {
-                selector: 'edge[category = \"ptm\"]',
-                style: {
-                    'line-style': 'dashed',
-                    'width': 2
-                }
-            },
-            {
-                selector: 'edge[edge_type = \"bidirectional\"]',
-                style: {
-                    'source-arrow-shape': 'triangle',
-                    'target-arrow-shape': 'triangle'
-                }
-            }
-        ],
-        layout: {
-            name: 'dagre',
-            rankDir: 'TB',
-            animate: true,
-            fit: true,
-            padding: 30,
-            spacingFactor: 1.5,
-            // Adjust layout parameters for better edge visibility
-            nodeSep: 50,
-            edgeSep: 20,
-            rankSep: 80
-        }
+        container: document.getElementById('", config$container_id, "'),
+        elements: [", elements_js, "],
+        style: ", style_js, ",
+        layout: ", layout_js, "
     });
     
+    ", event_handlers_js)
+  
+  return(js_code)
+}
 
+# Helper function to convert style list to JavaScript
+convertStyleToJS <- function(style_list) {
+  style_items <- sapply(style_list, function(item) {
+    # Properly escape selector strings, especially those with special characters
+    selector_js <- paste0("\"", gsub("\"", "\\\"", item$selector), "\"")
     
-    // Capture the event when an edge is clicked
-    cy.on('tap', 'edge', function(evt) {
+    # Convert style properties
+    style_props <- sapply(names(item$style), function(prop) {
+      value <- item$style[[prop]]
+      if (is.character(value) && !grepl("^function\\(", value)) {
+        # Use double quotes and escape any existing double quotes
+        escaped_prop <- gsub("\"", "\\\"", prop)
+        escaped_value <- gsub("\"", "\\\"", value)
+        paste0("\"", escaped_prop, "\": \"", escaped_value, "\"")
+      } else {
+        escaped_prop <- gsub("\"", "\\\"", prop)
+        paste0("\"", escaped_prop, "\": ", value)
+      }
+    })
+    
+    paste0("{ selector: ", selector_js, ", style: { ", paste(style_props, collapse = ", "), " } }")
+  })
+  
+  paste0("[", paste(style_items, collapse = ", "), "]")
+}
+
+# Helper function to convert layout list to JavaScript
+convertLayoutToJS <- function(layout_list) {
+  layout_props <- sapply(names(layout_list), function(prop) {
+    value <- layout_list[[prop]]
+    if (is.character(value)) {
+      escaped_prop <- gsub("\"", "\\\"", prop)
+      escaped_value <- gsub("\"", "\\\"", value)
+      paste0("\"", escaped_prop, "\": \"", escaped_value, "\"")
+    } else if (is.logical(value)) {
+      escaped_prop <- gsub("\"", "\\\"", prop)
+      paste0("\"", escaped_prop, "\": ", tolower(value))
+    } else {
+      escaped_prop <- gsub("\"", "\\\"", prop)
+      paste0("\"", escaped_prop, "\": ", value)
+    }
+  })
+  
+  paste0("{ ", paste(layout_props, collapse = ", "), " }")
+}
+# =============================================================================
+# UI RENDERING FUNCTIONS (SHINY-SPECIFIC)
+# These functions stay in your Shiny application
+# =============================================================================
+
+#' Generate Cytoscape JavaScript with Shiny event handling
+#' 
+#' This function wraps the package's generateCytoscapeConfig() function
+#' and adds Shiny-specific event handling for table highlighting
+#' 
+#' @param node_elements Node elements from package
+#' @param edge_elements Edge elements from package  
+#' @param container_id Container ID (default: 'network-cy')
+#' @return JavaScript code string with Shiny event handlers
+generateCytoscapeJSForShiny <- function(node_elements, edge_elements, container_id = "network-cy") {
+  
+  # Define Shiny-specific event handlers
+  shiny_event_handlers <- list(
+    edge_click = "function(evt) {
         var edge = evt.target;
         const edgeId = edge.id();
         Shiny.setInputValue('network-edgeClicked', { 
@@ -520,13 +529,20 @@ generateCytoscapeJS <- function(node_elements, edge_elements) {
             edge_type: edge.data('edge_type'),
             category: edge.data('category')
         });
-    });
-    ")
+    }"
+  )
+  
+  # Use the package function to generate configuration
+  config <- generateCytoscapeConfig(
+    node_elements = node_elements,
+    edge_elements = edge_elements,
+    container_id = container_id,
+    event_handlers = shiny_event_handlers
+  )
+  
+  # Return the JavaScript code
+  return(config$js_code)
 }
-
-# =============================================================================
-# HELPER FUNCTIONS - UI Rendering
-# =============================================================================
 
 renderDataTables <- function(output, nodes_table, edges_table) {
   output$nodesTable <- renderDT({
@@ -558,13 +574,13 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
     
     # For undirected or bidirectional edges, match source and target regardless of order
     row_indices <- which(((edges_table$source == source & edges_table$target == target) |
-                       (edges_table$source == target & edges_table$target == source)) &
-                       (edges_table$interaction == interaction))
+                            (edges_table$source == target & edges_table$target == source)) &
+                           (edges_table$interaction == interaction))
   } else {
     # For directed edges, match exactly
     row_indices <- which(edges_table$source == source & 
-                       edges_table$target == target & 
-                       edges_table$interaction == interaction)
+                           edges_table$target == target & 
+                           edges_table$interaction == interaction)
   }
   
   if (length(row_indices) > 0) {
@@ -583,13 +599,157 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
 }
 
 # =============================================================================
-# MAIN SERVER FUNCTION
+# UPDATED SERVER CODE - Using the decoupled architecture
+# =============================================================================
+
+# Load your cytoscape visualization package
+# library(YourCytoscapePackage)
+
+# Source the UI rendering functions (or include in your Shiny app)
+# source("ui_rendering_functions.R")
+
+# =============================================================================
+# HELPER FUNCTIONS - Data Management (unchanged)
+# =============================================================================
+
+loadCsvData <- function(input, dataComparison) {
+  if (is.null(input$dataUpload) && !is.null(dataComparison()$ComparisonResult)) {
+    df <- dataComparison()$ComparisonResult
+    if (!is.null(df) && "Protein" %in% names(df)) {
+      df$Protein <- as.character(df$Protein)
+      return(df)
+    }
+  }
+  req(input$dataUpload)
+  tryCatch({
+    read.csv(input$dataUpload$datapath)
+  }, error = function(e) {
+    showNotification(paste("Error reading file:", e$message), type = "error")
+    return(NULL)
+  })
+}
+
+# Helper function to update the label dropdown choices
+updateLabelChoices <- function(session, df) {
+  if (!is.null(df) && "Label" %in% names(df)) {
+    unique_labels <- unique(df$Label)
+    # Remove any NA values
+    unique_labels <- unique_labels[!is.na(unique_labels)]
+    
+    updateSelectInput(session, "selectedLabel",
+                      choices = c(setNames(unique_labels, unique_labels)))
+  } else {
+    # If no Label column exists, disable the dropdown
+    updateSelectInput(session, "selectedLabel",
+                      choices = c("No Label column found" = "none"),
+                      selected = "none")
+  }
+}
+
+# Updated helper function to update the protein choices dropdown
+updateProteinChoices <- function(session, df) {
+  if (!is.null(df) && "Protein" %in% names(df)) {
+    updateSelectizeInput(
+      session,
+      "selectedProteins",
+      choices = unique(df$Protein),
+      server  = TRUE
+    )
+  } else {
+    # If no Protein column exists, clear the dropdown
+    updateSelectizeInput(
+      session,
+      "selectedProteins",
+      choices = NULL,
+      server  = TRUE
+    )
+  }
+}
+
+getInputParameters <- function(input) {
+  # Require that both filters have at least one selection
+  req(input$statementTypes, input$sources)
+  
+  # Handle "all" selections for statement type
+  statementTypes <- if("all" %in% req(input$statementTypes)) {
+    NULL
+  } else {
+    input$statementTypes
+  }
+  
+  # Handle "all" selections for sources
+  sources <- if("all" %in% input$sources) {
+    NULL
+  } else {
+    input$sources
+  }
+  
+  # Handle protein selection (NULL if nothing selected)
+  selectedProteins <- if(is.null(input$selectedProteins) || length(input$selectedProteins) == 0) {
+    NULL
+  } else {
+    input$selectedProteins
+  }
+  
+  list(
+    proteinIdType = req(input$proteinIdType),
+    pValue = as.numeric(req(input$pValue)),
+    evidence = as.numeric(req(input$evidence)),
+    absLogFC = as.numeric(req(input$absLogFC)),
+    statementTypes = statementTypes,
+    sources = sources,
+    selectedLabel = req(input$selectedLabel),
+    selectedProteins = selectedProteins
+  )
+}
+
+# =============================================================================
+# HELPER FUNCTIONS - Data Processing (unchanged)
+# =============================================================================
+
+# Helper function to filter data by selected label
+filterDataByLabel <- function(df, selectedLabel) {
+  if ("Label" %in% names(df)) {
+    filtered_df <- df[df$Label == selectedLabel & !is.na(df$Label), ]
+    return(filtered_df)
+  } else {
+    return(df)
+  }
+}
+
+annotateProteinData <- function(df, proteinIdType) {
+  tryCatch({
+    annotateProteinInfoFromIndra(df, proteinIdType)
+  }, error = function(e) {
+    showNotification(paste("Error in annotation:", e$message), type = "error")
+    return(NULL)
+  })
+}
+
+extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes, 
+                              sources, absLogFC, selectedProteins) {
+  tryCatch({
+    getSubnetworkFromIndra(annotated_df, 
+                           pvalueCutoff = pValue, 
+                           evidence_count_cutoff = evidence,
+                           statement_types = statementTypes,
+                           sources_filter = sources,
+                           logfc_cutoff = absLogFC,
+                           force_include_proteins = selectedProteins)
+  }, error = function(e) {
+    showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
+    print(e$message)
+    return(NULL)
+  })
+}
+
+# =============================================================================
+# MAIN SERVER FUNCTION - Updated to use decoupled architecture
 # =============================================================================
 
 #' @importFrom MSstatsBioNet annotateProteinInfoFromIndra getSubnetworkFromIndra
 #' @importFrom DT renderDT datatable
 visualizeNetworkServer <- function(input, output, session, parent_session, dataComparison) {
-  
   
   # Output to control conditional panels
   output$hasValidDataComparison <- reactive({
@@ -638,12 +798,12 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     network_data <- renderNetwork()
     if (is.null(network_data)) return(NULL)
     
-    # Create Cytoscape elements with current display label setting
+    # Use the package functions to create Cytoscape elements
     node_elements <- createNodeElements(network_data$nodes_table, input$displayLabelType)
     edge_elements <- createEdgeElements(network_data$edges_table)
     
-    # Generate JavaScript code
-    js_code <- generateCytoscapeJS(node_elements, edge_elements)
+    # Generate JavaScript code with Shiny-specific event handling
+    js_code <- generateCytoscapeJSForShiny(node_elements, edge_elements)
     
     return(list(
       js_code = js_code,
@@ -693,6 +853,5 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     current_df <- df()
     updateLabelChoices(session, current_df)
     updateProteinChoices(session, current_df)
-    
   })
 }
