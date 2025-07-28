@@ -83,6 +83,12 @@ getRelationshipProperties <- function() {
 consolidateEdges <- function(edges) {
   if (nrow(edges) == 0) return(edges)
   
+  required_cols <- c("source", "target", "interaction")
+  missing_cols <- setdiff(required_cols, names(edges))
+  if (length(missing_cols) > 0) {
+    stop("Missing required columns: ", paste(missing_cols, collapse = ", "))
+  }
+  
   relationship_props <- getRelationshipProperties()
   consolidated_edges <- list()
   processed_pairs <- c()
@@ -513,7 +519,7 @@ generateCytoscapeJSForShiny <- function(node_elements, edge_elements, container_
     edge_click = paste0("function(evt) {
         var edge = evt.target;
         const edgeId = edge.id();
-        Shiny.setInputValue('", module_id, "-edgeClicked", "', {
+        Shiny.setInputValue('", module_id, "-edgeClicked', {
             source: edge.data('source'),
             target: edge.data('target'),
             interaction: edge.data('interaction'),
@@ -524,7 +530,7 @@ generateCytoscapeJSForShiny <- function(node_elements, edge_elements, container_
     node_click = paste0("function(evt) {
         var node = evt.target;
         const nodeId = node.id();
-        Shiny.setInputValue('", module_id, "-nodeClicked", "', { 
+        Shiny.setInputValue('", module_id, "-nodeClicked', { 
             id: node.data('id'),
             label: node.data('label'),
             color: node.data('color')
@@ -892,7 +898,9 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   # Observe node click events
   observeEvent(input$nodeClicked, {
     node_data <- input$nodeClicked
-    nodes_table <- renderNetwork()$nodes_table
+    network_data <- renderNetwork()
+    req(network_data)
+    nodes_table <- network_data$nodes_table
     
     highlightNodeInTable(output, node_data, nodes_table)
   })
