@@ -3,7 +3,10 @@
 # These functions should go in your separate package
 # =============================================================================
 
-# Helper function to map logFC values to colors
+#' Helper function to map logFC values to colors
+#' @param logFC_values Numeric vector of log fold change values
+#' @importFrom grDevices colorRamp rgb
+#' @noRd
 mapLogFCToColor <- function(logFC_values) {
   # Define the color palette
   colors <- c("#ADD8E6", "#ADD8E6", "#D3D3D3", "#FFA590", "#FFA590")
@@ -284,20 +287,6 @@ createEdgeElements <- function(edges) {
 #'   - layout: Layout configuration
 #'   - container_id: Container element ID
 #'   - js_code: Complete JavaScript code (for backward compatibility)
-#' 
-#' @examples
-#' # Basic usage
-#' config <- generateCytoscapeConfig(node_elements, edge_elements)
-#' 
-#' # With custom container and event handlers
-#' config <- generateCytoscapeConfig(
-#'   node_elements, 
-#'   edge_elements,
-#'   container_id = "my-network",
-#'   event_handlers = list(
-#'     edge_click = "function(evt) { console.log('Edge clicked:', evt.target.id()); }"
-#'   )
-#' )
 generateCytoscapeConfig <- function(node_elements, edge_elements, 
                                     container_id = "cytoscape-container",
                                     event_handlers = NULL,
@@ -317,10 +306,11 @@ generateCytoscapeConfig <- function(node_elements, edge_elements,
   )
   
   # Merge with custom layout options if provided
-  layout_config <- if (!is.null(layout_options)) {
-    modifyList(default_layout, layout_options)
-  } else {
-    default_layout
+  layout_config <- default_layout
+  if (!is.null(layout_options)) {
+    for (layout_name in names(layout_options)) {
+      layout_config[[layout_name]] <- layout_options[[layout_name]]
+    }
   }
   
   # Define the style configuration (same as before)
@@ -667,7 +657,7 @@ updateLabelChoices <- function(session, df) {
     unique_labels <- unique_labels[!is.na(unique_labels)]
     
     updateSelectInput(session, "selectedLabel",
-                      choices = c(setNames(unique_labels, unique_labels)))
+                      choices = unique_labels)
   } else {
     # If no Label column exists, disable the dropdown
     updateSelectInput(session, "selectedLabel",
@@ -779,6 +769,7 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes,
 
 #' @importFrom MSstatsBioNet annotateProteinInfoFromIndra getSubnetworkFromIndra
 #' @importFrom DT renderDT datatable
+#' @importFrom shiny updateSelectizeInput showNotification outputOptions
 visualizeNetworkServer <- function(input, output, session, parent_session, dataComparison) {
   
   # Output to control conditional panels

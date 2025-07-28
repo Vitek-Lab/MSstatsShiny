@@ -137,7 +137,7 @@ createParameterSliders <- function(ns) {
         "Evidence Cutoff:",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Minimum number of supporting evidence lines required for including a protein regulatory relationship. Each count reflects a separate line of support—such as a sentence in a paper or an entry in a curated database—not necessarily distinct publications. Higher values increase confidence but may reduce network size.", 
+        div("Minimum number of supporting evidence lines required for including a protein regulatory relationship. Each count reflects a separate line of support, such as a sentence in a paper or an entry in a curated database, not necessarily distinct publications. Higher values increase confidence but may reduce network size.", 
             class = "icon-tooltip")
       ),
       sliderInput(ns("evidence"), 
@@ -253,7 +253,7 @@ createFilterDropdowns <- function(ns) {
         choices  = NULL,
         multiple = TRUE,
         options  = list(
-          placeholder = "Type to search…",
+          placeholder = "Type to search...",
           maxOptions  = 10
         )
       )
@@ -348,12 +348,12 @@ createNetworkLegends <- function() {
             style = "display: flex; justify-content: space-between; margin: 1px 0;",
             div(
               style = "display: flex; align-items: center; flex: 1;",
-              tags$span("━", style = "color: #8B4513; font-weight: bold; margin-right: 3px; font-size: 10px;"),
+              tags$span("-", style = "color: #8B4513; font-weight: bold; margin-right: 3px; font-size: 10px;"),
               tags$span("Complex", style = "color: #333; font-size: 7px;")
             ),
             div(
               style = "display: flex; align-items: center; flex: 1; padding-left: 4px;",
-              tags$span("┅", style = "color: #9932CC; font-weight: bold; margin-right: 3px; font-size: 10px;"),
+              tags$span("- -", style = "color: #9932CC; font-weight: bold; margin-right: 3px; font-size: 10px;"),
               tags$span("Phospho", style = "color: #333; font-size: 7px;")
             )
           ),
@@ -362,12 +362,12 @@ createNetworkLegends <- function() {
             style = "display: flex; justify-content: space-between; margin: 1px 0;",
             div(
               style = "display: flex; align-items: center; flex: 1;",
-              tags$span("▶", style = "color: #44AA44; font-weight: bold; margin-right: 3px; font-size: 8px;"),
+              tags$span("->", style = "color: #44AA44; font-weight: bold; margin-right: 3px; font-size: 8px;"),
               tags$span("Activate", style = "color: #333; font-size: 7px;")
             ),
             div(
               style = "display: flex; align-items: center; flex: 1; padding-left: 4px;",
-              tags$span("▶", style = "color: #FF4444; font-weight: bold; margin-right: 3px; font-size: 8px;"),
+              tags$span("->", style = "color: #FF4444; font-weight: bold; margin-right: 3px; font-size: 8px;"),
               tags$span("Inhibit", style = "color: #333; font-size: 7px;")
             )
           ),
@@ -376,12 +376,12 @@ createNetworkLegends <- function() {
             style = "display: flex; justify-content: space-between; margin: 1px 0;",
             div(
               style = "display: flex; align-items: center; flex: 1;",
-              tags$span("▶", style = "color: #4488FF; font-weight: bold; margin-right: 3px; font-size: 8px;"),
+              tags$span("->", style = "color: #4488FF; font-weight: bold; margin-right: 3px; font-size: 8px;"),
               tags$span("Increase", style = "color: #333; font-size: 7px;")
             ),
             div(
               style = "display: flex; align-items: center; flex: 1; padding-left: 4px;",
-              tags$span("▶", style = "color: #FF8844; font-weight: bold; margin-right: 3px; font-size: 8px;"),
+              tags$span("->", style = "color: #FF8844; font-weight: bold; margin-right: 3px; font-size: 8px;"),
               tags$span("Decrease", style = "color: #333; font-size: 7px;")
             )
           )
