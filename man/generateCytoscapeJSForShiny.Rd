@@ -7,7 +7,8 @@
 generateCytoscapeJSForShiny(
   node_elements,
   edge_elements,
-  container_id = "network-cy"
+  container_id = "network-cy",
+  module_id = "network"
 )
 }
 \arguments{
@@ -15,7 +16,9 @@ generateCytoscapeJSForShiny(
 
 \item{edge_elements}{Edge elements from package}
 
-\item{container_id}{Container ID (default: 'network-cy')}
+\item{container_id}{Network Visualization Container ID (default: 'network-cy')}
+
+\item{module_id}{Module ID for Shiny Application (default: 'network')}
 }
 \value{
 JavaScript code string with Shiny event handlers

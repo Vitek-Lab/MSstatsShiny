@@ -252,7 +252,7 @@ test_that("generateCytoscapeConfig creates complete configuration", {
   expect_true("container_id" %in% names(config))
   expect_true("js_code" %in% names(config))
   
-  expect_equal(config$container_id, "cytoscape-container")
+  expect_equal(config$container_id, "network-cy")
   expect_type(config$js_code, "character")
   expect_gt(nchar(config$js_code), 100)
 })

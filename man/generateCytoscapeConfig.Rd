@@ -7,7 +7,7 @@
 generateCytoscapeConfig(
   node_elements,
   edge_elements,
-  container_id = "cytoscape-container",
+  container_id = "network-cy",
   event_handlers = NULL,
   layout_options = NULL
 )
@@ -17,7 +17,7 @@ generateCytoscapeConfig(
 
 \item{edge_elements}{List of edge elements created by createEdgeElements()}
 
-\item{container_id}{ID of the HTML container element (default: 'cytoscape-container')}
+\item{container_id}{ID of the HTML container element (default: 'network-cy')}
 
 \item{event_handlers}{Optional list of event handler configurations}
 

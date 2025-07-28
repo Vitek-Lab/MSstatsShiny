@@ -18,7 +18,7 @@ mapLogFCToColor <- function(logFC_values) {
   
   # Get range of logFC values
   default_max <- 2
-  max_logFC <- max(c(abs(logFC_values), default_max))
+  max_logFC <- max(c(abs(logFC_values), default_max), na.rm = TRUE)
   min_logFC <- -1 * max_logFC
   
   # Create color mapping function
@@ -277,7 +277,7 @@ createEdgeElements <- function(edges) {
 #' 
 #' @param node_elements List of node elements created by createNodeElements()
 #' @param edge_elements List of edge elements created by createEdgeElements()
-#' @param container_id ID of the HTML container element (default: 'cytoscape-container')
+#' @param container_id ID of the HTML container element (default: 'network-cy')
 #' @param event_handlers Optional list of event handler configurations
 #' @param layout_options Optional list of layout configuration options
 #' 
@@ -288,7 +288,7 @@ createEdgeElements <- function(edges) {
 #'   - container_id: Container element ID
 #'   - js_code: Complete JavaScript code (for backward compatibility)
 generateCytoscapeConfig <- function(node_elements, edge_elements, 
-                                    container_id = "cytoscape-container",
+                                    container_id = "network-cy",
                                     event_handlers = NULL,
                                     layout_options = NULL) {
   
@@ -503,32 +503,33 @@ convertLayoutToJS <- function(layout_list) {
 #' 
 #' @param node_elements Node elements from package
 #' @param edge_elements Edge elements from package  
-#' @param container_id Container ID (default: 'network-cy')
+#' @param container_id Network Visualization Container ID (default: 'network-cy')
+#' @param module_id Module ID for Shiny Application (default: 'network')
 #' @return JavaScript code string with Shiny event handlers
-generateCytoscapeJSForShiny <- function(node_elements, edge_elements, container_id = "network-cy") {
+generateCytoscapeJSForShiny <- function(node_elements, edge_elements, container_id = "network-cy", module_id = "network") {
   
   # Define Shiny-specific event handlers for both edges and nodes
   shiny_event_handlers <- list(
-    edge_click = "function(evt) {
+    edge_click = paste0("function(evt) {
         var edge = evt.target;
         const edgeId = edge.id();
-        Shiny.setInputValue('network-edgeClicked', { 
+        Shiny.setInputValue('", module_id, "-edgeClicked", "', {
             source: edge.data('source'),
             target: edge.data('target'),
             interaction: edge.data('interaction'),
             edge_type: edge.data('edge_type'),
             category: edge.data('category')
         });
-    }",
-    node_click = "function(evt) {
+    }"),
+    node_click = paste0("function(evt) {
         var node = evt.target;
         const nodeId = node.id();
-        Shiny.setInputValue('network-nodeClicked', { 
+        Shiny.setInputValue('", module_id, "-nodeClicked", "', { 
             id: node.data('id'),
             label: node.data('label'),
             color: node.data('color')
         });
-    }"
+    }")
   )
   
   # Use the package function to generate configuration
@@ -584,6 +585,7 @@ highlightNodeInTable <- function(output, node_data, nodes_table) {
 }
 
 highlightEdgeInTable <- function(output, edge_data, edges_table) {
+  req(edge_data$source, edge_data$target, edge_data$interaction)
   source <- edge_data$source
   target <- edge_data$target
   interaction <- gsub(" \\(bidirectional\\)", "", edge_data$interaction)
@@ -767,6 +769,16 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes,
 # MAIN SERVER FUNCTION - Updated to use decoupled architecture
 # =============================================================================
 
+#' Server logic for network visualization module
+#'
+#' @param input Shiny input object
+#' @param output Shiny output object
+#' @param session Shiny session object
+#' @param parent_session Parent Shiny session
+#' @param dataComparison Reactive expression containing comparison data
+#'
+#' @return None (side effects only)
+#' 
 #' @importFrom MSstatsBioNet annotateProteinInfoFromIndra getSubnetworkFromIndra
 #' @importFrom DT renderDT datatable
 #' @importFrom shiny updateSelectizeInput showNotification outputOptions
@@ -824,7 +836,12 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     edge_elements <- createEdgeElements(network_data$edges_table)
     
     # Generate JavaScript code with Shiny-specific event handling
-    js_code <- generateCytoscapeJSForShiny(node_elements, edge_elements)
+    js_code <- generateCytoscapeJSForShiny(
+      node_elements, 
+      edge_elements, 
+      container_id = session$ns("cy"),
+      module_id = session$ns(NULL)
+    )
     
     return(list(
       js_code = js_code,
@@ -865,7 +882,9 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   # Observe edge click events
   observeEvent(input$edgeClicked, {
     edge_data <- input$edgeClicked
-    edges_table <- renderNetwork()$edges_table
+    network_data <- renderNetwork()
+    req(network_data)
+    edges_table <- network_data$edges_table
     
     highlightEdgeInTable(output, edge_data, edges_table)
   })

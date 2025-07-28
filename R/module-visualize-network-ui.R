@@ -4,14 +4,17 @@
 
 createCytoscapeScripts <- function() {
   tags$head(
-    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.19.1/cytoscape.min.js"),
+    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.32.0/cytoscape.min.js"),
     tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/graphlib/2.1.8/graphlib.min.js"),
     tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"),
     tags$script(src = "https://unpkg.com/cytoscape-dagre@2.3.0/cytoscape-dagre.js"),
     tags$script("
-            Shiny.addCustomMessageHandler('runCytoscape', function(message) {
-                console.log(message)
-                eval(message);  // Executes the Cytoscape.js code in the frontend
+            Shiny.addCustomMessageHandler('runCytoscape', function(code) {
+              try {
+                new Function(code)();
+              } catch (err) {
+                console.error('Error running Cytoscape code:', err);
+              }
             });
         ")
   )
@@ -488,8 +491,11 @@ createDashboardBody <- function(ns) {
 # MAIN UI FUNCTION
 # =============================================================================
 
+#' Network UI module for visualizing protein regulatory networks from INDRA.
+#' @param id namespace prefix for the module
 #' @importFrom shinydashboard dashboardPage dashboardHeader dashboardSidebar dashboardBody menuItem tabItems tabItem box
 #' @importFrom DT DTOutput
+#' @export
 networkUI <- function(id) {
   ns <- NS(id)
   
