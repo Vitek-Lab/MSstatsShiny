@@ -24,9 +24,10 @@ Authors@R: c(
     person("Olga", "Vitek", email = "o.vitek@northeastern.edu", role = "aut"))
 License: Artistic-2.0
 Depends: R (>= 4.2)
-Imports: shiny, shinyBS, shinyjs, shinybusy, dplyr, ggplot2,plotly, data.table, Hmisc,
+Imports: shiny, shinyBS, shinyjs, shinybusy, dplyr, ggplot2, plotly, data.table, Hmisc,
   MSstats, MSstatsTMT, MSstatsPTM, MSstatsConvert, gplots, marray, DT, readxl,
-  ggrepel, uuid, utils, stats, htmltools, methods, tidyr, grDevices, graphics,mockery
+  ggrepel, uuid, utils, stats, htmltools, methods, tidyr, grDevices, graphics, mockery, MSstatsBioNet,
+  shinydashboard
 Suggests: 
     rmarkdown,
     tinytest,
@@ -41,5 +42,5 @@ biocViews: ImmunoOncology, MassSpectrometry, Proteomics, Software, ShinyApps,
 BugReports: https://github.com/Vitek-Lab/MSstatsShiny/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Config/testthat/edition: 3
