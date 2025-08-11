@@ -856,6 +856,76 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     ))
   })
   
+  generate_network_code <- eventReactive(input$showNetwork, {
+    params <- getInputParameters(input)
+    
+    codes <- ""
+    codes <- paste(codes, "\n# Load Required Packages\n", sep = "")
+    codes <- paste(codes, "library(MSstatsBioNet)\nlibrary(dplyr)\n\n", sep = "")
+    
+    codes <- paste(codes, "# Read data\n", sep = "")
+    codes <- paste(codes, "df <- read.csv(\"path/to/your/data.csv\")\n\n", sep = "")
+    
+    # Add label filtering if not default
+    if (params$selectedLabel != "" && !is.null(params$selectedLabel)) {
+      codes <- paste(codes, "# Filter by selected comparison\n", sep = "")
+      codes <- paste(codes, "filtered_df <- df[df$Label == \"", params$selectedLabel, "\" & !is.na(df$Label), ]\n\n", sep = "")
+    } else {
+      codes <- paste(codes, "filtered_df <- df\n\n", sep = "")
+    }
+    
+    codes <- paste(codes, "# Annotate protein information\n", sep = "")
+    codes <- paste(codes, "annotated_df <- annotateProteinInfoFromIndra(filtered_df, \"", params$proteinIdType, "\")\n\n", sep = "")
+    
+    codes <- paste(codes, "# Extract subnetwork with filtering parameters\n", sep = "")
+    codes <- paste(codes, "subnetwork <- getSubnetworkFromIndra(\n", sep = "")
+    codes <- paste(codes, "  annotated_df,\n", sep = "")
+    codes <- paste(codes, "  pvalueCutoff = ", params$pValue, ",\n", sep = "")
+    codes <- paste(codes, "  evidence_count_cutoff = ", params$evidence, ",\n", sep = "")
+    
+    # Handle statement types
+    if (is.null(params$statementTypes)) {
+      codes <- paste(codes, "  statement_types = NULL,\n", sep = "")
+    } else {
+      statement_types_str <- paste0("c(\"", paste(params$statementTypes, collapse = "\", \""), "\")")
+      codes <- paste(codes, "  statement_types = ", statement_types_str, ",\n", sep = "")
+    }
+    
+    # Handle sources
+    if (is.null(params$sources)) {
+      codes <- paste(codes, "  sources_filter = NULL,\n", sep = "")
+    } else {
+      sources_str <- paste0("c(\"", paste(params$sources, collapse = "\", \""), "\")")
+      codes <- paste(codes, "  sources_filter = ", sources_str, ",\n", sep = "")
+    }
+    
+    codes <- paste(codes, "  logfc_cutoff = ", params$absLogFC, sep = "")
+    
+    # Handle selected proteins
+    if (!is.null(params$selectedProteins) && length(params$selectedProteins) > 0) {
+      selected_proteins_str <- paste0("c(\"", paste(params$selectedProteins, collapse = "\", \""), "\")")
+      codes <- paste(codes, ",\n  force_include_proteins = ", selected_proteins_str, "\n", sep = "")
+    } else {
+      codes <- paste(codes, ",\n  force_include_proteins = NULL\n", sep = "")
+    }
+    
+    codes <- paste(codes, ")\n\n", sep = "")
+    
+    codes <- paste(codes, "# View network components\n", sep = "")
+    codes <- paste(codes, "print(\"Nodes in network:\")\n", sep = "")
+    codes <- paste(codes, "print(subnetwork$nodes)\n\n", sep = "")
+    codes <- paste(codes, "print(\"Edges in network:\")\n", sep = "")
+    codes <- paste(codes, "print(subnetwork$edges)\n\n", sep = "")
+    
+    codes <- paste(codes, "# Save results\n", sep = "")
+    codes <- paste(codes, "write.csv(subnetwork$nodes, \"network_nodes.csv\", row.names = FALSE)\n", sep = "")
+    codes <- paste(codes, "write.csv(subnetwork$edges, \"network_edges.csv\", row.names = FALSE)\n", sep = "")
+    codes <- paste(codes, "# Visualize network on web browser\n", sep = "")
+    codes <- paste(codes, "previewNetworkInBrowser(subnetwork$nodes, subnetwork$edges)\n", sep = "")
+    
+    return(codes)
+  })
+  
   # Event observers
   observeEvent(input$showNetwork, {
     req(df(), getInputParameters(input))
@@ -883,7 +953,22 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     # Hide loading indicator and re-enable button when done
     shinyjs::hide("loadingIndicator")
     shinyjs::enable("showNetwork")
+    
+    output$code.button <- renderUI({
+      ns <- session$ns
+      downloadButton(ns("download_code"), "Download analysis code", icon("download"),
+                     style="color: #000000; background-color: #75ba82; border-color: #000000")
+    })
   })
+  
+  output$download_code <- downloadHandler(
+    filename = function() {
+      paste("network-analysis-code-", Sys.Date(), ".R", sep="")
+    },
+    content = function(file) {
+      writeLines(generate_network_code(), file)
+    }
+  )
   
   # Observe edge click events
   observeEvent(input$edgeClicked, {

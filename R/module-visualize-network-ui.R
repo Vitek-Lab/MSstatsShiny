@@ -452,6 +452,7 @@ createNetworkSettingsTab <- function(ns) {
     ),
     # Right column - Visualization and Tables
     column(width = 8,
+           createCodeDownloadBox(ns),
            createNetworkVisualizationBox(ns),
            createEdgesTableBox(ns),
            createNodesTableBox(ns)
@@ -484,6 +485,22 @@ createDashboardHeader <- function() {
 createDashboardBody <- function(ns) {
   dashboardBody(
     createNetworkSettingsTab(ns)
+  )
+}
+
+createCodeDownloadBox <- function(ns) {
+  box(
+    title = "Analysis Code",
+    status = "success",
+    solidHeader = TRUE,
+    width = 12,
+    collapsible = TRUE,
+    collapsed = TRUE,
+    div(
+      style = "text-align: center; padding: 10px;",
+      p("Generate reproducible R code for your network analysis parameters."),
+      uiOutput(ns("code.button"))
+    )
   )
 }
 
