@@ -491,7 +491,7 @@ createDashboardBody <- function(ns) {
 createCodeDownloadBox <- function(ns) {
   div(
     style = "text-align: right; padding: 10px;",
-    uiOutput(ns("code.button"))
+    uiOutput(ns("network.code.button"))
   )
 }
 

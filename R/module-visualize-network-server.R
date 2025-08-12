@@ -956,14 +956,14 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     shinyjs::hide("loadingIndicator")
     shinyjs::enable("showNetwork")
     
-    output$code.button <- renderUI({
+    output$network.code.button <- renderUI({
       ns <- session$ns
-      downloadButton(ns("download_code"), "Download analysis code", icon("download"),
+      downloadButton(ns("network_download_code"), "Download analysis code", icon("download"),
                      style="color: #000000; background-color: #75ba82; border-color: #000000")
     })
   })
   
-  output$download_code <- downloadHandler(
+  output$network_download_code <- downloadHandler(
     filename = function() {
       paste("network-analysis-code-", Sys.Date(), ".R", sep="")
     },
