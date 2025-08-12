@@ -920,8 +920,10 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     codes <- paste(codes, "# Save results\n", sep = "")
     codes <- paste(codes, "write.csv(subnetwork$nodes, \"network_nodes.csv\", row.names = FALSE)\n", sep = "")
     codes <- paste(codes, "write.csv(subnetwork$edges, \"network_edges.csv\", row.names = FALSE)\n", sep = "")
-    codes <- paste(codes, "# Visualize network on web browser\n", sep = "")
-    codes <- paste(codes, "previewNetworkInBrowser(subnetwork$nodes, subnetwork$edges)\n", sep = "")
+    codes <- paste(codes, "# Visualize network on web browser and export as an HTML file\n", sep = "")
+    displayLabelTypeStr <- paste0("\"", paste(input$displayLabelType, collapse = "\", \""), "\"")
+    codes <- paste(codes, "previewNetworkInBrowser(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
+    codes <- paste(codes, "exportNetworkToHTML(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
     
     return(codes)
   })

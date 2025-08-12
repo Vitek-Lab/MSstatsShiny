@@ -489,18 +489,9 @@ createDashboardBody <- function(ns) {
 }
 
 createCodeDownloadBox <- function(ns) {
-  box(
-    title = "Analysis Code",
-    status = "success",
-    solidHeader = TRUE,
-    width = 12,
-    collapsible = TRUE,
-    collapsed = TRUE,
-    div(
-      style = "text-align: center; padding: 10px;",
-      p("Generate reproducible R code for your network analysis parameters."),
-      uiOutput(ns("code.button"))
-    )
+  div(
+    style = "text-align: right; padding: 10px;",
+    uiOutput(ns("code.button"))
   )
 }
 
