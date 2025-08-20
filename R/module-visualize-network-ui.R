@@ -30,10 +30,10 @@ createFileUploadInput <- function(ns) {
     ns = ns,
     div(
       tags$label(
-        "Upload CSV File:",
+        "Upload Differential Abundance Results:",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Upload a CSV file with differential abundance results. The file must contain these three columns: Protein (identifier), log2FC (log2 fold change), and adj.pvalue (adjusted p-value).", 
+        div("Upload a CSV file with three columns: Protein (identifier), log2FC (log2 fold change), and adj.pvalue (adjusted p-value).", 
             class = "icon-tooltip")
       ),
       fileInput(ns("dataUpload"), 
