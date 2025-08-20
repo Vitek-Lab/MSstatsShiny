@@ -452,6 +452,13 @@ createNetworkSettingsTab <- function(ns) {
     ),
     # Right column - Visualization and Tables
     column(width = 8,
+           div(
+             style = "text-align: center; width: 100%;",
+             p(
+               "Explore your differential abundance analysis results with respect to what is known in prior literature in the form of protein regulatory networks. If your differential abundance analysis results were not obtained through MSstatsShiny, you can upload your differential abundance analysis results as a CSV file.",
+               style = "margin: 0;"
+             )
+           ),
            createCodeDownloadBox(ns),
            createNetworkVisualizationBox(ns),
            createEdgesTableBox(ns),
