@@ -468,10 +468,21 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   
   output$network_download_code <- downloadHandler(
     filename = function() {
-      paste("network-analysis-code-", Sys.Date(), ".R", sep="")
+      paste("network-analysis-code-", Sys.Date(), ".R", sep = "")
     },
     content = function(file) {
-      writeLines(generate_network_code(), file)
+      tryCatch({
+        code_content <- generate_network_code()
+        if (is.null(code_content) || length(code_content) == 0) {
+          stop("No code generated. Please ensure network is displayed first.")
+        }
+        writeLines(code_content, file)
+      }, error = function(e) {
+        showNotification(
+          paste("Error downloading code:", e$message),
+          type = "error"
+        )
+      })
     }
   )
   
