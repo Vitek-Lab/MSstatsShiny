@@ -7,6 +7,7 @@
 generateCytoscapeJSForShiny(
   node_elements,
   edge_elements,
+  display_label_type = "id",
   container_id = "network-cy",
   module_id = "network"
 )
@@ -15,6 +16,8 @@ generateCytoscapeJSForShiny(
 \item{node_elements}{Node elements from package}
 
 \item{edge_elements}{Edge elements from package}
+
+\item{display_label_type}{Column to display the label from the node table}
 
 \item{container_id}{Network Visualization Container ID (default: 'network-cy')}
 

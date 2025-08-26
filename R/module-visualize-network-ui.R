@@ -30,10 +30,10 @@ createFileUploadInput <- function(ns) {
     ns = ns,
     div(
       tags$label(
-        "Upload CSV File:",
+        "Upload Differential Abundance Results:",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Upload a CSV file with differential abundance results. The file must contain at least three columns: Protein (identifier), log2FC (log2 fold change), and adj.pvalue (adjusted p-value).", 
+        div("Upload a CSV file with three columns: Protein (identifier), log2FC (log2 fold change), and adj.pvalue (adjusted p-value).", 
             class = "icon-tooltip")
       ),
       fileInput(ns("dataUpload"), 
@@ -137,7 +137,7 @@ createParameterSliders <- function(ns) {
     ),
     div(
       tags$label(
-        "Evidence Cutoff:",
+        "INDRA Evidence Cutoff:",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
         div("Minimum number of supporting evidence lines required for including a protein regulatory relationship. Each count reflects a separate line of support, such as a sentence in a paper or an entry in a curated database, not necessarily distinct publications. Higher values increase confidence but may reduce network size.", 
@@ -154,7 +154,7 @@ createFilterDropdowns <- function(ns) {
   tagList(
     div(
       tags$label(
-        "Statement Types:",
+        "INDRA Statement Types:",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
         div("Filter regulatory relationships by biological mechanism type. Select specific regulation types or 'All Types' to include all available mechanisms.", 
@@ -197,7 +197,7 @@ createFilterDropdowns <- function(ns) {
     ),
     div(
       tags$label(
-        "Sources:",
+        "INDRA Sources:",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
         div("Filter regulatory relationships by data source. Different sources use various methods to identify protein regulatory relationships (literature mining, manual curation, etc.).", 
@@ -452,6 +452,14 @@ createNetworkSettingsTab <- function(ns) {
     ),
     # Right column - Visualization and Tables
     column(width = 8,
+           div(
+             style = "text-align: center; width: 100%;",
+             p(
+               "Explore your differential abundance analysis results with respect to what is known in prior literature in the form of protein regulatory networks. If your differential abundance analysis results were not obtained through MSstatsShiny, you can upload your differential abundance analysis results as a CSV file.",
+               style = "margin: 0;"
+             )
+           ),
+           createCodeDownloadBox(ns),
            createNetworkVisualizationBox(ns),
            createEdgesTableBox(ns),
            createNodesTableBox(ns)
@@ -484,6 +492,13 @@ createDashboardHeader <- function() {
 createDashboardBody <- function(ns) {
   dashboardBody(
     createNetworkSettingsTab(ns)
+  )
+}
+
+createCodeDownloadBox <- function(ns) {
+  div(
+    style = "text-align: right; padding: 10px;",
+    uiOutput(ns("network.code.button"))
   )
 }
 
