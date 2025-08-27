@@ -43,6 +43,6 @@
 #' @importFrom plotly plotlyOutput plot_ly layout renderPlotly
 #' @import mockery
 #' 
-#' @docType package
 #' @name MSstatsShiny
-NULL
+#' @keywords internal
+"_PACKAGE"

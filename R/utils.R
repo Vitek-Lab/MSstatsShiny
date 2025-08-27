@@ -189,6 +189,22 @@ getAnnot1 <- function(input) {
 
 }
 
+getFileExtension <- function(filename) {
+  if (is.null(filename) || filename == "") {
+    return("")
+  }
+  
+  # Split by dots and take the last part
+  parts <- strsplit(filename, "\\.")[[1]]
+  
+  if (length(parts) > 1) {
+    return(tolower(parts[length(parts)]))
+  } else {
+    return("")  # No extension found
+  }
+}
+
+#' @importFrom arrow read_parquet
 getData <- function(input) {
   show_modal_spinner()
   ev_maxq = getEvidence(input)
@@ -508,20 +524,21 @@ getData <- function(input) {
                                           use_log_file = FALSE)
     }
     else if(input$filetype == 'diann') {
-
-      # if (input$subset){
-      #   data = read.csv.sql(infile$datapath, sep="\t",
-      #                       sql = "select * from file order by random() limit 100000")
-      # } else {
-      data = read.csv(input$dianndata$datapath, sep=input$sep_dianndata)
-      # }
-      print(input$dianndata$datapath)
+      if (getFileExtension(input$dianndata$name) %in% c("parquet", "pq")) {
+        data = read_parquet(input$dianndata$datapath)
+      } else {
+        data = read.csv(input$dianndata$datapath, sep=input$sep_dianndata)
+      }
       
       qvalue_cutoff = 0.01
       MBR = FALSE
       if (input$q_val) {
         qvalue_cutoff = if (!is.null(input$q_cutoff) && input$q_cutoff >= 0 && input$q_cutoff <= 1) input$q_cutoff else 0.01
         MBR = if (!is.null(input$MBR)) input$MBR else FALSE
+      }
+      quantificationColumn = "auto"
+      if (!input$diann_2plus) {
+        quantificationColumn = input$intensity_column
       }
 
       mydata = DIANNtoMSstatsFormat(data,
@@ -530,7 +547,8 @@ getData <- function(input) {
                                     MBR = MBR,
                                     removeProtein_with1Feature = TRUE,
                                     removeFewMeasurements = FALSE,
-                                    use_log_file = FALSE
+                                    use_log_file = FALSE,
+                                    quantificationColumn = quantificationColumn
       )
       print("Mydata from mstats")
       print(mydata)
