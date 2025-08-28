@@ -72,12 +72,11 @@ create_header_content <- function() {
       a("User Guide", 
         href="https://msstats.org/wp-content/uploads/2020/02/MSstats_v3.18.1_manual_2020Feb26-v2.pdf",
         target="_blank")),
-    p("PTM data must be processed using MaxQuant or preformatted into MSstats format. For information on how",
-      "to format your data please see the MSstatsPTM ",
+    p("PTM data can be processed using MaxQuant, Proteome Discoverer, Spectronaut, Fragpipe, or Skyline, or preformatted into MSstatsPTM format. For details, see the MSstatsPTM ",
       a("documentation", 
         href="https://www.bioconductor.org/packages/release/bioc/vignettes/MSstatsPTM/inst/doc/MSstatsPTM_LabelFree_Workflow.html",
         target="_blank")),
-    p("Note all files must in csv format (unless otherwise indicated) and under 250 MB if using msstatsshiny.com (there is no limit when running the application locally)."),
+    p("Note: files must be in CSV/TSV format, or Parquet (.parquet/.pq) for DIANN 2.0+ inputs, and under 250 MB when using msstatsshiny.com (no limit when running locally)."),
     p("Some users may have trouble uploading files while using the application via Google Chrome. If the 'Browse...' button does not work please try a different web browser.")
   )
 }
@@ -87,18 +86,21 @@ create_header_content <- function() {
 create_sample_dataset_descriptions <- function() {
   tagList(
     conditionalPanel(
-      condition = "input['loadpage-filetype'] == 'sample' && input['loadpage-DDA_DIA'] == 'DDA'",
-      p("The sample dataset for DDA acquisition is on its way ")
+      condition = "input['loadpage-filetype'] == 'sample' && input['loadpage-LabelFreeType'] == 'DDA'",
+      p("The sample dataset for DDA acquisition is taken from the publication ",
+        a("Choi, M. et al.  ABRF Proteome Informatics Research Group (iPRG) 2015 Study: Detection of Differentially Abundant Proteins in Label-Free Quantitative LC–MS/MS Experiments. Journal of Proteome Research 16.2 (2016): 945-957. ",
+          href = "https://pubs.acs.org/doi/10.1021/acs.jproteome.6b00881",
+          target = "_blank"))
     ),
     conditionalPanel(
-      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'DIA'",
+      condition = "input['loadpage-filetype'] == 'sample' && input['loadpage-LabelFreeType'] == 'DIA'",
       p("The sample dataset for DIA acquisition is taken from the publication ",
         a("Selevsek, N. et al. Reproducible and Consistent Quantification of the Saccharomyces Cerevisiae Proteome by SWATH-Mass Spectrometry. Molecular & Cellular Proteomics: MCP 14.3 (2015): 739–749. ", 
           href = "http://www.mcponline.org/content/14/3/739.long", 
           target="_blank"))
     ),
     conditionalPanel(
-      condition = "input['loadpage-filetype'] == 'sample' && input['loadpage-DDA_DIA'] == 'SRM_PRM'",
+      condition = "input['loadpage-filetype'] == 'sample' && input['loadpage-LabelFreeType'] == 'SRM_PRM'",
       p("The sample dataset for SRM/PRM acquisition is taken from the publication ",
         a("Picotti, P. et al. Full dynamic range proteome analysis of S. cerevisiae by targeted proteomics. Cell (2009), 138, 795–806.", 
           href = "http://www.cell.com/cell/fulltext/S0092-8674(09)00715-6", 
@@ -484,14 +486,14 @@ create_tmt_options <- function(ns) {
 create_label_free_options <- function(ns) {
   tagList(
     conditionalPanel(
-      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] !== 'sample' && input['loadpage-filetype'] !== 'MRF'",
+      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] != 'sample' && input['loadpage-filetype'] != 'MRF'",
       h4("Select the options for pre-processing"),
-      checkboxInput(ns("uniqe_peptides"), "Use unique peptides", value = TRUE),
+      checkboxInput(ns("unique_peptides"), "Use unique peptides", value = TRUE),
       checkboxInput(ns("remove"), "Remove proteins with 1 peptide and charge", value = FALSE)
     ),
     
     conditionalPanel(
-      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] !== 'sample'",
+      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] != 'sample'",
       checkboxInput(ns("remove"), "Remove proteins with 1 feature", value = FALSE),
       
       # Quality filtering options
