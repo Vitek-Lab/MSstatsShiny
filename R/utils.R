@@ -189,19 +189,10 @@ getAnnot1 <- function(input) {
 
 }
 
+#' @importFrom tools file_ext
 getFileExtension <- function(filename) {
-  if (is.null(filename) || filename == "") {
-    return("")
-  }
-  
-  # Split by dots and take the last part
-  parts <- strsplit(filename, "\\.")[[1]]
-  
-  if (length(parts) > 1) {
-    return(tolower(parts[length(parts)]))
-  } else {
-    return("")  # No extension found
-  }
+  if (is.null(filename) || is.na(filename) || identical(filename, "")) return("")
+  tolower(file_ext(basename(filename)))
 }
 
 #' @importFrom arrow read_parquet

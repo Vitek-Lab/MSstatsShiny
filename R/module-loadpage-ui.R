@@ -125,7 +125,7 @@ create_main_selection_controls <- function(ns) {
   tagList(
     # Biological Question
     radioButtons(ns("BIO"),
-                 label <- h4("1. Biological Question", class = "icon-wrapper", 
+                 label = h4("1. Biological Question", class = "icon-wrapper", 
                              icon("question-circle", lib = "font-awesome"),
                              div("Select the biological question of interest.", class = "icon-tooltip")),
                  c("Protein"="Protein", "Peptide"="Peptide","PTM"="PTM")
@@ -133,7 +133,7 @@ create_main_selection_controls <- function(ns) {
     
     # Label Type
     radioButtons(ns("DDA_DIA"),
-                 label <- h4("2. Label Type", class = "icon-wrapper", 
+                 label = h4("2. Label Type", class = "icon-wrapper", 
                              icon("question-circle", lib = "font-awesome"),
                              div("Label-free will process all label-free acquisitions including DDA/DIA/SRM/PRM.", class = "icon-tooltip")),
                  c("Label-Free"="LType", "TMT"="TMT")
@@ -141,7 +141,7 @@ create_main_selection_controls <- function(ns) {
     
     # File Type
     radioButtons(ns("filetype"),
-                 label <- h4("3. Type of File", class = "icon-wrapper", 
+                 label = h4("3. Type of File", class = "icon-wrapper", 
                              icon("question-circle", lib = "font-awesome"),
                              div("Choose the spectral processing tool used to process your data", class = "icon-tooltip")),
                  choices = c("Example dataset" = "sample",
@@ -162,7 +162,7 @@ create_label_free_type_selection <- function(ns) {
   conditionalPanel(
     condition="input['loadpage-BIO'] != 'PTM' && input['loadpage-filetype'] == 'sample' && input['loadpage-DDA_DIA'] == 'LType'", 
     radioButtons(ns("LabelFreeType"),
-                 label <- h4("4. Type of Label-Free type", class = "icon-wrapper", 
+                 label = h4("4. Type of Label-Free type", class = "icon-wrapper", 
                              icon("question-circle", lib = "font-awesome"),
                              div("Choose the spectral processing tool used to process your data", class = "icon-tooltip")),
                  choices = c("DDA" = "DDA", "DIA" ="DIA", "SRM/PRM" ="SRM_PRM"),
@@ -301,10 +301,10 @@ create_ptm_fragpipe_uploads <- function(ns) {
     h4("5. Upload PTM annotation file"),
     fileInput(ns('annotation'), "", multiple = FALSE, accept = c(".csv")),
     
-    h4("6. Upload global profling msstats dataset (optional)"),
+    h4("6. Upload global profiling msstats dataset (optional)"),
     fileInput(ns('globaldata'), "", multiple = FALSE, accept = NULL),
     
-    h4("7. Upload global profling annotation file (optional)"),
+    h4("7. Upload global profiling annotation file (optional)"),
     fileInput(ns('globalannotation'), "", multiple = FALSE, accept = c(".csv")),
     
     h4("Select the options for pre-processing"),
@@ -372,7 +372,7 @@ create_ptm_uploads <- function(ns) {
     # MaxQuant specific PTM
     conditionalPanel(
       condition = "(input['loadpage-filetype'] == 'maxq') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
-      h4("7. (Optional) Upload Unmodified Protein proteinGroups.txt File"),
+      h4("8. (Optional) Upload Unmodified Protein proteinGroups.txt File"),
       fileInput(ns('ptm_pgroup'), "", multiple = FALSE, accept = NULL)
     ),
     
@@ -385,7 +385,7 @@ create_ptm_uploads <- function(ns) {
       h4("FASTA file column name", class = "icon-wrapper", 
          icon("question-circle", lib = "font-awesome"),
          div("Name of column in FASTA file that matches with Protein name column in input. It is critical the values in both columns match so that the modfication can be identified.", class = "icon-tooltip")),
-      textInput(ns("mod_id_spec"), "", value="uniprot_iso")
+      textInput(ns("fasta_id_column"), "", value="uniprot_iso")
     )
   )
 }
