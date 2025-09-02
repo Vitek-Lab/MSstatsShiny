@@ -16,6 +16,16 @@ createCytoscapeScripts <- function() {
                 console.error('Error running Cytoscape code:', err);
               }
             });
+            
+            Shiny.addCustomMessageHandler('openLinkInNewTab', function(message) {
+              try {
+                if (message.url && message.url.trim() !== '') {
+                  window.open(message.url, '_blank');
+                }
+              } catch (err) {
+                console.error('Error opening link:', err);
+              }
+            });
         ")
   )
 }
