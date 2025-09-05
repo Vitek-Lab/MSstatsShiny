@@ -523,13 +523,15 @@ getData <- function(input) {
       
       qvalue_cutoff = 0.01
       MBR = FALSE
-      if (input$q_val) {
-        qvalue_cutoff = if (!is.null(input$q_cutoff) && input$q_cutoff >= 0 && input$q_cutoff <= 1) input$q_cutoff else 0.01
-        MBR = if (!is.null(input$MBR)) input$MBR else FALSE
+      if (isTRUE(input$q_val)) {
+        if (is.numeric(input$q_cutoff) && length(input$q_cutoff) == 1L &&
+            !is.na(input$q_cutoff) && input$q_cutoff >= 0 && input$q_cutoff <= 1) {
+          qvalue_cutoff = input$q_cutoff
+        }
+        MBR = isTRUE(input$MBR)
       }
-      quantificationColumn = "auto"
-      if (!input$diann_2plus) {
-        quantificationColumn = input$intensity_column
+      quantificationColumn = if (isTRUE(input$diann_2plus)) "auto" else {
+        if (!is.null(input$intensity_column) && nzchar(input$intensity_column)) input$intensity_column else "auto"
       }
 
       mydata = DIANNtoMSstatsFormat(data,
