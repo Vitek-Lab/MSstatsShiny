@@ -135,13 +135,18 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
 
 # Open evidence link in new tab
 openEvidenceLink <- function(session, evidence_link) {
-  if (!is.null(evidence_link) && evidence_link != "" && !is.na(evidence_link)) {
-    # Send JavaScript command to open link in new tab
-    session$sendCustomMessage(
+  if (is.null(evidence_link) || is.na(evidence_link)) return(invisible(NULL))
+  link <- trimws(as.character(evidence_link)[1])
+  if (!nzchar(link)) return(invisible(NULL))
+  # Allow only http(s)
+    if (!grepl("^https?://", link, ignore.case = TRUE)) {
+        showNotification("Blocked non-http(s) evidence link.", type = "warning")
+        return(invisible(NULL))
+      }
+  session$sendCustomMessage(
       type = 'openLinkInNewTab',
-      message = list(url = evidence_link)
+      message = list(url = link)
     )
-  }
 }
 
 # =============================================================================

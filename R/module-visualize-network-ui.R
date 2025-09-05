@@ -20,11 +20,12 @@ createCytoscapeScripts <- function() {
     tags$script("
             Shiny.addCustomMessageHandler('openLinkInNewTab', function(message) {
               try {
-                if (message.url) {
-                  if (message.url.trim() !== '') {
-                    window.open(message.url, '_blank');
-                  }
-                }
+                if (!message || typeof message.url !== 'string') return;
+                var url = message.url.trim();
+                if (!url) return;
+                if (!/^https?:\\/\\//i.test(url)) { console.warn('Blocked non-http(s) URL'); return; }
+                var win = window.open(url, '_blank', 'noopener,noreferrer');
+                if (win) { win.opener = null; }
               } catch (err) {
                 console.error('Error opening link:', err);
               }
