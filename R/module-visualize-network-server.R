@@ -29,7 +29,8 @@ generateCytoscapeJSForShiny <- function(node_elements, edge_elements,
             target: edge.data('target'),
             interaction: edge.data('interaction'),
             edge_type: edge.data('edge_type'),
-            category: edge.data('category')
+            category: edge.data('category'),
+            evidenceLink: edge.data('evidenceLink')
         });
     }"),
     node_click = paste0("function(evt) {
@@ -130,6 +131,22 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
                 selection = list(mode = 'single', selected = 1))
     })
   }
+}
+
+# Open evidence link in new tab
+openEvidenceLink <- function(session, evidence_link) {
+  if (is.null(evidence_link) || is.na(evidence_link)) return(invisible(NULL))
+  link <- trimws(as.character(evidence_link)[1])
+  if (!nzchar(link)) return(invisible(NULL))
+  # Allow only http(s)
+    if (!grepl("^https?://", link, ignore.case = TRUE)) {
+        showNotification("Blocked non-http(s) evidence link.", type = "warning")
+        return(invisible(NULL))
+      }
+  session$sendCustomMessage(
+      type = 'openLinkInNewTab',
+      message = list(url = link)
+    )
 }
 
 # =============================================================================
@@ -494,6 +511,7 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     edges_table <- network_data$edges_table
     
     highlightEdgeInTable(output, edge_data, edges_table)
+    openEvidenceLink(session, edge_data$evidenceLink)
   })
   
   # Observe node click events
