@@ -242,7 +242,6 @@ createFilterDropdowns <- function(ns) {
                                    "TRRUST" = "trrust",
                                    "PhosphoELM" = "phosphoelm",
                                    "VirHostNet" = "virhostnet",
-                                   "OmniPath" = "omnipath",
                                    "UbiBrowser" = "ubibrowser",
                                    "ACSN" = "acsn",
                                    "WormBase" = "wormbase",
