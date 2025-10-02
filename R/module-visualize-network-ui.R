@@ -315,90 +315,89 @@ createDataUploadBox <- function(ns) {
 
 createNetworkLegends <- function() {
   div(
-    style = "position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 5px;",
+    style = "position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 8px;",
     
-    # LogFC Legend - Compact version
+    # LogFC Legend
     div(
-      style = "background-color: rgba(255, 255, 255, 0.95); border: 1px solid #ddd; border-radius: 3px; 
-               padding: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 120px; max-width: 140px;",
+      style = "background-color: rgba(255, 255, 255, 0.95); border: 2px solid #ddd; border-radius: 4px; 
+               padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); min-width: 180px; max-width: 200px;",
       
       # Legend title
       div(
-        style = "font-weight: bold; font-size: 10px; margin-bottom: 4px; text-align: center; color: #333;",
+        style = "font-weight: bold; font-size: 16px; margin-bottom: 8px; text-align: center; color: #333;",
         "LogFC"
       ),
       
-      # Color gradient bar - smaller
+      # Color gradient bar
       div(
-        style = "height: 12px; width: 100%; background: linear-gradient(to right, #ADD8E6, #D3D3D3, #FFA590); 
-                 border: 1px solid #ccc; border-radius: 2px; margin-bottom: 3px;"
+        style = "height: 20px; width: 100%; background: linear-gradient(to right, #ADD8E6, #D3D3D3, #FFA590); 
+                 border: 1px solid #ccc; border-radius: 3px; margin-bottom: 6px;"
       ),
       
-      # Labels container - more compact
+      # Labels container
       div(
-        style = "display: flex; justify-content: space-between; font-size: 8px; color: #666;",
+        style = "display: flex; justify-content: space-between; font-size: 14px; color: #333;",
         tags$span("Down", style = "font-weight: bold;"),
         tags$span("0", style = "font-weight: bold;"),
         tags$span("Up", style = "font-weight: bold;")
       )
     ),
     
-    # Edge Legend - Much more compact
+    # Edge Legend
     div(
-      style = "background-color: rgba(255, 255, 255, 0.95); border: 1px solid #ddd; border-radius: 3px; 
-               padding: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-width: 120px; max-width: 140px;",
+      style = "background-color: rgba(255, 255, 255, 0.95); border: 2px solid #ddd; border-radius: 4px; 
+               padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); min-width: 180px; max-width: 200px;",
       
       # Legend title
       div(
-        style = "font-weight: bold; font-size: 10px; margin-bottom: 4px; text-align: center; color: #333;",
+        style = "font-weight: bold; font-size: 16px; margin-bottom: 8px; text-align: center; color: #333;",
         "Edges"
       ),
       
-      # Edge type entries - much more compact
+      # Edge type entries
       div(
-        style = "font-size: 8px; line-height: 1.2;",
+        style = "font-size: 13px; line-height: 1.6;",
         
         # Two-column layout with proper row alignment
         div(
           div(
-            style = "display: flex; justify-content: space-between; margin: 1px 0;",
+            style = "display: flex; justify-content: space-between; margin: 3px 0;",
             div(
               style = "display: flex; align-items: center; flex: 1;",
-              tags$span("-", style = "color: #8B4513; font-weight: bold; margin-right: 3px; font-size: 10px;"),
-              tags$span("Complex", style = "color: #333; font-size: 7px;")
+              tags$span("—", style = "color: #8B4513; font-weight: bold; margin-right: 5px; font-size: 14px;"),
+              tags$span("Complex", style = "color: #333; font-size: 13px;")
             ),
             div(
-              style = "display: flex; align-items: center; flex: 1; padding-left: 4px;",
-              tags$span("- -", style = "color: #9932CC; font-weight: bold; margin-right: 3px; font-size: 10px;"),
-              tags$span("Phospho", style = "color: #333; font-size: 7px;")
+              style = "display: flex; align-items: center; flex: 1; padding-left: 6px;",
+              tags$span("- -", style = "color: #9932CC; font-weight: bold; margin-right: 5px; font-size: 14px;"),
+              tags$span("Phospho", style = "color: #333; font-size: 13px;")
             )
           ),
-
           div(
-            style = "display: flex; justify-content: space-between; margin: 1px 0;",
+            style = "display: flex; justify-content: space-between; margin: 3px 0;",
             div(
               style = "display: flex; align-items: center; flex: 1;",
-              tags$span("->", style = "color: #44AA44; font-weight: bold; margin-right: 3px; font-size: 8px;"),
-              tags$span("Activate", style = "color: #333; font-size: 7px;")
+              tags$span("→", style = "color: #44AA44; font-weight: bold; margin-right: 5px; font-size: 14px;"),
+              tags$span("Activate", style = "color: #333; font-size: 13px;")
             ),
             div(
-              style = "display: flex; align-items: center; flex: 1; padding-left: 4px;",
-              tags$span("->", style = "color: #FF4444; font-weight: bold; margin-right: 3px; font-size: 8px;"),
-              tags$span("Inhibit", style = "color: #333; font-size: 7px;")
+              style = "display: flex; align-items: center; flex: 1; padding-left: 6px;",
+              tags$span("→", style = "color: #FF4444; font-weight: bold; margin-right: 5px; font-size: 14px;"),
+              tags$span("Inhibit", style = "color: #333; font-size: 13px;")
             )
           ),
           
           div(
-            style = "display: flex; justify-content: space-between; margin: 1px 0;",
+            style = "display: flex; justify-content: space-between; margin: 3px 0;",
             div(
               style = "display: flex; align-items: center; flex: 1;",
-              tags$span("->", style = "color: #4488FF; font-weight: bold; margin-right: 3px; font-size: 8px;"),
-              tags$span("Increase", style = "color: #333; font-size: 7px;")
+              tags$span("→", style = "color: #4488FF; font-weight: bold; margin-right: 5px; font-size: 14px;"),
+              tags$span("Increase", style = "color: #333; font-size: 13px;")
             ),
             div(
-              style = "display: flex; align-items: center; flex: 1; padding-left: 4px;",
-              tags$span("->", style = "color: #FF8844; font-weight: bold; margin-right: 3px; font-size: 8px;"),
-              tags$span("Decrease", style = "color: #333; font-size: 7px;")
+              style = "display: flex; align-items: center; flex: 1; padding-left: 6px;",
+              tags$span("→", style = "color: #FF8844; font-weight: bold; margin-right: 5px; font-size: 14px;"),
+              tags$span("Decrease", style = "color: #333; font-size: 13px;")
             )
           )
         )
