@@ -364,7 +364,7 @@ createNetworkLegends <- function() {
             style = "display: flex; justify-content: space-between; margin: 3px 0;",
             div(
               style = "display: flex; align-items: center; flex: 1;",
-              tags$span("—", style = "color: #8B4513; font-weight: bold; margin-right: 5px; font-size: 14px;"),
+              tags$span("-", style = "color: #8B4513; font-weight: bold; margin-right: 5px; font-size: 14px;"),
               tags$span("Complex", style = "color: #333; font-size: 13px;")
             ),
             div(
@@ -377,12 +377,12 @@ createNetworkLegends <- function() {
             style = "display: flex; justify-content: space-between; margin: 3px 0;",
             div(
               style = "display: flex; align-items: center; flex: 1;",
-              tags$span("→", style = "color: #44AA44; font-weight: bold; margin-right: 5px; font-size: 14px;"),
+              tags$span("->", style = "color: #44AA44; font-weight: bold; margin-right: 5px; font-size: 14px;"),
               tags$span("Activate", style = "color: #333; font-size: 13px;")
             ),
             div(
               style = "display: flex; align-items: center; flex: 1; padding-left: 6px;",
-              tags$span("→", style = "color: #FF4444; font-weight: bold; margin-right: 5px; font-size: 14px;"),
+              tags$span("->", style = "color: #FF4444; font-weight: bold; margin-right: 5px; font-size: 14px;"),
               tags$span("Inhibit", style = "color: #333; font-size: 13px;")
             )
           ),
@@ -391,12 +391,12 @@ createNetworkLegends <- function() {
             style = "display: flex; justify-content: space-between; margin: 3px 0;",
             div(
               style = "display: flex; align-items: center; flex: 1;",
-              tags$span("→", style = "color: #4488FF; font-weight: bold; margin-right: 5px; font-size: 14px;"),
+              tags$span("->", style = "color: #4488FF; font-weight: bold; margin-right: 5px; font-size: 14px;"),
               tags$span("Increase", style = "color: #333; font-size: 13px;")
             ),
             div(
               style = "display: flex; align-items: center; flex: 1; padding-left: 6px;",
-              tags$span("→", style = "color: #FF8844; font-weight: bold; margin-right: 5px; font-size: 14px;"),
+              tags$span("->", style = "color: #FF8844; font-weight: bold; margin-right: 5px; font-size: 14px;"),
               tags$span("Decrease", style = "color: #333; font-size: 13px;")
             )
           )
