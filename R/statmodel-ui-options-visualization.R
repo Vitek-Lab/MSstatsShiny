@@ -27,7 +27,8 @@ create_plot_type_selector <- function(ns) {
       c(
         "Volcano Plot" = "VolcanoPlot", 
         "Heatmap" = "Heatmap", 
-        "Comparison Plot" = "ComparisonPlot"
+        "Comparison Plot" = "ComparisonPlot",
+        # Create additional toggling options for dose response curves "Response Curve" = "ResponseCurve"
       )
     )
   )

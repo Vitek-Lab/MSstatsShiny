@@ -15,10 +15,10 @@ create_results_section <- function(ns) {
              tags$br()
       )
     ),
-    uiOutput(ns("matrix")),
-    create_results_tables(ns),
+    uiOutput(ns("matrix")), # rename to something else to capture response curve mappings
+    create_results_tables(ns), # should include tables for isotonic regression & ic50 calculations
     tags$br(),
-    uiOutput(ns("comparison_plots"))
+    uiOutput(ns("comparison_plots")) # rename to model_plots_output to encapsulate all models
   )
 }
 

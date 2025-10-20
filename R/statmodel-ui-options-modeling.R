@@ -13,6 +13,7 @@ create_modeling_section <- function(ns) {
     tags$hr(),
     create_moderation_option(ns),
     create_significance_slider(ns),
+    # need option for increasing or decreasing trend for dose response
     tags$br()
   )
 }

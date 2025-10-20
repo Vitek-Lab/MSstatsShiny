@@ -13,6 +13,7 @@ create_contrast_section <- function(ns) {
     create_all_vs_one_panel(ns),
     create_all_pairwise_panel(ns),
     create_custom_nonpairwise_panel(ns),
+    # add additional option to perform dose response curve mapping group -> drug+dose
     tags$hr()
   )
 }
