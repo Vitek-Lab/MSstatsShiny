@@ -45,7 +45,7 @@ create_significance_slider <- function(ns) {
       "Significance level",
       class = "icon-wrapper",
       icon("question-circle", lib = "font-awesome"),
-      div("The alpha used to determine significant results, i.e. the probability of type I error)", class = "icon-tooltip")
+      div("The alpha used to determine significant results, i.e. the probability of type I error", class = "icon-tooltip")
     ), 
     0, 1, 0.05
   )
