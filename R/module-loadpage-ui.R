@@ -88,21 +88,21 @@ create_sample_dataset_descriptions <- function() {
     conditionalPanel(
       condition = "input['loadpage-filetype'] == 'sample' && input['loadpage-LabelFreeType'] == 'DDA'",
       p("The sample dataset for DDA acquisition is taken from the publication ",
-        a("Choi, M. et al.  ABRF Proteome Informatics Research Group (iPRG) 2015 Study: Detection of Differentially Abundant Proteins in Label-Free Quantitative LC–MS/MS Experiments. Journal of Proteome Research 16.2 (2016): 945-957. ",
+        a("Choi, M. et al.  ABRF Proteome Informatics Research Group (iPRG) 2015 Study: Detection of Differentially Abundant Proteins in Label-Free Quantitative LC MS/MS Experiments. Journal of Proteome Research 16.2 (2016): 945-957. ",
           href = "https://pubs.acs.org/doi/10.1021/acs.jproteome.6b00881",
           target = "_blank"))
     ),
     conditionalPanel(
       condition = "input['loadpage-filetype'] == 'sample' && input['loadpage-LabelFreeType'] == 'DIA'",
       p("The sample dataset for DIA acquisition is taken from the publication ",
-        a("Selevsek, N. et al. Reproducible and Consistent Quantification of the Saccharomyces Cerevisiae Proteome by SWATH-Mass Spectrometry. Molecular & Cellular Proteomics: MCP 14.3 (2015): 739–749. ", 
+        a("Selevsek, N. et al. Reproducible and Consistent Quantification of the Saccharomyces Cerevisiae Proteome by SWATH-Mass Spectrometry. Molecular & Cellular Proteomics: MCP 14.3 (2015): 739-749. ", 
           href = "http://www.mcponline.org/content/14/3/739.long", 
           target="_blank"))
     ),
     conditionalPanel(
       condition = "input['loadpage-filetype'] == 'sample' && input['loadpage-LabelFreeType'] == 'SRM_PRM'",
       p("The sample dataset for SRM/PRM acquisition is taken from the publication ",
-        a("Picotti, P. et al. Full dynamic range proteome analysis of S. cerevisiae by targeted proteomics. Cell (2009), 138, 795–806.", 
+        a("Picotti, P. et al. Full dynamic range proteome analysis of S. cerevisiae by targeted proteomics. Cell (2009), 138, 795-806.", 
           href = "http://www.cell.com/cell/fulltext/S0092-8674(09)00715-6", 
           target="_blank"))
     )
