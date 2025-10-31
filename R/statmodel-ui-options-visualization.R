@@ -56,7 +56,7 @@ create_volcano_plot_options <- function(ns) {
         "Adjusted p-value cutoff",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("The cutoff used to determine significant results.)", class = "icon-tooltip")
+        div("The cutoff used to determine significant results.", class = "icon-tooltip")
       ),
       0, 1, 0.05
     ),
