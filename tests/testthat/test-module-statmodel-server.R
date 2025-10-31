@@ -99,18 +99,7 @@ create_mock_comparison_data <- function(type = "standard") {
 # Wrapper module that conforms to testServer requirements
 # This makes the server function testable
 testableStatmodelServer <- function(id, loadpage_input, qc_input, get_data, preprocess_data) {
-  moduleServer(id, function(input, output, session) {
-    statmodelServer(
-      input = input,
-      output = output,
-      session = session,
-      parent_session = session,
-      loadpage_input = loadpage_input,
-      qc_input = qc_input,
-      get_data = get_data,
-      preprocess_data = preprocess_data
-    )
-  })
+  moduleServer(id, statmodelServer)
 }
 
 # Helper to create mock reactive inputs
