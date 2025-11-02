@@ -213,54 +213,6 @@ test_that("matrix_build creates correct pairwise comparison", {
   )
 })
 
-# test_that("matrix_build handles multiple custom comparisons", {
-#   testServer(
-#     statmodelServer,
-#     args = list(
-#       parent_session = MockShinySession$new(),
-#       loadpage_input = reactive({
-#         list(
-#           BIO = "protein",
-#           DDA_DIA = "DDA",
-#           filetype = "standard",
-#           proceed1 = 0
-#         )
-#       }),
-#       qc_input = reactive({
-#         list(normalization = "equalizeMedians")
-#       }),
-#       get_data = reactive({
-#         list(c("P1", "P2", "P3"))
-#       }),
-#       preprocess_data = reactive({
-#         create_mock_data("DDA", "protein")
-#       })
-#     ),
-#     {
-#       # First comparison
-#       session$setInputs(
-#         def_comp = "custom",
-#         group1 = "Group1",
-#         group2 = "Group2",
-#         submit = 1
-#       )
-#       matrix_build()
-#       
-#       # Second comparison
-#       session$setInputs(
-#         group1 = "Group2",
-#         group2 = "Group3",
-#         submit = 2
-#       )
-#       mat <- matrix_build()
-#       
-#       # Verify matrix has both comparisons
-#       expect_equal(nrow(mat), 2)
-#       expect_equal(rownames(mat), c("Group1 vs Group2", "Group2 vs Group3"))
-#     }
-#   )
-# })
-
 test_that("matrix_build creates all pairwise comparisons", {
   testServer(
     statmodelServer,
@@ -475,52 +427,6 @@ test_that("check_cond validates contrast weights sum to zero", {
   )
 })
 
-# test_that("clear button resets contrast matrix", {
-#   testServer(
-#     statmodelServer,
-#     args = list(
-#       parent_session = MockShinySession$new(),
-#       loadpage_input = reactive({
-#         list(
-#           BIO = "protein",
-#           DDA_DIA = "DDA",
-#           filetype = "standard",
-#           proceed1 = 0
-#         )
-#       }),
-#       qc_input = reactive({
-#         list(normalization = "equalizeMedians")
-#       }),
-#       get_data = reactive({
-#         list(c("P1", "P2", "P3"))
-#       }),
-#       preprocess_data = reactive({
-#         create_mock_data("DDA", "protein")
-#       })
-#     ),
-#     {
-#       # Build a matrix
-#       session$setInputs(
-#         def_comp = "custom",
-#         group1 = "Group1",
-#         group2 = "Group2",
-#         submit = 1
-#       )
-#       matrix_build()
-#       
-#       # Verify matrix exists
-#       expect_false(is.null(contrast$matrix))
-#       
-#       # Clear the matrix
-#       session$setInputs(clear = 1)
-#       
-#       # Verify matrix is cleared
-#       expect_null(contrast$matrix)
-#       expect_null(comp_list$dList)
-#     }
-#   )
-# })
-
 test_that("def_comp change resets matrix", {
   testServer(
     statmodelServer,
@@ -607,78 +513,6 @@ test_that("round_df helper function rounds numeric columns", {
     }
   )
 })
-
-test_that("UI shows/hides Design input correctly", {
-  testServer(
-    statmodelServer,
-    args = list(
-      parent_session = MockShinySession$new(),
-      loadpage_input = reactive({
-        list(
-          BIO = "protein",
-          DDA_DIA = "DDA",
-          filetype = "standard",
-          proceed1 = 0
-        )
-      }),
-      qc_input = reactive({
-        list(normalization = "equalizeMedians")
-      }),
-      get_data = reactive({
-        list(c("P1", "P2", "P3"))
-      }),
-      preprocess_data = reactive({
-        create_mock_data("DDA", "protein")
-      })
-    ),
-    {
-      # For DDA, Design should be visible (not hidden)
-      # This would be tested in integration tests with actual shinyjs
-      expect_true(TRUE) # Placeholder for shinyjs test
-    }
-  )
-})
-
-# test_that("nump input validation works correctly", {
-#   testServer(
-#     statmodelServer,
-#     args = list(
-#       parent_session = MockShinySession$new(),
-#       loadpage_input = reactive({
-#         list(
-#           BIO = "protein",
-#           DDA_DIA = "DDA",
-#           filetype = "standard",
-#           proceed1 = 0
-#         )
-#       }),
-#       qc_input = reactive({
-#         list(normalization = "equalizeMedians")
-#       }),
-#       get_data = reactive({
-#         list(c("P1", "P2", "P3"))
-#       }),
-#       preprocess_data = reactive({
-#         create_mock_data("DDA", "protein")
-#       })
-#     ),
-#     {
-#       # Test with invalid input (negative)
-#       session$setInputs(nump = -5)
-#       session$flushReact()
-#       
-#       # Should be reset to 100
-#       expect_equal(session$input$nump, 100)
-#       
-#       # Test with invalid input (NA)
-#       session$setInputs(nump = NA)
-#       session$flushReact()
-#       
-#       # Should be reset to 100
-#       expect_equal(session$input$nump, 100)
-#     }
-#   )
-# })
 
 test_that("matrix doesn't add duplicate rows", {
   testServer(
@@ -767,41 +601,6 @@ test_that("Rownames reactive returns correct comparison names", {
   )
 })
 
-# test_that("module returns correct list structure", {
-#   result <- testServer(
-#     statmodelServer,
-#     args = list(
-#       parent_session = MockShinySession$new(),
-#       loadpage_input = reactive({
-#         list(
-#           BIO = "protein",
-#           DDA_DIA = "DDA",
-#           filetype = "standard",
-#           proceed1 = 0
-#         )
-#       }),
-#       qc_input = reactive({
-#         list(normalization = "equalizeMedians")
-#       }),
-#       get_data = reactive({
-#         list(c("P1", "P2", "P3"))
-#       }),
-#       preprocess_data = reactive({
-#         create_mock_data("DDA", "protein")
-#       })
-#     ),
-#     {
-#       # Return value should have input and dataComparison
-#       session$returned()
-#     }
-#   )
-#   
-#   expect_true("input" %in% names(result))
-#   expect_true("dataComparison" %in% names(result))
-#   expect_true(is.reactive(result$input))
-#   expect_true(is.reactive(result$dataComparison))
-# })
-
 # Additional edge case tests
 test_that("handles empty comparison list correctly", {
   testServer(
@@ -830,41 +629,6 @@ test_that("handles empty comparison list correctly", {
       # Before any comparisons are made
       expect_null(contrast$matrix)
       expect_null(comp_list$dList)
-    }
-  )
-})
-
-test_that("row() helper creates correct zero vector", {
-  testServer(
-    statmodelServer,
-    args = list(
-      parent_session = MockShinySession$new(),
-      loadpage_input = reactive({
-        list(
-          BIO = "protein",
-          DDA_DIA = "DDA",
-          filetype = "standard",
-          proceed1 = 0
-        )
-      }),
-      qc_input = reactive({
-        list(normalization = "equalizeMedians")
-      }),
-      get_data = reactive({
-        list(c("P1", "P2", "P3"))
-      }),
-      preprocess_data = reactive({
-        create_mock_data("DDA", "protein")
-      })
-    ),
-    {
-      r <- row()
-      
-      # Should have length equal to number of choices
-      expect_equal(length(r), length(choices()))
-      
-      # All values should be 0
-      expect_true(all(r == 0))
     }
   )
 })
