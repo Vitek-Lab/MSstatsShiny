@@ -71,27 +71,27 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           shinyjs::show("Design")
         }
       })
-      
+
       output$choice1 = renderUI({
         ns <- session$ns
         selectInput(ns("group1"), "Group 1", choices())
       })
-      
+
       output$choice2 = renderUI({
         ns <- session$ns
         selectInput(ns("group2"), "Group 2", choices())
       })
-      
+
       output$choice3 = renderUI({
         ns <- session$ns
         selectInput(ns("group3"), "", choices())
       })
-      
+
       output$comp_name = renderUI({
         ns <- session$ns
         textInput(ns("comp_name"), label = "Comparison Name", value = "")
       })
-      
+
       output$weights = renderUI({
         ns <- session$ns
         lapply(1:length(choices()), function(i) {
@@ -99,9 +99,9 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
             numericInput(ns(paste0("weight", i)), label = choices()[i], value=0))
         })
       })
-      
+
       # rownames for matrix
-      
+
       Rownames = eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
         req(input$def_comp)
         req(loadpage_input()$DDA_DIA)
@@ -109,37 +109,37 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           rownames(matrix_build())},
           error=function(e){})
       })
-      
+
       # choices of comparisons/proteins to plot
-      
+
       output$WhichComp = renderUI ({
         ns <- session$ns
         selectInput(ns("whichComp"),
                     label = h5("Select comparison to plot"), c("all", Rownames()), selected = "all")
       })
-      
+
       output$WhichProt = renderUI ({
         ns <- session$ns
         selectInput(ns("whichProt"),
                     label = h4("which protein to plot"), unique(get_data()[[1]]))
       })
-      
+
       output$WhichProt1 = renderUI ({
         ns <- session$ns
         selectizeInput(ns("whichProt1"),
                        label = h4("which protein to plot"), c("", unique(get_data()[[1]])))
       })
-      
-      
+
+
       ########## functions ########
-      
+
       # build matrix
-      
+
       observeEvent(input$def_comp, {
         contrast$matrix = NULL
         comp_list$dList = NULL
       })
-      
+
       observeEvent(loadpage_input()$proceed1, {
         contrast$matrix = NULL
         comp_list$dList = NULL
@@ -147,7 +147,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
       })
       
       
-      
+
       ## Check contrast matrix was created correctly
       check_cond = eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
         req(input$def_comp)
@@ -156,21 +156,21 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           validate(
             need(input$group1 != input$group2, "Please select different groups")
           )}
-        
+
         else if(input$def_comp == "custom_np") {
-          
+
           wt_sum = 0
           for (index in 1:length(choices())){
             wt_sum = wt_sum + input[[paste0("weight", index)]]
           }
-          
+
           validate(
             need( wt_sum == 0,
                   "The contrast weights should sum up to 0")
           )}
       })
-      
-      
+
+
       matrix_build = eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
         req(input$def_comp)
         req(loadpage_input()$DDA_DIA)
@@ -195,25 +195,25 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           rownames(contrast$matrix) = comp_list$dList
           colnames(contrast$matrix) = choices()
         }
-        
+
         else if(input$def_comp == "custom_np") {
-          
+
           wt_sum = 0
           for (index in 1:length(choices())){
             wt_sum = wt_sum + input[[paste0("weight", index)]]
           }
-          
+
           if(wt_sum != 0){
             return(contrast$matrix)
           }
-          
+
           comp_list$dList = unique(c(isolate(comp_list$dList), input$comp_name))
           contrast$row = matrix(row(), nrow=1)
-          
+
           for (index in 1:length(choices())){
             contrast$row[index] = input[[paste0("weight", index)]]
           }
-          
+
           if (is.null(contrast$matrix)) {
             contrast$matrix = contrast$row
           } else {
@@ -223,7 +223,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           rownames(contrast$matrix) = comp_list$dList
           colnames(contrast$matrix) = choices()
         }
-        
+
         else if (input$def_comp == "all_one") {
           for (index in 1:length(choices())) {
             index3 = reactive({which(choices() == input$group3)})
@@ -237,7 +237,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
                                   paste(choices()[index], " vs ",
                                         input$group3, sep = ""))
             }
-            
+
             contrast$row = matrix(row(), nrow=1)
             contrast$row[index] = 1
             contrast$row[index3()] = -1
@@ -283,15 +283,15 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
         enable("calculate")
         return(contrast$matrix)
       })
-      
+
       # clear matrix
-      
+
       observeEvent({input$clear | input$clear1 | input$clear2 | input$clear3},  {
         disable("calculate")
         comp_list$dList = NULL
         contrast$matrix = NULL
       })
-      
+
       # Run Models
       
       data_comparison <- eventReactive(input$calculate,{
@@ -301,23 +301,23 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
         matrix = matrix_build()
         dataComparison(statmodel_input(),qc_input(),loadpage_input(),matrix,preprocess_data())
       })
-      
+
       data_comparison_code = eventReactive(input$calculate, {
         
         codes = preprocessDataCode(qc_input(),loadpage_input())
         comp.mat = matrix_build()
-        
+
         codes = paste(codes, "\n# Create the contrast matrix\n", sep = "")
         codes = paste(codes, "contrast.matrix = NULL\n", sep = "")
         for(i in 1:nrow(comp.mat)){
           codes = paste(codes, "comparison = matrix(c(", toString(comp.mat[i,]),"),nrow=1)\n", sep = "")
           codes = paste(codes, "contrast.matrix = rbind(contrast.matrix, comparison)\n", sep = "")
-          
+
         }
-        
+
         codes = paste(codes, "row.names(contrast.matrix)=c(\"", paste(row.names(comp.mat), collapse='","'),"\")\n", sep = "")
         codes = paste(codes, "colnames(contrast.matrix)=c(\"", paste(colnames(comp.mat), collapse='","'),"\")\n", sep = "")
-        
+
         if(loadpage_input()$DDA_DIA == "TMT"){
           codes = paste(codes, "\n# Model-based comparison\n", sep = "")
           codes = paste(codes,"model = MSstatsTMT::groupComparisonTMT(summarized,
@@ -339,7 +339,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
                       contrast.matrix = contrast.matrix)\n", sep = "")
         }
         else{
-          
+
           codes = paste(codes, "\n# Model-based comparison\n", sep = "")
           codes = paste(codes,"model = MSstats::groupComparison(contrast.matrix, summarized)\n", sep = "")
         }
@@ -356,19 +356,19 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
                                which.Protein=\"all\",isPlotly=FALSE,
                                address=\"\")\n", sep="")
         }
-        
+
         return(codes)
       })
-      
-      
+
+
       round_df = function(df) {
         nums = vapply(df, is.numeric, FUN.VALUE = logical(1))
-        
+
         df[,nums] = round(df[,nums], digits = 4)
-        
+
         (df)
       }
-      
+
       SignificantProteins = eventReactive(input$calculate,{
         if (loadpage_input()$BIO == "PTM"){
           
@@ -382,12 +382,12 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           significant = list(PTM.Model=sig_unadj,
                              PROTEIN.Model=sig_prot,
                              ADJUSTED.Model=sig_adj)
-          
+
         } else if(loadpage_input()$DDA_DIA=="TMT"){
           data_comp = data_comparison()
           significant = data_comp$ComparisonResult[
             data_comp$ComparisonResult$adj.pvalue < input$signif, ]
-          
+
         } else {
           # significant = with(data_comparison(), round_df(ComparisonResult[
           #   ComparisonResult$adj.pvalue < input$signif & 
@@ -401,14 +401,14 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
         }
         return(significant)
       })
-      
+
       group_comparison = function(saveFile1, pdf) {
-        
+
         show_modal_spinner()
-        
+
         id1 = as.character(UUIDgenerate(FALSE))
         id_address1 = paste(tempdir(), "\\", id1, sep = "")
-        
+
         path1 = function() {
           if (saveFile1) {
             path1_id = paste(tempdir(), "\\", id1, sep = "")
@@ -418,7 +418,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           }
           return(path1_id)
         }
-        
+
         if (loadpage_input()$BIO=="PTM"){
           plot1 = groupComparisonPlotsPTM(data_comparison(),
                                           input$typeplot,
@@ -428,8 +428,8 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
                                           ProteinName = input$pname,
                                           which.Comparison = input$whichComp,
                                           address = FALSE)
-          
-          
+
+
         } else if(loadpage_input()$DDA_DIA=="TMT"){
           tryCatch({
             # makes use of MSstats groupComparisonPlots function
@@ -446,52 +446,52 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
                                          height = input$height,
                                          address="Ex_",
                                          isPlotly = TRUE)[[1]]
-            remove_modal_spinner()
+          remove_modal_spinner()
           },
           error = function(e){
             remove_modal_spinner()
             stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf. **' )}
           )
-          
-          
+
+
         } else{
           tryCatch({                                                   
-            if(toupper(input$typeplot) == "VOLCANOPLOT" && input$whichComp == "all") {
-              remove_modal_spinner()
-              stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )
-            }
-            
-            plot1 = groupComparisonPlots(data=data_comparison()$ComparisonResult,
-                                         type=input$typeplot,
-                                         sig=input$sig,
-                                         FCcutoff=input$FC,
-                                         logBase.pvalue=as.numeric(input$logp),
-                                         ProteinName=input$pname,
-                                         numProtein=input$nump, 
-                                         clustering=input$cluster, 
-                                         which.Comparison=input$whichComp,
-                                         which.Protein = input$whichProt,
-                                         height = input$height,
-                                         address="Ex_",
-                                         isPlotly = TRUE)[[1]]
+          if(toupper(input$typeplot) == "VOLCANOPLOT" && input$whichComp == "all") {
             remove_modal_spinner()
-            return(plot1)
+            stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )
+          }
+          
+          plot1 = groupComparisonPlots(data=data_comparison()$ComparisonResult,
+                                       type=input$typeplot,
+                                       sig=input$sig,
+                                       FCcutoff=input$FC,
+                                       logBase.pvalue=as.numeric(input$logp),
+                                       ProteinName=input$pname,
+                                       numProtein=input$nump, 
+                                       clustering=input$cluster, 
+                                       which.Comparison=input$whichComp,
+                                       which.Protein = input$whichProt,
+                                       height = input$height,
+                                       address="Ex_",
+                                       isPlotly = TRUE)[[1]]
+          remove_modal_spinner()
+          return(plot1)
           }, error = function(e){
             remove_modal_spinner()
             message("An error occurred: ", conditionMessage(e))
             stop( '** Cannnot generate multiple plots in a screen. Please refine selection or save to a pdf.**' )}
           )
         }
+
         
-        
-        
+
         if(saveFile1) {
           return(id_address1)
         }
         else {
           return(plot1)
         }
-        
+
       }
       
       # On Heatmap page to display the num of proteins, bound the input range
@@ -501,9 +501,9 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           updateNumericInput(session, "nump", value = 100)
         }
       })
-      
+
       # model assumptions plots
-      
+
       assumptions1 = function(saveFile3, protein) {
         if (input$whichProt1 != "") {
           id2 = as.character(UUIDgenerate(FALSE))
@@ -517,10 +517,10 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
             }
             return (path_id2)
           }
-          
+
           plots = modelBasedQCPlots(data=data_comparison(), type=input$assum_type,
                                     which.Protein = protein, address = path2())
-          
+
           if(saveFile3) {
             return(path2())
           }
@@ -532,9 +532,9 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           return(NULL)
         }
       }
-      
-      
-      
+
+
+
       ########## output ##########
       
       output$plotresults = downloadHandler(
@@ -549,9 +549,9 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           file.copy(latest_file, file)
         }
       )
-      
+
       # download comparison data
-      
+
       output$compar = downloadHandler(
         filename = function() {
           paste("comparison-", Sys.Date(), ".csv", sep="")
@@ -559,7 +559,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
         content = function(file) {
           write.csv(data_comparison()$ComparisonResult, file)
         })
-      
+
       output$model_QC = downloadHandler(
         filename = function() {
           paste("ModelQC-", Sys.Date(), ".csv", sep="")
@@ -567,7 +567,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
         content = function(file) {
           write.csv(data_comparison()$ModelQC, file)
         })
-      
+
       output$fitted_v = downloadHandler(
         filename = function() {
           paste("model_summary-", Sys.Date(), ".csv", sep="")
@@ -575,9 +575,9 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
         content = function(file) {
           write.csv(capture.output(data_comparison()$fittedmodel), file)
         })
-      
+
       # matrix
-      
+
       output$message = renderText({
         check_cond()
       })
@@ -586,7 +586,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
         downloadButton(ns("download_code"), "Download analysis code", icon("download"),
                        style="color: #000000; background-color: #75ba82; border-color: #000000")
       })})
-      
+
       output$matrix = renderUI({
         ns <- session$ns
         tagList(
@@ -601,20 +601,20 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           }
         )
       })
-      
+
       output$table = renderDataTable({
         matrix_build()
       }
       )
-      
+
       # table of significant proteins
       output$table_results = renderUI({
         ns <- session$ns
         req(data_comparison())
         req(SignificantProteins())
-        
+
         if (is.null(significant)) {
-          
+
           tagList(
             tags$br())
         } else {
@@ -626,11 +626,11 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
             dataTableOutput(ns("significant")),
             downloadButton(ns("download_compar"), "Download all modeling results"),
             downloadButton(ns("download_signif"), "Download significant proteins")
-            
+
           )
         }
       })
-      
+
       output$adj_table_results = renderUI({
         ns <- session$ns
         req(data_comparison())
@@ -651,7 +651,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           )
         }
       })
-      
+
       output$unadj_table_results = renderUI({
         ns <- session$ns
         req(data_comparison())
@@ -672,7 +672,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           )
         }
       })
-      
+
       output$prot_table_results = renderUI({
         ns <- session$ns
         req(data_comparison())
@@ -693,49 +693,49 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           )
         }
       })
-      
+
       output$significant = renderDataTable({
         SignificantProteins()
       }
       )
-      
+
       output$adj_significant = renderDataTable({
         SignificantProteins()$ADJUSTED.Model
       }
       )
-      
+
       output$unadj_significant = renderDataTable({
         SignificantProteins()$PTM.Model
       }
       )
-      
+
       output$prot_significant = renderDataTable({
         SignificantProteins()$PROTEIN.Model
       }
       )
-      
+
       # number of significant proteins
       output$number = renderText({
         nrow(SignificantProteins())
       })
-      
+
       output$number_adj = renderText({
         nrow(SignificantProteins()$ADJUSTED.Model)
       })
-      
+
       output$number_unadj = renderText({
         nrow(SignificantProteins()$PTM.Model)
       })
-      
+
       output$number_prot = renderText({
         nrow(SignificantProteins()$PROTEIN.Model)
       })
-      
+
       # plot in browser
       observeEvent(input$typeplot, {
         updateSelectInput(session, "whichComp", selected = "all")
       })
-      
+
       observeEvent(input$viewresults, {
         ns <- session$ns
         # PTM plotly plots are still under development
@@ -763,43 +763,43 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
         )
       }
       )
-      
+
       plotset = reactive({
-        
+
         if(loadpage_input()$DDA_DIA=="TMT"){
           data_comp = data_comparison()$ComparisonResult
           v1 = data_comp[,1]
           v2 = round(data_comp[,3], 10)
           v3 = round(data_comp[,8], 10)
           v4 = data_comp[,2]
-          
+
         } else{
           v1 = data_comparison()$ComparisonResult[,1]
           v2 = round(data_comparison()$ComparisonResult[,3], 10)
           v3 = round(data_comparison()$ComparisonResult[,8], 10)
           v4 = data_comparison()$ComparisonResult[,2]
-          
+
         }
-        
+
         if (input$logp == "2") {
           v3 = -log2(v3)
         }
         else if (input$logp == "10") {
           v3 = - log10(v3)
         }
-        
+
         df = data.frame(v1,v2,v3,v4)
         df = df[df$v4 == input$whichComp,]
         colnames(df) = c("Protein", "logFC", "logadj.pvalue", "comparison")
         return(df)
       })
-      
+
       output$info2 = renderPrint({
         print(nearPoints(plotset(), input$click1, xvar = "logFC", yvar = "logadj.pvalue"))
       })
-      
+
       # Assumption plots in browser
-      
+
       output$verify = renderUI ({
         ns <- session$ns
         tagList(
@@ -812,11 +812,11 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           )
         )
       })
-      
+
       output$assum_plots = renderPlot({
         assumptions1(FALSE, input$whichProt1)})
-      
-      
+
+
       # downloads
       observeEvent(input$saveone1, {
         path = assumptions1(TRUE, input$whichProt1)
@@ -829,7 +829,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           runjs(js);
         }
       })
-      
+
       observeEvent(input$saveall1, {
         path = assumptions1(TRUE, "all")
         if (input$assum_type == "QQPlots") {
@@ -841,8 +841,8 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           runjs(js);
         }
       })
-      
-      
+
+
       output$download_compar = downloadHandler(
         filename = function() {
           paste("test_result-", Sys.Date(), ".csv", sep="")
@@ -875,7 +875,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           write.csv(data_comparison()$PROTEIN.Model, file)
         }
       )
-      
+
       output$download_code = downloadHandler(
         filename = function() {
           paste("mstats-code-", Sys.Date(), ".R", sep="")
@@ -884,7 +884,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           writeLines(paste(
             data_comparison_code(), sep = ""), file)
         })
-      
+
       output$download_signif = downloadHandler(
         filename = function() {
           paste("data-", Sys.Date(), ".csv", sep="")
@@ -917,9 +917,9 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           write.csv(SignificantProteins()$PROTEIN.Model, file)
         }
       )
+
       
-      
-      
+
       observeEvent(input$calculate,{
         enable("Design")
         enable("typeplot")
