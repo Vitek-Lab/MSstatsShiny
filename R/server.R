@@ -10,9 +10,9 @@
 #' @examples
 #' NA
 #' 
-server <- function(input, output, session) {
-  isWebServer <- Sys.getenv("SHINY_ENV", "development") == "production"
-  maxRequestSize <- if (isWebServer) 250*1024^2 else 1000000*1024^2
+server = function(input, output, session) {
+  isWebServer = Sys.getenv("SHINY_ENV", "development") == "production"
+  maxRequestSize = if (isWebServer) 250*1024^2 else 1000000*1024^2
   options(shiny.maxRequestSize=maxRequestSize)
   session$allowReconnect(TRUE)
   
@@ -33,17 +33,17 @@ server <- function(input, output, session) {
   })
   
   # loadpageServer - call directly (assuming it uses moduleServer)
-  loadpage_values <- loadpageServer("loadpage", parent_session = session)
-  loadpage_input <- loadpage_values$input
-  get_data <- loadpage_values$getData
+  loadpage_values = loadpageServer("loadpage", parent_session = session)
+  loadpage_input = loadpage_values$input
+  get_data = loadpage_values$getData
   
   # qcServer - update to direct call if refactored, otherwise keep callModule for now
-  qc_values <- callModule(qcServer, "qc", session, reactive(loadpage_input), get_data)
-  qc_input <- qc_values$input
-  preprocess_data <- qc_values$preprocessData
+  qc_values = callModule(qcServer, "qc", session, reactive(loadpage_input), get_data)
+  qc_input = qc_values$input
+  preprocess_data = qc_values$preprocessData
   
   # statmodelServer - NOW CALLED DIRECTLY (no callModule)
-  statmodel_values <- statmodelServer(
+  statmodel_values = statmodelServer(
     id = "statmodel",
     parent_session = session,
     loadpage_input = reactive(loadpage_input),
@@ -51,8 +51,8 @@ server <- function(input, output, session) {
     get_data = get_data,
     preprocess_data = preprocess_data
   )
-  statmodel_input <- statmodel_values$input
-  data_comparison <- statmodel_values$dataComparison
+  statmodel_input = statmodel_values$input
+  data_comparison = statmodel_values$dataComparison
   
   # expdesServer - keep callModule if not yet refactored
   callModule(expdesServer, "expdes", session, reactive(loadpage_input),

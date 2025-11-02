@@ -18,7 +18,7 @@
 #' @examples
 #' NA
 #'
-statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_data, preprocess_data) {
+statmodelServer = function(id, parent_session, loadpage_input, qc_input, get_data, preprocess_data) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -55,27 +55,27 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
       })
 
       output$choice1 = renderUI({
-        ns <- session$ns
+        ns = session$ns
         selectInput(ns("group1"), "Group 1", choices())
       })
 
       output$choice2 = renderUI({
-        ns <- session$ns
+        ns = session$ns
         selectInput(ns("group2"), "Group 2", choices())
       })
 
       output$choice3 = renderUI({
-        ns <- session$ns
+        ns = session$ns
         selectInput(ns("group3"), "", choices())
       })
 
       output$comp_name = renderUI({
-        ns <- session$ns
+        ns = session$ns
         textInput(ns("comp_name"), label = "Comparison Name", value = "")
       })
 
       output$weights = renderUI({
-        ns <- session$ns
+        ns = session$ns
         lapply(1:length(choices()), function(i) {
           list(
             numericInput(ns(paste0("weight", i)), label = choices()[i], value=0))
@@ -95,19 +95,19 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
       # choices of comparisons/proteins to plot
 
       output$WhichComp = renderUI ({
-        ns <- session$ns
+        ns = session$ns
         selectInput(ns("whichComp"),
                     label = h5("Select comparison to plot"), c("all", Rownames()), selected = "all")
       })
 
       output$WhichProt = renderUI ({
-        ns <- session$ns
+        ns = session$ns
         selectInput(ns("whichProt"),
                     label = h4("which protein to plot"), unique(get_data()[[1]]))
       })
 
       output$WhichProt1 = renderUI ({
-        ns <- session$ns
+        ns = session$ns
         selectizeInput(ns("whichProt1"),
                        label = h4("which protein to plot"), c("", unique(get_data()[[1]])))
       })
@@ -276,8 +276,8 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
 
       # Run Models
       
-      data_comparison <- eventReactive(input$calculate,{
-        statmodel_input <- reactive({
+      data_comparison = eventReactive(input$calculate,{
+        statmodel_input = reactive({
           input
         })
         matrix = matrix_build()
@@ -524,9 +524,9 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
           paste("SummaryPlot-", Sys.Date(), ".zip", sep="")
         },
         content = function(file) {
-          files <- list.files(getwd(), pattern = "^Ex_", full.names = TRUE)
-          file_info <- file.info(files)
-          latest_file <- files[which.max(file_info$mtime)]
+          files = list.files(getwd(), pattern = "^Ex_", full.names = TRUE)
+          file_info = file.info(files)
+          latest_file = files[which.max(file_info$mtime)]
           print(latest_file)
           file.copy(latest_file, file)
         }
@@ -564,13 +564,13 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
         check_cond()
       })
       observeEvent(input$calculate, {output$code.button = renderUI({
-        ns <- session$ns
+        ns = session$ns
         downloadButton(ns("download_code"), "Download analysis code", icon("download"),
                        style="color: #000000; background-color: #75ba82; border-color: #000000")
       })})
 
       output$matrix = renderUI({
-        ns <- session$ns
+        ns = session$ns
         tagList(
           h2("Comparison matrix"),
           br(),
@@ -591,7 +591,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
 
       # table of significant proteins
       output$table_results = renderUI({
-        ns <- session$ns
+        ns = session$ns
         req(data_comparison())
         req(SignificantProteins())
 
@@ -614,7 +614,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
       })
 
       output$adj_table_results = renderUI({
-        ns <- session$ns
+        ns = session$ns
         req(data_comparison())
         req(SignificantProteins())
         significant = SignificantProteins()
@@ -635,7 +635,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
       })
 
       output$unadj_table_results = renderUI({
-        ns <- session$ns
+        ns = session$ns
         req(data_comparison())
         req(SignificantProteins())
         significant = SignificantProteins()
@@ -656,7 +656,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
       })
 
       output$prot_table_results = renderUI({
-        ns <- session$ns
+        ns = session$ns
         req(data_comparison())
         req(SignificantProteins())
         significant = SignificantProteins()
@@ -719,18 +719,18 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
       })
 
       observeEvent(input$viewresults, {
-        ns <- session$ns
+        ns = session$ns
         # PTM plotly plots are still under development
         if (loadpage_input()$BIO == "PTM") {
           output$comp_plots = renderPlot({
             group_comparison(FALSE, FALSE)
           })
-          op <- plotOutput(ns("comp_plots"))
+          op = plotOutput(ns("comp_plots"))
         } else {
           output$comp_plots = renderPlotly({
             group_comparison(FALSE, FALSE)
           })
-          op <- plotlyOutput(ns("comp_plots"), height = input$height)
+          op = plotlyOutput(ns("comp_plots"), height = input$height)
         }
         insertUI(
           selector = paste0("#", ns("comparison_plots")),
@@ -783,7 +783,7 @@ statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_da
       # Assumption plots in browser
 
       output$verify = renderUI ({
-        ns <- session$ns
+        ns = session$ns
         tagList(
           plotOutput(ns("assum_plots"), width = "800px", height = "600px"),
           conditionalPanel(condition = "input['statmodel-whichProt1'] != ''",
