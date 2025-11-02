@@ -32,7 +32,6 @@ server = function(input, output, session) {
                       selected = "Uploaddata")
   })
   
-  # loadpageServer - call directly (assuming it uses moduleServer)
   loadpage_values = loadpageServer("loadpage", parent_session = session)
   loadpage_input = loadpage_values$input
   get_data = loadpage_values$getData
@@ -41,8 +40,7 @@ server = function(input, output, session) {
   qc_values = callModule(qcServer, "qc", session, reactive(loadpage_input), get_data)
   qc_input = qc_values$input
   preprocess_data = qc_values$preprocessData
-  
-  # statmodelServer - NOW CALLED DIRECTLY (no callModule)
+
   statmodel_values = statmodelServer(
     id = "statmodel",
     parent_session = session,
