@@ -1,6 +1,4 @@
-library(testthat)
 library(shiny)
-
 # Mock data setup helper
 create_mock_data <- function(type = "DDA", bio = "protein") {
   # Create mock preprocessed data
