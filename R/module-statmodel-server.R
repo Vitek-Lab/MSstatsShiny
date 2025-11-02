@@ -17,25 +17,7 @@
 #' @export
 #' @examples
 #' NA
-#' 
-#' Statmodel Server module for stat inference
 #'
-#' This function sets up the Statmodel server to process data based on user
-#' selected inputs using the modern moduleServer architecture
-#'
-#' @param id Module ID
-#' @param parent_session session of the main calling module
-#' @param loadpage_input Reactive expression that returns loadpage input
-#' @param qc_input Reactive expression that returns QC input
-#' @param get_data Reactive expression that returns the data from loadpage
-#' @param preprocess_data Reactive expression that returns preprocessed data
-#' 
-#' @return list object with user selected options and matrix build
-#'
-#' @export
-#' @examples
-#' NA
-#' 
 statmodelServer <- function(id, parent_session, loadpage_input, qc_input, get_data, preprocess_data) {
   moduleServer(
     id,
