@@ -155,6 +155,7 @@ build_all_against_one_contrast = function(input, condition_list, contrast, comp_
 
 build_all_pair_contrast = function(input, condition_list, contrast, comp_list, row, loadpage_input) {
   contrast$matrix = NULL
+  comp_list$dList = NULL
   
   for (index in 1:length(condition_list)) {
     for (index1 in 1:length(condition_list)) {
@@ -275,13 +276,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
 extract_significant_proteins = function(data_comp, loadpage_input, signif_threshold) {
   # Todo: Make any adjustments for significant proteins for dose response curves
   if (loadpage_input$BIO == "PTM") {
-    sig_unadj = data_comp$PTM.Model[data_comp$PTM.Model$adj.pvalue < signif_threshold,]
-    sig_prot = data_comp$PROTEIN.Model[data_comp$PROTEIN.Model$adj.pvalue < signif_threshold,]
-    sig_adj = data_comp$ADJUSTED.Model[data_comp$ADJUSTED.Model$adj.pvalue < signif_threshold,]
-    
-    list(PTM.Model = sig_unadj,
-         PROTEIN.Model = sig_prot,
-         ADJUSTED.Model = sig_adj)
+    data_comp$ADJUSTED.Model[data_comp$ADJUSTED.Model$adj.pvalue < signif_threshold,]
   } else if (loadpage_input$DDA_DIA == "TMT") {
     data_comp$ComparisonResult[data_comp$ComparisonResult$adj.pvalue < signif_threshold,]
   } else {
