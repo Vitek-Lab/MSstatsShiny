@@ -201,22 +201,6 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   })
 }
 
-extract_significant_proteins = function(data_comp, loadpage_input, signif_threshold) {
-  if (loadpage_input$BIO == "PTM") {
-    sig_unadj = data_comp$PTM.Model[data_comp$PTM.Model$adj.pvalue < signif_threshold,]
-    sig_prot = data_comp$PROTEIN.Model[data_comp$PROTEIN.Model$adj.pvalue < signif_threshold,]
-    sig_adj = data_comp$ADJUSTED.Model[data_comp$ADJUSTED.Model$adj.pvalue < signif_threshold,]
-    
-    list(PTM.Model = sig_unadj,
-         PROTEIN.Model = sig_prot,
-         ADJUSTED.Model = sig_adj)
-  } else if (loadpage_input$DDA_DIA == "TMT") {
-    data_comp$ComparisonResult[data_comp$ComparisonResult$adj.pvalue < signif_threshold,]
-  } else {
-    data_comp$ComparisonResult[which(data_comp$ComparisonResult$adj.pvalue < signif_threshold),]
-  }
-}
-
 create_group_comparison_plot = function(input, loadpage_input, data_comparison) {
   show_modal_spinner()
   
@@ -280,6 +264,22 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
 # ============================================================================
 # Results Functions
 # ============================================================================
+
+extract_significant_proteins = function(data_comp, loadpage_input, signif_threshold) {
+  if (loadpage_input$BIO == "PTM") {
+    sig_unadj = data_comp$PTM.Model[data_comp$PTM.Model$adj.pvalue < signif_threshold,]
+    sig_prot = data_comp$PROTEIN.Model[data_comp$PROTEIN.Model$adj.pvalue < signif_threshold,]
+    sig_adj = data_comp$ADJUSTED.Model[data_comp$ADJUSTED.Model$adj.pvalue < signif_threshold,]
+    
+    list(PTM.Model = sig_unadj,
+         PROTEIN.Model = sig_prot,
+         ADJUSTED.Model = sig_adj)
+  } else if (loadpage_input$DDA_DIA == "TMT") {
+    data_comp$ComparisonResult[data_comp$ComparisonResult$adj.pvalue < signif_threshold,]
+  } else {
+    data_comp$ComparisonResult[which(data_comp$ComparisonResult$adj.pvalue < signif_threshold),]
+  }
+}
 
 generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
   codes = preprocessDataCode(qc_input, loadpage_input)
