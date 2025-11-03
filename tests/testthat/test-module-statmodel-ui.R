@@ -37,7 +37,7 @@ test_that("Header and instructions appear before interactive elements", {
   ui_html <- htmltools::renderTags(ui)$html
   
   pos_header <- regexpr("Statistical modeling and inference", ui_html)
-  pos_radio <- regexpr("def_comp", ui_html)
+  pos_radio <- regexpr("contrast_mode", ui_html)
   
   expect_true(pos_header < pos_radio,
               info = "Header should appear before interactive elements")
@@ -66,16 +66,16 @@ test_that("Conditional panels exist for each comparison type", {
   ui_html <- htmltools::renderTags(ui)$html
   
   # Check for conditional panel triggers
-  expect_true(grepl("input[&#39;statmodel-def_comp&#39;] == &#39;custom", 
+  expect_true(grepl("input[&#39;statmodel-contrast_mode&#39;] == &#39;custom", 
                     ui_html, fixed = TRUE),
               info = "Custom comparison conditional panel should exist")
-  expect_true(grepl("input[&#39;statmodel-def_comp&#39;] == &#39;all_one", 
+  expect_true(grepl("input[&#39;statmodel-contrast_mode&#39;] == &#39;all_one", 
                     ui_html, fixed = TRUE),
               info = "All vs one conditional panel should exist")
-  expect_true(grepl("input[&#39;statmodel-def_comp&#39;] == &#39;all_pair", 
+  expect_true(grepl("input[&#39;statmodel-contrast_mode&#39;] == &#39;all_pair", 
                     ui_html, fixed = TRUE),
               info = "All pairwise conditional panel should exist")
-  expect_true(grepl("input[&#39;statmodel-def_comp&#39;] == &#39;custom_np", 
+  expect_true(grepl("input[&#39;statmodel-contrast_mode&#39;] == &#39;custom_np", 
                     ui_html, fixed = TRUE),
               info = "Custom non-pairwise conditional panel should exist")
 })
@@ -158,7 +158,7 @@ test_that("All required input controls are present", {
   ui_html <- htmltools::renderTags(ui)$html
   
   # Radio buttons
-  expect_true(grepl('id="statmodel-def_comp"', ui_html),
+  expect_true(grepl('id="statmodel-contrast_mode"', ui_html),
               info = "Comparison type radio buttons should exist")
   expect_true(grepl('id="statmodel-moderated"', ui_html),
               info = "Moderated radio buttons should exist")
@@ -310,7 +310,7 @@ test_that("All inputs use correct namespace", {
   ui_html <- htmltools::renderTags(ui)$html
   
   # All IDs should be prefixed with "statmodel-"
-  input_ids <- c("def_comp", "submit", "clear", "calculate", "moderated",
+  input_ids <- c("contrast_mode", "submit", "clear", "calculate", "moderated",
                  "signif", "typeplot", "pname", "logp", "sig", "FC1", "FC",
                  "nump", "cluster", "viewresults", "plotresults")
   
