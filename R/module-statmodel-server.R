@@ -185,7 +185,7 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
 # Analysis and Plotting Functions
 # ============================================================================
 
-render_plot_selectors = function(output, session, rownames_func, get_data) {
+render_group_comparison_plot_inputs = function(output, session, rownames_func, get_data) {
   ns = session$ns
   
   output$WhichComp = renderUI({
@@ -199,12 +199,6 @@ render_plot_selectors = function(output, session, rownames_func, get_data) {
                 label = h4("which protein to plot"), 
                 unique(get_data()[[1]]))
   })
-}
-
-round_df = function(df) {
-  nums = vapply(df, is.numeric, FUN.VALUE = logical(1))
-  df[, nums] = round(df[, nums], digits = 4)
-  return(df)
 }
 
 extract_significant_proteins = function(data_comp, loadpage_input, signif_threshold) {
@@ -227,6 +221,10 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
   show_modal_spinner()
   
   tryCatch({
+    if (toupper(input$typeplot) == "VOLCANOPLOT" && input$whichComp == "all") {
+      remove_modal_spinner()
+      stop('** Cannot generate multiple plots in a screen. Please refine selection or save to a pdf. **')
+    }
     if (loadpage_input$BIO == "PTM") {
       plot_result = groupComparisonPlotsPTM(
         data_comparison,
@@ -239,11 +237,6 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         address = FALSE
       )
     } else if (loadpage_input$DDA_DIA == "TMT") {
-      if (toupper(input$typeplot) == "VOLCANOPLOT" && input$whichComp == "all") {
-        remove_modal_spinner()
-        stop('** Cannot generate multiple plots in a screen. Please refine selection or save to a pdf. **')
-      }
-      
       plot_result = groupComparisonPlots(
         data = data_comparison$ComparisonResult,
         type = input$typeplot,
@@ -260,11 +253,6 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         isPlotly = TRUE
       )[[1]]
     } else {
-      if (toupper(input$typeplot) == "VOLCANOPLOT" && input$whichComp == "all") {
-        remove_modal_spinner()
-        stop('** Cannot generate multiple plots in a screen. Please refine selection or save to a pdf.**')
-      }
-      
       plot_result = groupComparisonPlots(
         data = data_comparison$ComparisonResult,
         type = input$typeplot,
@@ -281,41 +269,12 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         isPlotly = TRUE
       )[[1]]
     }
-    
     remove_modal_spinner()
     return(plot_result)
   }, error = function(e) {
     remove_modal_spinner()
     message("An error occurred: ", conditionMessage(e))
-    stop('** Cannot generate multiple plots in a screen. Please refine selection or save to a pdf.**')
   })
-}
-
-prepare_plotset_data = function(data_comparison, loadpage_input, input) {
-  if (loadpage_input$DDA_DIA == "TMT") {
-    data_comp = data_comparison$ComparisonResult
-    v1 = data_comp[, 1]
-    v2 = round(data_comp[, 3], 10)
-    v3 = round(data_comp[, 8], 10)
-    v4 = data_comp[, 2]
-  } else {
-    v1 = data_comparison$ComparisonResult[, 1]
-    v2 = round(data_comparison$ComparisonResult[, 3], 10)
-    v3 = round(data_comparison$ComparisonResult[, 8], 10)
-    v4 = data_comparison$ComparisonResult[, 2]
-  }
-  
-  if (input$logp == "2") {
-    v3 = -log2(v3)
-  } else if (input$logp == "10") {
-    v3 = -log10(v3)
-  }
-  
-  df = data.frame(v1, v2, v3, v4)
-  df = df[df$v4 == input$whichComp,]
-  colnames(df) = c("Protein", "logFC", "logadj.pvalue", "comparison")
-  
-  return(df)
 }
 
 # ============================================================================
@@ -499,7 +458,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         tryCatch({ rownames(matrix_build()) }, error = function(e) {})
       })
       
-      render_plot_selectors(output, session, Rownames, get_data)
+      render_group_comparison_plot_inputs(output, session, Rownames, get_data)
       
       # Reset on configuration change
       observeEvent(c(input$contrast_mode, loadpage_input()$proceed1), {
@@ -568,10 +527,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         create_group_comparison_plot(input, loadpage_input(), data_comparison())
       }
       
-      plotset = reactive({
-        prepare_plotset_data(data_comparison(), loadpage_input(), input)
-      })
-      
       # Matrix output
       output$message = renderText({ check_cond() })
       output$table = renderDataTable({ matrix_build() })
@@ -621,10 +576,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             )
           )
         )
-      })
-      
-      output$info2 = renderPrint({
-        nearPoints(plotset(), input$click1, xvar = "logFC", yvar = "logadj.pvalue")
       })
       
       # Enable controls after calculation

@@ -468,50 +468,6 @@ test_that("contrast_mode change resets matrix", {
   )
 })
 
-test_that("round_df helper function rounds numeric columns", {
-  testServer(
-    statmodelServer,
-    args = list(
-      parent_session = MockShinySession$new(),
-      loadpage_input = reactive({
-        list(
-          BIO = "protein",
-          DDA_DIA = "DDA",
-          filetype = "standard",
-          proceed1 = 0
-        )
-      }),
-      qc_input = reactive({
-        list(normalization = "equalizeMedians")
-      }),
-      get_data = reactive({
-        list(c("P1", "P2", "P3"))
-      }),
-      preprocess_data = reactive({
-        create_mock_data("DDA", "protein")
-      })
-    ),
-    {
-      # Create test dataframe
-      test_df <- data.frame(
-        name = c("A", "B", "C"),
-        value1 = c(1.123456, 2.789012, 3.456789),
-        value2 = c(10.111111, 20.222222, 30.333333)
-      )
-      
-      # Round the dataframe
-      rounded <- round_df(test_df)
-      
-      # Check that numeric columns are rounded to 4 digits
-      expect_equal(rounded$value1[1], 1.1235)
-      expect_equal(rounded$value2[1], 10.1111)
-      
-      # Check that character columns are unchanged
-      expect_equal(rounded$name, test_df$name)
-    }
-  )
-})
-
 test_that("matrix doesn't add duplicate rows", {
   testServer(
     statmodelServer,
