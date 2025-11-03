@@ -52,12 +52,12 @@ render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   })
 }
 
-validate_contrast_inputs = function(input, def_comp, condition_list) {
-  if (def_comp == "custom") {
+validate_contrast_inputs = function(input, contrast_mode, condition_list) {
+  if (contrast_mode == "custom") {
     validate(
       need(input$group1 != input$group2, "Please select different groups")
     )
-  } else if (def_comp == "custom_np") {
+  } else if (contrast_mode == "custom_np") {
     wt_sum = sum(sapply(1:length(condition_list), function(i) {
       input[[paste0("weight", i)]]
     }))
@@ -68,7 +68,7 @@ validate_contrast_inputs = function(input, def_comp, condition_list) {
   }
 }
 
-build_custom_contrast = function(input, condition_list, contrast, comp_list, row) {
+build_custom_pairwise_contrast = function(input, condition_list, contrast, comp_list, row) {
   if (input$group1 == input$group2) {
     return(contrast$matrix)
   }
@@ -96,7 +96,7 @@ build_custom_contrast = function(input, condition_list, contrast, comp_list, row
   return(contrast$matrix)
 }
 
-build_custom_np_contrast = function(input, condition_list, contrast, comp_list, row) {
+build_custom_non_pairwise_contrast = function(input, condition_list, contrast, comp_list, row) {
   wt_sum = sum(sapply(1:length(condition_list), function(i) {
     input[[paste0("weight", i)]]
   }))
@@ -125,7 +125,7 @@ build_custom_np_contrast = function(input, condition_list, contrast, comp_list, 
   return(contrast$matrix)
 }
 
-build_all_one_contrast = function(input, condition_list, contrast, comp_list, row, loadpage_input) {
+build_all_against_one_contrast = function(input, condition_list, contrast, comp_list, row, loadpage_input) {
   index3 = which(condition_list == input$group3)
   
   for (index in 1:length(condition_list)) {
@@ -494,7 +494,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       render_custom_non_pairwise_inputs(output, session, condition_list)
       
       Rownames = eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
-        req(input$def_comp)
+        req(input$contrast_mode)
         req(loadpage_input()$DDA_DIA)
         tryCatch({ rownames(matrix_build()) }, error = function(e) {})
       })
@@ -502,7 +502,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       render_plot_selectors(output, session, Rownames, get_data)
       
       # Reset on configuration change
-      observeEvent(c(input$def_comp, loadpage_input()$proceed1), {
+      observeEvent(c(input$contrast_mode, loadpage_input()$proceed1), {
         contrast$matrix = NULL
         comp_list$dList = NULL
         significant$result = NULL
@@ -511,27 +511,27 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       # Validate contrast inputs
       check_cond = eventReactive(
         input$submit | input$submit1 | input$submit2 | input$submit3, {
-          req(input$def_comp)
+          req(input$contrast_mode)
           req(loadpage_input()$DDA_DIA)
-          validate_contrast_inputs(input, input$def_comp, condition_list())
+          validate_contrast_inputs(input, input$contrast_mode, condition_list())
         })
       
       # Build contrast matrix
       matrix_build = eventReactive(
         input$submit | input$submit1 | input$submit2 | input$submit3, {
-          req(input$def_comp)
+          req(input$contrast_mode)
           req(loadpage_input()$DDA_DIA)
           
-          if (input$def_comp == "custom") {
-            contrast$matrix = build_custom_contrast(
+          if (input$contrast_mode == "custom") {
+            contrast$matrix = build_custom_pairwise_contrast(
               input, condition_list(), contrast, comp_list, row())
-          } else if (input$def_comp == "custom_np") {
-            contrast$matrix = build_custom_np_contrast(
+          } else if (input$contrast_mode == "custom_np") {
+            contrast$matrix = build_custom_non_pairwise_contrast(
               input, condition_list(), contrast, comp_list, row())
-          } else if (input$def_comp == "all_one") {
-            contrast$matrix = build_all_one_contrast(
+          } else if (input$contrast_mode == "all_one") {
+            contrast$matrix = build_all_against_one_contrast(
               input, condition_list(), contrast, comp_list, row(), loadpage_input())
-          } else if (input$def_comp == "all_pair") {
+          } else if (input$contrast_mode == "all_pair") {
             contrast$matrix = build_all_pair_contrast(
               input, condition_list(), contrast, comp_list, row(), loadpage_input())
           }

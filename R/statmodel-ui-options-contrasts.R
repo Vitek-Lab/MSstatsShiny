@@ -22,7 +22,7 @@ create_contrast_section <- function(ns) {
 #' @noRd
 create_contrast_radio_buttons <- function(ns) {
   radioButtons(
-    ns("def_comp"), 
+    ns("contrast_mode"), 
     label = h4(
       "1. Define comparisons - contrast matrix",
       class = "icon-wrapper",
@@ -43,7 +43,7 @@ create_contrast_radio_buttons <- function(ns) {
 #' @noRd
 create_custom_pairwise_panel <- function(ns) {
   conditionalPanel(
-    condition = "input['statmodel-def_comp'] == 'custom'",
+    condition = "input['statmodel-contrast_mode'] == 'custom'",
     uiOutput(ns('choice1')),
     h6("vs"),
     uiOutput(ns("choice2")),
@@ -56,7 +56,7 @@ create_custom_pairwise_panel <- function(ns) {
 #' @noRd
 create_all_vs_one_panel <- function(ns) {
   conditionalPanel(
-    condition = "input['statmodel-def_comp'] == 'all_one'",
+    condition = "input['statmodel-contrast_mode'] == 'all_one'",
     h5("Compare all groups against:"),
     uiOutput(ns("choice3")),
     actionButton(ns("submit1"), "Submit"),
@@ -68,7 +68,7 @@ create_all_vs_one_panel <- function(ns) {
 #' @noRd
 create_all_pairwise_panel <- function(ns) {
   conditionalPanel(
-    condition = "input['statmodel-def_comp'] == 'all_pair'",
+    condition = "input['statmodel-contrast_mode'] == 'all_pair'",
     actionButton(ns("submit2"), "Submit"),
     actionButton(ns("clear2"), "Clear matrix")
   )
@@ -78,7 +78,7 @@ create_all_pairwise_panel <- function(ns) {
 #' @noRd
 create_custom_nonpairwise_panel <- function(ns) {
   conditionalPanel(
-    condition = "input['statmodel-def_comp'] == 'custom_np'",
+    condition = "input['statmodel-contrast_mode'] == 'custom_np'",
     h5("Non-pairwise Comparison:"),
     uiOutput(ns('comp_name')),
     uiOutput(ns('weights')),

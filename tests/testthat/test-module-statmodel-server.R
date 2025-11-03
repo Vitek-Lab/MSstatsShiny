@@ -69,7 +69,7 @@ test_that("statmodelServer initializes correctly", {
   )
 })
 
-test_that("choices() returns correct groups for DDA data", {
+test_that("condition_list() returns correct groups for DDA data", {
   testServer(
     statmodelServer,
     args = list(
@@ -95,12 +95,12 @@ test_that("choices() returns correct groups for DDA data", {
     {
       # Test choices reactive
       expected_choices <- c("Group1", "Group2", "Group3")
-      expect_equal(as.character(choices()), expected_choices)
+      expect_equal(as.character(condition_list()), expected_choices)
     }
   )
 })
 
-test_that("choices() returns correct groups for TMT data", {
+test_that("condition_list() returns correct groups for TMT data", {
   testServer(
     statmodelServer,
     args = list(
@@ -126,12 +126,12 @@ test_that("choices() returns correct groups for TMT data", {
     {
       # Test choices reactive for TMT
       expected_choices <- c("Group1", "Group2", "Group3")
-      expect_equal(as.character(choices()), expected_choices)
+      expect_equal(as.character(condition_list()), expected_choices)
     }
   )
 })
 
-test_that("choices() returns correct groups for PTM data", {
+test_that("condition_list() returns correct groups for PTM data", {
   testServer(
     statmodelServer,
     args = list(
@@ -157,7 +157,7 @@ test_that("choices() returns correct groups for PTM data", {
     {
       # Test choices reactive for PTM
       expected_choices <- c("Group1", "Group2", "Group3")
-      expect_equal(as.character(choices()), expected_choices)
+      expect_equal(as.character(condition_list()), expected_choices)
     }
   )
 })
@@ -188,7 +188,7 @@ test_that("matrix_build creates correct pairwise comparison", {
     {
       # Set up custom comparison
       session$setInputs(
-        def_comp = "custom",
+        contrast_mode = "custom",
         group1 = "Group1",
         group2 = "Group2",
         submit = 1
@@ -237,7 +237,7 @@ test_that("matrix_build creates all pairwise comparisons", {
     {
       # Set up all pairwise comparisons
       session$setInputs(
-        def_comp = "all_pair",
+        contrast_mode = "all_pair",
         submit = 1
       )
       
@@ -279,7 +279,7 @@ test_that("matrix_build creates all vs one comparisons", {
     {
       # Set up all vs one comparison
       session$setInputs(
-        def_comp = "all_one",
+        contrast_mode = "all_one",
         group3 = "Group3",
         submit = 1
       )
@@ -322,7 +322,7 @@ test_that("matrix_build creates custom non-pairwise comparison", {
     {
       # Set up custom non-pairwise comparison
       session$setInputs(
-        def_comp = "custom_np",
+        contrast_mode = "custom_np",
         comp_name = "CustomComparison",
         weight1 = 1,
         weight2 = 1,
@@ -373,7 +373,7 @@ test_that("check_cond validates same group selection", {
     {
       # Set up invalid comparison (same groups)
       session$setInputs(
-        def_comp = "custom",
+        contrast_mode = "custom",
         group1 = "Group1",
         group2 = "Group1",
         submit = 1
@@ -411,7 +411,7 @@ test_that("check_cond validates contrast weights sum to zero", {
     {
       # Set up invalid weights (don't sum to 0)
       session$setInputs(
-        def_comp = "custom_np",
+        contrast_mode = "custom_np",
         comp_name = "BadComparison",
         weight1 = 1,
         weight2 = 1,
@@ -425,7 +425,7 @@ test_that("check_cond validates contrast weights sum to zero", {
   )
 })
 
-test_that("def_comp change resets matrix", {
+test_that("contrast_mode change resets matrix", {
   testServer(
     statmodelServer,
     args = list(
@@ -451,7 +451,7 @@ test_that("def_comp change resets matrix", {
     {
       # Build a matrix
       session$setInputs(
-        def_comp = "custom",
+        contrast_mode = "custom",
         group1 = "Group1",
         group2 = "Group2",
         submit = 1
@@ -459,7 +459,7 @@ test_that("def_comp change resets matrix", {
       matrix_build()
       
       # Change comparison type
-      session$setInputs(def_comp = "all_pair")
+      session$setInputs(contrast_mode = "all_pair")
       
       # Verify matrix is reset
       expect_null(contrast$matrix)
@@ -538,7 +538,7 @@ test_that("matrix doesn't add duplicate rows", {
     {
       # Add same comparison twice
       session$setInputs(
-        def_comp = "custom",
+        contrast_mode = "custom",
         group1 = "Group1",
         group2 = "Group2",
         submit = 1
@@ -584,7 +584,7 @@ test_that("Rownames reactive returns correct comparison names", {
     {
       # Build matrix with multiple comparisons
       session$setInputs(
-        def_comp = "all_pair",
+        contrast_mode = "all_pair",
         submit = 1
       )
       matrix_build()
