@@ -2,7 +2,7 @@
 # UI Helper Functions
 # ============================================================================
 
-get_condition_choices = function(loadpage_input, preprocess_data) {
+get_experimental_conditions = function(loadpage_input, preprocess_data) {
   if (loadpage_input$BIO == "PTM" & 
       ((loadpage_input$BIO == "PTM" & loadpage_input$DDA_DIA == "TMT") | 
        loadpage_input$filetype == 'phil')) {
@@ -17,7 +17,15 @@ get_condition_choices = function(loadpage_input, preprocess_data) {
   }
 }
 
-render_group_selectors = function(output, session, choices) {
+render_all_against_one_inputs = function(output, session, choices) {
+  ns = session$ns
+  
+  output$choice3 = renderUI({
+    selectInput(ns("group3"), "", choices())
+  })
+}
+
+render_custom_pairwise_inputs = function(output, session, choices) {
   ns = session$ns
   
   output$choice1 = renderUI({
@@ -27,13 +35,9 @@ render_group_selectors = function(output, session, choices) {
   output$choice2 = renderUI({
     selectInput(ns("group2"), "Group 2", choices())
   })
-  
-  output$choice3 = renderUI({
-    selectInput(ns("group3"), "", choices())
-  })
 }
 
-render_comparison_inputs = function(output, session, choices) {
+render_custom_non_pairwise_inputs = function(output, session, choices) {
   ns = session$ns
   
   output$comp_name = renderUI({
@@ -506,7 +510,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Initialize reactive values
       choices = reactive({ 
-        get_condition_choices(loadpage_input(), preprocess_data()) 
+        get_experimental_conditions(loadpage_input(), preprocess_data()) 
       })
       row = reactive({ rep(0, length(choices())) })
       contrast = reactiveValues(matrix = NULL, row = NULL)
@@ -523,8 +527,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
       
       # Render UI elements
-      render_group_selectors(output, session, choices)
-      render_comparison_inputs(output, session, choices)
+      render_all_against_one_inputs(output, session, choices)
+      render_custom_pairwise_inputs(output, session, choices)
+      render_custom_non_pairwise_inputs(output, session, choices)
       
       Rownames = eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
         req(input$def_comp)
