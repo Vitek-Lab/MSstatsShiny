@@ -52,6 +52,8 @@ render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   })
 }
 
+# Todo: Add helper function to render dose response curve inputs
+
 validate_contrast_inputs = function(input, contrast_mode, condition_list) {
   if (contrast_mode == "custom") {
     validate(
@@ -181,8 +183,10 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
   return(contrast$matrix)
 }
 
+# Todo: Add helper function to build dose response curve mapper matrix
+
 # ============================================================================
-# Analysis and Plotting Functions
+# Plotting Functions
 # ============================================================================
 
 render_group_comparison_plot_inputs = function(output, session, rownames, get_data) {
@@ -199,10 +203,13 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
                 label = h4("which protein to plot"), 
                 unique(get_data()[[1]]))
   })
+  # Todo: Add plot inputs for dose response curves for which protein to plot (or re-use whichProt)
 }
 
 create_group_comparison_plot = function(input, loadpage_input, data_comparison) {
   show_modal_spinner()
+  
+  # Todo: Add dose response curve plot function for typeplot == dose response curve
   
   tryCatch({
     if (toupper(input$typeplot) == "VOLCANOPLOT" && input$whichComp == "all") {
@@ -266,6 +273,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
 # ============================================================================
 
 extract_significant_proteins = function(data_comp, loadpage_input, signif_threshold) {
+  # Todo: Make any adjustments for significant proteins for dose response curves
   if (loadpage_input$BIO == "PTM") {
     sig_unadj = data_comp$PTM.Model[data_comp$PTM.Model$adj.pvalue < signif_threshold,]
     sig_prot = data_comp$PROTEIN.Model[data_comp$PROTEIN.Model$adj.pvalue < signif_threshold,]
@@ -282,6 +290,7 @@ extract_significant_proteins = function(data_comp, loadpage_input, signif_thresh
 }
 
 generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
+  # Todo: make adjustments for adding dose response curve code
   codes = preprocessDataCode(qc_input, loadpage_input)
   
   codes = paste(codes, "\n# Create the contrast matrix\n", sep = "")
