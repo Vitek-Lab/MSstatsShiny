@@ -278,7 +278,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
 }
 
 # ============================================================================
-# Code Generation Functions
+# Results Functions
 # ============================================================================
 
 generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
@@ -337,10 +337,6 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
   return(codes)
 }
 
-# ============================================================================
-# Download Handler Functions
-# ============================================================================
-
 create_download_handlers = function(output, data_comparison, SignificantProteins, 
                                     data_comparison_code) {
   output$plotresults = downloadHandler(
@@ -368,10 +364,6 @@ create_download_handlers = function(output, data_comparison, SignificantProteins
     content = function(file) write.csv(SignificantProteins(), file)
   )
 }
-
-# ============================================================================
-# UI Rendering Functions
-# ============================================================================
 
 render_results_table = function(output, session, data_comparison, SignificantProteins) {
   ns = session$ns
@@ -447,7 +439,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         }
       })
       
-      # Render UI elements
+      # Render contrast matrix inputs
       render_all_against_one_inputs(output, session, condition_list)
       render_custom_pairwise_inputs(output, session, condition_list)
       render_custom_non_pairwise_inputs(output, session, condition_list)
@@ -522,11 +514,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         extract_significant_proteins(data_comp, loadpage_input(), input$signif)
       })
       
-      # Plotting
-      group_comparison = function(saveFile1, pdf) {
-        create_group_comparison_plot(input, loadpage_input(), data_comparison())
-      }
-      
       # Matrix output
       output$message = renderText({ check_cond() })
       output$table = renderDataTable({ matrix_build() })
@@ -553,10 +540,18 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       observeEvent(input$viewresults, {
         ns = session$ns
         if (loadpage_input()$BIO == "PTM") {
-          output$comp_plots = renderPlot({ group_comparison(FALSE, FALSE) })
+          output$comp_plots = renderPlot({ 
+            create_group_comparison_plot(
+              input, loadpage_input(), data_comparison()
+            )
+          })
           op = plotOutput(ns("comp_plots"))
         } else {
-          output$comp_plots = renderPlotly({ group_comparison(FALSE, FALSE) })
+          output$comp_plots = renderPlotly({ 
+            create_group_comparison_plot(
+              input, loadpage_input(), data_comparison()
+            )
+          })
           op = plotlyOutput(ns("comp_plots"), height = input$height)
         }
         
