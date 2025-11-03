@@ -185,13 +185,13 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
 # Analysis and Plotting Functions
 # ============================================================================
 
-render_group_comparison_plot_inputs = function(output, session, rownames_func, get_data) {
+render_group_comparison_plot_inputs = function(output, session, rownames, get_data) {
   ns = session$ns
   
   output$WhichComp = renderUI({
     selectInput(ns("whichComp"),
                 label = h5("Select comparison to plot"), 
-                c("all", rownames_func()), selected = "all")
+                c("all", rownames()), selected = "all")
   })
   
   output$WhichProt = renderUI({
@@ -560,9 +560,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           ui = tags$div(
             op,
             conditionalPanel(
-              condition = "input['statmodel-typeplot'] == 'VolcanoPlot' && input['loadpage-DDA_DIA']!='TMT'",
-              h5("Click on plot for details"),
-              verbatimTextOutput(ns("info2"))
+              condition = "input['statmodel-typeplot'] == 'VolcanoPlot' && input['loadpage-BIO']!='PTM'",
+              h5("Hover over plot for details")
             ),
             conditionalPanel(
               condition = "input['statmodel-typeplot'] == 'Heatmap'",
