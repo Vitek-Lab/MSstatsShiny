@@ -66,12 +66,6 @@ render_plot_selectors = function(output, session, rownames_func, get_data) {
                 label = h4("which protein to plot"), 
                 unique(get_data()[[1]]))
   })
-  
-  output$WhichProt1 = renderUI({
-    selectizeInput(ns("whichProt1"),
-                   label = h4("which protein to plot"), 
-                   c("", unique(get_data()[[1]])))
-  })
 }
 
 # ============================================================================
@@ -299,34 +293,6 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
     message("An error occurred: ", conditionMessage(e))
     stop('** Cannot generate multiple plots in a screen. Please refine selection or save to a pdf.**')
   })
-}
-
-create_assumption_plots = function(input, data_comparison, protein, saveFile) {
-  if (input$whichProt1 == "") {
-    return(NULL)
-  }
-  
-  id2 = as.character(UUIDgenerate(FALSE))
-  id_address2 = paste("tmp/", id2, sep = "")
-  
-  path2 = if (saveFile) {
-    paste("www/", id_address2, sep = "")
-  } else {
-    FALSE
-  }
-  
-  plots = modelBasedQCPlots(
-    data = data_comparison,
-    type = input$assum_type,
-    which.Protein = protein,
-    address = path2
-  )
-  
-  if (saveFile) {
-    return(path2)
-  } else {
-    return(plots)
-  }
 }
 
 prepare_plotset_data = function(data_comparison, loadpage_input, input) {
@@ -606,10 +572,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         create_group_comparison_plot(input, loadpage_input(), data_comparison())
       }
       
-      assumptions1 = function(saveFile3, protein) {
-        create_assumption_plots(input, data_comparison(), protein, saveFile3)
-      }
-      
       plotset = reactive({
         prepare_plotset_data(data_comparison(), loadpage_input(), input)
       })
@@ -667,23 +629,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       output$info2 = renderPrint({
         nearPoints(plotset(), input$click1, xvar = "logFC", yvar = "logadj.pvalue")
-      })
-      
-      # Assumption plots
-      output$verify = renderUI({
-        ns = session$ns
-        tagList(
-          plotOutput(ns("assum_plots"), width = "800px", height = "600px"),
-          conditionalPanel(
-            condition = "input['statmodel-whichProt1'] != ''",
-            actionButton(ns("saveone1"), "Save this plot"),
-            actionButton(ns("saveall1"), "Save all plots")
-          )
-        )
-      })
-      
-      output$assum_plots = renderPlot({
-        assumptions1(FALSE, input$whichProt1)
       })
       
       # Enable controls after calculation
