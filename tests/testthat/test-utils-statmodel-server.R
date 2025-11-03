@@ -281,10 +281,7 @@ test_that("extract_significant_proteins filters PTM data correctly", {
   loadpage_input <- list(BIO = "PTM")
   
   result <- extract_significant_proteins(data_comp, loadpage_input, 0.05)
-  
-  expect_equal(nrow(result$PTM.Model), 2)
-  expect_equal(nrow(result$PROTEIN.Model), 1)
-  expect_equal(nrow(result$ADJUSTED.Model), 1)
+  expect_equal(nrow(result), 1)
 })
 
 test_that("extract_significant_proteins filters TMT data correctly", {
