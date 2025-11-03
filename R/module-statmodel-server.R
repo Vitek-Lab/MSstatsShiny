@@ -1,5 +1,5 @@
 # ============================================================================
-# UI Helper Functions
+# Contrast Matrix Building Functions
 # ============================================================================
 
 get_experimental_conditions = function(loadpage_input, preprocess_data) {
@@ -17,27 +17,27 @@ get_experimental_conditions = function(loadpage_input, preprocess_data) {
   }
 }
 
-render_all_against_one_inputs = function(output, session, choices) {
+render_all_against_one_inputs = function(output, session, condition_list) {
   ns = session$ns
   
   output$choice3 = renderUI({
-    selectInput(ns("group3"), "", choices())
+    selectInput(ns("group3"), "", condition_list())
   })
 }
 
-render_custom_pairwise_inputs = function(output, session, choices) {
+render_custom_pairwise_inputs = function(output, session, condition_list) {
   ns = session$ns
   
   output$choice1 = renderUI({
-    selectInput(ns("group1"), "Group 1", choices())
+    selectInput(ns("group1"), "Group 1", condition_list())
   })
   
   output$choice2 = renderUI({
-    selectInput(ns("group2"), "Group 2", choices())
+    selectInput(ns("group2"), "Group 2", condition_list())
   })
 }
 
-render_custom_non_pairwise_inputs = function(output, session, choices) {
+render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   ns = session$ns
   
   output$comp_name = renderUI({
@@ -45,40 +45,20 @@ render_custom_non_pairwise_inputs = function(output, session, choices) {
   })
   
   output$weights = renderUI({
-    lapply(1:length(choices()), function(i) {
+    lapply(1:length(condition_list()), function(i) {
       list(numericInput(ns(paste0("weight", i)), 
-                        label = choices()[i], value = 0))
+                        label = condition_list()[i], value = 0))
     })
   })
 }
 
-render_plot_selectors = function(output, session, rownames_func, get_data) {
-  ns = session$ns
-  
-  output$WhichComp = renderUI({
-    selectInput(ns("whichComp"),
-                label = h5("Select comparison to plot"), 
-                c("all", rownames_func()), selected = "all")
-  })
-  
-  output$WhichProt = renderUI({
-    selectInput(ns("whichProt"),
-                label = h4("which protein to plot"), 
-                unique(get_data()[[1]]))
-  })
-}
-
-# ============================================================================
-# Contrast Matrix Building Functions
-# ============================================================================
-
-validate_contrast_inputs = function(input, def_comp, choices) {
+validate_contrast_inputs = function(input, def_comp, condition_list) {
   if (def_comp == "custom") {
     validate(
       need(input$group1 != input$group2, "Please select different groups")
     )
   } else if (def_comp == "custom_np") {
-    wt_sum = sum(sapply(1:length(choices), function(i) {
+    wt_sum = sum(sapply(1:length(condition_list), function(i) {
       input[[paste0("weight", i)]]
     }))
     
@@ -88,13 +68,13 @@ validate_contrast_inputs = function(input, def_comp, choices) {
   }
 }
 
-build_custom_contrast = function(input, choices, contrast, comp_list, row) {
+build_custom_contrast = function(input, condition_list, contrast, comp_list, row) {
   if (input$group1 == input$group2) {
     return(contrast$matrix)
   }
   
-  index1 = which(choices == input$group1)
-  index2 = which(choices == input$group2)
+  index1 = which(condition_list == input$group1)
+  index2 = which(condition_list == input$group2)
   
   comp_list$dList = unique(c(isolate(comp_list$dList), 
                              paste(input$group1, "vs", input$group2, sep = " ")))
@@ -111,13 +91,13 @@ build_custom_contrast = function(input, choices, contrast, comp_list, row) {
   }
   
   rownames(contrast$matrix) = comp_list$dList
-  colnames(contrast$matrix) = choices
+  colnames(contrast$matrix) = condition_list
   
   return(contrast$matrix)
 }
 
-build_custom_np_contrast = function(input, choices, contrast, comp_list, row) {
-  wt_sum = sum(sapply(1:length(choices), function(i) {
+build_custom_np_contrast = function(input, condition_list, contrast, comp_list, row) {
+  wt_sum = sum(sapply(1:length(condition_list), function(i) {
     input[[paste0("weight", i)]]
   }))
   
@@ -128,7 +108,7 @@ build_custom_np_contrast = function(input, choices, contrast, comp_list, row) {
   comp_list$dList = unique(c(isolate(comp_list$dList), input$comp_name))
   contrast$row = matrix(row, nrow = 1)
   
-  for (index in 1:length(choices)) {
+  for (index in 1:length(condition_list)) {
     contrast$row[index] = input[[paste0("weight", index)]]
   }
   
@@ -140,19 +120,19 @@ build_custom_np_contrast = function(input, choices, contrast, comp_list, row) {
   }
   
   rownames(contrast$matrix) = comp_list$dList
-  colnames(contrast$matrix) = choices
+  colnames(contrast$matrix) = condition_list
   
   return(contrast$matrix)
 }
 
-build_all_one_contrast = function(input, choices, contrast, comp_list, row, loadpage_input) {
-  index3 = which(choices == input$group3)
+build_all_one_contrast = function(input, condition_list, contrast, comp_list, row, loadpage_input) {
+  index3 = which(condition_list == input$group3)
   
-  for (index in 1:length(choices)) {
+  for (index in 1:length(condition_list)) {
     if (index == index3) next
     
     comp_list$dList = c(isolate(comp_list$dList),
-                        paste(choices[index], "vs", input$group3, sep = " "))
+                        paste(condition_list[index], "vs", input$group3, sep = " "))
     
     contrast$row = matrix(row, nrow = 1)
     contrast$row[index] = 1
@@ -166,20 +146,20 @@ build_all_one_contrast = function(input, choices, contrast, comp_list, row, load
   }
   
   rownames(contrast$matrix) = comp_list$dList
-  colnames(contrast$matrix) = choices
+  colnames(contrast$matrix) = condition_list
   
   return(contrast$matrix)
 }
 
-build_all_pair_contrast = function(input, choices, contrast, comp_list, row, loadpage_input) {
+build_all_pair_contrast = function(input, condition_list, contrast, comp_list, row, loadpage_input) {
   contrast$matrix = NULL
   
-  for (index in 1:length(choices)) {
-    for (index1 in 1:length(choices)) {
+  for (index in 1:length(condition_list)) {
+    for (index1 in 1:length(condition_list)) {
       if (index == index1) next
       if (index < index1) {
         comp_list$dList = c(isolate(comp_list$dList),
-                            paste(choices[index], "vs", choices[index1], sep = " "))
+                            paste(condition_list[index], "vs", condition_list[index1], sep = " "))
         
         contrast$row = matrix(row, nrow = 1)
         contrast$row[index] = 1
@@ -193,7 +173,7 @@ build_all_pair_contrast = function(input, choices, contrast, comp_list, row, loa
         }
         
         rownames(contrast$matrix) = comp_list$dList
-        colnames(contrast$matrix) = choices
+        colnames(contrast$matrix) = condition_list
       }
     }
   }
@@ -204,6 +184,22 @@ build_all_pair_contrast = function(input, choices, contrast, comp_list, row, loa
 # ============================================================================
 # Analysis and Plotting Functions
 # ============================================================================
+
+render_plot_selectors = function(output, session, rownames_func, get_data) {
+  ns = session$ns
+  
+  output$WhichComp = renderUI({
+    selectInput(ns("whichComp"),
+                label = h5("Select comparison to plot"), 
+                c("all", rownames_func()), selected = "all")
+  })
+  
+  output$WhichProt = renderUI({
+    selectInput(ns("whichProt"),
+                label = h4("which protein to plot"), 
+                unique(get_data()[[1]]))
+  })
+}
 
 round_df = function(df) {
   nums = vapply(df, is.numeric, FUN.VALUE = logical(1))
@@ -475,10 +471,10 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
     function(input, output, session) {
       
       # Initialize reactive values
-      choices = reactive({ 
+      condition_list = reactive({ 
         get_experimental_conditions(loadpage_input(), preprocess_data()) 
       })
-      row = reactive({ rep(0, length(choices())) })
+      row = reactive({ rep(0, length(condition_list())) })
       contrast = reactiveValues(matrix = NULL, row = NULL)
       comp_list = reactiveValues(dList = NULL)
       significant = reactiveValues(result = NULL)
@@ -493,9 +489,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
       
       # Render UI elements
-      render_all_against_one_inputs(output, session, choices)
-      render_custom_pairwise_inputs(output, session, choices)
-      render_custom_non_pairwise_inputs(output, session, choices)
+      render_all_against_one_inputs(output, session, condition_list)
+      render_custom_pairwise_inputs(output, session, condition_list)
+      render_custom_non_pairwise_inputs(output, session, condition_list)
       
       Rownames = eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
         req(input$def_comp)
@@ -517,7 +513,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         input$submit | input$submit1 | input$submit2 | input$submit3, {
           req(input$def_comp)
           req(loadpage_input()$DDA_DIA)
-          validate_contrast_inputs(input, input$def_comp, choices())
+          validate_contrast_inputs(input, input$def_comp, condition_list())
         })
       
       # Build contrast matrix
@@ -528,16 +524,16 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           
           if (input$def_comp == "custom") {
             contrast$matrix = build_custom_contrast(
-              input, choices(), contrast, comp_list, row())
+              input, condition_list(), contrast, comp_list, row())
           } else if (input$def_comp == "custom_np") {
             contrast$matrix = build_custom_np_contrast(
-              input, choices(), contrast, comp_list, row())
+              input, condition_list(), contrast, comp_list, row())
           } else if (input$def_comp == "all_one") {
             contrast$matrix = build_all_one_contrast(
-              input, choices(), contrast, comp_list, row(), loadpage_input())
+              input, condition_list(), contrast, comp_list, row(), loadpage_input())
           } else if (input$def_comp == "all_pair") {
             contrast$matrix = build_all_pair_contrast(
-              input, choices(), contrast, comp_list, row(), loadpage_input())
+              input, condition_list(), contrast, comp_list, row(), loadpage_input())
           }
           
           enable("calculate")
