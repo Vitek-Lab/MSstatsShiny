@@ -260,18 +260,30 @@ createFilterDropdowns <- function(ns) {
         "Force Include Proteins (optional):",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Select specific proteins to include in the network analysis regardless of other filtering criteria.", 
+        div("Search for specific proteins to include in the network analysis regardless of other filtering criteria. Type a protein name or gene symbol to search.", 
             class = "icon-tooltip")
       ),
-      selectizeInput(
-        inputId  = ns("selectedProteins"),
-        label    = NULL,  # Remove since we're handling it above
-        choices  = NULL,
-        multiple = TRUE,
-        options  = list(
-          placeholder = "Type to search...",
-          maxOptions  = 10
-        )
+      # Container for selected proteins
+      div(id = ns("selectedProteinsContainer"),
+          style = "margin-bottom: 10px;",
+          uiOutput(ns("selectedProteinsTags"))
+      ),
+      # Search input
+      div(
+        style = "display: flex; gap: 10px; align-items: flex-start;",
+        textInput(ns("proteinSearchInput"),
+                  label = NULL,
+                  placeholder = "Type protein name or gene symbol...",
+                  width = "70%"),
+        actionButton(ns("proteinSearchButton"),
+                     "Search",
+                     icon = icon("search"),
+                     style = "margin-top: 0px;")
+      ),
+      # Search results dropdown
+      div(
+        style = "margin-bottom: 15px;",  # Add margin below the results container
+        uiOutput(ns("proteinSearchResults"))
       )
     )
   )

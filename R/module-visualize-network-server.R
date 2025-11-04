@@ -217,7 +217,7 @@ updateProteinChoices <- function(session, df) {
   }
 }
 
-getInputParameters <- function(input) {
+getInputParameters <- function(input, selectedProteins) {
   # Require that both filters have at least one selection
   req(input$statementTypes, input$sources)
   
@@ -235,11 +235,10 @@ getInputParameters <- function(input) {
     input$sources
   }
   
-  # Handle protein selection (NULL if nothing selected)
-  selectedProteins <- if(is.null(input$selectedProteins) || length(input$selectedProteins) == 0) {
+  selectedProteins <- if(is.null(selectedProteins) || length(selectedProteins) == 0) {
     NULL
   } else {
-    input$selectedProteins
+    selectedProteins
   }
   
   list(
@@ -286,7 +285,7 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes,
                            statement_types = statementTypes,
                            sources_filter = sources,
                            logfc_cutoff = absLogFC,
-                           force_include_proteins = selectedProteins)
+                           force_include_other = selectedProteins)
   }, error = function(e) {
     showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
     print(e$message)
@@ -321,6 +320,181 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   })
   outputOptions(output, "hasValidDataComparison", suspendWhenHidden = FALSE)
   
+  # Reactive value to store selected proteins
+  selectedProteinsReactive <- reactiveVal(character(0))
+  
+  # Reactive value to store search results
+  proteinSearchResults <- reactiveVal(NULL)
+  
+  # Render selected proteins as tags
+  output$selectedProteinsTags <- renderUI({
+    proteins <- selectedProteinsReactive()
+    if (length(proteins) == 0) {
+      return(div(style = "color: #999; font-style: italic;", "No proteins selected"))
+    }
+    
+    ns <- session$ns
+    tagList(
+      lapply(seq_along(proteins), function(i) {
+        protein <- proteins[i]
+        tags$span(
+          style = "display: inline-block; background-color: #337ab7; color: white; 
+                   padding: 5px 10px; margin: 2px; border-radius: 3px;",
+          protein,
+          tags$span(
+            style = "margin-left: 8px; cursor: pointer; font-weight: bold;",
+            onclick = sprintf("Shiny.setInputValue('%s', %d, {priority: 'event'})", 
+                              ns("removeProtein"), i),
+            "×"
+          )
+        )
+      })
+    )
+  })
+  
+  # Handle protein search
+  observeEvent(input$proteinSearchButton, {
+    req(input$proteinSearchInput)
+    search_text <- trimws(input$proteinSearchInput)
+    
+    if (nchar(search_text) == 0) {
+      proteinSearchResults(NULL)
+      return()
+    }
+    
+    # Show loading notification
+    showNotification("Searching for protein...", type = "message", duration = 2)
+    
+    # Call INDRA grounding API
+    tryCatch({
+      response <- httr::POST(
+        url = "https://grounding.indra.bio/ground",
+        body = list(
+          text = search_text,
+          context = "",
+          organisms = list("9606")
+        ),
+        encode = "json",
+        httr::content_type_json(),
+        httr::accept_json()
+      )
+      
+      if (httr::status_code(response) == 200) {
+        results <- httr::content(response, as = "parsed")
+        
+        if (length(results) > 0) {
+          # Extract relevant information
+          formatted_results <- lapply(results, function(r) {
+            db <- r$term$db
+            id <- r$term$id
+            
+            # Check if ID already starts with the database prefix
+            # e.g., if db is "CHEBI" and id is "CHEBI:4911"
+            if (grepl(paste0("^", db, ":"), id, ignore.case = TRUE)) {
+              # ID already contains the prefix, use as-is
+              full_id <- id
+            } else {
+              # Concatenate db and id
+              full_id <- paste0(db, ":", id)
+            }
+            
+            list(
+              display = sprintf("%s (%s)", 
+                                r$term$text,
+                                full_id),
+              text = r$term$text,
+              db = db,
+              id = id,
+              full_id = full_id,  # Store the properly formatted ID
+              score = r$score
+            )
+          })
+          
+          # Sort by score (descending)
+          formatted_results <- formatted_results[order(sapply(formatted_results, function(x) x$score), 
+                                                       decreasing = TRUE)]
+          
+          proteinSearchResults(formatted_results)
+          showNotification(sprintf("Found %d result(s)", length(formatted_results)), 
+                           type = "message", duration = 2)
+        } else {
+          proteinSearchResults(NULL)
+          showNotification("No results found", type = "warning", duration = 3)
+        }
+      } else {
+        proteinSearchResults(NULL)
+        showNotification("Error searching protein database", type = "error", duration = 3)
+      }
+    }, error = function(e) {
+      proteinSearchResults(NULL)
+      showNotification(paste("Search error:", e$message), type = "error", duration = 3)
+    })
+  })
+  
+  # Render search results
+  output$proteinSearchResults <- renderUI({
+    results <- proteinSearchResults()
+    
+    if (is.null(results)) {
+      return(NULL)
+    }
+    
+    ns <- session$ns
+    
+    div(
+      style = "margin-top: 10px; border: 1px solid #ddd; border-radius: 4px; 
+               max-height: 300px; overflow-y: auto; background-color: white;",
+      lapply(seq_along(results), function(i) {
+        result <- results[[i]]
+        div(
+          style = "padding: 10px; border-bottom: 1px solid #eee; cursor: pointer;
+                   transition: background-color 0.2s;",
+          onmouseover = "this.style.backgroundColor='#f5f5f5'",
+          onmouseout = "this.style.backgroundColor='white'",
+          onclick = sprintf("Shiny.setInputValue('%s', '%s', {priority: 'event'})", 
+                            ns("selectProteinResult"), result$display),
+          tags$strong(result$display),
+          tags$br(),
+          tags$small(
+            style = "color: #666;",
+            sprintf("Score: %.2f | Source: %s", result$score, result$db)
+          )
+        )
+      })
+    )
+  })
+  
+  # Handle protein selection from results
+  observeEvent(input$selectProteinResult, {
+    selected <- input$selectProteinResult
+    current <- selectedProteinsReactive()
+    
+    # Extract the identifier (e.g., "hgnc:1925" from "CHEK1 (hgnc:1925)")
+    identifier <- sub(".*\\((.*)\\).*", "\\1", selected)
+    
+    # Check if already selected
+    if (!identifier %in% current) {
+      selectedProteinsReactive(c(current, identifier))
+      showNotification(sprintf("Added: %s", selected), type = "message", duration = 2)
+    } else {
+      showNotification("Protein already selected", type = "warning", duration = 2)
+    }
+    
+    # Clear search
+    updateTextInput(session, "proteinSearchInput", value = "")
+    proteinSearchResults(NULL)
+  })
+  
+  # Handle protein removal
+  observeEvent(input$removeProtein, {
+    index <- input$removeProtein
+    current <- selectedProteinsReactive()
+    if (index > 0 && index <= length(current)) {
+      selectedProteinsReactive(current[-index])
+      showNotification("Protein removed", type = "message", duration = 2)
+    }
+  })
+  
   # Main reactive expressions
   df <- reactive({
     loadCsvData(input, dataComparison)
@@ -328,7 +502,7 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   
   # Create a reactive expression to generate the network data
   renderNetwork <- reactive({
-    params <- getInputParameters(input)
+    params <- getInputParameters(input, selectedProteinsReactive())
     
     # Get the original data
     original_df <- df()
@@ -377,7 +551,7 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   })
   
   generate_network_code <- eventReactive(input$showNetwork, {
-    params <- getInputParameters(input)
+    params <- getInputParameters(input, selectedProteinsReactive())
     
     codes <- ""
     codes <- paste(codes, "\n# Load Required Packages\n", sep = "")
@@ -424,9 +598,9 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     # Handle selected proteins
     if (!is.null(params$selectedProteins) && length(params$selectedProteins) > 0) {
       selected_proteins_str <- paste0("c(\"", paste(params$selectedProteins, collapse = "\", \""), "\")")
-      codes <- paste(codes, ",\n  force_include_proteins = ", selected_proteins_str, "\n", sep = "")
+      codes <- paste(codes, ",\n  force_include_other = ", selected_proteins_str, "\n", sep = "")
     } else {
-      codes <- paste(codes, ",\n  force_include_proteins = NULL\n", sep = "")
+      codes <- paste(codes, ",\n  force_include_other = NULL\n", sep = "")
     }
     
     codes <- paste(codes, ")\n\n", sep = "")
@@ -450,7 +624,7 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   
   # Event observers
   observeEvent(input$showNetwork, {
-    req(df(), getInputParameters(input))
+    req(df(), getInputParameters(input, selectedProteinsReactive()))
     
     # Show loading indicator
     shinyjs::show("loadingIndicator")
