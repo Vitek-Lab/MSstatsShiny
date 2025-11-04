@@ -217,7 +217,7 @@ updateProteinChoices <- function(session, df) {
   }
 }
 
-getInputParameters <- function(input, selectedProteinsReactive) {
+getInputParameters <- function(input, selectedProteins) {
   # Require that both filters have at least one selection
   req(input$statementTypes, input$sources)
   
@@ -235,7 +235,6 @@ getInputParameters <- function(input, selectedProteinsReactive) {
     input$sources
   }
   
-  selectedProteins <- selectedProteinsReactive()
   selectedProteins <- if(is.null(selectedProteins) || length(selectedProteins) == 0) {
     NULL
   } else {
@@ -503,7 +502,7 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   
   # Create a reactive expression to generate the network data
   renderNetwork <- reactive({
-    params <- getInputParameters(input, selectedProteinsReactive)
+    params <- getInputParameters(input, selectedProteinsReactive())
     
     # Get the original data
     original_df <- df()
@@ -552,7 +551,7 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   })
   
   generate_network_code <- eventReactive(input$showNetwork, {
-    params <- getInputParameters(input, selectedProteinsReactive)
+    params <- getInputParameters(input, selectedProteinsReactive())
     
     codes <- ""
     codes <- paste(codes, "\n# Load Required Packages\n", sep = "")
@@ -625,7 +624,7 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
   
   # Event observers
   observeEvent(input$showNetwork, {
-    req(df(), getInputParameters(input, selectedProteinsReactive))
+    req(df(), getInputParameters(input, selectedProteinsReactive()))
     
     # Show loading indicator
     shinyjs::show("loadingIndicator")
