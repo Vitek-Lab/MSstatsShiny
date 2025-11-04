@@ -110,13 +110,13 @@ test_that("getInputParameters processes inputs correctly", {
     req <- function(x, y = NULL) x
   }
   
-  params <- getInputParameters(mock_input)
+  params <- getInputParameters(mock_input, c("HGNC:1234", "CHEBI:5321"))
   
   expect_equal(params$statementTypes, c("Inhibition", "Activation"))
   expect_equal(params$sources, c("reach", "signor"))
   expect_equal(params$proteinIdType, "Uniprot")
   expect_equal(params$pValue, 0.05)
-  expect_equal(params$selectedProteins, c("TP53", "MDM2"))
+  expect_equal(params$selectedProteins, c("HGNC:1234", "CHEBI:5321"))
 })
 
 test_that("getInputParameters handles 'all' selections", {
@@ -129,8 +129,7 @@ test_that("getInputParameters handles 'all' selections", {
     pValue = 0.05,
     evidence = 5,
     absLogFC = 0.5,
-    selectedLabel = "Treatment_vs_Control",
-    selectedProteins = NULL
+    selectedLabel = "Treatment_vs_Control"
   )
   
   # Create a simple mock req function
@@ -138,7 +137,7 @@ test_that("getInputParameters handles 'all' selections", {
     req <- function(x, y = NULL) x
   }
   
-  params <- getInputParameters(mock_input_all)
+  params <- getInputParameters(mock_input_all, NULL)
   
   expect_null(params$statementTypes)
   expect_null(params$sources)
@@ -180,7 +179,7 @@ test_that("extractSubnetwork works with mocked MSstatsBioNet function", {
   # Create a mock function that returns the expected subnetwork
   mock_extract_func <- function(df, pvalueCutoff, evidence_count_cutoff, 
                                 statement_types, sources_filter, 
-                                logfc_cutoff, force_include_proteins) {
+                                logfc_cutoff, force_include_other) {
     return(expected_subnetwork)
   }
   
