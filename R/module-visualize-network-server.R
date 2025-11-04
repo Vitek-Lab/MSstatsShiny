@@ -386,14 +386,27 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
         if (length(results) > 0) {
           # Extract relevant information
           formatted_results <- lapply(results, function(r) {
+            db <- r$term$db
+            id <- r$term$id
+            
+            # Check if ID already starts with the database prefix
+            # e.g., if db is "CHEBI" and id is "CHEBI:4911"
+            if (grepl(paste0("^", db, ":"), id, ignore.case = TRUE)) {
+              # ID already contains the prefix, use as-is
+              full_id <- id
+            } else {
+              # Concatenate db and id
+              full_id <- paste0(db, ":", id)
+            }
+            
             list(
-              display = sprintf("%s (%s:%s)", 
+              display = sprintf("%s (%s)", 
                                 r$term$text,
-                                r$term$db,
-                                r$term$id),
+                                full_id),
               text = r$term$text,
-              db = r$term$db,
-              id = r$term$id,
+              db = db,
+              id = id,
+              full_id = full_id,  # Store the properly formatted ID
               score = r$score
             )
           })
