@@ -282,7 +282,7 @@ createFilterDropdowns <- function(ns) {
       ),
       # Search results dropdown
       div(
-        style = "margin-bottom: 10px;",  # Add margin below the results container
+        style = "margin-bottom: 15px;",  # Add margin below the results container
         uiOutput(ns("proteinSearchResults"))
       )
     )
