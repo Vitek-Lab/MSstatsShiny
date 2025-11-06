@@ -260,7 +260,7 @@ createFilterDropdowns <- function(ns) {
         "Force Include Proteins (optional):",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Search for specific proteins to include in the network analysis regardless of other filtering criteria. Type a protein name or gene symbol to search.", 
+        div("Search for specific proteins to include in the network analysis regardless of other filtering criteria. As a hidden feature, you can also search by any biological agent, e.g. drugs, GO terms, etc!", 
             class = "icon-tooltip")
       ),
       # Container for selected proteins
