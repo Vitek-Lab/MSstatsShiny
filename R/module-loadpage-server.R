@@ -12,7 +12,7 @@
 #' @examples
 #' NA
 #' 
-loadpageServer <- function(id, parent_session, is_web_servee) {
+loadpageServer <- function(id, parent_session, is_web_server) {
   moduleServer(id, function(input, output, session) {
     # toggle ui (DDA DIA SRM)
     observe({
