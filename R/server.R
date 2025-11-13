@@ -32,7 +32,7 @@ server = function(input, output, session) {
                       selected = "Uploaddata")
   })
   
-  loadpage_values = loadpageServer("loadpage", parent_session = session)
+  loadpage_values = loadpageServer("loadpage", parent_session = session, is_web_server = isWebServer)
   loadpage_input = loadpage_values$input
   get_data = loadpage_values$getData
   
