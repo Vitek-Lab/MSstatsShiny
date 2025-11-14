@@ -12,9 +12,49 @@
 #' @examples
 #' NA
 #' 
-loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
+loadpageServer <- function(id, parent_session, is_web_server = TRUE) {
   moduleServer(id, function(input, output, session) {
+    ns <- session$ns
+    
+    # Conditionally render the file input UI
+    output$diann_upload_ui <- renderUI({
+      if (is_web_server) {
+        # For web server, use the standard fileInput
+        fileInput(ns('dianndata'), "", multiple = FALSE, accept = NULL)
+      } else {
+        # For local instances, use shinyFiles for direct path access
+        shinyFiles::shinyFilesButton(ns('dianndata_sf'), 
+                                     label='Browse for DIANN report', 
+                                     title='Please select a DIANN report file', 
+                                     multiple=FALSE)
+      }
+    })
+    
+    # Display the name of the selected file for user feedback
+    output$diann_file_name_display <- renderText({
+      if (is_web_server) {
+        # For the web server, the file name is in the standard fileInput object
+        req(input$dianndata)
+        return(input$dianndata$name)
+      } else {
+        # For local instances, we parse the path from the shinyFiles object
+        req(is.list(input$dianndata_sf) && length(input$dianndata_sf) > 1)
+        volumes <- shinyFiles::getVolumes()()
+        parsed_path <- shinyFiles::parseFilePaths(volumes, input$dianndata_sf)
+        # Return the 'name' column from the parsed data frame
+        return(as.character(parsed_path$name))
+      }
+    })
+    
     # toggle ui (DDA DIA SRM)
+    # Set up the shinyFiles server logic, but only for local instances.
+    if (!is_web_server) {
+      # getVolumes returns a function, so we need the extra () to execute it.
+      # This gets the user's local drives (C:/, /Users, etc.)
+      volumes <- shinyFiles::getVolumes()()
+      # This connects the server logic to the 'dianndata_sf' button in the UI.
+      shinyFiles::shinyFileChoose(input, "dianndata_sf", roots = volumes, session = session)
+    }
     observe({
       print("bio")
       
@@ -111,7 +151,15 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
                 enable("proceed1")
               }
             } else if (input$filetype == "diann") {
-              if(!is.null(input$dianndata) && !is.null(input$sep_dianndata)) { # && !is.null(input$annot)
+              # Check for file readiness from either input type
+              file_ready <- if (is_web_server) {
+                !is.null(input$dianndata)
+              } else {
+                is.list(input$dianndata_sf) && length(input$dianndata_sf) > 1
+              }
+              
+              # Enable the button if a file is ready and a separator has been selected.
+              if(file_ready && !is.null(input$sep_dianndata)) {
                 enable("proceed1")
               }
             }
@@ -221,7 +269,18 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
 
 
     get_data = eventReactive(input$proceed1, {
-      getData(input)
+      # Create a modifiable copy of the reactive 'input' object.
+      local_input <- reactiveValuesToList(input)
+      
+      # For local DIANN, parse the shinyFiles path before calling getData
+      if (isTRUE(input$filetype == "diann") && !is_web_server) {
+        volumes <- shinyFiles::getVolumes()()
+        parsed_path <- shinyFiles::parseFilePaths(volumes, input$dianndata_sf)
+        # Modify our local copy to mimic the structure of a fileInput object.
+        local_input$dianndata <- list(datapath = parsed_path$datapath)
+      }
+      
+      getData(local_input)
     })
 
 
