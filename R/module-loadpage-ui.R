@@ -274,10 +274,14 @@ create_diann_uploads <- function(ns) {
   conditionalPanel(
     condition = "input['loadpage-filetype'] == 'diann' && input['loadpage-BIO'] != 'PTM'",
     h4("4. Upload MSstats report from DIANN"),
-    fileInput(ns('dianndata'), "", multiple = FALSE, accept = NULL),
+    #Dynamic File Input UI for DIANN files
+    uiOutput(ns("diann_upload_ui")),
+    #placeholder to display the name of the selected file
+    verbatimTextOutput(ns("diann_file_name_display")),
     create_separator_buttons(ns, "sep_dianndata")
   )
 }
+
 
 #' Create Spectronaut file uploads
 #' @noRd
