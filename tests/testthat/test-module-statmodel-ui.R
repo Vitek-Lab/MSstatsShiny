@@ -59,6 +59,8 @@ test_that("All comparison type radio buttons are present", {
               info = "Custom pairwise option should be present")
   expect_true(grepl("custom_np", ui_html),
               info = "Custom non-pairwise option should be present")
+  expect_true(grepl("response_curve", ui_html),
+              info = "Response curve option should be present")
 })
 
 test_that("Conditional panels exist for each comparison type", {
@@ -78,6 +80,9 @@ test_that("Conditional panels exist for each comparison type", {
   expect_true(grepl("input[&#39;statmodel-contrast_mode&#39;] == &#39;custom_np", 
                     ui_html, fixed = TRUE),
               info = "Custom non-pairwise conditional panel should exist")
+  expect_true(grepl("input[&#39;statmodel-contrast_mode&#39;] == &#39;response_curve", 
+                    ui_html, fixed = TRUE),
+              info = "Response curve conditional panel should exist")
 })
 
 test_that("Plot type conditional panels exist", {
@@ -120,6 +125,10 @@ test_that("All action buttons are present with correct IDs", {
               info = "Custom non-pairwise submit button should exist")
   expect_true(grepl('id="statmodel-clear3"', ui_html),
               info = "Custom non-pairwise clear button should exist")
+  expect_true(grepl('id="statmodel-submit4"', ui_html),
+              info = "Response curve submit button should exist")
+  expect_true(grepl('id="statmodel-clear4"', ui_html),
+              info = "Response curve clear button should exist")
   
   # Main action buttons
   expect_true(grepl('id="statmodel-calculate"', ui_html),

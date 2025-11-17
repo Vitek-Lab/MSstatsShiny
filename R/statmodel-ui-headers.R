@@ -6,6 +6,8 @@
 #' @noRd
 create_custom_styles <- function() {
   tags$head(
+    tags$style(HTML('#statmodel-submit4{background-color:orange}')),
+    tags$style(HTML('#statmodel-clear4{background-color:orange}')),
     tags$style(HTML('#statmodel-submit3{background-color:orange}')),
     tags$style(HTML('#statmodel-clear3{background-color:orange}')),
     tags$style(HTML('#statmodel-submit1{background-color:orange}')),

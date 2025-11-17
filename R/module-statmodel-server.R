@@ -21,7 +21,7 @@ render_all_against_one_inputs = function(output, session, condition_list) {
   ns = session$ns
   
   output$choice3 = renderUI({
-    selectInput(ns("group3"), "", condition_list())
+    selectInput(ns("group3"), "Condition:", condition_list())
   })
 }
 
@@ -179,6 +179,27 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
         colnames(contrast$matrix) = condition_list
       }
     }
+  }
+  
+  return(contrast$matrix)
+}
+
+build_response_curve_matrix = function(input, contrast) {
+  if (is.null(contrast$matrix)) {
+    contrast$matrix = data.frame(
+      Condition = input$group3,
+      X_axis = input$response_curve_xaxis,
+      Amount = input$response_curve_amount,
+      stringsAsFactors = FALSE
+    )
+  } else {
+    contrast$matrix = rbind(contrast$matrix, data.frame(
+      Condition = input$group3,
+      X_axis = input$response_curve_xaxis,
+      Amount = input$response_curve_amount,
+      stringsAsFactors = FALSE
+    ))
+    contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix$Condition),])
   }
   
   return(contrast$matrix)
@@ -446,7 +467,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       render_custom_pairwise_inputs(output, session, condition_list)
       render_custom_non_pairwise_inputs(output, session, condition_list)
       
-      Rownames = eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
+      Rownames = eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3 | input$submit4, {
         req(input$contrast_mode)
         req(loadpage_input()$DDA_DIA)
         tryCatch({ rownames(matrix_build()) }, error = function(e) {})
@@ -463,7 +484,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Validate contrast inputs
       check_cond = eventReactive(
-        input$submit | input$submit1 | input$submit2 | input$submit3, {
+        input$submit | input$submit1 | input$submit2 | input$submit3 | input$submit4, {
           req(input$contrast_mode)
           req(loadpage_input()$DDA_DIA)
           validate_contrast_inputs(input, input$contrast_mode, condition_list())
@@ -471,7 +492,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Build contrast matrix
       matrix_build = eventReactive(
-        input$submit | input$submit1 | input$submit2 | input$submit3, {
+        input$submit | input$submit1 | input$submit2 | input$submit3 | input$submit4, {
           req(input$contrast_mode)
           req(loadpage_input()$DDA_DIA)
           
@@ -487,6 +508,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           } else if (input$contrast_mode == "all_pair") {
             contrast$matrix = build_all_pair_contrast(
               input, condition_list(), contrast, comp_list, row(), loadpage_input())
+          } else if (input$contrast_mode == "response_curve") {
+            contrast$matrix = build_response_curve_matrix(
+              input, contrast)
           }
           
           enable("calculate")
@@ -494,7 +518,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         })
       
       # Clear matrix
-      observeEvent(input$clear | input$clear1 | input$clear2 | input$clear3, {
+      observeEvent(input$clear | input$clear1 | input$clear2 | input$clear3 | input$clear4, {
         disable("calculate")
         comp_list$dList = NULL
         contrast$matrix = NULL

@@ -13,7 +13,7 @@ create_contrast_section <- function(ns) {
     create_all_vs_one_panel(ns),
     create_all_pairwise_panel(ns),
     create_custom_nonpairwise_panel(ns),
-    # add additional option to perform dose response curve mapping group -> drug+dose
+    create_response_matrix_panel(ns),
     tags$hr()
   )
 }
@@ -33,7 +33,8 @@ create_contrast_radio_buttons <- function(ns) {
       "All possible pairwise comparisons" = "all_pair", 
       "Compare all against one" = "all_one", 
       "Create custom pairwise comparisons" = "custom",
-      "Create custom non-pairwise comparisons" = "custom_np"
+      "Create custom non-pairwise comparisons" = "custom_np",
+      "Create response curves" = "response_curve"
     ), 
     selected = character(0)
   )
@@ -84,5 +85,19 @@ create_custom_nonpairwise_panel <- function(ns) {
     uiOutput(ns('weights')),
     actionButton(ns("submit3"), "Add"),
     actionButton(ns("clear3"), "Clear matrix")
+  )
+}
+
+#' Create panel for configuring response curve metadata
+#' @noRd
+create_response_matrix_panel <- function(ns) {
+  conditionalPanel(
+    condition = "input['statmodel-contrast_mode'] == 'response_curve'",
+    h5("Add Condition to Response Mapping:"),
+    uiOutput(ns("choice3")),
+    textInput(ns("response_curve_xaxis"), "X-Axis Label:", placeholder = "e.g., Dosage, Time"),
+    numericInput(ns("response_curve_amount"), "Response:", value = NULL, step = 0.1),
+    actionButton(ns("submit4"), "Add Entry"),
+    actionButton(ns("clear4"), "Clear All Data")
   )
 }

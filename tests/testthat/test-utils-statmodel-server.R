@@ -327,3 +327,90 @@ test_that("extract_significant_proteins returns empty for no significant results
   
   expect_equal(nrow(result), 0)
 })
+
+test_that("creates response matrix when contrast$matrix is NULL", {
+  input <- list(
+    group3 = "Control",
+    response_curve_xaxis = "Dose",
+    response_curve_amount = 0
+  )
+  
+  contrast <- list(matrix = NULL)
+  result <- build_response_curve_matrix(input, contrast)
+  
+  expect_equal(nrow(result), 1)
+  expect_equal(ncol(result), 3)
+  expect_equal(result$Condition, "Control")
+  expect_equal(result$X_axis, "Dose")
+  expect_equal(result$Amount, 0)
+})
+
+test_that("appends row to existing response matrix", {
+  input <- list(
+    group3 = "T5",
+    response_curve_xaxis = "Time",
+    response_curve_amount = 5
+  )
+  
+  contrast <- list(
+    matrix = data.frame(
+      Condition = "Control",
+      X_axis = "Time",
+      Amount = 0,
+      stringsAsFactors = FALSE
+    )
+  )
+  
+  result <- build_response_curve_matrix(input, contrast)
+  
+  expect_equal(nrow(result), 2)
+  expect_equal(result$Condition[2], "T5")
+  expect_equal(result$X_axis[2], "Time")
+  expect_equal(result$Amount[2], 5)
+})
+
+test_that("removes duplicate conditions in response matrix, keep first occurrence", {
+  input <- list(
+    group3 = "Control",
+    response_curve_xaxis = "Time",
+    response_curve_amount = 1
+  )
+  
+  contrast <- list(
+    matrix = data.frame(
+      Condition = c("Control", "T15"),
+      X_axis = c("Time", "Time"),
+      Amount = c(0, 15),
+      stringsAsFactors = FALSE
+    )
+  )
+  
+  result <- build_response_curve_matrix(input, contrast)
+  
+  expect_equal(nrow(result), 2)
+  control_row <- result[result$Condition == "Control", ]
+  expect_equal(control_row$X_axis, "Time")
+  expect_equal(control_row$Amount, 0)
+})
+
+test_that("response matrix handles multiple unique x-axes correctly", {
+  input <- list(
+    group3 = "Group_C",
+    response_curve_xaxis = "pH",
+    response_curve_amount = 7.5
+  )
+  
+  contrast <- list(
+    matrix = data.frame(
+      Condition = c("Group_A", "Group_B"),
+      X_axis = c("Temperature", "Pressure"),
+      Amount = c(25, 100),
+      stringsAsFactors = FALSE
+    )
+  )
+  
+  result <- build_response_curve_matrix(input, contrast)
+  
+  expect_equal(nrow(result), 3)
+  expect_true(all(c("Group_A", "Group_B", "Group_C") %in% result$Condition))
+})
