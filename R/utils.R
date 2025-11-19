@@ -500,19 +500,35 @@ getData <- function(input) {
 
     }
     else if(input$filetype == 'spec') {
-
+      
       # if (input$subset){
       #   data = read.csv.sql(infile$datapath, sep="\t",
       #                       sql = "select * from file order by random() limit 100000")
       # } else {
-      data = read.csv(input$specdata$datapath, sep=input$sep_specdata)
+      data = read.csv(input$specdata$datapath, sep=input$sep_specdata, check.names = FALSE)
       # }
-      mydata = SpectronauttoMSstatsFormat(data,
-                                          annotation = getAnnot(input),
-                                          filter_with_Qvalue = TRUE, ## same as default
-                                          qvalue_cutoff = 0.01, ## same as default
-                                          removeProtein_with1Feature = TRUE,
-                                          use_log_file = FALSE)
+      # Base arguments for the Spectronaut converter
+      converter_args = list(
+        input = data,
+        annotation = getAnnot(input),
+        filter_with_Qvalue = input$q_val,
+        qvalue_cutoff = input$q_cutoff,
+        removeProtein_with1Feature = input$remove,
+        use_log_file = FALSE
+      )
+      
+      browser()
+      if (isTRUE(input$calculate_anomaly_scores) && !is.null(input$run_order_file)) {
+        # Add anomaly score parameters only if the checkbox is checked
+        converter_args$calculateAnomalyScores = TRUE
+        converter_args$runOrder = read.csv(input$run_order_file$datapath)
+        converter_args$anomalyModelFeatures = c("FG.ShapeQualityScore (MS2)", "FG.ShapeQualityScore (MS1)", "EGDeltaRT")
+        converter_args$anomalyModelFeatureTemporal = c("mean_decrease", "mean_decrease", "dispersion_increase")
+        converter_args$n_trees = 100
+        converter_args$max_depth = "auto"
+        converter_args$numberOfCores = 1
+      }
+      mydata = do.call(SpectronauttoMSstatsFormat, converter_args)
     }
     else if(input$filetype == 'diann') {
       if (getFileExtension(input$dianndata$name) %in% c("parquet", "pq")) {
