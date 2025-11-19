@@ -424,8 +424,8 @@ getData <- function(input) {
       # }
         mydata = SkylinetoMSstatsFormat(data,
                                         annotation = getAnnot(input),
-                                        filter_with_Qvalue = TRUE,
-                                        qvalue_cutoff = 0.01,
+                                        filter_with_Qvalue = input$q_val, 
+                                        qvalue_cutoff = input$q_cutoff,
                                         fewMeasurements="remove",
                                         removeProtein_with1Feature = TRUE,
                                         use_log_file = FALSE)
