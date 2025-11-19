@@ -345,7 +345,7 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
             style = "margin-left: 8px; cursor: pointer; font-weight: bold;",
             onclick = sprintf("Shiny.setInputValue('%s', %d, {priority: 'event'})", 
                               ns("removeProtein"), i),
-            "×"
+            "x"
           )
         )
       })
