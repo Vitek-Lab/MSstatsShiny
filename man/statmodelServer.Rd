@@ -5,9 +5,7 @@
 \title{Statmodel Server module for stat inference}
 \usage{
 statmodelServer(
-  input,
-  output,
-  session,
+  id,
   parent_session,
   loadpage_input,
   qc_input,
@@ -16,11 +14,7 @@ statmodelServer(
 )
 }
 \arguments{
-\item{input}{input object to capture different ui element values}
-
-\item{output}{to render and create elements}
-
-\item{session}{session current module}
+\item{id}{namespace prefix for the module}
 
 \item{parent_session}{session of the main calling module}
 
