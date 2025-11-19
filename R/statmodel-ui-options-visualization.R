@@ -24,7 +24,8 @@ create_plot_type_selector <- function(ns) {
       c(
         "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot, 
         "Heatmap" = CONSTANTS_STATMODEL$plot_type_heatmap, 
-        "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
+        "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot,
+        "Response Curve" = "ResponseCurve"
       )
     )
   )
@@ -97,6 +98,16 @@ create_heatmap_options <- function(ns) {
     )
   )
 }
+
+#' Create response curve specific options
+#' @noRd
+create_response_curve_options <- function(ns) {
+  tagList(
+    uiOutput(ns("WhichProt")),
+    uiOutput(ns("WhichDrug"))
+  )
+}
+
 #' Create fold change cutoff options (shared between plot types)
 #' @noRd
 create_fold_change_options <- function(ns) {

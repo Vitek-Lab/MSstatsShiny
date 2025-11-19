@@ -251,6 +251,8 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
       create_comparison_plot_options(ns)
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_heatmap) {
       create_heatmap_options(ns)
+    } else if (plot_type == "Response_Curve") {
+      create_response_curve_options(ns)
     } else {
       NULL
     }
@@ -262,7 +264,6 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
       numericInput(ns(NAMESPACE_STATMODEL$visualization_fold_change_input), "Fold change cutoff", 1, 0, 100, 0.1)
     }
   })
-  # Todo: Add plot inputs for dose response curves for which protein to plot (or re-use whichProt)
 }
 
 create_group_comparison_plot = function(input, loadpage_input, data_comparison) {
@@ -517,6 +518,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input)
       
+      output$WhichDrug = renderUI({
+        selectInput(session$ns("whichDrug"),
+                    label = h5("Select X-Axis Variable"), 
+                    unique(matrix_build()$X_axis), selected = matrix_build()$X_axis[[1]])
+      })
+      
       # Reset on configuration change
       observeEvent(c(input[[NAMESPACE_STATMODEL$comparison_mode]], loadpage_input()$proceed1), {
         contrast$matrix = NULL
@@ -620,6 +627,31 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           output$comp_plots = renderPlot({ 
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
+            )
+          })
+          op = plotOutput(ns("comp_plots"))
+        } else if (input$typeplot == "ResponseCurve") {
+          matrix = matrix_build()
+          protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
+          dia_prepared <- MSstatsPrepareDoseResponseFit(
+            data = protein_level_data,
+            dose_column = "Amount",
+            drug_column = "X_axis",
+            protein_column = "Protein",
+            log_abundance_column = "LogIntensities",
+            transform_nM_to_M = TRUE  
+          )
+          output$comp_plots = renderPlot({ 
+            visualizeResponseProtein(
+              data = dia_prepared,
+              protein_name = input$whichProt,
+              drug_name = input$whichDrug,
+              ratio_response = FALSE, # Bugs for some reason
+              show_ic50 = FALSE, # Bugs for some reason
+              add_ci = FALSE, # Bugs for some reason
+              transform_dose = FALSE, # Bugs for some reason
+              n_samples = 1000,
+              increasing = TRUE # Need to be user-defined
             )
           })
           op = plotOutput(ns("comp_plots"))
