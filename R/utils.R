@@ -517,7 +517,6 @@ getData <- function(input) {
         use_log_file = FALSE
       )
       
-      browser()
       if (isTRUE(input$calculate_anomaly_scores) && !is.null(input$run_order_file)) {
         # Add anomaly score parameters only if the checkbox is checked
         converter_args$calculateAnomalyScores = TRUE
