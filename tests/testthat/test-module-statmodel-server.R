@@ -188,7 +188,7 @@ test_that("matrix_build creates correct pairwise comparison", {
     {
       # Set up custom comparison
       session$setInputs(
-        contrast_mode = "custom",
+        contrast_mode = CONSTANTS_STATMODEL$comparison_mode_custom_pairwise,
         group1 = "Group1",
         group2 = "Group2",
         submit = 1
@@ -237,7 +237,7 @@ test_that("matrix_build creates all pairwise comparisons", {
     {
       # Set up all pairwise comparisons
       session$setInputs(
-        contrast_mode = "all_pair",
+        contrast_mode = CONSTANTS_STATMODEL$comparison_mode_all_pairwise,
         submit = 1
       )
       
@@ -279,7 +279,7 @@ test_that("matrix_build creates all vs one comparisons", {
     {
       # Set up all vs one comparison
       session$setInputs(
-        contrast_mode = "all_one",
+        contrast_mode = CONSTANTS_STATMODEL$comparison_mode_all_vs_one,
         group3 = "Group3",
         submit = 1
       )
@@ -322,7 +322,7 @@ test_that("matrix_build creates custom non-pairwise comparison", {
     {
       # Set up custom non-pairwise comparison
       session$setInputs(
-        contrast_mode = "custom_np",
+        contrast_mode = CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise,
         comp_name = "CustomComparison",
         weight1 = 1,
         weight2 = 1,
@@ -373,7 +373,7 @@ test_that("check_cond validates same group selection", {
     {
       # Set up invalid comparison (same groups)
       session$setInputs(
-        contrast_mode = "custom",
+        contrast_mode = CONSTANTS_STATMODEL$comparison_mode_custom_pairwise,
         group1 = "Group1",
         group2 = "Group1",
         submit = 1
@@ -411,7 +411,7 @@ test_that("check_cond validates contrast weights sum to zero", {
     {
       # Set up invalid weights (don't sum to 0)
       session$setInputs(
-        contrast_mode = "custom_np",
+        contrast_mode = CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise,
         comp_name = "BadComparison",
         weight1 = 1,
         weight2 = 1,
@@ -451,7 +451,7 @@ test_that("contrast_mode change resets matrix", {
     {
       # Build a matrix
       session$setInputs(
-        contrast_mode = "custom",
+        contrast_mode = CONSTANTS_STATMODEL$comparison_mode_custom_pairwise,
         group1 = "Group1",
         group2 = "Group2",
         submit = 1
@@ -459,7 +459,7 @@ test_that("contrast_mode change resets matrix", {
       matrix_build()
       
       # Change comparison type
-      session$setInputs(contrast_mode = "all_pair")
+      session$setInputs(contrast_mode = CONSTANTS_STATMODEL$comparison_mode_all_pairwise)
       
       # Verify matrix is reset
       expect_null(contrast$matrix)
@@ -494,7 +494,7 @@ test_that("matrix doesn't add duplicate rows", {
     {
       # Add same comparison twice
       session$setInputs(
-        contrast_mode = "custom",
+        contrast_mode = CONSTANTS_STATMODEL$comparison_mode_custom_pairwise,
         group1 = "Group1",
         group2 = "Group2",
         submit = 1
@@ -540,7 +540,7 @@ test_that("Rownames reactive returns correct comparison names", {
     {
       # Build matrix with multiple comparisons
       session$setInputs(
-        contrast_mode = "all_pair",
+        contrast_mode = CONSTANTS_STATMODEL$comparison_mode_all_pairwise,
         submit = 1
       )
       matrix_build()
