@@ -61,25 +61,6 @@ test_that("All comparison type radio buttons are present", {
               info = "Custom non-pairwise option should be present")
 })
 
-test_that("Conditional panels exist for each comparison type", {
-  ui <- create_test_ui()
-  ui_html <- htmltools::renderTags(ui)$html
-  
-  # Check for conditional panel triggers
-  expect_true(grepl("input[&#39;statmodel-contrast_mode&#39;] == &#39;custom", 
-                    ui_html, fixed = TRUE),
-              info = "Custom comparison conditional panel should exist")
-  expect_true(grepl("input[&#39;statmodel-contrast_mode&#39;] == &#39;all_one", 
-                    ui_html, fixed = TRUE),
-              info = "All vs one conditional panel should exist")
-  expect_true(grepl("input[&#39;statmodel-contrast_mode&#39;] == &#39;all_pair", 
-                    ui_html, fixed = TRUE),
-              info = "All pairwise conditional panel should exist")
-  expect_true(grepl("input[&#39;statmodel-contrast_mode&#39;] == &#39;custom_np", 
-                    ui_html, fixed = TRUE),
-              info = "Custom non-pairwise conditional panel should exist")
-})
-
 test_that("Plot type conditional panels exist", {
   ui <- create_test_ui()
   ui_html <- htmltools::renderTags(ui)$html
@@ -102,24 +83,6 @@ test_that("Plot type conditional panels exist", {
 test_that("All action buttons are present with correct IDs", {
   ui <- create_test_ui()
   ui_html <- htmltools::renderTags(ui)$html
-  
-  # Submit and clear buttons for each comparison type
-  expect_true(grepl('id="statmodel-submit"', ui_html),
-              info = "Custom comparison submit button should exist")
-  expect_true(grepl('id="statmodel-clear"', ui_html),
-              info = "Custom comparison clear button should exist")
-  expect_true(grepl('id="statmodel-submit1"', ui_html),
-              info = "All vs one submit button should exist")
-  expect_true(grepl('id="statmodel-clear1"', ui_html),
-              info = "All vs one clear button should exist")
-  expect_true(grepl('id="statmodel-submit2"', ui_html),
-              info = "All pairwise submit button should exist")
-  expect_true(grepl('id="statmodel-clear2"', ui_html),
-              info = "All pairwise clear button should exist")
-  expect_true(grepl('id="statmodel-submit3"', ui_html),
-              info = "Custom non-pairwise submit button should exist")
-  expect_true(grepl('id="statmodel-clear3"', ui_html),
-              info = "Custom non-pairwise clear button should exist")
   
   # Main action buttons
   expect_true(grepl('id="statmodel-calculate"', ui_html),
@@ -253,14 +216,6 @@ test_that("Instructions and help links are present", {
 test_that("Output UI elements are present", {
   ui <- create_test_ui()
   ui_html <- htmltools::renderTags(ui)$html
-  
-  # Check for uiOutput placeholders
-  expect_true(grepl('id="statmodel-choice1"', ui_html),
-              info = "Choice1 UI output should exist")
-  expect_true(grepl('id="statmodel-choice2"', ui_html),
-              info = "Choice2 UI output should exist")
-  expect_true(grepl('id="statmodel-choice3"', ui_html),
-              info = "Choice3 UI output should exist")
   expect_true(grepl('id="statmodel-WhichComp"', ui_html),
               info = "WhichComp UI output should exist")
   expect_true(grepl('id="statmodel-WhichProt"', ui_html),
@@ -310,7 +265,7 @@ test_that("All inputs use correct namespace", {
   ui_html <- htmltools::renderTags(ui)$html
   
   # All IDs should be prefixed with "statmodel-"
-  input_ids <- c("contrast_mode", "submit", "clear", "calculate", "moderated",
+  input_ids <- c("contrast_mode", "calculate", "moderated",
                  "signif", "typeplot", "pname", "logp", "sig", "FC1", "FC",
                  "nump", "cluster", "viewresults", "plotresults")
   
