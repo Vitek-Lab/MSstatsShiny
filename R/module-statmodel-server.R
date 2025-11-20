@@ -24,10 +24,10 @@ get_contrast_panel_ui <- function(mode, ns) {
     return(NULL)
   }
   switch(mode,
-         "custom" = build_custom_pairwise_panel(ns),
-         "all_one" = build_all_vs_one_panel(ns),
-         "all_pair" = build_all_pairwise_panel(ns),
-         "custom_np" = build_custom_nonpairwise_panel(ns),
+         CONSTANTS_STATMODEL$comparison_mode_custom_pairwise = build_custom_pairwise_panel(ns),
+         CONSTANTS_STATMODEL$comparison_mode_all_vs_one = build_all_vs_one_panel(ns),
+         CONSTANTS_STATMODEL$comparison_mode_all_pairwise = build_all_pairwise_panel(ns),
+         CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise = build_custom_nonpairwise_panel(ns),
          NULL
   )
 }
@@ -70,11 +70,11 @@ render_custom_non_pairwise_inputs = function(output, session, condition_list) {
 # Todo: Add helper function to render dose response curve inputs
 
 validate_contrast_inputs = function(input, contrast_mode, condition_list) {
-  if (contrast_mode == "custom") {
+  if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
     validate(
       need(input$group1 != input$group2, "Please select different groups")
     )
-  } else if (contrast_mode == "custom_np") {
+  } else if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
     wt_sum = sum(sapply(1:length(condition_list), function(i) {
       input[[paste0("weight", i)]]
     }))
@@ -503,16 +503,16 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             req(input[[NAMESPACE_STATMODEL$comparison_mode]])
             req(loadpage_input()$DDA_DIA)
             
-            if (input[[NAMESPACE_STATMODEL$comparison_mode]] == "custom") {
+            if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
               contrast$matrix = build_custom_pairwise_contrast(
                 input, condition_list(), contrast, comp_list, row())
-            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == "custom_np") {
+            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
               contrast$matrix = build_custom_non_pairwise_contrast(
                 input, condition_list(), contrast, comp_list, row())
-            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == "all_one") {
+            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_all_vs_one) {
               contrast$matrix = build_all_against_one_contrast(
                 input, condition_list(), contrast, comp_list, row(), loadpage_input())
-            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == "all_pair") {
+            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_all_pairwise) {
               contrast$matrix = build_all_pair_contrast(
                 input, condition_list(), contrast, comp_list, row(), loadpage_input())
             }

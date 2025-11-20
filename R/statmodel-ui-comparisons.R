@@ -24,11 +24,11 @@ create_contrast_radio_buttons <- function(ns) {
       div("Define what conditions you want to compare here.", class = "icon-tooltip")
     ),
     c(
-      "All possible pairwise comparisons" = "all_pair", 
-      "Compare all against one" = "all_one", 
-      "Create custom pairwise comparisons" = "custom",
-      "Create custom non-pairwise comparisons" = "custom_np"
-    ), 
+      "All possible pairwise comparisons" = CONSTANTS_STATMODEL$comparison_mode_all_pairwise, 
+      "Compare all against one" = CONSTANTS_STATMODEL$comparison_mode_all_vs_one, 
+      "Create custom pairwise comparisons" = CONSTANTS_STATMODEL$comparison_mode_custom_pairwise,
+      "Create custom non-pairwise comparisons" = CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise
+    ),
     selected = character(0)
   )
 }

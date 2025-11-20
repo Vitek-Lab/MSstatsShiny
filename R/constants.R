@@ -18,8 +18,8 @@ NAMESPACE_STATMODEL = list(
 )
 
 CONSTANTS_STATMODEL = list(
-  comparison_mode_all_pair = "all_pair", 
-  comparison_mode_all_one = "all_one", 
-  comparison_mode_custom = "custom",
-  comparison_mode_custom_np = "custom_np"
+  comparison_mode_all_pairwise = "comparison_mode_all_pairwise", # all_pair
+  comparison_mode_all_vs_one = "comparison_mode_all_vs_one", # all_one
+  comparison_mode_custom_pairwise = "comparison_mode_custom_pairwise", # custom
+  comparison_mode_custom_nonpairwise = "comparison_mode_custom_nonpairwise" # custom_np
 )
