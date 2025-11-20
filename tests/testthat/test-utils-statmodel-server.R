@@ -331,27 +331,39 @@ test_that("extract_significant_proteins returns empty for no significant results
 
 test_that("get_contrast_panel_ui returns correct UI for each mode", {
   ns <- function(id) paste0("statmodel-", id)
-  ui_custom <- get_contrast_panel_ui("custom", ns)
-  expect_s3_class(ui_custom, "shiny.tag.list")
+  ui_custom <- get_contrast_panel_ui(
+    CONSTANTS_STATMODEL$comparison_mode_custom_pairwise, ns)
   html <- as.character(ui_custom)
-  expect_true(grepl('id="statmodel-choice1"', html, fixed = TRUE))
-  expect_true(grepl('id="statmodel-submit"', html, fixed = TRUE))
+  expect_true(grepl(
+    NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1, html, fixed = TRUE))
+  expect_true(grepl(
+    NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2, html, fixed = TRUE))
+  expect_true(grepl(
+    NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit, html, fixed = TRUE))
+  expect_true(grepl(
+    NAMESPACE_STATMODEL$comparisons_custom_pairwise_clear, html, fixed = TRUE))
 
-  ui_all_one <- get_contrast_panel_ui("all_one", ns)
-  expect_s3_class(ui_all_one, "shiny.tag.list")
+  ui_all_one <- get_contrast_panel_ui(
+    CONSTANTS_STATMODEL$comparison_mode_all_vs_one, ns)
   html <- as.character(ui_all_one)
-  expect_true(grepl('id="statmodel-choice3"', html, fixed = TRUE))
-  expect_true(grepl('id="statmodel-submit1"', html, fixed = TRUE))
+  expect_true(grepl(
+    NAMESPACE_STATMODEL$comparisons_all_vs_one_submit, html, fixed = TRUE))
+  expect_true(grepl(
+    NAMESPACE_STATMODEL$comparisons_all_vs_one_choice, html, fixed = TRUE))
 
-  ui_all_pair <- get_contrast_panel_ui("all_pair", ns)
-  expect_s3_class(ui_all_pair, "shiny.tag.list")
+  ui_all_pair <- get_contrast_panel_ui(
+    CONSTANTS_STATMODEL$comparison_mode_all_pairwise, ns)
   html <- as.character(ui_all_pair)
-  expect_true(grepl('id="statmodel-submit2"', html, fixed = TRUE))
+  expect_true(grepl(
+    NAMESPACE_STATMODEL$comparisons_all_pairwise_submit, html, fixed = TRUE))
 
-  ui_custom_np <- get_contrast_panel_ui("custom_np", ns)
-  expect_s3_class(ui_custom_np, "shiny.tag.list")
+  ui_custom_np <- get_contrast_panel_ui(
+    CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise, ns)
   html <- as.character(ui_custom_np)
-  expect_true(grepl('id="statmodel-comp_name"', html, fixed = TRUE))
+  expect_true(grepl(
+    NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name, html, fixed = TRUE))
+  expect_true(grepl(
+    NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, html, fixed = TRUE))
   
   expect_null(get_contrast_panel_ui(NULL, ns))
   expect_null(get_contrast_panel_ui(character(0), ns))
