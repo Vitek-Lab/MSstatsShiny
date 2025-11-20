@@ -1,7 +1,6 @@
 # ============================================================================
 # Modeling Setup
 # ============================================================================
-
 #' Create the contrast matrix definition section
 #' @param ns namespace function
 #' @noRd
@@ -9,16 +8,15 @@ create_contrast_section <- function(ns) {
   fluidRow(
     create_contrast_radio_buttons(ns),
     tags$br(),
-    uiOutput(ns("dynamic_contrast_panel")),
+    uiOutput(ns(NAMESPACE_STATMODEL$comparisons_conditional_panel)),
     tags$hr()
   )
 }
-
 #' Create radio buttons for contrast type selection
 #' @noRd
 create_contrast_radio_buttons <- function(ns) {
   radioButtons(
-    ns("contrast_mode"), 
+    ns(NAMESPACE_STATMODEL$comparison_mode), 
     label = h4(
       "1. Define comparisons - contrast matrix",
       class = "icon-wrapper",
@@ -34,47 +32,43 @@ create_contrast_radio_buttons <- function(ns) {
     selected = character(0)
   )
 }
-
 #' Create UI for custom pairwise comparisons
 #' @noRd
 build_custom_pairwise_panel <- function(ns) {
   tagList(
-    uiOutput(ns('choice1')),
+    uiOutput(ns(NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1)),
     h6("vs"),
-    uiOutput(ns("choice2")),
-    actionButton(ns("submit"), "Add"),
-    actionButton(ns("clear"), "Clear matrix")
+    uiOutput(ns(NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2)),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit), "Add"),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_custom_pairwise_clear), "Clear matrix")
   )
 }
-
 #' Create UI for all vs one comparisons
 #' @noRd
 build_all_vs_one_panel <- function(ns) {
   tagList(
     h5("Compare all groups against:"),
-    uiOutput(ns("choice3")),
-    actionButton(ns("submit1"), "Submit"),
-    actionButton(ns("clear1"), "Clear matrix")
+    uiOutput(ns(NAMESPACE_STATMODEL$comparisons_all_vs_one_choice)),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_all_vs_one_submit), "Submit"),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_all_vs_one_clear), "Clear matrix")
   )
 }
-
 #' Create UI for all pairwise comparisons
 #' @noRd
 build_all_pairwise_panel <- function(ns) {
   tagList(
-    actionButton(ns("submit2"), "Submit"),
-    actionButton(ns("clear2"), "Clear matrix")
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_all_pairwise_submit), "Submit"),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_all_pairwise_clear), "Clear matrix")
   )
 }
-
 #' Create UI for custom non-pairwise comparisons
 #' @noRd
 build_custom_nonpairwise_panel <- function(ns) {
   tagList(
     h5("Non-pairwise Comparison:"),
-    uiOutput(ns('comp_name')),
-    uiOutput(ns('weights')),
-    actionButton(ns("submit3"), "Add"),
-    actionButton(ns("clear3"), "Clear matrix")
+    uiOutput(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name)),
+    uiOutput(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights)),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit), "Add"),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_clear), "Clear matrix")
   )
 }
