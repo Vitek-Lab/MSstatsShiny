@@ -534,6 +534,27 @@ create_quality_filtering_options <- function(ns) {
     ),
     
     conditionalPanel(
+      condition = "input['loadpage-filetype'] == 'spec'",
+      checkboxInput(ns("calculate_anomaly_scores"), 
+                    label = tags$span(
+                      "Calculate Anomaly Scores",
+                      class = "icon-wrapper",
+                      icon("question-circle", lib = "font-awesome"),
+                      div("Calculate anomaly scores for each feature based on a random forest model. This requires a CSV file containing the order of your MS runs.", 
+                          class = "icon-tooltip")
+                    ), 
+                    value = FALSE),
+      conditionalPanel(
+        condition = "input['loadpage-calculate_anomaly_scores']",
+        fileInput(ns("run_order_file"), 
+                  label = h5("Upload Run Order File", class = "icon-wrapper",
+                             icon("question-circle", lib = "font-awesome"),
+                             div("The run order file should be a CSV with two columns: 'Run' and 'Order'. 'Run' contains the sequence name, and 'Order' contains the chronological run number (e.g., 1, 2, 3...).", class = "icon-tooltip")),
+                  multiple = FALSE, accept = c(".csv"))
+      )
+    ),
+    
+    conditionalPanel(
       condition = "input['loadpage-filetype'] == 'open'",
       checkboxInput(ns("m_score"), "Filter with M-score"),
       conditionalPanel(
@@ -543,6 +564,7 @@ create_quality_filtering_options <- function(ns) {
     )
   )
 }
+
 
 #' Create column separator radio buttons
 #' 
