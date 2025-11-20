@@ -23,19 +23,24 @@ get_contrast_panel_ui <- function(mode, ns) {
   if (is.null(mode) || length(mode) == 0) {
     return(NULL)
   }
-  switch(mode,
-         "custom" = build_custom_pairwise_panel(ns),
-         "all_one" = build_all_vs_one_panel(ns),
-         "all_pair" = build_all_pairwise_panel(ns),
-         "custom_np" = build_custom_nonpairwise_panel(ns),
-         NULL
-  )
+  
+  if (mode == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
+    build_custom_pairwise_panel(ns)
+  } else if (mode == CONSTANTS_STATMODEL$comparison_mode_all_vs_one) {
+    build_all_vs_one_panel(ns)
+  } else if (mode == CONSTANTS_STATMODEL$comparison_mode_all_pairwise) {
+    build_all_pairwise_panel(ns)
+  } else if (mode == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
+    build_custom_nonpairwise_panel(ns)
+  } else {
+    NULL
+  }
 }
 
 render_all_against_one_inputs = function(output, session, condition_list) {
   ns = session$ns
   
-  output$choice3 = renderUI({
+  output[[NAMESPACE_STATMODEL$comparisons_all_vs_one_choice]] = renderUI({
     selectInput(ns("group3"), "", condition_list())
   })
 }
@@ -43,11 +48,11 @@ render_all_against_one_inputs = function(output, session, condition_list) {
 render_custom_pairwise_inputs = function(output, session, condition_list) {
   ns = session$ns
   
-  output$choice1 = renderUI({
+  output[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] = renderUI({
     selectInput(ns("group1"), "Group 1", condition_list())
   })
   
-  output$choice2 = renderUI({
+  output[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]] = renderUI({
     selectInput(ns("group2"), "Group 2", condition_list())
   })
 }
@@ -55,11 +60,11 @@ render_custom_pairwise_inputs = function(output, session, condition_list) {
 render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   ns = session$ns
   
-  output$comp_name = renderUI({
+  output[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name]] = renderUI({
     textInput(ns("comp_name"), label = "Comparison Name", value = "")
   })
   
-  output$weights = renderUI({
+  output[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights]] = renderUI({
     lapply(1:length(condition_list()), function(i) {
       list(numericInput(ns(paste0("weight", i)), 
                         label = condition_list()[i], value = 0))
@@ -70,11 +75,11 @@ render_custom_non_pairwise_inputs = function(output, session, condition_list) {
 # Todo: Add helper function to render dose response curve inputs
 
 validate_contrast_inputs = function(input, contrast_mode, condition_list) {
-  if (contrast_mode == "custom") {
+  if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
     validate(
       need(input$group1 != input$group2, "Please select different groups")
     )
-  } else if (contrast_mode == "custom_np") {
+  } else if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
     wt_sum = sum(sapply(1:length(condition_list), function(i) {
       input[[paste0("weight", i)]]
     }))
@@ -456,8 +461,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         }
       })
       
-      output$dynamic_contrast_panel <- renderUI({
-        get_contrast_panel_ui(input$contrast_mode, session$ns)
+      output[[NAMESPACE_STATMODEL$comparisons_conditional_panel]] <- renderUI({
+        get_contrast_panel_ui(input[[NAMESPACE_STATMODEL$comparison_mode]], session$ns)
       })
       
       # Render contrast matrix inputs
@@ -465,16 +470,19 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       render_custom_pairwise_inputs(output, session, condition_list)
       render_custom_non_pairwise_inputs(output, session, condition_list)
       
-      Rownames = eventReactive(input$submit | input$submit1 | input$submit2 | input$submit3, {
-        req(input$contrast_mode)
-        req(loadpage_input()$DDA_DIA)
-        tryCatch({ rownames(matrix_build()) }, error = function(e) {})
-      })
+      Rownames = eventReactive(input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit]] | 
+                                 input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_submit]] | 
+                                 input[[NAMESPACE_STATMODEL$comparisons_all_pairwise_submit]] | 
+                                 input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit]], {
+                                   req(input[[NAMESPACE_STATMODEL$comparison_mode]])
+                                   req(loadpage_input()$DDA_DIA)
+                                   tryCatch({ rownames(matrix_build()) }, error = function(e) {})
+                                 })
       
       render_group_comparison_plot_inputs(output, session, Rownames, get_data)
       
       # Reset on configuration change
-      observeEvent(c(input$contrast_mode, loadpage_input()$proceed1), {
+      observeEvent(c(input[[NAMESPACE_STATMODEL$comparison_mode]], loadpage_input()$proceed1), {
         contrast$matrix = NULL
         comp_list$dList = NULL
         significant$result = NULL
@@ -482,42 +490,51 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Validate contrast inputs
       check_cond = eventReactive(
-        input$submit | input$submit1 | input$submit2 | input$submit3, {
-          req(input$contrast_mode)
-          req(loadpage_input()$DDA_DIA)
-          validate_contrast_inputs(input, input$contrast_mode, condition_list())
-        })
+        input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit]] | 
+          input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_submit]] | 
+          input[[NAMESPACE_STATMODEL$comparisons_all_pairwise_submit]] | 
+          input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit]], {
+            req(input[[NAMESPACE_STATMODEL$comparison_mode]])
+            req(loadpage_input()$DDA_DIA)
+            validate_contrast_inputs(input, input[[NAMESPACE_STATMODEL$comparison_mode]], condition_list())
+          })
       
       # Build contrast matrix
       matrix_build = eventReactive(
-        input$submit | input$submit1 | input$submit2 | input$submit3, {
-          req(input$contrast_mode)
-          req(loadpage_input()$DDA_DIA)
-          
-          if (input$contrast_mode == "custom") {
-            contrast$matrix = build_custom_pairwise_contrast(
-              input, condition_list(), contrast, comp_list, row())
-          } else if (input$contrast_mode == "custom_np") {
-            contrast$matrix = build_custom_non_pairwise_contrast(
-              input, condition_list(), contrast, comp_list, row())
-          } else if (input$contrast_mode == "all_one") {
-            contrast$matrix = build_all_against_one_contrast(
-              input, condition_list(), contrast, comp_list, row(), loadpage_input())
-          } else if (input$contrast_mode == "all_pair") {
-            contrast$matrix = build_all_pair_contrast(
-              input, condition_list(), contrast, comp_list, row(), loadpage_input())
-          }
-          
-          enable("calculate")
-          return(contrast$matrix)
-        })
+        input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit]] | 
+          input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_submit]] | 
+          input[[NAMESPACE_STATMODEL$comparisons_all_pairwise_submit]] | 
+          input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit]], {
+            req(input[[NAMESPACE_STATMODEL$comparison_mode]])
+            req(loadpage_input()$DDA_DIA)
+            
+            if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
+              contrast$matrix = build_custom_pairwise_contrast(
+                input, condition_list(), contrast, comp_list, row())
+            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
+              contrast$matrix = build_custom_non_pairwise_contrast(
+                input, condition_list(), contrast, comp_list, row())
+            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_all_vs_one) {
+              contrast$matrix = build_all_against_one_contrast(
+                input, condition_list(), contrast, comp_list, row(), loadpage_input())
+            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_all_pairwise) {
+              contrast$matrix = build_all_pair_contrast(
+                input, condition_list(), contrast, comp_list, row(), loadpage_input())
+            }
+            
+            enable("calculate")
+            return(contrast$matrix)
+          })
       
       # Clear matrix
-      observeEvent(input$clear | input$clear1 | input$clear2 | input$clear3, {
-        disable("calculate")
-        comp_list$dList = NULL
-        contrast$matrix = NULL
-      })
+      observeEvent(input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_clear]] | 
+                     input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_clear]] | 
+                     input[[NAMESPACE_STATMODEL$comparisons_all_pairwise_clear]] | 
+                     input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_clear]], {
+                       disable("calculate")
+                       comp_list$dList = NULL
+                       contrast$matrix = NULL
+                     })
       
       # Run analysis
       data_comparison = eventReactive(input$calculate, {
