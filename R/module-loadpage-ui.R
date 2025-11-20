@@ -538,12 +538,10 @@ create_quality_filtering_options <- function(ns) {
       checkboxInput(ns("calculate_anomaly_scores"), 
                     label = tags$span(
                       "Calculate Anomaly Scores",
-                      tags$span(
-                        class = "icon-wrapper",
-                        icon("question-circle", lib = "font-awesome"),
-                        div("Calculate anomaly scores for each feature based on a random forest model. This requires a CSV file containing the order of your MS runs.", 
-                            class = "icon-tooltip")
-                      )
+                      class = "icon-wrapper",
+                      icon("question-circle", lib = "font-awesome"),
+                      div("Calculate anomaly scores for each feature based on a random forest model. This requires a CSV file containing the order of your MS runs.", 
+                          class = "icon-tooltip")
                     ), 
                     value = FALSE),
       conditionalPanel(
