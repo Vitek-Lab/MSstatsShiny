@@ -23,13 +23,18 @@ get_contrast_panel_ui <- function(mode, ns) {
   if (is.null(mode) || length(mode) == 0) {
     return(NULL)
   }
-  switch(mode,
-         CONSTANTS_STATMODEL$comparison_mode_custom_pairwise = build_custom_pairwise_panel(ns),
-         CONSTANTS_STATMODEL$comparison_mode_all_vs_one = build_all_vs_one_panel(ns),
-         CONSTANTS_STATMODEL$comparison_mode_all_pairwise = build_all_pairwise_panel(ns),
-         CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise = build_custom_nonpairwise_panel(ns),
-         NULL
-  )
+  
+  if (mode == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
+    build_custom_pairwise_panel(ns)
+  } else if (mode == CONSTANTS_STATMODEL$comparison_mode_all_vs_one) {
+    build_all_vs_one_panel(ns)
+  } else if (mode == CONSTANTS_STATMODEL$comparison_mode_all_pairwise) {
+    build_all_pairwise_panel(ns)
+  } else if (mode == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
+    build_custom_nonpairwise_panel(ns)
+  } else {
+    NULL
+  }
 }
 
 render_all_against_one_inputs = function(output, session, condition_list) {
