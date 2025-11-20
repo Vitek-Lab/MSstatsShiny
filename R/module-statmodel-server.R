@@ -17,6 +17,21 @@ get_experimental_conditions = function(loadpage_input, preprocess_data) {
   }
 }
 
+#' Get contrast panel UI based on mode
+#' @noRd
+get_contrast_panel_ui <- function(mode, ns) {
+  if (is.null(mode) || length(mode) == 0) {
+    return(NULL)
+  }
+  switch(mode,
+         "custom" = build_custom_pairwise_panel(ns),
+         "all_one" = build_all_vs_one_panel(ns),
+         "all_pair" = build_all_pairwise_panel(ns),
+         "custom_np" = build_custom_nonpairwise_panel(ns),
+         NULL
+  )
+}
+
 render_all_against_one_inputs = function(output, session, condition_list) {
   ns = session$ns
   
@@ -439,6 +454,10 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         } else {
           shinyjs::show("Design")
         }
+      })
+      
+      output$dynamic_contrast_panel <- renderUI({
+        get_contrast_panel_ui(input$contrast_mode, session$ns)
       })
       
       # Render contrast matrix inputs
