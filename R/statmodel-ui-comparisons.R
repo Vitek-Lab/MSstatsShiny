@@ -1,6 +1,7 @@
 # ============================================================================
 # Modeling Setup
 # ============================================================================
+
 #' Create the contrast matrix definition section
 #' @param ns namespace function
 #' @noRd
@@ -12,6 +13,7 @@ create_contrast_section <- function(ns) {
     tags$hr()
   )
 }
+
 #' Create radio buttons for contrast type selection
 #' @noRd
 create_contrast_radio_buttons <- function(ns) {
@@ -32,6 +34,7 @@ create_contrast_radio_buttons <- function(ns) {
     selected = character(0)
   )
 }
+
 #' Create UI for custom pairwise comparisons
 #' @noRd
 build_custom_pairwise_panel <- function(ns) {
@@ -43,6 +46,7 @@ build_custom_pairwise_panel <- function(ns) {
     actionButton(ns(NAMESPACE_STATMODEL$comparisons_custom_pairwise_clear), "Clear matrix")
   )
 }
+
 #' Create UI for all vs one comparisons
 #' @noRd
 build_all_vs_one_panel <- function(ns) {
@@ -53,6 +57,7 @@ build_all_vs_one_panel <- function(ns) {
     actionButton(ns(NAMESPACE_STATMODEL$comparisons_all_vs_one_clear), "Clear matrix")
   )
 }
+
 #' Create UI for all pairwise comparisons
 #' @noRd
 build_all_pairwise_panel <- function(ns) {
@@ -61,6 +66,7 @@ build_all_pairwise_panel <- function(ns) {
     actionButton(ns(NAMESPACE_STATMODEL$comparisons_all_pairwise_clear), "Clear matrix")
   )
 }
+
 #' Create UI for custom non-pairwise comparisons
 #' @noRd
 build_custom_nonpairwise_panel <- function(ns) {
