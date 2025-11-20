@@ -72,7 +72,8 @@ build_all_pairwise_panel <- function(ns) {
 build_custom_nonpairwise_panel <- function(ns) {
   tagList(
     h5("Non-pairwise Comparison:"),
-    uiOutput(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name)),
+    textInput(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name), 
+              label = "Comparison Name", value = ""),
     uiOutput(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights)),
     actionButton(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit), "Add"),
     actionButton(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_clear), "Clear matrix")

@@ -41,7 +41,7 @@ render_all_against_one_inputs = function(output, session, condition_list) {
   ns = session$ns
   
   output[[NAMESPACE_STATMODEL$comparisons_all_vs_one_choice]] = renderUI({
-    selectInput(ns("group3"), "", condition_list())
+    selectInput(ns(NAMESPACE_STATMODEL$comparisons_all_vs_one_choice), "", condition_list())
   })
 }
 
@@ -49,24 +49,21 @@ render_custom_pairwise_inputs = function(output, session, condition_list) {
   ns = session$ns
   
   output[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] = renderUI({
-    selectInput(ns("group1"), "Group 1", condition_list())
+    selectInput(ns(NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1), "Group 1", condition_list())
   })
   
   output[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]] = renderUI({
-    selectInput(ns("group2"), "Group 2", condition_list())
+    selectInput(ns(NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2), "Group 2", condition_list())
   })
 }
 
 render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   ns = session$ns
-  
-  output[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name]] = renderUI({
-    textInput(ns("comp_name"), label = "Comparison Name", value = "")
-  })
-  
   output[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights]] = renderUI({
     lapply(1:length(condition_list()), function(i) {
-      list(numericInput(ns(paste0("weight", i)), 
+      list(numericInput(ns(paste0(
+          NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, i)
+        ), 
                         label = condition_list()[i], value = 0))
     })
   })
@@ -77,11 +74,11 @@ render_custom_non_pairwise_inputs = function(output, session, condition_list) {
 validate_contrast_inputs = function(input, contrast_mode, condition_list) {
   if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
     validate(
-      need(input$group1 != input$group2, "Please select different groups")
+      need(input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] != input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]], "Please select different groups")
     )
   } else if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
     wt_sum = sum(sapply(1:length(condition_list), function(i) {
-      input[[paste0("weight", i)]]
+      input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, i)]]
     }))
     
     validate(
@@ -91,15 +88,15 @@ validate_contrast_inputs = function(input, contrast_mode, condition_list) {
 }
 
 build_custom_pairwise_contrast = function(input, condition_list, contrast, comp_list, row) {
-  if (input$group1 == input$group2) {
+  if (input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] == input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]]) {
     return(contrast$matrix)
   }
   
-  index1 = which(condition_list == input$group1)
-  index2 = which(condition_list == input$group2)
+  index1 = which(condition_list == input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]])
+  index2 = which(condition_list == input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]])
   
   comp_list$dList = unique(c(isolate(comp_list$dList), 
-                             paste(input$group1, "vs", input$group2, sep = " ")))
+                             paste(input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]], "vs", input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]], sep = " ")))
   
   contrast$row = matrix(row, nrow = 1)
   contrast$row[index1] = 1
@@ -120,18 +117,19 @@ build_custom_pairwise_contrast = function(input, condition_list, contrast, comp_
 
 build_custom_non_pairwise_contrast = function(input, condition_list, contrast, comp_list, row) {
   wt_sum = sum(sapply(1:length(condition_list), function(i) {
-    input[[paste0("weight", i)]]
+    input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, i)]]
   }))
   
   if (wt_sum != 0) {
     return(contrast$matrix)
   }
   
-  comp_list$dList = unique(c(isolate(comp_list$dList), input$comp_name))
+  comp_list$dList = unique(c(isolate(comp_list$dList), 
+                             input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name]]))
   contrast$row = matrix(row, nrow = 1)
   
   for (index in 1:length(condition_list)) {
-    contrast$row[index] = input[[paste0("weight", index)]]
+    contrast$row[index] = input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, index)]]
   }
   
   if (is.null(contrast$matrix)) {
@@ -148,13 +146,13 @@ build_custom_non_pairwise_contrast = function(input, condition_list, contrast, c
 }
 
 build_all_against_one_contrast = function(input, condition_list, contrast, comp_list, row, loadpage_input) {
-  index3 = which(condition_list == input$group3)
+  index3 = which(condition_list == input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_choice]])
   
   for (index in 1:length(condition_list)) {
     if (index == index3) next
     
     comp_list$dList = c(isolate(comp_list$dList),
-                        paste(condition_list[index], "vs", input$group3, sep = " "))
+                        paste(condition_list[index], "vs", input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_choice]], sep = " "))
     
     contrast$row = matrix(row, nrow = 1)
     contrast$row[index] = 1
