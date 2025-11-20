@@ -573,7 +573,8 @@ test_that("dia spectronaut", {
     mock_input$BIO <- "Protein"
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "spec"
-    
+    mock_input$q_val = TRUE 
+    mock_input$q_cutoff = 0.01 
     stub(getData,"getAnnot",NULL)
     
     stub(getData,"read.csv",data.table::fread(system.file("tinytest/raw_data/Spectronaut/spectronaut_input.csv",
@@ -1344,5 +1345,90 @@ test_that("dataComparison statmodel Other", {
     expected_names <- c("ComparisonResult","ModelQC","FittedModel")
     expect_type(output,"list")
     expect_identical(names(output), expected_names)
+  })
+})
+
+
+################################################################################
+#  getData for Spectronaut FUNCTION TESTING
+################################################################################
+
+describe("getData for Spectronaut input with anomaly scores", {
+  
+  # Dummy data frames
+  dummy_spec_data <- data.frame(FG.Charge = 2, PG.ProteinGroups = "Protein1")
+  dummy_run_order <- data.frame(Run = "Run1", Order = 1)
+  dummy_annot <- data.frame(Run = "Run1", Condition = "A")
+  
+  # A mock converter function
+  mock_spectro_converter <- function(...) {
+    args <- list(...)
+    return(args) # Return the arguments for inspection
+  }
+  
+  test_that("adds anomaly score arguments when checkbox is checked", {
+    
+    #SETUP: Mock Shiny input for the "checked" scenario
+    mock_input_anomaly <- list(
+      BIO = "Protein",
+      DDA_DIA = "DIA",
+      filetype = "spec",
+      specdata = list(datapath = "dummy_spec.csv"),
+      sep_specdata = ",",
+      annot = list(datapath = "dummy_annot.csv"),
+      q_val = TRUE,
+      q_cutoff = 0.01,
+      remove = TRUE,
+      calculate_anomaly_scores = TRUE,
+      run_order_file = list(datapath = "dummy_run_order.csv")
+    )
+    
+    # Mock the functions that getData calls
+    stub(getData, "read.csv", function(path, ...) {
+      if (path == "dummy_run_order.csv") return(dummy_run_order)
+      return(dummy_spec_data)
+    })
+    stub(getData, "getAnnot", dummy_annot)
+    
+    stub(getData, "SpectronauttoMSstatsFormat", mock_spectro_converter)
+    
+    #EXECUTION: function call
+    result_args <- getData(mock_input_anomaly)
+    
+    #ASSERTION: Check if the arguments are correct
+    expect_true(result_args$calculateAnomalyScores)
+    expect_equal(result_args$runOrder, dummy_run_order)
+    expect_equal(result_args$anomalyModelFeatures, c("FG.ShapeQualityScore (MS2)", "FG.ShapeQualityScore (MS1)", "EGDeltaRT"))
+    expect_equal(result_args$n_trees, 100)
+  })
+  
+  test_that("does NOT add anomaly score arguments when checkbox is unchecked", {
+    
+    #SETUP: Mock Shiny input for the "unchecked" scenario
+    mock_input_no_anomaly <- list(
+      BIO = "Protein",
+      DDA_DIA = "DIA",
+      filetype = "spec",
+      specdata = list(datapath = "dummy_spec.csv"),
+      sep_specdata = ",",
+      annot = list(datapath = "dummy_annot.csv"),
+      q_val = TRUE,
+      q_cutoff = 0.01,
+      remove = TRUE,
+      calculate_anomaly_scores = FALSE, # Main difference
+      run_order_file = NULL
+    )
+    
+    stub(getData, "read.csv", dummy_spec_data)
+    stub(getData, "getAnnot", dummy_annot)
+    stub(getData, "SpectronauttoMSstatsFormat", mock_spectro_converter)
+    
+    #EXECUTION
+    result_args <- getData(mock_input_no_anomaly)
+    
+    #ASSERTION: Check that the anomaly arguments are NOT present
+    expect_null(result_args$calculateAnomalyScores)
+    expect_null(result_args$runOrder)
+    expect_null(result_args$anomalyModelFeatures)
   })
 })
