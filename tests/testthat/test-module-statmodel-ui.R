@@ -37,7 +37,7 @@ test_that("Header and instructions appear before interactive elements", {
   ui_html <- htmltools::renderTags(ui)$html
   
   pos_header <- regexpr("Statistical modeling and inference", ui_html)
-  pos_radio <- regexpr("contrast_mode", ui_html)
+  pos_radio <- regexpr(NAMESPACE_STATMODEL$comparison_mode, ui_html)
   
   expect_true(pos_header < pos_radio,
               info = "Header should appear before interactive elements")
@@ -51,13 +51,13 @@ test_that("All comparison type radio buttons are present", {
   ui <- create_test_ui()
   ui_html <- htmltools::renderTags(ui)$html
   
-  expect_true(grepl("all_pair", ui_html), 
-              info = "All pairwise option should be present")
-  expect_true(grepl("all_one", ui_html),
+  expect_true(grepl(CONSTANTS_STATMODEL$comparison_mode_all_vs_one, ui_html), 
               info = "All against one option should be present")
-  expect_true(grepl("custom", ui_html),
+  expect_true(grepl(CONSTANTS_STATMODEL$comparison_mode_all_pairwise, ui_html),
+              info = "All pairwise option should be present")
+  expect_true(grepl(CONSTANTS_STATMODEL$comparison_mode_custom_pairwise, ui_html),
               info = "Custom pairwise option should be present")
-  expect_true(grepl("custom_np", ui_html),
+  expect_true(grepl(CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise, ui_html),
               info = "Custom non-pairwise option should be present")
 })
 
@@ -121,8 +121,8 @@ test_that("All required input controls are present", {
   ui_html <- htmltools::renderTags(ui)$html
   
   # Radio buttons
-  expect_true(grepl('id="statmodel-contrast_mode"', ui_html),
-              info = "Comparison type radio buttons should exist")
+  expect_true(grepl(NAMESPACE_STATMODEL$comparison_mode, ui_html),
+              info = "Comparison mode radio buttons should exist")
   expect_true(grepl('id="statmodel-moderated"', ui_html),
               info = "Moderated radio buttons should exist")
   
@@ -265,7 +265,7 @@ test_that("All inputs use correct namespace", {
   ui_html <- htmltools::renderTags(ui)$html
   
   # All IDs should be prefixed with "statmodel-"
-  input_ids <- c("contrast_mode", "calculate", "moderated",
+  input_ids <- c("calculate", "moderated",
                  "signif", "typeplot", "pname", "logp", "sig", "FC1", "FC",
                  "nump", "cluster", "viewresults", "plotresults")
   

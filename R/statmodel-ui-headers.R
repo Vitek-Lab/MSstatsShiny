@@ -6,17 +6,49 @@
 #' @noRd
 create_custom_styles <- function() {
   tags$head(
-    tags$style(HTML('#statmodel-submit3{background-color:orange}')),
-    tags$style(HTML('#statmodel-clear3{background-color:orange}')),
-    tags$style(HTML('#statmodel-submit1{background-color:orange}')),
-    tags$style(HTML('#statmodel-clear1{background-color:orange}')),
-    tags$style(HTML('#statmodel-submit2{background-color:orange}')),
-    tags$style(HTML('#statmodel-clear2{background-color:orange}')),
+    tags$style(HTML(
+      paste0('#statmodel-', 
+             NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit, 
+             '{background-color:orange}')
+    )),
+    tags$style(HTML(
+      paste0('#statmodel-', 
+             NAMESPACE_STATMODEL$comparisons_custom_pairwise_clear, 
+             '{background-color:orange}')
+    )),
+    tags$style(HTML(
+      paste0('#statmodel-', 
+             NAMESPACE_STATMODEL$comparisons_all_vs_one_submit, 
+             '{background-color:orange}')
+    )),
+    tags$style(HTML(
+      paste0('#statmodel-', 
+             NAMESPACE_STATMODEL$comparisons_all_vs_one_clear, 
+             '{background-color:orange}')
+    )),
+    tags$style(HTML(
+      paste0('#statmodel-', 
+             NAMESPACE_STATMODEL$comparisons_all_pairwise_submit, 
+             '{background-color:orange}')
+    )),
+    tags$style(HTML(
+      paste0('#statmodel-', 
+             NAMESPACE_STATMODEL$comparisons_all_pairwise_clear, 
+             '{background-color:orange}')
+    )),
+    tags$style(HTML(
+      paste0('#statmodel-', 
+             NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit, 
+             '{background-color:orange}')
+    )),
+    tags$style(HTML(
+      paste0('#statmodel-', 
+             NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_clear, 
+             '{background-color:orange}')
+    )),
     tags$style(HTML('#statmodel-calculate{background-color:orange}')),
     tags$style(HTML('#statmodel-plotresults{background-color:orange}')),
     tags$style(HTML('#statmodel-viewresults{background-color:orange}')),
-    tags$style(HTML('#statmodel-submit{background-color:orange}')),
-    tags$style(HTML('#statmodel-clear{background-color:orange}')),
     tags$link(rel = "stylesheet", type = "text/css", href = "assets/style.css")
   )
 }
