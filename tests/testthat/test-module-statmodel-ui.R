@@ -52,9 +52,9 @@ test_that("All comparison type radio buttons are present", {
   ui_html <- htmltools::renderTags(ui)$html
   
   expect_true(grepl(CONSTANTS_STATMODEL$comparison_mode_all_vs_one, ui_html), 
-              info = "All pairwise option should be present")
-  expect_true(grepl(CONSTANTS_STATMODEL$comparison_mode_all_pairwise, ui_html),
               info = "All against one option should be present")
+  expect_true(grepl(CONSTANTS_STATMODEL$comparison_mode_all_pairwise, ui_html),
+              info = "All pairwise option should be present")
   expect_true(grepl(CONSTANTS_STATMODEL$comparison_mode_custom_pairwise, ui_html),
               info = "Custom pairwise option should be present")
   expect_true(grepl(CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise, ui_html),
@@ -122,7 +122,7 @@ test_that("All required input controls are present", {
   
   # Radio buttons
   expect_true(grepl(NAMESPACE_STATMODEL$comparison_mode, ui_html),
-              info = "Comparison type radio buttons should exist")
+              info = "Comparison mode radio buttons should exist")
   expect_true(grepl('id="statmodel-moderated"', ui_html),
               info = "Moderated radio buttons should exist")
   
