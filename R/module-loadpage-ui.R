@@ -536,9 +536,16 @@ create_quality_filtering_options <- function(ns) {
     conditionalPanel(
       condition = "input['loadpage-filetype'] == 'spec'",
       checkboxInput(ns("calculate_anomaly_scores"), 
-                    label = h5("Calculate Anomaly Scores", class = "icon-wrapper",
-                               icon("question-circle", lib = "font-awesome"),
-                               div("Calculate anomaly scores for each feature based on a random forest model. This requires a run order file.", class = "icon-tooltip")), value = FALSE),
+                    label = tags$span(
+                      "Calculate Anomaly Scores",
+                      tags$span(
+                        class = "icon-wrapper",
+                        icon("question-circle", lib = "font-awesome"),
+                        div("Calculate anomaly scores for each feature based on a random forest model. This requires a CSV file containing the order of your MS runs.", 
+                            class = "icon-tooltip")
+                      )
+                    ), 
+                    value = FALSE),
       conditionalPanel(
         condition = "input['loadpage-calculate_anomaly_scores']",
         fileInput(ns("run_order_file"), 
