@@ -97,6 +97,16 @@ validate_contrast_inputs = function(input, contrast_mode, condition_list) {
     validate(
       need(wt_sum == 0, "The contrast weights should sum up to 0")
     )
+  } else if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+    x_axis <- input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]]
+    amount <- input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]]
+    
+    validate(
+      need(!is.null(x_axis) && trimws(x_axis) != "", 
+           "Please define an X-axis variable"),
+      need(!is.null(amount) && !is.na(amount), 
+           "Please provide a valid amount")
+    )
   }
 }
 
@@ -216,18 +226,29 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
 }
 
 build_response_curve_matrix = function(input, contrast) {
+  x_axis <- input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]]
+  amount <- input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]]
+  
+  if (is.null(x_axis) || trimws(x_axis) == "") {
+    return(contrast$matrix)
+  }
+  
+  if (is.null(amount) || is.na(amount)) {
+    return(contrast$matrix)
+  }
+  
   if (is.null(contrast$matrix)) {
     contrast$matrix = data.frame(
       Condition = input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]],
-      X_axis = input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]],
-      Amount = input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]],
+      X_axis = x_axis,
+      Amount = amount,
       stringsAsFactors = FALSE
     )
   } else {
     contrast$matrix = rbind(contrast$matrix, data.frame(
       Condition = input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]],
-      X_axis = input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]],
-      Amount = input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]],
+      X_axis = x_axis,
+      Amount = amount,
       stringsAsFactors = FALSE
     ))
     contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix$Condition),])
