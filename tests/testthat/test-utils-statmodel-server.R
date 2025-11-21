@@ -59,7 +59,9 @@ test_that("get_experimental_conditions returns GROUP for standard analysis", {
 # ============================================================================
 
 test_that("build_custom_pairwise_contrast creates correct matrix", {
-  input <- list(group1 = "A", group2 = "B")
+  input <- list()
+  input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] = "A"
+  input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]] = "B"
   condition_list <- c("A", "B", "C")
   contrast <- list(matrix = NULL, row = NULL)
   comp_list <- list(dList = NULL)
@@ -78,7 +80,9 @@ test_that("build_custom_pairwise_contrast creates correct matrix", {
 })
 
 test_that("build_custom_pairwise_contrast handles multiple comparisons", {
-  input <- list(group1 = "C", group2 = "A")
+  input <- list()
+  input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] = "C"
+  input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]] = "A"
   condition_list <- c("A", "B", "C")
   existing_matrix <- matrix(c(1, -1, 0), nrow = 1)
   rownames(existing_matrix) <- "A vs B"
@@ -98,7 +102,9 @@ test_that("build_custom_pairwise_contrast handles multiple comparisons", {
 })
 
 test_that("build_custom_pairwise_contrast returns unchanged matrix for same groups", {
-  input <- list(group1 = "A", group2 = "A")
+  input <- list()
+  input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] = "A"
+  input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]] = "A"
   condition_list <- c("A", "B", "C")
   existing_matrix <- matrix(c(1, -1, 0), nrow = 1)
   
@@ -118,12 +124,11 @@ test_that("build_custom_pairwise_contrast returns unchanged matrix for same grou
 # ============================================================================
 
 test_that("build_custom_non_pairwise_contrast creates correct matrix", {
-  input <- list(
-    weight1 = 0.5,
-    weight2 = 0.5,
-    weight3 = -1,
-    comp_name = "AB vs C"
-  )
+  input <- list()
+  input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 1)]] = 0.5
+  input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 2)]] = 0.5
+  input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 3)]] = -1
+  input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name]] = "AB vs C"
   condition_list <- c("A", "B", "C")
   contrast <- list(matrix = NULL, row = NULL)
   comp_list <- list(dList = NULL)
@@ -141,12 +146,11 @@ test_that("build_custom_non_pairwise_contrast creates correct matrix", {
 })
 
 test_that("build_custom_non_pairwise_contrast rejects non-zero sum", {
-  input <- list(
-    weight1 = 1,
-    weight2 = 1,
-    weight3 = 1,
-    comp_name = "Invalid"
-  )
+  input <- list()
+  input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 1)]] = 1
+  input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 2)]] = 1
+  input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 3)]] = 1
+  input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name]] = "invalid"
   condition_list <- c("A", "B", "C")
   existing_matrix <- matrix(c(1, -1, 0), nrow = 1)
   
@@ -166,7 +170,8 @@ test_that("build_custom_non_pairwise_contrast rejects non-zero sum", {
 # ============================================================================
 
 test_that("build_all_against_one_contrast creates all comparisons", {
-  input <- list(group3 = "Control")
+  input <- list()
+  input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_choice]] = "Control"
   condition_list <- c("TreatA", "TreatB", "Control")
   contrast <- list(matrix = NULL, row = NULL)
   comp_list <- list(dList = NULL)
@@ -187,7 +192,8 @@ test_that("build_all_against_one_contrast creates all comparisons", {
 })
 
 test_that("build_all_against_one_contrast handles single comparison", {
-  input <- list(group3 = "B")
+  input <- list()
+  input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_choice]] = "B"
   condition_list <- c("A", "B")
   contrast <- list(matrix = NULL, row = NULL)
   comp_list <- list(dList = NULL)
