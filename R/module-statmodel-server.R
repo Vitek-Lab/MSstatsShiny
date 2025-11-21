@@ -468,10 +468,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       render_custom_pairwise_inputs(output, session, condition_list)
       render_custom_non_pairwise_inputs(output, session, condition_list)
       
-      Rownames = eventReactive(input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit]] | 
-                                 input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_submit]] | 
-                                 input[[NAMESPACE_STATMODEL$comparisons_all_pairwise_submit]] | 
-                                 input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit]], {
+      Rownames = eventReactive(input[[NAMESPACE_STATMODEL$comparisons_submit]], {
                                    req(input[[NAMESPACE_STATMODEL$comparison_mode]])
                                    req(loadpage_input()$DDA_DIA)
                                    tryCatch({ rownames(matrix_build()) }, error = function(e) {})
@@ -488,10 +485,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Validate contrast inputs
       check_cond = eventReactive(
-        input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit]] | 
-          input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_submit]] | 
-          input[[NAMESPACE_STATMODEL$comparisons_all_pairwise_submit]] | 
-          input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit]], {
+        input[[NAMESPACE_STATMODEL$comparisons_submit]], {
             req(input[[NAMESPACE_STATMODEL$comparison_mode]])
             req(loadpage_input()$DDA_DIA)
             validate_contrast_inputs(input, input[[NAMESPACE_STATMODEL$comparison_mode]], condition_list())
@@ -499,10 +493,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Build contrast matrix
       matrix_build = eventReactive(
-        input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit]] | 
-          input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_submit]] | 
-          input[[NAMESPACE_STATMODEL$comparisons_all_pairwise_submit]] | 
-          input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit]], {
+        input[[NAMESPACE_STATMODEL$comparisons_submit]], {
             req(input[[NAMESPACE_STATMODEL$comparison_mode]])
             req(loadpage_input()$DDA_DIA)
             
@@ -525,10 +516,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           })
       
       # Clear matrix
-      observeEvent(input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_clear]] | 
-                     input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_clear]] | 
-                     input[[NAMESPACE_STATMODEL$comparisons_all_pairwise_clear]] | 
-                     input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_clear]], {
+      observeEvent(input[[NAMESPACE_STATMODEL$comparisons_clear]], {
                        disable("calculate")
                        comp_list$dList = NULL
                        contrast$matrix = NULL

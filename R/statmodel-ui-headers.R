@@ -8,42 +8,12 @@ create_custom_styles <- function() {
   tags$head(
     tags$style(HTML(
       paste0('#statmodel-', 
-             NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit, 
+             NAMESPACE_STATMODEL$comparisons_submit, 
              '{background-color:orange}')
     )),
     tags$style(HTML(
       paste0('#statmodel-', 
-             NAMESPACE_STATMODEL$comparisons_custom_pairwise_clear, 
-             '{background-color:orange}')
-    )),
-    tags$style(HTML(
-      paste0('#statmodel-', 
-             NAMESPACE_STATMODEL$comparisons_all_vs_one_submit, 
-             '{background-color:orange}')
-    )),
-    tags$style(HTML(
-      paste0('#statmodel-', 
-             NAMESPACE_STATMODEL$comparisons_all_vs_one_clear, 
-             '{background-color:orange}')
-    )),
-    tags$style(HTML(
-      paste0('#statmodel-', 
-             NAMESPACE_STATMODEL$comparisons_all_pairwise_submit, 
-             '{background-color:orange}')
-    )),
-    tags$style(HTML(
-      paste0('#statmodel-', 
-             NAMESPACE_STATMODEL$comparisons_all_pairwise_clear, 
-             '{background-color:orange}')
-    )),
-    tags$style(HTML(
-      paste0('#statmodel-', 
-             NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit, 
-             '{background-color:orange}')
-    )),
-    tags$style(HTML(
-      paste0('#statmodel-', 
-             NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_clear, 
+             NAMESPACE_STATMODEL$comparisons_clear, 
              '{background-color:orange}')
     )),
     tags$style(HTML('#statmodel-calculate{background-color:orange}')),

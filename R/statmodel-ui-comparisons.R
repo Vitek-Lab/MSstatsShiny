@@ -42,8 +42,8 @@ build_custom_pairwise_panel <- function(ns) {
     uiOutput(ns(NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1)),
     h6("vs"),
     uiOutput(ns(NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2)),
-    actionButton(ns(NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit), "Add"),
-    actionButton(ns(NAMESPACE_STATMODEL$comparisons_custom_pairwise_clear), "Clear matrix")
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_submit), "Add"),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_clear), "Clear matrix")
   )
 }
 
@@ -53,8 +53,8 @@ build_all_vs_one_panel <- function(ns) {
   tagList(
     h5("Compare all groups against:"),
     uiOutput(ns(NAMESPACE_STATMODEL$comparisons_all_vs_one_choice)),
-    actionButton(ns(NAMESPACE_STATMODEL$comparisons_all_vs_one_submit), "Submit"),
-    actionButton(ns(NAMESPACE_STATMODEL$comparisons_all_vs_one_clear), "Clear matrix")
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_submit), "Submit"),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_clear), "Clear matrix")
   )
 }
 
@@ -62,8 +62,8 @@ build_all_vs_one_panel <- function(ns) {
 #' @noRd
 build_all_pairwise_panel <- function(ns) {
   tagList(
-    actionButton(ns(NAMESPACE_STATMODEL$comparisons_all_pairwise_submit), "Submit"),
-    actionButton(ns(NAMESPACE_STATMODEL$comparisons_all_pairwise_clear), "Clear matrix")
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_submit), "Submit"),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_clear), "Clear matrix")
   )
 }
 
@@ -75,7 +75,7 @@ build_custom_nonpairwise_panel <- function(ns) {
     textInput(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name), 
               label = "Comparison Name", value = ""),
     uiOutput(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights)),
-    actionButton(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit), "Add"),
-    actionButton(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_clear), "Clear matrix")
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_submit), "Add"),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_clear), "Clear matrix")
   )
 }
