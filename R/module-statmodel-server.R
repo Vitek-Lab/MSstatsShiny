@@ -211,6 +211,14 @@ build_response_curve_matrix = function(contrast, condition_list) {
   return(contrast$matrix)
 }
 
+#' Get TMT moderation radio button conditioned on if experiment is TMT
+#' @noRd
+get_tmt_moderation_radio_button <- function(loadpage_input, ns) {
+  if (loadpage_input$DDA_DIA == "TMT") {
+    create_moderation_radio_buttons(ns)
+  }
+}
+
 # Todo: Add helper function to build dose response curve mapper matrix
 
 # ============================================================================
@@ -333,7 +341,7 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
     codes = paste(codes, "\n# Model-based comparison\n", sep = "")
     codes = paste(codes, "model = MSstatsTMT::groupComparisonTMT(summarized,
                        contrast.matrix = contrast.matrix,
-                       moderated = ", input$moderated, ",\t\t\t\t
+                       moderated = ", input[[NAMESPACE_STATMODEL$modeling_tmt_moderation]], ",\t\t\t\t
                        adj.method = \"BH\",
                        remove_norm_channel = TRUE,
                        remove_empty_channel = TRUE
@@ -523,31 +531,35 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                   contrast, condition_list())
             }
             
-            enable("calculate")
+            enable(NAMESPACE_STATMODEL$modeling_start)
             return(contrast$matrix)
           })
       
       # Clear matrix
       observeEvent(input[[NAMESPACE_STATMODEL$comparisons_clear]], {
-                       disable("calculate")
+                       disable(NAMESPACE_STATMODEL$modeling_start)
                        comp_list$dList = NULL
                        contrast$matrix = NULL
                      })
       
+      output[[NAMESPACE_STATMODEL$modeling_tmt_moderation]] <- renderUI({
+        get_tmt_moderation_radio_button(loadpage_input(), session$ns)
+      })
+      
       # Run analysis
-      data_comparison = eventReactive(input$calculate, {
+      data_comparison = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         matrix = matrix_build()
         dataComparison(input, qc_input(), loadpage_input(), matrix, preprocess_data())
       })
       
-      data_comparison_code = eventReactive(input$calculate, {
+      data_comparison_code = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         comp_mat = matrix_build()
         generate_analysis_code(qc_input(), loadpage_input(), comp_mat, input)
       })
       
-      SignificantProteins = eventReactive(input$calculate, {
+      SignificantProteins = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         data_comp = data_comparison()
-        extract_significant_proteins(data_comp, loadpage_input(), input$signif)
+        extract_significant_proteins(data_comp, loadpage_input(), input[[NAMESPACE_STATMODEL$modeling_significance_level]])
       })
       
       # Matrix output
@@ -609,7 +621,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
       
       # Enable controls after calculation
-      observeEvent(input$calculate, {
+      observeEvent(input[[NAMESPACE_STATMODEL$modeling_start]], {
         enable("Design")
         enable("typeplot")
         enable("WhichComp")
