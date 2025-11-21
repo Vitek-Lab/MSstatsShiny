@@ -345,15 +345,15 @@ test_that("get_contrast_panel_ui returns correct UI for each mode", {
   expect_true(grepl(
     NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2, html, fixed = TRUE))
   expect_true(grepl(
-    NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit, html, fixed = TRUE))
+    NAMESPACE_STATMODEL$comparisons_submit, html, fixed = TRUE))
   expect_true(grepl(
-    NAMESPACE_STATMODEL$comparisons_custom_pairwise_clear, html, fixed = TRUE))
+    NAMESPACE_STATMODEL$comparisons_clear, html, fixed = TRUE))
 
   ui_all_one <- get_contrast_panel_ui(
     CONSTANTS_STATMODEL$comparison_mode_all_vs_one, ns)
   html <- as.character(ui_all_one)
   expect_true(grepl(
-    NAMESPACE_STATMODEL$comparisons_all_vs_one_submit, html, fixed = TRUE))
+    NAMESPACE_STATMODEL$comparisons_submit, html, fixed = TRUE))
   expect_true(grepl(
     NAMESPACE_STATMODEL$comparisons_all_vs_one_choice, html, fixed = TRUE))
 
@@ -361,7 +361,7 @@ test_that("get_contrast_panel_ui returns correct UI for each mode", {
     CONSTANTS_STATMODEL$comparison_mode_all_pairwise, ns)
   html <- as.character(ui_all_pair)
   expect_true(grepl(
-    NAMESPACE_STATMODEL$comparisons_all_pairwise_submit, html, fixed = TRUE))
+    NAMESPACE_STATMODEL$comparisons_submit, html, fixed = TRUE))
 
   ui_custom_np <- get_contrast_panel_ui(
     CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise, ns)
