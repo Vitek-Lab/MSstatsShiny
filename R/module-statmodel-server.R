@@ -32,6 +32,8 @@ get_contrast_panel_ui <- function(mode, ns) {
     build_all_pairwise_panel(ns)
   } else if (mode == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
     build_custom_nonpairwise_panel(ns)
+  } else if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+    build_response_curve_panel(ns)
   } else {
     NULL
   }
@@ -66,6 +68,17 @@ render_custom_non_pairwise_inputs = function(output, session, condition_list) {
         ), 
                         label = condition_list()[i], value = 0))
     })
+  })
+}
+
+render_response_curve_inputs = function(output, session, condition_list) {
+  ns = session$ns
+  
+  output[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]] = renderUI({
+    selectInput(ns(NAMESPACE_STATMODEL$comparisons_response_curve_choice), 
+                "Condition:", 
+                condition_list()
+    )
   })
 }
 
@@ -197,6 +210,27 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
         colnames(contrast$matrix) = condition_list
       }
     }
+  }
+  
+  return(contrast$matrix)
+}
+
+build_response_curve_matrix = function(input, contrast) {
+  if (is.null(contrast$matrix)) {
+    contrast$matrix = data.frame(
+      Condition = input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]],
+      X_axis = input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]],
+      Amount = input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]],
+      stringsAsFactors = FALSE
+    )
+  } else {
+    contrast$matrix = rbind(contrast$matrix, data.frame(
+      Condition = input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]],
+      X_axis = input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]],
+      Amount = input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]],
+      stringsAsFactors = FALSE
+    ))
+    contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix$Condition),])
   }
   
   return(contrast$matrix)
@@ -467,6 +501,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       render_all_against_one_inputs(output, session, condition_list)
       render_custom_pairwise_inputs(output, session, condition_list)
       render_custom_non_pairwise_inputs(output, session, condition_list)
+      render_response_curve_inputs(output, session, condition_list)
       
       Rownames = eventReactive(input[[NAMESPACE_STATMODEL$comparisons_submit]], {
                                    req(input[[NAMESPACE_STATMODEL$comparison_mode]])
@@ -509,6 +544,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_all_pairwise) {
               contrast$matrix = build_all_pair_contrast(
                 input, condition_list(), contrast, comp_list, row(), loadpage_input())
+            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+              contrast$matrix = build_response_curve_matrix(
+                  input, contrast)
             }
             
             enable("calculate")

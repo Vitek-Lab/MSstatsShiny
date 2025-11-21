@@ -23,13 +23,14 @@ create_contrast_radio_buttons <- function(ns) {
       "1. Define comparisons - contrast matrix",
       class = "icon-wrapper",
       icon("question-circle", lib = "font-awesome"),
-      div("Define what conditions you want to compare here.", class = "icon-tooltip")
+      div("Define what conditions you want to compare here", class = "icon-tooltip")
     ),
     c(
       "All possible pairwise comparisons" = CONSTANTS_STATMODEL$comparison_mode_all_pairwise, 
       "Compare all against one" = CONSTANTS_STATMODEL$comparison_mode_all_vs_one, 
       "Create custom pairwise comparisons" = CONSTANTS_STATMODEL$comparison_mode_custom_pairwise,
-      "Create custom non-pairwise comparisons" = CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise
+      "Create custom non-pairwise comparisons" = CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise,
+      "Create response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve
     ),
     selected = character(0)
   )
@@ -77,5 +78,18 @@ build_custom_nonpairwise_panel <- function(ns) {
     uiOutput(ns(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights)),
     actionButton(ns(NAMESPACE_STATMODEL$comparisons_submit), "Add"),
     actionButton(ns(NAMESPACE_STATMODEL$comparisons_clear), "Clear matrix")
+  )
+}
+
+#' Create panel for configuring response curve metadata
+#' @noRd
+build_response_curve_panel <- function(ns) {
+  tagList(
+    h5("Set up response curve configuration:"),
+    uiOutput(ns(NAMESPACE_STATMODEL$comparisons_response_curve_choice)),
+    textInput(ns(NAMESPACE_STATMODEL$comparisons_response_curve_xaxis), "X-Axis Label:", placeholder = "e.g., Dosage, Time"),
+    numericInput(ns(NAMESPACE_STATMODEL$comparisons_response_curve_amount), "Response:", value = NULL, step = 0.1),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_submit), "Add Entry"),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_clear), "Clear All Data")
   )
 }
