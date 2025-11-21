@@ -1239,3 +1239,23 @@ dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix,input_
   }
   return(model)
 }
+
+#' @importFrom MSstatsResponse MSstatsPrepareDoseResponseFit doseResponseFit
+fitResponseCurves <- function(statmodel_input, matrix, input_data) {
+  protein_level_data <- merge(input_data$ProteinLevelData, matrix, by = "GROUP")
+  dia_prepared <- MSstatsPrepareDoseResponseFit(
+    data = protein_level_data,
+    dose_column = "dose_nM",
+    drug_column = "drug",
+    protein_column = "Protein",
+    log_abundance_column = "LogIntensities",
+    transform_nM_to_M = TRUE  
+  )
+  response_results <- doseResponseFit(
+    data = dia_prepared,
+    increasing = FALSE,
+    transform_dose = TRUE,
+    ratio_response = FALSE
+  )
+  return(list(ComparisonResult = response_results))
+}

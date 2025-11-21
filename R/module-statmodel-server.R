@@ -573,7 +573,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       # Run analysis
       data_comparison = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         matrix = matrix_build()
-        dataComparison(input, qc_input(), loadpage_input(), matrix, preprocess_data())
+        if (input[[NAMESPACE_STATMODEL$comparison_mode]] == 
+            CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+          fitResponseCurves(input, matrix, preprocess_data())
+        } else {
+          dataComparison(input, qc_input(), loadpage_input(), matrix, preprocess_data())
+        }
       })
       
       data_comparison_code = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
