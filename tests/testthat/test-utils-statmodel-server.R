@@ -388,7 +388,7 @@ test_that("build_response_curve_matrix when contrast$matrix is NULL", {
   
   expect_equal(nrow(result), 1)
   expect_equal(ncol(result), 3)
-  expect_equal(result$Condition, "Control")
+  expect_equal(result$GROUP, "Control")
   expect_equal(result$X_axis, "Dose")
   expect_equal(result$Amount, 0)
 })
@@ -401,7 +401,7 @@ test_that("build_response_curve_matrix appends row to existing response matrix",
   
   contrast <- list(
     matrix = data.frame(
-      Condition = "Control",
+      GROUP = "Control",
       X_axis = "Time",
       Amount = 0,
       stringsAsFactors = FALSE
@@ -411,7 +411,7 @@ test_that("build_response_curve_matrix appends row to existing response matrix",
   result <- build_response_curve_matrix(input, contrast)
   
   expect_equal(nrow(result), 2)
-  expect_equal(result$Condition[2], "T5")
+  expect_equal(result$GROUP[2], "T5")
   expect_equal(result$X_axis[2], "Time")
   expect_equal(result$Amount[2], 5)
 })
@@ -424,7 +424,7 @@ test_that("build_response_curve_matrix removes duplicate conditions in response 
   
   contrast <- list(
     matrix = data.frame(
-      Condition = c("Control", "T15"),
+      GROUP = c("Control", "T15"),
       X_axis = c("Time", "Time"),
       Amount = c(0, 15),
       stringsAsFactors = FALSE
@@ -434,7 +434,7 @@ test_that("build_response_curve_matrix removes duplicate conditions in response 
   result <- build_response_curve_matrix(input, contrast)
   
   expect_equal(nrow(result), 2)
-  control_row <- result[result$Condition == "Control", ]
+  control_row <- result[result$GROUP == "Control", ]
   expect_equal(control_row$X_axis, "Time")
   expect_equal(control_row$Amount, 0)
 })
@@ -447,7 +447,7 @@ test_that("build_response_curve_matrix handles multiple unique x-axes correctly"
   
   contrast <- list(
     matrix = data.frame(
-      Condition = c("Group_A", "Group_B"),
+      GROUP = c("Group_A", "Group_B"),
       X_axis = c("Temperature", "Pressure"),
       Amount = c(25, 100),
       stringsAsFactors = FALSE
@@ -457,5 +457,5 @@ test_that("build_response_curve_matrix handles multiple unique x-axes correctly"
   result <- build_response_curve_matrix(input, contrast)
   
   expect_equal(nrow(result), 3)
-  expect_true(all(c("Group_A", "Group_B", "Group_C") %in% result$Condition))
+  expect_true(all(c("Group_A", "Group_B", "Group_C") %in% result$GROUP))
 })

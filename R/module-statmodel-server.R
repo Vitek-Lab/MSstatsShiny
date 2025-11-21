@@ -76,7 +76,7 @@ render_response_curve_inputs = function(output, session, condition_list) {
   
   output[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]] = renderUI({
     selectInput(ns(NAMESPACE_STATMODEL$comparisons_response_curve_choice), 
-                "Condition:", 
+                "Group:", 
                 condition_list()
     )
   })
@@ -239,19 +239,19 @@ build_response_curve_matrix = function(input, contrast) {
   
   if (is.null(contrast$matrix)) {
     contrast$matrix = data.frame(
-      Condition = input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]],
+      GROUP = input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]],
       X_axis = x_axis,
       Amount = amount,
       stringsAsFactors = FALSE
     )
   } else {
     contrast$matrix = rbind(contrast$matrix, data.frame(
-      Condition = input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]],
+      GROUP = input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]],
       X_axis = x_axis,
       Amount = amount,
       stringsAsFactors = FALSE
     ))
-    contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix$Condition),])
+    contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix$GROUP),])
   }
   
   return(contrast$matrix)
