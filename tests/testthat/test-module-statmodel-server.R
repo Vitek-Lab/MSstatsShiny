@@ -191,7 +191,7 @@ test_that("matrix_build creates correct pairwise comparison", {
       inputs[[NAMESPACE_STATMODEL$comparison_mode]] <- CONSTANTS_STATMODEL$comparison_mode_custom_pairwise
       inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] = "Group1"
       inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]] = "Group2"
-      inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit]] <- 1
+      inputs[[NAMESPACE_STATMODEL$comparisons_submit]] <- 1
       do.call(session$setInputs, inputs)
       
       # Get the built matrix
@@ -238,7 +238,7 @@ test_that("matrix_build creates all pairwise comparisons", {
       # Set up all pairwise comparisons
       inputs <- list()
       inputs[[NAMESPACE_STATMODEL$comparison_mode]] <- CONSTANTS_STATMODEL$comparison_mode_all_pairwise
-      inputs[[NAMESPACE_STATMODEL$comparisons_all_pairwise_submit]] <- 1
+      inputs[[NAMESPACE_STATMODEL$comparisons_submit]] <- 1
       do.call(session$setInputs, inputs)
       
       mat <- matrix_build()
@@ -281,7 +281,7 @@ test_that("matrix_build creates all vs one comparisons", {
       inputs <- list()
       inputs[[NAMESPACE_STATMODEL$comparison_mode]] <- CONSTANTS_STATMODEL$comparison_mode_all_vs_one
       inputs[[NAMESPACE_STATMODEL$comparisons_all_vs_one_choice]] = "Group3"
-      inputs[[NAMESPACE_STATMODEL$comparisons_all_vs_one_submit]] <- 1
+      inputs[[NAMESPACE_STATMODEL$comparisons_submit]] <- 1
       do.call(session$setInputs, inputs)
       
       mat <- matrix_build()
@@ -327,7 +327,7 @@ test_that("matrix_build creates custom non-pairwise comparison", {
       inputs[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 1)]] = 1
       inputs[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 2)]] = 1
       inputs[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 3)]] = -2
-      inputs[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit]] <- 1
+      inputs[[NAMESPACE_STATMODEL$comparisons_submit]] <- 1
       do.call(session$setInputs, inputs)
       
       mat <- matrix_build()
@@ -376,7 +376,7 @@ test_that("check_cond validates same group selection", {
       inputs[[NAMESPACE_STATMODEL$comparison_mode]] <- CONSTANTS_STATMODEL$comparison_mode_custom_pairwise
       inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] = "Group1"
       inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]] = "Group1"
-      inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit]] <- 1
+      inputs[[NAMESPACE_STATMODEL$comparisons_submit]] <- 1
       do.call(session$setInputs, inputs)
       
       # Should throw validation error
@@ -416,7 +416,7 @@ test_that("check_cond validates contrast weights sum to zero", {
       inputs[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 1)]] = 1
       inputs[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 2)]] = 1
       inputs[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, 3)]] = 1
-      inputs[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_submit]] <- 1
+      inputs[[NAMESPACE_STATMODEL$comparisons_submit]] <- 1
       do.call(session$setInputs, inputs)
       
       # Should throw validation error
@@ -454,7 +454,7 @@ test_that("contrast_mode change resets matrix", {
       inputs[[NAMESPACE_STATMODEL$comparison_mode]] <- CONSTANTS_STATMODEL$comparison_mode_custom_pairwise
       inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] = "Group1"
       inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]] = "Group2"
-      inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit]] <- 1
+      inputs[[NAMESPACE_STATMODEL$comparisons_submit]] <- 1
       do.call(session$setInputs, inputs)
       matrix_build()
       
@@ -499,11 +499,11 @@ test_that("matrix doesn't add duplicate rows", {
       inputs[[NAMESPACE_STATMODEL$comparison_mode]] <- CONSTANTS_STATMODEL$comparison_mode_custom_pairwise
       inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] = "Group1"
       inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]] = "Group2"
-      inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit]] <- 1
+      inputs[[NAMESPACE_STATMODEL$comparisons_submit]] <- 1
       do.call(session$setInputs, inputs)
       matrix_build()
       
-      inputs[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_submit]] <- 2
+      inputs[[NAMESPACE_STATMODEL$comparisons_submit]] <- 2
       do.call(session$setInputs, inputs)
       mat <- matrix_build()
       
@@ -540,7 +540,7 @@ test_that("Rownames reactive returns correct comparison names", {
       # Build matrix with multiple comparisons
       inputs <- list()
       inputs[[NAMESPACE_STATMODEL$comparison_mode]] <- CONSTANTS_STATMODEL$comparison_mode_all_pairwise
-      inputs[[NAMESPACE_STATMODEL$comparisons_all_pairwise_submit]] <- 1
+      inputs[[NAMESPACE_STATMODEL$comparisons_submit]] <- 1
       do.call(session$setInputs, inputs)
       matrix_build()
       
