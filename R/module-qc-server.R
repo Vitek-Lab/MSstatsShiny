@@ -131,6 +131,30 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
     }
   })
   
+  output$summaryMethodUI <- renderUI({
+    ns <- session$ns
+    
+    # Default choices
+    choices <- c("TMP" = "TMP")
+    
+    # Conditionally add MSstats+ if anomaly score calculation is checked
+    if (isTRUE(loadpage_input()$calculate_anomaly_scores)) {
+      choices <- c(choices, "MSstats+" = "linear")
+    }
+    
+    radioButtons(
+      ns("summaryMethod"),
+      label = h4(
+        "6. Summarization",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Run-level summarization method. TMP is Tukey's Median Polish. MSstats+ is a linear mixed model.", class = "icon-tooltip")
+      ),
+      choices = choices,
+      selected = "TMP"
+    )
+  })
+  
   # preprocess data
   preprocess_data = eventReactive(input$run, {
     

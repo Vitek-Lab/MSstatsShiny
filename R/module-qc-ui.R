@@ -167,10 +167,7 @@ qcUI <- function(id) {
           tags$style(HTML('#qc-run{background-color:orange}')),
           ### summary method
           
-          h4("6. Summarization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-             div("Run-level summarization method", class = "icon-tooltip")),
-          p("method: TMP"),
-          p("For linear summarzation please use command line"),
+          uiOutput(ns("summaryMethodUI")),
           tags$hr(),
           
           # remove features with more than 50% missing 

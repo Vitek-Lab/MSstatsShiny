@@ -56,46 +56,54 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
   peptides_dict = makePeptidesDictionary(as.data.table(unclass(data)), 
                                          toupper(qc_input$norm))
   prep_input = MSstatsPrepareForDataProcess(data, as.numeric(qc_input$log), NULL)
-  prep_input = MSstatsNormalize(prep_input, qc_input$norm, peptides_dict, qc_input$names)
-  prep_input = MSstatsMergeFractions(prep_input)
-  prep_input = MSstatsHandleMissing(prep_input, "TMP", qc_input$MBi,
-                                    "NA", QC_check(qc_input,loadpage_input))
-  prep_input = MSstatsSelectFeatures(prep_input, qc_input$features_used, qc_input$n_feat, 2)
-  processed = getProcessed(prep_input)
-  prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", qc_input$MBi, 
-                                              qc_input$censInt, rm_feat)
+  prep_input = MSstatsNormalize(prep_input, qc_input$norm, peptides_dict, 
+                                qc_input$names)
+  prep_input = MSstatsMergeFractions(prep_input) 
+  prep_input = MSstatsHandleMissing(prep_input, qc_input$summaryMethod, 
+                                    qc_input$MBi, "NA", 
+                                    QC_check(qc_input,loadpage_input))
+  prep_input = MSstatsSelectFeatures(prep_input, qc_input$features_used, 
+                                     qc_input$n_feat, 2)
+  processed = getProcessed(prep_input) 
+  prep_input = MSstatsPrepareForSummarization(prep_input, qc_input$summaryMethod, 
+                                              qc_input$MBi, qc_input$censInt, 
+                                              rm_feat)
   
-  input_split = split(prep_input, prep_input$PROTEIN)
-  
-  num_proteins = length(input_split)
-  
-  if (busy_indicator){
-    ## Setup progress bar stepping
-    update_val = 1/num_proteins
-    counter = 0
+  # Select the summarization function based on the user's choice.
+  if (qc_input$summaryMethod == "linear") {
+    summarize_function <- MSstatsSummarizeSingleLinear
+  } else {
+    summarize_function <- MSstatsSummarizeSingleTMP
   }
   
-  summarized_results = vector("list", num_proteins)
-
-  ## Loop over proteins
-  for (i in seq_len(num_proteins)){
-
-    temp_data = input_split[[i]]
-    summarized_results[[i]] = MSstatsSummarizeSingleTMP(temp_data,
-                                                        qc_input$MBi, qc_input$censInt, 
-                                                        qc_input$remove50)
+  input_split <- split(prep_input, prep_input$PROTEIN)
+  num_proteins <- length(input_split)
+  
+  if (busy_indicator) {
+    # Setup progress bar stepping
+    update_val <- 1 / num_proteins
+    counter <- 0
+  }
+  
+  summarized_results <- vector("list", num_proteins)
+  
+  # Loop over all proteins and apply the selected summarization function
+  for (i in seq_len(num_proteins)) {
+    temp_data <- input_split[[i]]
+    summarized_results[[i]] <- summarize_function(temp_data, qc_input$MBi, 
+                                                  qc_input$censInt, qc_input$remove50)
     
-    ## Update progress bar
-    if (busy_indicator){
-      counter = counter + update_val
+    # Update progress bar
+    if (busy_indicator) {
+      counter <- counter + update_val
       update_modal_progress(counter)
     }
   }
   
-  ## Summarization output
-  preprocessed = MSstatsSummarizationOutput(prep_input, summarized_results, 
-                                             processed, "TMP", qc_input$MBi, 
-                                            qc_input$censInt)
+  # Format the final output
+  preprocessed <- MSstatsSummarizationOutput(prep_input, summarized_results, processed, 
+                                             qc_input$summaryMethod, qc_input$MBi, 
+                                             qc_input$censInt)
   
   if (busy_indicator){
     remove_modal_progress() # remove it when done
