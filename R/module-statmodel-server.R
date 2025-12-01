@@ -225,35 +225,10 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
   return(contrast$matrix)
 }
 
-build_response_curve_matrix = function(input, contrast) {
-  x_axis <- input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]]
-  amount <- input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]]
-  
-  if (is.null(x_axis) || trimws(x_axis) == "") {
-    return(contrast$matrix)
-  }
-  
-  if (is.null(amount) || is.na(amount)) {
-    return(contrast$matrix)
-  }
-  
-  if (is.null(contrast$matrix)) {
-    contrast$matrix = data.frame(
-      GROUP = input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]],
-      X_axis = x_axis,
-      Amount = amount,
-      stringsAsFactors = FALSE
-    )
-  } else {
-    contrast$matrix = rbind(contrast$matrix, data.frame(
-      GROUP = input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]],
-      X_axis = x_axis,
-      Amount = amount,
-      stringsAsFactors = FALSE
-    ))
-    contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix$GROUP),])
-  }
-  
+#' @importFrom MSstatsResponse convertGroupToNumericDose
+build_response_curve_matrix = function(contrast, condition_list) {
+  condition_to_metadata_table = convertGroupToNumericDose(condition_list)
+  contrast$matrix = data.frame(GROUP = condition_list, condition_to_metadata_table)
   return(contrast$matrix)
 }
 
@@ -522,7 +497,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       render_all_against_one_inputs(output, session, condition_list)
       render_custom_pairwise_inputs(output, session, condition_list)
       render_custom_non_pairwise_inputs(output, session, condition_list)
-      render_response_curve_inputs(output, session, condition_list)
       
       Rownames = eventReactive(input[[NAMESPACE_STATMODEL$comparisons_submit]], {
                                    req(input[[NAMESPACE_STATMODEL$comparison_mode]])
@@ -567,7 +541,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                 input, condition_list(), contrast, comp_list, row(), loadpage_input())
             } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
               contrast$matrix = build_response_curve_matrix(
-                  input, contrast)
+                  contrast, condition_list())
             }
             
             enable("calculate")

@@ -86,10 +86,7 @@ build_custom_nonpairwise_panel <- function(ns) {
 build_response_curve_panel <- function(ns) {
   tagList(
     h5("Set up response curve configuration:"),
-    uiOutput(ns(NAMESPACE_STATMODEL$comparisons_response_curve_choice)),
-    textInput(ns(NAMESPACE_STATMODEL$comparisons_response_curve_xaxis), "X-Axis Label:", placeholder = "e.g., Dosage, Time"),
-    numericInput(ns(NAMESPACE_STATMODEL$comparisons_response_curve_amount), "Response:", value = NULL, step = 0.1),
-    actionButton(ns(NAMESPACE_STATMODEL$comparisons_submit), "Add Entry"),
-    actionButton(ns(NAMESPACE_STATMODEL$comparisons_clear), "Clear All Data")
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_submit), "Setup Metadata"),
+    actionButton(ns(NAMESPACE_STATMODEL$comparisons_clear), "Reset")
   )
 }

@@ -377,85 +377,15 @@ test_that("get_contrast_panel_ui returns correct UI for each mode", {
 })
 
 
-test_that("build_response_curve_matrix when contrast$matrix is NULL", {
-  input <- list()
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]] <- "Control"
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]] <- "Dose"
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]] <- 0
+test_that("build_response_curve_matrix returns correct columns", {
+  condition_list = c("Dasatinib_001nM", "Dasatinib_001uM", "DMSO")
   
   contrast <- list(matrix = NULL)
-  result <- build_response_curve_matrix(input, contrast)
-  
-  expect_equal(nrow(result), 1)
-  expect_equal(ncol(result), 3)
-  expect_equal(result$GROUP, "Control")
-  expect_equal(result$X_axis, "Dose")
-  expect_equal(result$Amount, 0)
-})
-
-test_that("build_response_curve_matrix appends row to existing response matrix", {
-  input <- list()
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]] <- "T5"
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]] <- "Time"
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]] <- 5
-  
-  contrast <- list(
-    matrix = data.frame(
-      GROUP = "Control",
-      X_axis = "Time",
-      Amount = 0,
-      stringsAsFactors = FALSE
-    )
-  )
-  
-  result <- build_response_curve_matrix(input, contrast)
-  
-  expect_equal(nrow(result), 2)
-  expect_equal(result$GROUP[2], "T5")
-  expect_equal(result$X_axis[2], "Time")
-  expect_equal(result$Amount[2], 5)
-})
-
-test_that("build_response_curve_matrix removes duplicate conditions in response matrix, keep first occurrence", {
-  input <- list()
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]] <- "Control"
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]] <- "Time"
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]] <- 1
-  
-  contrast <- list(
-    matrix = data.frame(
-      GROUP = c("Control", "T15"),
-      X_axis = c("Time", "Time"),
-      Amount = c(0, 15),
-      stringsAsFactors = FALSE
-    )
-  )
-  
-  result <- build_response_curve_matrix(input, contrast)
-  
-  expect_equal(nrow(result), 2)
-  control_row <- result[result$GROUP == "Control", ]
-  expect_equal(control_row$X_axis, "Time")
-  expect_equal(control_row$Amount, 0)
-})
-
-test_that("build_response_curve_matrix handles multiple unique x-axes correctly", {
-  input <- list()
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]] <- "Group_C"
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]] <- "pH"
-  input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]] <- 7.5
-  
-  contrast <- list(
-    matrix = data.frame(
-      GROUP = c("Group_A", "Group_B"),
-      X_axis = c("Temperature", "Pressure"),
-      Amount = c(25, 100),
-      stringsAsFactors = FALSE
-    )
-  )
-  
-  result <- build_response_curve_matrix(input, contrast)
+  result <- build_response_curve_matrix(contrast, condition_list)
   
   expect_equal(nrow(result), 3)
-  expect_true(all(c("Group_A", "Group_B", "Group_C") %in% result$GROUP))
+  expect_equal(ncol(result), 3)
+  expect_true("GROUP" %in% colnames(result))
+  expect_true("drug" %in% colnames(result))
+  expect_true("dose_nM" %in% colnames(result))
 })
