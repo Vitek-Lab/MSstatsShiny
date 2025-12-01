@@ -37,6 +37,7 @@
 #' qc_input$maxQC = 0.999
 #' qc_input$null = FALSE
 #' qc_input$null1 = FALSE
+#' qc_input$summaryMethod = "TMP"
 #' loadpage_input$DDA_DIA = "LF"
 #' lf_summarization_loop(testdata, qc_input,loadpage_input, busy_indicator=FALSE)
 #' 
