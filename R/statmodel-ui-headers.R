@@ -28,8 +28,8 @@ create_custom_styles <- function() {
 create_header_section <- function() {
   tagList(
     headerPanel("Statistical modeling and inference"),
-    p("In this tab a statistical model is built in three steps:"),
-    p("(i) Create a contrast matrix with the correct Group comparisons,"), 
+    p("In this tab, build your statistical model in three steps:"),
+    p("(i) Create a contrast matrix for a group comparison or set up a configuration for a response curve analysis,"), 
     p("(ii) generate the model and "),
     p("(iii) view result plots."),
     p("More info ", a("here", href="https://www.rdocumentation.org/packages/MSstats/versions/3.4.0/topics/groupComparisonPlots"))

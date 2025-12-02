@@ -32,6 +32,8 @@ get_contrast_panel_ui <- function(mode, ns) {
     build_all_pairwise_panel(ns)
   } else if (mode == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
     build_custom_nonpairwise_panel(ns)
+  } else if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+    build_response_curve_panel(ns)
   } else {
     NULL
   }
@@ -199,6 +201,13 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
     }
   }
   
+  return(contrast$matrix)
+}
+
+#' @importFrom MSstatsResponse convertGroupToNumericDose
+build_response_curve_matrix = function(contrast, condition_list) {
+  condition_to_metadata_table = convertGroupToNumericDose(condition_list)
+  contrast$matrix = data.frame(GROUP = condition_list, condition_to_metadata_table)
   return(contrast$matrix)
 }
 
@@ -509,6 +518,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_all_pairwise) {
               contrast$matrix = build_all_pair_contrast(
                 input, condition_list(), contrast, comp_list, row(), loadpage_input())
+            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+              contrast$matrix = build_response_curve_matrix(
+                  contrast, condition_list())
             }
             
             enable("calculate")

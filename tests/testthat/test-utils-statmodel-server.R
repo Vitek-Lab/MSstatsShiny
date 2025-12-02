@@ -375,3 +375,17 @@ test_that("get_contrast_panel_ui returns correct UI for each mode", {
   expect_null(get_contrast_panel_ui(character(0), ns))
   expect_null(get_contrast_panel_ui("invalid", ns))
 })
+
+
+test_that("build_response_curve_matrix returns correct columns", {
+  condition_list = c("Dasatinib_001nM", "Dasatinib_001uM", "DMSO")
+  
+  contrast <- list(matrix = NULL)
+  result <- build_response_curve_matrix(contrast, condition_list)
+  
+  expect_equal(nrow(result), 3)
+  expect_equal(ncol(result), 3)
+  expect_true("GROUP" %in% colnames(result))
+  expect_true("drug" %in% colnames(result))
+  expect_true("dose_nM" %in% colnames(result))
+})

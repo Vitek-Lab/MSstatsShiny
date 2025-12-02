@@ -15,5 +15,6 @@ CONSTANTS_STATMODEL = list(
   comparison_mode_all_pairwise = "comparison_mode_all_pairwise", 
   comparison_mode_all_vs_one = "comparison_mode_all_vs_one",
   comparison_mode_custom_pairwise = "comparison_mode_custom_pairwise",
-  comparison_mode_custom_nonpairwise = "comparison_mode_custom_nonpairwise"
+  comparison_mode_custom_nonpairwise = "comparison_mode_custom_nonpairwise",
+  comparison_mode_response_curve = "comparison_mode_response_curve"
 )
