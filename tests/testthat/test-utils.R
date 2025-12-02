@@ -992,7 +992,7 @@ test_that("preprocessData QC, PTM and PTMTMT: No", {
     mock_input$filetype = "sample"
     mock_input$norm = "equalizeMedians"
     mock_input$log = "2"
-    mock_input$summaryMethod = "linear"
+    mock_input$summaryMethod = "TMP"
 
     stub(preprocessData,"getData",mockGetData(mock_input))
     stub(preprocessData,"loadpage_input",mock_input)
@@ -1023,7 +1023,7 @@ test_that("preprocessData QC, PTM and PTMTMT: Yes", {
     mock_input$norm = "equalizeMedians"
     mock_input$log = "2"
     mock_input$summarization = "msstats"
-    mock_input$summaryMethod = "linear"
+    mock_input$summaryMethod = "TMP"
 
     stub(preprocessData,"getData",mockGetData(mock_input))
     stub(preprocessData,"loadpage_input",mock_input)
@@ -1084,7 +1084,7 @@ test_that("preprocessData QC Other", {
     mock_input$filetype = "sample"
     mock_input$norm = "equalizeMedians"
     mock_input$log = "2"
-    mock_input$summaryMethod = "linear"
+    mock_input$summaryMethod = "TMP"
 
     stub(preprocessData,"getData",mockGetData(mock_input))
     stub(preprocessData,"loadpage_input",mock_input)
@@ -1218,7 +1218,7 @@ test_that("dataComparison statmodel PTM PTMTMT: No", {
     mock_input$MBi = TRUE
     mock_input$log = "2"
     mock_input$norm = "equalizeMedians"
-    mock_input$summaryMethod = "linear"
+    mock_input$summaryMethod = "TMP"
 
     stub(dataComparison,"loadpage_input",mock_input,2)
     stub(dataComparison,"qc_input",mock_input)
@@ -1322,7 +1322,7 @@ test_that("dataComparison statmodel Other", {
     mock_input$filetype = "sample"
     mock_input$norm = "equalizeMedians"
     mock_input$log = "2"
-    mock_input$summaryMethod = "linear"
+    mock_input$summaryMethod = "TMP"
 
     stub(dataComparison,"loadpage_input",mock_input,2)
     stub(dataComparison,"qc_input",mock_input)
