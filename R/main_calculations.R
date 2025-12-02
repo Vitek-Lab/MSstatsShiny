@@ -37,6 +37,7 @@
 #' qc_input$maxQC = 0.999
 #' qc_input$null = FALSE
 #' qc_input$null1 = FALSE
+#' qc_input$summaryMethod = "TMP"
 #' loadpage_input$DDA_DIA = "LF"
 #' lf_summarization_loop(testdata, qc_input,loadpage_input, busy_indicator=FALSE)
 #' 
@@ -160,6 +161,7 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
 #' qc_input$reference_norm = TRUE
 #' qc_input$remove_norm_channel = TRUE
 #' qc_input$maxQC1 = NULL
+#' qc_input$summaryMethod = "TMP"
 #' summarization_tmt_test = tmt_summarization_loop(testdata, qc_input,loadpage_input, 
 #'                                                busy_indicator = FALSE)
 #' 
@@ -405,7 +407,7 @@ lf_model = function(data, contrast.matrix, busy_indicator = TRUE){
 #' qc_input$remove_norm_channel = TRUE
 #' qc_input$maxQC1 = NULL
 #' qc_input$moderated = FALSE
-#' 
+#' qc_input$summaryMethod = "TMP"
 #' summarization_tmt_test = tmt_summarization_loop(testdata, qc_input, loadpage_input,
 #'                                                busy_indicator = FALSE)
 #'                                                
