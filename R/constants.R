@@ -8,10 +8,7 @@ NAMESPACE_STATMODEL = list(
   comparisons_custom_pairwise_choice2 = "comparisons_custom_pairwise_choice2", 
   comparisons_all_vs_one_choice = "comparisons_all_vs_one_choice", 
   comparisons_custom_nonpairwise_name = "comparisons_custom_nonpairwise_name",
-  comparisons_custom_nonpairwise_weights = "comparisons_custom_nonpairwise_weights",
-  comparisons_response_curve_choice = "comparisons_response_curve_choice",
-  comparisons_response_curve_xaxis = "comparisons_response_curve_xaxis",
-  comparisons_response_curve_amount = "comparisons_response_curve_amount"
+  comparisons_custom_nonpairwise_weights = "comparisons_custom_nonpairwise_weights"
 )
 
 CONSTANTS_STATMODEL = list(

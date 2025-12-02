@@ -71,17 +71,6 @@ render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   })
 }
 
-render_response_curve_inputs = function(output, session, condition_list) {
-  ns = session$ns
-  
-  output[[NAMESPACE_STATMODEL$comparisons_response_curve_choice]] = renderUI({
-    selectInput(ns(NAMESPACE_STATMODEL$comparisons_response_curve_choice), 
-                "Group:", 
-                condition_list()
-    )
-  })
-}
-
 # Todo: Add helper function to render dose response curve inputs
 
 validate_contrast_inputs = function(input, contrast_mode, condition_list) {
@@ -96,16 +85,6 @@ validate_contrast_inputs = function(input, contrast_mode, condition_list) {
     
     validate(
       need(wt_sum == 0, "The contrast weights should sum up to 0")
-    )
-  } else if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
-    x_axis <- input[[NAMESPACE_STATMODEL$comparisons_response_curve_xaxis]]
-    amount <- input[[NAMESPACE_STATMODEL$comparisons_response_curve_amount]]
-    
-    validate(
-      need(!is.null(x_axis) && trimws(x_axis) != "", 
-           "Please define an X-axis variable"),
-      need(!is.null(amount) && !is.na(amount), 
-           "Please provide a valid amount")
     )
   }
 }
