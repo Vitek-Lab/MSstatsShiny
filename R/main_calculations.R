@@ -161,6 +161,7 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
 #' qc_input$reference_norm = TRUE
 #' qc_input$remove_norm_channel = TRUE
 #' qc_input$maxQC1 = NULL
+#' qc_input$summaryMethod = "TMP"
 #' summarization_tmt_test = tmt_summarization_loop(testdata, qc_input,loadpage_input, 
 #'                                                busy_indicator = FALSE)
 #' 
