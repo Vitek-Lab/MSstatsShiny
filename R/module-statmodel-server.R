@@ -471,6 +471,8 @@ render_results_table = function(output, session, data_comparison, SignificantPro
 #' @param get_data stored function that returns the data from loadpage
 #' @param preprocess_data stored function that returns preprocessed data
 #' 
+#' @importFrom MSstatsResponse visualizeResponseProtein
+#' 
 #' @return list object with user selected options and matrix build
 #'
 #' @export
@@ -521,7 +523,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       output$WhichDrug = renderUI({
         selectInput(session$ns("whichDrug"),
                     label = h5("Select X-Axis Variable"), 
-                    unique(matrix_build()$X_axis), selected = matrix_build()$X_axis[[1]])
+                    unique(matrix_build()$drug), selected = matrix_build()$drug[[1]])
       })
       
       # Reset on configuration change
@@ -635,8 +637,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
           dia_prepared <- MSstatsPrepareDoseResponseFit(
             data = protein_level_data,
-            dose_column = "Amount",
-            drug_column = "X_axis",
+            dose_column = "dose_nM",
+            drug_column = "drug",
             protein_column = "Protein",
             log_abundance_column = "LogIntensities",
             transform_nM_to_M = TRUE  
@@ -646,12 +648,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               data = dia_prepared,
               protein_name = input$whichProt,
               drug_name = input$whichDrug,
-              ratio_response = FALSE, # Bugs for some reason
-              show_ic50 = FALSE, # Bugs for some reason
-              add_ci = FALSE, # Bugs for some reason
-              transform_dose = FALSE, # Bugs for some reason
+              ratio_response = TRUE, # Bugs for some reason
+              show_ic50 = TRUE, # Bugs for some reason
+              add_ci = TRUE, # Bugs for some reason
+              transform_dose = TRUE, # Bugs for some reason
               n_samples = 1000,
-              increasing = TRUE # Need to be user-defined
+              increasing = FALSE # Need to be user-defined
             )
           })
           op = plotOutput(ns("comp_plots"))
