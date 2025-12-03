@@ -136,10 +136,14 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
     
     # Default choices
     choices <- c("TMP" = "TMP")
+    tooltip_text <- "Run-level summarization method. TMP is Tukey's Median Polish. "
+    selected <- "TMP"
     
     # Conditionally add MSstats+ if anomaly score calculation is checked
     if (isTRUE(loadpage_input()$calculate_anomaly_scores)) {
       choices <- c(choices, "MSstats+" = "linear")
+      tooltip_text <- paste0(tooltip_text, "MSstats+ uses a weighted linear model.")
+      selected = "linear"
     }
     
     radioButtons(
@@ -148,10 +152,10 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
         "6. Summarization",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Run-level summarization method. TMP is Tukey's Median Polish. MSstats+ is a linear mixed model.", class = "icon-tooltip")
+        div(tooltip_text, class = "icon-tooltip")
       ),
       choices = choices,
-      selected = "TMP"
+      selected = selected
     )
   })
   
