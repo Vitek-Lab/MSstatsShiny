@@ -243,27 +243,23 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   output$plot_specific_options <- renderUI({
     plot_type <- input$typeplot
     
-    switch(plot_type,
-           "VolcanoPlot" = {
-             show_protein_name <- !is.null(loadpage_input()$DDA_DIA) && loadpage_input()$DDA_DIA != "TMT"
-             create_volcano_plot_options(ns, show_protein_name)
-           },
-           "ComparisonPlot" = create_comparison_plot_options(ns),
-           "Heatmap" = create_heatmap_options(ns),
-           NULL
-    )
+    if (plot_type == "VolcanoPlot") {
+      show_protein_name <- !is.null(loadpage_input()$DDA_DIA) &&
+        loadpage_input()$DDA_DIA != "TMT"
+      create_volcano_plot_options(ns, show_protein_name)
+    } else if (plot_type == "ComparisonPlot") {
+      create_comparison_plot_options(ns)
+    } else if (plot_type == "Heatmap") {
+      create_heatmap_options(ns)
+    } else {
+      NULL
+    }
   })
   
   output$fold_change_input <- renderUI({
     req(input$FC1)
     if (input$FC1) {
       numericInput(ns("FC"), "Fold change cutoff", 1, 0, 100, 0.1)
-    }
-  })
-  
-  output$view_button <- renderUI({
-    if (is.null(loadpage_input()$BIO) || loadpage_input()$BIO != "PTM") {
-      actionButton(ns("viewresults"), "View plot in browser (only for one comparison/protein)")
     }
   })
   # Todo: Add plot inputs for dose response curves for which protein to plot (or re-use whichProt)

@@ -120,7 +120,7 @@ create_fold_change_options <- function(ns) {
 create_plot_action_buttons <- function(ns) {
   tagList(
     p("Please note if you want to plot more than one Volcano Plot comparison, you must save the results as a HTML."),
-    uiOutput(ns("view_button")),
+    actionButton(ns("viewresults"), "View plot in browser (only for one comparison/protein)"),
     downloadButton(ns("plotresults"), "Save plot results as Zip")
   )
 }
