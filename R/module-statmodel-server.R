@@ -267,7 +267,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
 
 create_group_comparison_plot = function(input, loadpage_input, data_comparison) {
   show_modal_spinner()
-  fold_change_cutoff <- ifelse(input$FC1, input$FC, FALSE)
+  fold_change_cutoff <- ifelse(!is.null(input$FC), input$FC, FALSE)
   
   # Todo: Add dose response curve plot function for typeplot == dose response curve
   
