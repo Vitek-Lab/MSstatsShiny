@@ -33,7 +33,7 @@ create_plot_type_selector <- function(ns) {
 #' @noRd
 create_volcano_plot_options <- function(ns, show_protein_name = TRUE) {
   tagList(
-    uiOutput(ns(NAMESPACE_STATMODEL$visualization_volcano_which_comparison)),
+    uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_comparison)),
     if (show_protein_name) {
       checkboxInput(ns(NAMESPACE_STATMODEL$visualization_volcano_display_protein_name), label = p("display protein name"))
     },
@@ -61,8 +61,7 @@ create_volcano_plot_options <- function(ns, show_protein_name = TRUE) {
 #' @noRd
 create_comparison_plot_options <- function(ns) {
   tagList(
-    uiOutput(ns(NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein)),
-    uiOutput(ns(NAMESPACE_STATMODEL$visualization_comparison_plot_which_comparison))
+    uiOutput(ns(NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein))
   )
 }
 #' Create heatmap specific options

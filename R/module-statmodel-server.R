@@ -228,8 +228,8 @@ get_tmt_moderation_radio_button <- function(loadpage_input, ns) {
 render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input) {
   ns = session$ns
   
-  output[[NAMESPACE_STATMODEL$visualization_volcano_which_comparison]] = renderUI({
-    selectInput(ns(NAMESPACE_STATMODEL$visualization_volcano_which_comparison),
+  output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
+    selectInput(ns(NAMESPACE_STATMODEL$visualization_which_comparison),
                 label = h5("Select comparison to plot"), 
                 c("all", rownames()), selected = "all")
   })
@@ -272,7 +272,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
   # Todo: Add dose response curve plot function for typeplot == dose response curve
   
   tryCatch({
-    if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == CONSTANTS_STATMODEL$plot_type_volcano_plot && input[[NAMESPACE_STATMODEL$visualization_volcano_which_comparison]] == "all") {
+    if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == CONSTANTS_STATMODEL$plot_type_volcano_plot && input[[NAMESPACE_STATMODEL$visualization_which_comparison]] == "all") {
       remove_modal_spinner()
       stop('** Cannot generate multiple plots in a screen. Please refine selection or save to a pdf. **')
     }
@@ -284,7 +284,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         FCcutoff = fold_change_cutoff,
         logBase.pvalue = as.integer(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
         ProteinName = input[[NAMESPACE_STATMODEL$visualization_volcano_display_protein_name]],
-        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_volcano_which_comparison]],
+        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         address = FALSE
       )
     } else if (loadpage_input$DDA_DIA == "TMT") {
@@ -297,7 +297,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         ProteinName = input[[NAMESPACE_STATMODEL$visualization_volcano_display_protein_name]],
         numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
         clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
-        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_volcano_which_comparison]],
+        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         which.Protein = input[[NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein]],
         height = input$height,
         address = "Ex_",
@@ -313,7 +313,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         ProteinName = input[[NAMESPACE_STATMODEL$visualization_volcano_display_protein_name]],
         numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
         clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
-        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_volcano_which_comparison]],
+        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         which.Protein = input[[NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein]],
         height = input$height,
         address = "Ex_",
@@ -648,7 +648,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       observeEvent(input[[NAMESPACE_STATMODEL$modeling_start]], {
         enable("Design")
         enable(NAMESPACE_STATMODEL$visualization_plot_type)
-        enable(NAMESPACE_STATMODEL$visualization_volcano_which_comparison)
+        enable(NAMESPACE_STATMODEL$visualization_which_comparison)
         enable("download_code")
         
         output$code.button = renderUI({
