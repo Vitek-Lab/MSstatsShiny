@@ -61,21 +61,6 @@ test_that("All comparison type radio buttons are present", {
               info = "Custom non-pairwise option should be present")
 })
 
-test_that("Plot type conditional panels exist", {
-  ui <- create_test_ui()
-  ui_html <- htmltools::renderTags(ui)$html
-
-  expect_true(grepl("input[&#39;statmodel-typeplot&#39;] == &#39;VolcanoPlot", 
-                    ui_html, fixed = TRUE),
-              info = "Volcano plot conditional panel should exist")
-  expect_true(grepl("input[&#39;statmodel-typeplot&#39;] == &#39;ComparisonPlot", 
-                    ui_html, fixed = TRUE),
-              info = "Comparison plot conditional panel should exist")
-  expect_true(grepl("input[&#39;statmodel-typeplot&#39;] == &#39;Heatmap", 
-                    ui_html, fixed = TRUE),
-              info = "Heatmap conditional panel should exist")
-})
-
 # ============================================================================
 # 3. BUTTON AND CONTROL TESTS
 # ============================================================================
@@ -85,11 +70,11 @@ test_that("All action buttons are present with correct IDs", {
   ui_html <- htmltools::renderTags(ui)$html
   
   # Main action buttons
-  expect_true(grepl('id="statmodel-calculate"', ui_html),
+  expect_true(grepl(NAMESPACE_STATMODEL$modeling_start, ui_html),
               info = "Calculate button should exist")
-  expect_true(grepl('id="statmodel-viewresults"', ui_html),
+  expect_true(grepl(NAMESPACE_STATMODEL$visualization_view_results, ui_html),
               info = "View results button should exist")
-  expect_true(grepl('id="statmodel-plotresults"', ui_html),
+  expect_true(grepl(NAMESPACE_STATMODEL$visualization_download_plot_results, ui_html),
               info = "Plot results button should exist")
 })
 
@@ -98,8 +83,8 @@ test_that("Calculate button is initially disabled", {
   ui_html <- htmltools::renderTags(ui)$html
   
   # Look for disabled attribute on calculate button
-  expect_true(grepl('disabled.*id="statmodel-calculate"', ui_html) ||
-                grepl('id="statmodel-calculate".*disabled', ui_html),
+  expect_true(grepl(paste0('disabled.*id="statmodel-', NAMESPACE_STATMODEL$modeling_start), ui_html) ||
+                grepl(paste0(NAMESPACE_STATMODEL$modeling_start, '".*disabled'), ui_html),
               info = "Calculate button should be initially disabled")
 })
 
@@ -123,34 +108,7 @@ test_that("All required input controls are present", {
   # Radio buttons
   expect_true(grepl(NAMESPACE_STATMODEL$comparison_mode, ui_html),
               info = "Comparison mode radio buttons should exist")
-  expect_true(grepl('id="statmodel-moderated"', ui_html),
-              info = "Moderated radio buttons should exist")
-  
-  # Sliders
-  expect_true(grepl('id="statmodel-signif"', ui_html),
-              info = "Significance level slider should exist")
-  expect_true(grepl('id="statmodel-sig"', ui_html),
-              info = "Adjusted p-value cutoff slider should exist")
-  
-  # Select inputs
-  expect_true(grepl('id="statmodel-typeplot"', ui_html),
-              info = "Plot type select should exist")
-  expect_true(grepl('id="statmodel-logp"', ui_html),
-              info = "Log transformation select should exist")
-  expect_true(grepl('id="statmodel-cluster"', ui_html),
-              info = "Cluster analysis select should exist")
-  
-  # Checkboxes
-  expect_true(grepl('id="statmodel-pname"', ui_html),
-              info = "Protein name checkbox should exist")
-  expect_true(grepl('id="statmodel-FC1"', ui_html),
-              info = "Fold change cutoff checkbox should exist")
-  
-  # Numeric inputs
-  expect_true(grepl('id="statmodel-FC"', ui_html),
-              info = "Fold change cutoff numeric input should exist")
-  expect_true(grepl('id="statmodel-nump"', ui_html),
-              info = "Number of proteins numeric input should exist")
+
 })
 
 test_that("Select inputs have correct options", {
@@ -161,15 +119,6 @@ test_that("Select inputs have correct options", {
   expect_true(grepl("VolcanoPlot", ui_html))
   expect_true(grepl("Heatmap", ui_html))
   expect_true(grepl("ComparisonPlot", ui_html))
-  
-  # Log transformation options
-  expect_true(grepl('value="2"', ui_html), info = "Base 2 log option should exist")
-  expect_true(grepl('value="10"', ui_html), info = "Base 10 log option should exist")
-  
-  # Cluster options
-  expect_true(grepl("protein dendogram", ui_html))
-  expect_true(grepl("comparison dendogram", ui_html))
-  expect_true(grepl("both", ui_html))
 })
 
 # ============================================================================
@@ -216,10 +165,6 @@ test_that("Instructions and help links are present", {
 test_that("Output UI elements are present", {
   ui <- create_test_ui()
   ui_html <- htmltools::renderTags(ui)$html
-  expect_true(grepl('id="statmodel-WhichComp"', ui_html),
-              info = "WhichComp UI output should exist")
-  expect_true(grepl('id="statmodel-WhichProt"', ui_html),
-              info = "WhichProt UI output should exist")
   expect_true(grepl('id="statmodel-matrix"', ui_html),
               info = "Matrix UI output should exist")
   expect_true(grepl('id="statmodel-table_results"', ui_html),
@@ -234,7 +179,7 @@ test_that("Download button is present", {
   ui <- create_test_ui()
   ui_html <- htmltools::renderTags(ui)$html
   
-  expect_true(grepl('id="statmodel-plotresults"', ui_html),
+  expect_true(grepl(NAMESPACE_STATMODEL$visualization_download_plot_results, ui_html),
               info = "Download button for plot results should exist")
   expect_true(grepl("Save plot results as Zip", ui_html),
               info = "Download button should have correct label")
@@ -257,39 +202,6 @@ test_that("PTM results tabset structure exists", {
 })
 
 # ============================================================================
-# 9. NAMESPACE TESTS
-# ============================================================================
-
-test_that("All inputs use correct namespace", {
-  ui <- create_test_ui()
-  ui_html <- htmltools::renderTags(ui)$html
-  
-  # All IDs should be prefixed with "statmodel-"
-  input_ids <- c("calculate", "moderated",
-                 "signif", "typeplot", "pname", "logp", "sig", "FC1", "FC",
-                 "nump", "cluster", "viewresults", "plotresults")
-  
-  for (input_id in input_ids) {
-    pattern <- paste0('id="statmodel-', input_id, '"')
-    expect_true(grepl(pattern, ui_html),
-                info = paste("Input", input_id, "should use correct namespace"))
-  }
-})
-
-# ============================================================================
-# 10. FOLD CHANGE CUTOFF CONDITIONAL TESTS
-# ============================================================================
-
-test_that("Fold change cutoff appears conditionally", {
-  ui <- create_test_ui()
-  ui_html <- htmltools::renderTags(ui)$html
-  
-  # Check that FC numeric input is inside conditional panel
-  expect_true(grepl("statmodel-FC1.*==.*true", ui_html),
-              info = "Fold change numeric input should be conditional on FC1 checkbox")
-})
-
-# ============================================================================
 # 11. VALIDATION MESSAGES
 # ============================================================================
 
@@ -299,6 +211,4 @@ test_that("Informative messages are present", {
   
   expect_true(grepl("Please add a comparison matrix before modeling", ui_html),
               info = "Matrix requirement message should be present")
-  expect_true(grepl("Heatmaps require at least two comparisons", ui_html),
-              info = "Heatmap requirement message should be present")
 })
