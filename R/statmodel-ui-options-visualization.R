@@ -9,9 +9,7 @@ create_visualization_section <- function(ns) {
   fluidRow(
     column(12,
            create_plot_type_selector(ns),
-           create_volcano_plot_options(ns),
-           create_comparison_plot_options(ns),
-           create_heatmap_options(ns),
+           uiOutput(ns("plot_specific_options")),
            create_plot_action_buttons(ns)
     )
   )
@@ -28,7 +26,6 @@ create_plot_type_selector <- function(ns) {
         "Volcano Plot" = "VolcanoPlot", 
         "Heatmap" = "Heatmap", 
         "Comparison Plot" = "ComparisonPlot"
-        # Create additional toggling options for dose response curves "Response Curve" = "ResponseCurve"
       )
     )
   )
@@ -36,14 +33,12 @@ create_plot_type_selector <- function(ns) {
 
 #' Create volcano plot specific options
 #' @noRd
-create_volcano_plot_options <- function(ns) {
-  conditionalPanel(
-    condition = "input['statmodel-typeplot'] == 'VolcanoPlot'",
+create_volcano_plot_options <- function(ns, show_protein_name = TRUE) {
+  tagList(
     uiOutput(ns("WhichComp")),
-    conditionalPanel(
-      condition = "input['loadpage-DDA_DIA']!=='TMT'",
+    if (show_protein_name) {
       checkboxInput(ns("pname"), label = p("display protein name"))
-    ),
+    },
     selectInput(
       ns("logp"), 
       label = h5("Log transformation of adjusted p-value"),
@@ -68,8 +63,7 @@ create_volcano_plot_options <- function(ns) {
 #' Create comparison plot specific options
 #' @noRd
 create_comparison_plot_options <- function(ns) {
-  conditionalPanel(
-    condition = "input['statmodel-typeplot'] == 'ComparisonPlot'",
+  tagList(
     uiOutput(ns("WhichProt")),
     uiOutput(ns("WhichComp1"))
   )
@@ -78,8 +72,7 @@ create_comparison_plot_options <- function(ns) {
 #' Create heatmap specific options
 #' @noRd
 create_heatmap_options <- function(ns) {
-  conditionalPanel(
-    condition = "input['statmodel-typeplot'] == 'Heatmap'",
+  tagList(
     h4("Note: Only one page will be shown in browser. To view all proteins please view this plot as a pdf. Heatmaps require at least two comparisons."),
     selectInput(
       ns("logp"), 
@@ -118,14 +111,7 @@ create_fold_change_options <- function(ns) {
       ns("FC1"), 
       label = p("Apply specific fold change cutoff for significance")
     ),
-    conditionalPanel(
-      condition = "input['statmodel-FC1'] == true",
-      numericInput(
-        ns("FC"), 
-        "Fold change cutoff", 
-        1, 0, 100, 0.1
-      )
-    )
+    uiOutput(ns("fold_change_input"))
   )
 }
 
@@ -134,13 +120,7 @@ create_fold_change_options <- function(ns) {
 create_plot_action_buttons <- function(ns) {
   tagList(
     p("Please note if you want to plot more than one Volcano Plot comparison, you must save the results as a HTML."),
-    conditionalPanel(
-      condition = "input['loadpage-BIO'] !== 'PTM'",
-      actionButton(
-        ns("viewresults"), 
-        "View plot in browser (only for one comparison/protein)"
-      )
-    ),
+    uiOutput(ns("view_button")),
     downloadButton(ns("plotresults"), "Save plot results as Zip")
   )
 }
