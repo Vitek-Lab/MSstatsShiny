@@ -271,6 +271,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
 
 create_group_comparison_plot = function(input, loadpage_input, data_comparison) {
   show_modal_spinner()
+  fold_change_cutoff <- ifelse(input$FC1, input$FC, FALSE)
   
   # Todo: Add dose response curve plot function for typeplot == dose response curve
   
@@ -284,7 +285,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         data_comparison,
         input$typeplot,
         sig = input$sig,
-        FCcutoff = input$FC,
+        FCcutoff = fold_change_cutoff,
         logBase.pvalue = as.integer(input$logp),
         ProteinName = input$pname,
         which.Comparison = input$whichComp,
@@ -295,7 +296,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         data = data_comparison$ComparisonResult,
         type = input$typeplot,
         sig = input$sig,
-        FCcutoff = input$FC,
+        FCcutoff = fold_change_cutoff,
         logBase.pvalue = as.numeric(input$logp),
         ProteinName = input$pname,
         numProtein = input$nump,
@@ -311,7 +312,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         data = data_comparison$ComparisonResult,
         type = input$typeplot,
         sig = input$sig,
-        FCcutoff = input$FC,
+        FCcutoff = fold_change_cutoff,
         logBase.pvalue = as.numeric(input$logp),
         ProteinName = input$pname,
         numProtein = input$nump,
