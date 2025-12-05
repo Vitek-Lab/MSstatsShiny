@@ -35,7 +35,7 @@ CONSTANTS_STATMODEL = list(
   comparison_mode_custom_pairwise = "comparison_mode_custom_pairwise",
   comparison_mode_custom_nonpairwise = "comparison_mode_custom_nonpairwise",
   comparison_mode_response_curve = "comparison_mode_response_curve",
-  plot_type_volcano_plot = "plot_type_volcano_plot", # VolcanoPlot
-  plot_type_heatmap = "plot_type_heatmap", # Heatmap
-  plot_type_comparison_plot = "plot_type_comparison_plot" # ComparisonPlot
+  plot_type_volcano_plot = "VolcanoPlot", # VolcanoPlot
+  plot_type_heatmap = "Heatmap", # Heatmap
+  plot_type_comparison_plot = "ComparisonPlot" # ComparisonPlot
 )

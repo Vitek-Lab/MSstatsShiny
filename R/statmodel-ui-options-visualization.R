@@ -23,9 +23,9 @@ create_plot_type_selector <- function(ns) {
       ns("typeplot"), 
       label = h4("3. Visualization - select plot type"), 
       c(
-        "Volcano Plot" = "VolcanoPlot", 
-        "Heatmap" = "Heatmap", 
-        "Comparison Plot" = "ComparisonPlot"
+        "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot, 
+        "Heatmap" = CONSTANTS_STATMODEL$plot_type_heatmap, 
+        "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
       )
     )
   )

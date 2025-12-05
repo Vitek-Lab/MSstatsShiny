@@ -243,13 +243,13 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   output$plot_specific_options <- renderUI({
     plot_type <- input$typeplot
     
-    if (plot_type == "VolcanoPlot") {
+    if (plot_type == CONSTANTS_STATMODEL$plot_type_volcano_plot) {
       show_protein_name <- !is.null(loadpage_input()$DDA_DIA) &&
         loadpage_input()$DDA_DIA != "TMT"
       create_volcano_plot_options(ns, show_protein_name)
-    } else if (plot_type == "ComparisonPlot") {
+    } else if (plot_type == CONSTANTS_STATMODEL$plot_type_comparison_plot) {
       create_comparison_plot_options(ns)
-    } else if (plot_type == "Heatmap") {
+    } else if (plot_type == CONSTANTS_STATMODEL$plot_type_heatmap) {
       create_heatmap_options(ns)
     } else {
       NULL
@@ -272,7 +272,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
   # Todo: Add dose response curve plot function for typeplot == dose response curve
   
   tryCatch({
-    if (toupper(input$typeplot) == "VOLCANOPLOT" && input$whichComp == "all") {
+    if (input$typeplot == CONSTANTS_STATMODEL$plot_type_volcano_plot && input$whichComp == "all") {
       remove_modal_spinner()
       stop('** Cannot generate multiple plots in a screen. Please refine selection or save to a pdf. **')
     }
@@ -632,11 +632,11 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           ui = tags$div(
             op,
             conditionalPanel(
-              condition = "input['statmodel-typeplot'] == 'VolcanoPlot' && input['loadpage-BIO']!='PTM'",
+              condition = paste0("input['statmodel-typeplot'] == '", CONSTANTS_STATMODEL$plot_type_volcano_plot, "' && input['loadpage-BIO']!='PTM'"),
               h5("Hover over plot for details")
             ),
             conditionalPanel(
-              condition = "input['statmodel-typeplot'] == 'Heatmap'",
+              condition = paste0("input['statmodel-typeplot'] == '", CONSTANTS_STATMODEL$plot_type_heatmap, "'"),
               sliderInput(ns("height"), "Plot height", 
                           value = 500, min = 200, max = 1300, post = "px")
             )
