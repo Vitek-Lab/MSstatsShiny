@@ -24,7 +24,8 @@ create_plot_type_selector <- function(ns) {
       c(
         "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot, 
         "Heatmap" = CONSTANTS_STATMODEL$plot_type_heatmap, 
-        "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
+        "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot,
+        "Dose Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve
       )
     )
   )
@@ -61,7 +62,7 @@ create_volcano_plot_options <- function(ns, show_protein_name = TRUE) {
 #' @noRd
 create_comparison_plot_options <- function(ns) {
   tagList(
-    uiOutput(ns(NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein))
+    uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_protein))
   )
 }
 #' Create heatmap specific options
@@ -97,6 +98,16 @@ create_heatmap_options <- function(ns) {
     )
   )
 }
+
+#' Create response curve specific options
+#' @noRd
+create_response_curve_options <- function(ns) {
+  tagList(
+    uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_protein)),
+    uiOutput(ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug))
+  )
+}
+
 #' Create fold change cutoff options (shared between plot types)
 #' @noRd
 create_fold_change_options <- function(ns) {

@@ -205,10 +205,9 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
 }
 
 #' @importFrom MSstatsResponse convertGroupToNumericDose
-build_response_curve_matrix = function(contrast, condition_list) {
+build_response_curve_matrix = function(condition_list) {
   condition_to_metadata_table = convertGroupToNumericDose(condition_list)
-  contrast$matrix = data.frame(GROUP = condition_list, condition_to_metadata_table)
-  return(contrast$matrix)
+  return(data.frame(GROUP = condition_list, condition_to_metadata_table))
 }
 
 #' Get TMT moderation radio button conditioned on if experiment is TMT
@@ -225,7 +224,7 @@ get_tmt_moderation_radio_button <- function(loadpage_input, ns) {
 # Plotting Functions
 # ============================================================================
 
-render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input) {
+render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list) {
   ns = session$ns
   
   output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
@@ -234,8 +233,8 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
                 c("all", rownames()), selected = "all")
   })
   
-  output[[NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein]] = renderUI({
-    selectInput(ns(NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein),
+  output[[NAMESPACE_STATMODEL$visualization_which_protein]] = renderUI({
+    selectInput(ns(NAMESPACE_STATMODEL$visualization_which_protein),
                 label = h4("which protein to plot"), 
                 unique(get_data()[[1]]))
   })
@@ -251,6 +250,8 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
       create_comparison_plot_options(ns)
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_heatmap) {
       create_heatmap_options(ns)
+    } else if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
+      create_response_curve_options(ns)
     } else {
       NULL
     }
@@ -262,7 +263,23 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
       numericInput(ns(NAMESPACE_STATMODEL$visualization_fold_change_input), "Fold change cutoff", 1, 0, 100, 0.1)
     }
   })
-  # Todo: Add plot inputs for dose response curves for which protein to plot (or re-use whichProt)
+  
+  
+  # Rudhik TODO: change build_response_curve_matrix(condition_list())$drug
+  # to the drug column of the user-defined matrix
+  output[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]] = renderUI({
+    if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
+        CONSTANTS_STATMODEL$plot_type_response_curve) {
+        response_curve_setup_matrix = build_response_curve_matrix(condition_list())
+        unique_drugs = unique(response_curve_setup_matrix$drug)
+        unique_drugs_without_control = unique_drugs[unique_drugs != "DMSO"]
+        selectInput(session$ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug),
+                    label = h5("Select Drug"), 
+                    unique_drugs_without_control, selected = unique_drugs_without_control[[1]])
+    } else {
+      NULL
+    }
+  })
 }
 
 create_group_comparison_plot = function(input, loadpage_input, data_comparison) {
@@ -298,7 +315,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
         clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
         which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
-        which.Protein = input[[NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein]],
+        which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
         height = input$height,
         address = "Ex_",
         isPlotly = TRUE
@@ -314,7 +331,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
         clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
         which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
-        which.Protein = input[[NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein]],
+        which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
         height = input$height,
         address = "Ex_",
         isPlotly = TRUE
@@ -470,6 +487,8 @@ render_results_table = function(output, session, data_comparison, SignificantPro
 #' @param get_data stored function that returns the data from loadpage
 #' @param preprocess_data stored function that returns preprocessed data
 #' 
+#' @importFrom MSstatsResponse visualizeResponseProtein
+#' 
 #' @return list object with user selected options and matrix build
 #'
 #' @export
@@ -515,7 +534,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         tryCatch({ rownames(matrix_build()) }, error = function(e) {})
       })
       
-      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input)
+      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list)
       
       # Reset on configuration change
       observeEvent(c(input[[NAMESPACE_STATMODEL$comparison_mode]], loadpage_input()$proceed1), {
@@ -552,7 +571,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               input, condition_list(), contrast, comp_list, row(), loadpage_input())
           } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
             contrast$matrix = build_response_curve_matrix(
-              contrast, condition_list())
+              condition_list())
           }
           
           enable(NAMESPACE_STATMODEL$modeling_start)
@@ -573,7 +592,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       # Run analysis
       data_comparison = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         matrix = matrix_build()
-        dataComparison(input, qc_input(), loadpage_input(), matrix, preprocess_data())
+        if (input[[NAMESPACE_STATMODEL$comparison_mode]] == 
+            CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+          fitResponseCurves(input, matrix, preprocess_data())
+        } else {
+          dataComparison(input, qc_input(), loadpage_input(), matrix, preprocess_data())
+        }
       })
       
       data_comparison_code = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
@@ -615,6 +639,32 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           output$comp_plots = renderPlot({ 
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
+            )
+          })
+          op = plotOutput(ns("comp_plots"))
+        } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
+                   CONSTANTS_STATMODEL$plot_type_response_curve) {
+          matrix = matrix_build()
+          protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
+          dia_prepared <- MSstatsPrepareDoseResponseFit(
+            data = protein_level_data,
+            dose_column = "dose_nM",
+            drug_column = "drug",
+            protein_column = "Protein",
+            log_abundance_column = "LogIntensities",
+            transform_nM_to_M = TRUE  
+          )
+          output$comp_plots = renderPlot({ 
+            visualizeResponseProtein(
+              data = dia_prepared,
+              protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
+              drug_name = input[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]],
+              ratio_response = TRUE,
+              show_ic50 = TRUE,
+              add_ci = TRUE, 
+              transform_dose = TRUE, 
+              n_samples = 1000,
+              increasing = FALSE 
             )
           })
           op = plotOutput(ns("comp_plots"))
