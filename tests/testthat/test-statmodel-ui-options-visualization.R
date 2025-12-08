@@ -20,9 +20,9 @@ test_that("Correct elements are present in create_heatmap_options", {
               info = "Cluster option select input namespace should be present")
   expect_true(grepl('value="2"', ui_html), info = "Base 2 log option should exist")
   expect_true(grepl('value="10"', ui_html), info = "Base 10 log option should exist")
-  expect_true(grepl("protein dendogram", ui_html))
-  expect_true(grepl("comparison dendogram", ui_html))
-  expect_true(grepl("both", ui_html))
+  expect_true(grepl("protein dendrogram", ui_html))
+  expect_true(grepl("comparison dendrogram", ui_html))
+  expect_true(grepl("protein and comparison dendrograms", ui_html))
 })
 
 test_that("Correct elements are present in create_comparison_plot_options", {

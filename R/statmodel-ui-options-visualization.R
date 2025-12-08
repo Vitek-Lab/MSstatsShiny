@@ -90,9 +90,9 @@ create_heatmap_options <- function(ns) {
         div("Determines how to order proteins and comparisons. protein means, comparison means, or both", class = "icon-tooltip")
       ), 
       c(
-        "protein dendogram" = "protein", 
-        "comparison dendogram" = "comparison", 
-        "protein and comparison dendograms" = "both"
+        "protein dendrogram" = "protein", 
+        "comparison dendrogram" = "comparison", 
+        "protein and comparison dendrograms" = "both"
       )
     )
   )
