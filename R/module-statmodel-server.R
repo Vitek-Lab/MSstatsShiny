@@ -64,9 +64,9 @@ render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   output[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights]] = renderUI({
     lapply(1:length(condition_list()), function(i) {
       list(numericInput(ns(paste0(
-          NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, i)
-        ), 
-                        label = condition_list()[i], value = 0))
+        NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, i)
+      ), 
+      label = condition_list()[i], value = 0))
     })
   })
 }
@@ -211,62 +211,94 @@ build_response_curve_matrix = function(contrast, condition_list) {
   return(contrast$matrix)
 }
 
+#' Get TMT moderation radio button conditioned on if experiment is TMT
+#' @noRd
+get_tmt_moderation_radio_button <- function(loadpage_input, ns) {
+  if (loadpage_input$DDA_DIA == "TMT") {
+    create_moderation_radio_buttons(ns)
+  }
+}
+
 # Todo: Add helper function to build dose response curve mapper matrix
 
 # ============================================================================
 # Plotting Functions
 # ============================================================================
 
-render_group_comparison_plot_inputs = function(output, session, rownames, get_data) {
+render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input) {
   ns = session$ns
   
-  output$WhichComp = renderUI({
-    selectInput(ns("whichComp"),
+  output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
+    selectInput(ns(NAMESPACE_STATMODEL$visualization_which_comparison),
                 label = h5("Select comparison to plot"), 
                 c("all", rownames()), selected = "all")
   })
   
-  output$WhichProt = renderUI({
-    selectInput(ns("whichProt"),
+  output[[NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein]] = renderUI({
+    selectInput(ns(NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein),
                 label = h4("which protein to plot"), 
                 unique(get_data()[[1]]))
+  })
+  
+  output[[NAMESPACE_STATMODEL$visualization_plot_options_conditional_panel]] <- renderUI({
+    plot_type <- input[[NAMESPACE_STATMODEL$visualization_plot_type]]
+    
+    if (plot_type == CONSTANTS_STATMODEL$plot_type_volcano_plot) {
+      show_protein_name <- !is.null(loadpage_input()$DDA_DIA) &&
+        loadpage_input()$DDA_DIA != "TMT"
+      create_volcano_plot_options(ns, show_protein_name)
+    } else if (plot_type == CONSTANTS_STATMODEL$plot_type_comparison_plot) {
+      create_comparison_plot_options(ns)
+    } else if (plot_type == CONSTANTS_STATMODEL$plot_type_heatmap) {
+      create_heatmap_options(ns)
+    } else {
+      NULL
+    }
+  })
+  
+  output[[NAMESPACE_STATMODEL$visualization_fold_change_input]] <- renderUI({
+    req(input[[NAMESPACE_STATMODEL$visualization_fold_change_checkbox]])
+    if (input[[NAMESPACE_STATMODEL$visualization_fold_change_checkbox]]) {
+      numericInput(ns(NAMESPACE_STATMODEL$visualization_fold_change_input), "Fold change cutoff", 1, 0, 100, 0.1)
+    }
   })
   # Todo: Add plot inputs for dose response curves for which protein to plot (or re-use whichProt)
 }
 
 create_group_comparison_plot = function(input, loadpage_input, data_comparison) {
   show_modal_spinner()
+  fold_change_cutoff <- ifelse(!is.null(input[[NAMESPACE_STATMODEL$visualization_fold_change_input]]), input[[NAMESPACE_STATMODEL$visualization_fold_change_input]], FALSE)
   
   # Todo: Add dose response curve plot function for typeplot == dose response curve
   
   tryCatch({
-    if (toupper(input$typeplot) == "VOLCANOPLOT" && input$whichComp == "all") {
+    if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == CONSTANTS_STATMODEL$plot_type_volcano_plot && input[[NAMESPACE_STATMODEL$visualization_which_comparison]] == "all") {
       remove_modal_spinner()
       stop('** Cannot generate multiple plots in a screen. Please refine selection or save to a pdf. **')
     }
     if (loadpage_input$BIO == "PTM") {
       plot_result = groupComparisonPlotsPTM(
         data_comparison,
-        input$typeplot,
-        sig = input$sig,
-        FCcutoff = input$FC,
-        logBase.pvalue = as.integer(input$logp),
-        ProteinName = input$pname,
-        which.Comparison = input$whichComp,
+        input[[NAMESPACE_STATMODEL$visualization_plot_type]],
+        sig = input[[NAMESPACE_STATMODEL$visualization_volcano_significance_cutoff]],
+        FCcutoff = fold_change_cutoff,
+        logBase.pvalue = as.integer(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
+        ProteinName = input[[NAMESPACE_STATMODEL$visualization_volcano_display_protein_name]],
+        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         address = FALSE
       )
     } else if (loadpage_input$DDA_DIA == "TMT") {
       plot_result = groupComparisonPlots(
         data = data_comparison$ComparisonResult,
-        type = input$typeplot,
-        sig = input$sig,
-        FCcutoff = input$FC,
-        logBase.pvalue = as.numeric(input$logp),
-        ProteinName = input$pname,
-        numProtein = input$nump,
-        clustering = input$cluster,
-        which.Comparison = input$whichComp,
-        which.Protein = input$whichProt,
+        type = input[[NAMESPACE_STATMODEL$visualization_plot_type]],
+        sig = input[[NAMESPACE_STATMODEL$visualization_volcano_significance_cutoff]],
+        FCcutoff = fold_change_cutoff,
+        logBase.pvalue = as.numeric(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
+        ProteinName = input[[NAMESPACE_STATMODEL$visualization_volcano_display_protein_name]],
+        numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
+        clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
+        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
+        which.Protein = input[[NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein]],
         height = input$height,
         address = "Ex_",
         isPlotly = TRUE
@@ -274,15 +306,15 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
     } else {
       plot_result = groupComparisonPlots(
         data = data_comparison$ComparisonResult,
-        type = input$typeplot,
-        sig = input$sig,
-        FCcutoff = input$FC,
-        logBase.pvalue = as.numeric(input$logp),
-        ProteinName = input$pname,
-        numProtein = input$nump,
-        clustering = input$cluster,
-        which.Comparison = input$whichComp,
-        which.Protein = input$whichProt,
+        type = input[[NAMESPACE_STATMODEL$visualization_plot_type]],
+        sig = input[[NAMESPACE_STATMODEL$visualization_volcano_significance_cutoff]],
+        FCcutoff = fold_change_cutoff,
+        logBase.pvalue = as.numeric(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
+        ProteinName = input[[NAMESPACE_STATMODEL$visualization_volcano_display_protein_name]],
+        numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
+        clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
+        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
+        which.Protein = input[[NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein]],
         height = input$height,
         address = "Ex_",
         isPlotly = TRUE
@@ -333,7 +365,7 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
     codes = paste(codes, "\n# Model-based comparison\n", sep = "")
     codes = paste(codes, "model = MSstatsTMT::groupComparisonTMT(summarized,
                        contrast.matrix = contrast.matrix,
-                       moderated = ", input$moderated, ",\t\t\t\t
+                       moderated = ", input[[NAMESPACE_STATMODEL$modeling_tmt_moderation]], ",\t\t\t\t
                        adj.method = \"BH\",
                        remove_norm_channel = TRUE,
                        remove_empty_channel = TRUE
@@ -370,7 +402,7 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
 
 create_download_handlers = function(output, data_comparison, SignificantProteins, 
                                     data_comparison_code) {
-  output$plotresults = downloadHandler(
+  output[[NAMESPACE_STATMODEL$visualization_download_plot_results]] = downloadHandler(
     filename = function() paste("SummaryPlot-", Sys.Date(), ".zip", sep = ""),
     content = function(file) {
       files = list.files(getwd(), pattern = "^Ex_", full.names = TRUE)
@@ -478,12 +510,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       render_custom_non_pairwise_inputs(output, session, condition_list)
       
       Rownames = eventReactive(input[[NAMESPACE_STATMODEL$comparisons_submit]], {
-                                   req(input[[NAMESPACE_STATMODEL$comparison_mode]])
-                                   req(loadpage_input()$DDA_DIA)
-                                   tryCatch({ rownames(matrix_build()) }, error = function(e) {})
-                                 })
+        req(input[[NAMESPACE_STATMODEL$comparison_mode]])
+        req(loadpage_input()$DDA_DIA)
+        tryCatch({ rownames(matrix_build()) }, error = function(e) {})
+      })
       
-      render_group_comparison_plot_inputs(output, session, Rownames, get_data)
+      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input)
       
       # Reset on configuration change
       observeEvent(c(input[[NAMESPACE_STATMODEL$comparison_mode]], loadpage_input()$proceed1), {
@@ -495,59 +527,63 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       # Validate contrast inputs
       check_cond = eventReactive(
         input[[NAMESPACE_STATMODEL$comparisons_submit]], {
-            req(input[[NAMESPACE_STATMODEL$comparison_mode]])
-            req(loadpage_input()$DDA_DIA)
-            validate_contrast_inputs(input, input[[NAMESPACE_STATMODEL$comparison_mode]], condition_list())
-          })
+          req(input[[NAMESPACE_STATMODEL$comparison_mode]])
+          req(loadpage_input()$DDA_DIA)
+          validate_contrast_inputs(input, input[[NAMESPACE_STATMODEL$comparison_mode]], condition_list())
+        })
       
       # Build contrast matrix
       matrix_build = eventReactive(
         input[[NAMESPACE_STATMODEL$comparisons_submit]], {
-            req(input[[NAMESPACE_STATMODEL$comparison_mode]])
-            req(loadpage_input()$DDA_DIA)
-            
-            if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
-              contrast$matrix = build_custom_pairwise_contrast(
-                input, condition_list(), contrast, comp_list, row())
-            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
-              contrast$matrix = build_custom_non_pairwise_contrast(
-                input, condition_list(), contrast, comp_list, row())
-            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_all_vs_one) {
-              contrast$matrix = build_all_against_one_contrast(
-                input, condition_list(), contrast, comp_list, row(), loadpage_input())
-            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_all_pairwise) {
-              contrast$matrix = build_all_pair_contrast(
-                input, condition_list(), contrast, comp_list, row(), loadpage_input())
-            } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
-              contrast$matrix = build_response_curve_matrix(
-                  contrast, condition_list())
-            }
-            
-            enable("calculate")
-            return(contrast$matrix)
-          })
+          req(input[[NAMESPACE_STATMODEL$comparison_mode]])
+          req(loadpage_input()$DDA_DIA)
+          
+          if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
+            contrast$matrix = build_custom_pairwise_contrast(
+              input, condition_list(), contrast, comp_list, row())
+          } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
+            contrast$matrix = build_custom_non_pairwise_contrast(
+              input, condition_list(), contrast, comp_list, row())
+          } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_all_vs_one) {
+            contrast$matrix = build_all_against_one_contrast(
+              input, condition_list(), contrast, comp_list, row(), loadpage_input())
+          } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_all_pairwise) {
+            contrast$matrix = build_all_pair_contrast(
+              input, condition_list(), contrast, comp_list, row(), loadpage_input())
+          } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+            contrast$matrix = build_response_curve_matrix(
+              contrast, condition_list())
+          }
+          
+          enable(NAMESPACE_STATMODEL$modeling_start)
+          return(contrast$matrix)
+        })
       
       # Clear matrix
       observeEvent(input[[NAMESPACE_STATMODEL$comparisons_clear]], {
-                       disable("calculate")
-                       comp_list$dList = NULL
-                       contrast$matrix = NULL
-                     })
+        disable(NAMESPACE_STATMODEL$modeling_start)
+        comp_list$dList = NULL
+        contrast$matrix = NULL
+      })
+      
+      output[[NAMESPACE_STATMODEL$modeling_tmt_moderation]] <- renderUI({
+        get_tmt_moderation_radio_button(loadpage_input(), session$ns)
+      })
       
       # Run analysis
-      data_comparison = eventReactive(input$calculate, {
+      data_comparison = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         matrix = matrix_build()
         dataComparison(input, qc_input(), loadpage_input(), matrix, preprocess_data())
       })
       
-      data_comparison_code = eventReactive(input$calculate, {
+      data_comparison_code = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         comp_mat = matrix_build()
         generate_analysis_code(qc_input(), loadpage_input(), comp_mat, input)
       })
       
-      SignificantProteins = eventReactive(input$calculate, {
+      SignificantProteins = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         data_comp = data_comparison()
-        extract_significant_proteins(data_comp, loadpage_input(), input$signif)
+        extract_significant_proteins(data_comp, loadpage_input(), input[[NAMESPACE_STATMODEL$modeling_significance_level]])
       })
       
       # Matrix output
@@ -573,7 +609,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                                data_comparison_code)
       
       # Plot rendering
-      observeEvent(input$viewresults, {
+      observeEvent(input[[NAMESPACE_STATMODEL$visualization_view_results]], {
         ns = session$ns
         if (loadpage_input()$BIO == "PTM") {
           output$comp_plots = renderPlot({ 
@@ -596,11 +632,11 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           ui = tags$div(
             op,
             conditionalPanel(
-              condition = "input['statmodel-typeplot'] == 'VolcanoPlot' && input['loadpage-BIO']!='PTM'",
+              condition = paste0("input['statmodel-", NAMESPACE_STATMODEL$visualization_plot_type, "'] == '", CONSTANTS_STATMODEL$plot_type_volcano_plot, "' && input['loadpage-BIO']!='PTM'"),
               h5("Hover over plot for details")
             ),
             conditionalPanel(
-              condition = "input['statmodel-typeplot'] == 'Heatmap'",
+              condition = paste0("input['statmodel-", NAMESPACE_STATMODEL$visualization_plot_type, "'] == '", CONSTANTS_STATMODEL$plot_type_heatmap, "'"),
               sliderInput(ns("height"), "Plot height", 
                           value = 500, min = 200, max = 1300, post = "px")
             )
@@ -609,10 +645,10 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
       
       # Enable controls after calculation
-      observeEvent(input$calculate, {
+      observeEvent(input[[NAMESPACE_STATMODEL$modeling_start]], {
         enable("Design")
-        enable("typeplot")
-        enable("WhichComp")
+        enable(NAMESPACE_STATMODEL$visualization_plot_type)
+        enable(NAMESPACE_STATMODEL$visualization_which_comparison)
         enable("download_code")
         
         output$code.button = renderUI({
