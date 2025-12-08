@@ -29,7 +29,7 @@ test_that("Correct elements are present in create_comparison_plot_options", {
   ns <- NS("test_module")
   result <- create_comparison_plot_options(ns)
   ui_html <- htmltools::renderTags(result)$html
-  expect_true(grepl(NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein, ui_html),
+  expect_true(grepl(NAMESPACE_STATMODEL$visualization_which_protein, ui_html),
               info = "Which protein namespace should be present")
 })
 
