@@ -16,9 +16,21 @@ create_custom_styles <- function() {
              NAMESPACE_STATMODEL$comparisons_clear, 
              '{background-color:orange}')
     )),
-    tags$style(HTML('#statmodel-calculate{background-color:orange}')),
-    tags$style(HTML('#statmodel-plotresults{background-color:orange}')),
-    tags$style(HTML('#statmodel-viewresults{background-color:orange}')),
+    tags$style(HTML(
+      paste0('#statmodel-', 
+             NAMESPACE_STATMODEL$modeling_start, 
+             '{background-color:orange}')
+    )),
+    tags$style(HTML(
+      paste0('#statmodel-', 
+             NAMESPACE_STATMODEL$visualization_view_results, 
+             '{background-color:orange}')
+    )),
+    tags$style(HTML(
+      paste0('#statmodel-', 
+             NAMESPACE_STATMODEL$visualization_download_plot_results, 
+             '{background-color:orange}')
+    )),
     tags$link(rel = "stylesheet", type = "text/css", href = "assets/style.css")
   )
 }
