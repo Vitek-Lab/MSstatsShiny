@@ -381,7 +381,7 @@ test_that("build_response_curve_matrix returns correct columns", {
   condition_list = c("Dasatinib_001nM", "Dasatinib_001uM", "DMSO")
   
   contrast <- list(matrix = NULL)
-  result <- build_response_curve_matrix(contrast, condition_list)
+  result <- build_response_curve_matrix(condition_list)
   
   expect_equal(nrow(result), 3)
   expect_equal(ncol(result), 3)

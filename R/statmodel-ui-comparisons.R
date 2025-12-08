@@ -30,7 +30,7 @@ create_contrast_radio_buttons <- function(ns) {
       "Compare all against one" = CONSTANTS_STATMODEL$comparison_mode_all_vs_one, 
       "Create custom pairwise comparisons" = CONSTANTS_STATMODEL$comparison_mode_custom_pairwise,
       "Create custom non-pairwise comparisons" = CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise,
-      "Create response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve
+      "Create dose response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve
     ),
     selected = character(0)
   )
