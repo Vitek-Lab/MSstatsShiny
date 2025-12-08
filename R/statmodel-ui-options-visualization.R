@@ -62,7 +62,7 @@ create_volcano_plot_options <- function(ns, show_protein_name = TRUE) {
 #' @noRd
 create_comparison_plot_options <- function(ns) {
   tagList(
-    uiOutput(ns(NAMESPACE_STATMODEL$visualization_comparison_plot_which_protein))
+    uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_protein))
   )
 }
 #' Create heatmap specific options
@@ -103,8 +103,8 @@ create_heatmap_options <- function(ns) {
 #' @noRd
 create_response_curve_options <- function(ns) {
   tagList(
-    uiOutput(ns("whichProt")),
-    uiOutput(ns("whichDrug"))
+    uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_protein)),
+    uiOutput(ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug))
   )
 }
 
