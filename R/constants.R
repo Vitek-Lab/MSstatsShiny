@@ -35,5 +35,6 @@ CONSTANTS_STATMODEL = list(
   comparison_mode_response_curve = "comparison_mode_response_curve",
   plot_type_volcano_plot = "VolcanoPlot", # VolcanoPlot
   plot_type_heatmap = "Heatmap", # Heatmap
-  plot_type_comparison_plot = "ComparisonPlot" # ComparisonPlot
+  plot_type_comparison_plot = "ComparisonPlot", # ComparisonPlot
+  plot_type_response_curve = "ResponseCurve" # ResponseCurve
 )

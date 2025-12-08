@@ -251,7 +251,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
       create_comparison_plot_options(ns)
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_heatmap) {
       create_heatmap_options(ns)
-    } else if (plot_type == "Response_Curve") {
+    } else if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
       create_response_curve_options(ns)
     } else {
       NULL
@@ -632,7 +632,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             )
           })
           op = plotOutput(ns("comp_plots"))
-        } else if (input$typeplot == "ResponseCurve") {
+        } else if (input$typeplot == CONSTANTS_STATMODEL$plot_type_response_curve) {
           matrix = matrix_build()
           protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
           dia_prepared <- MSstatsPrepareDoseResponseFit(
@@ -648,12 +648,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               data = dia_prepared,
               protein_name = input$whichProt,
               drug_name = input$whichDrug,
-              ratio_response = TRUE, # Bugs for some reason
-              show_ic50 = TRUE, # Bugs for some reason
-              add_ci = TRUE, # Bugs for some reason
-              transform_dose = TRUE, # Bugs for some reason
+              ratio_response = TRUE,
+              show_ic50 = TRUE,
+              add_ci = TRUE, 
+              transform_dose = TRUE, 
               n_samples = 1000,
-              increasing = FALSE # Need to be user-defined
+              increasing = FALSE 
             )
           })
           op = plotOutput(ns("comp_plots"))
