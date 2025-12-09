@@ -591,7 +591,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Run analysis
       data_comparison = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
-        matrix = matrix_build()
+        req(contrast$matrix)
+        matrix = contrast$matrix
         if (input[[NAMESPACE_STATMODEL$comparison_mode]] == 
             CONSTANTS_STATMODEL$comparison_mode_response_curve) {
           fitResponseCurves(input, matrix, preprocess_data())
@@ -601,7 +602,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
       
       data_comparison_code = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
-        comp_mat = matrix_build()
+        req(contrast$matrix)
+        comp_mat = contrast$matrix
         generate_analysis_code(qc_input(), loadpage_input(), comp_mat, input)
       })
       
@@ -610,13 +612,58 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         extract_significant_proteins(data_comp, loadpage_input(), input[[NAMESPACE_STATMODEL$modeling_significance_level]])
       })
       
+      # Handle edits to the contrast matrix from the UI
+      observeEvent(input$table_cell_edit, {
+        info <- input$table_cell_edit
+        # Use isolate() to get the current matrix without creating a reactive dependency
+        mat <- isolate(contrast$matrix)
+        
+        # DT provides 1-based indices for rows and columns in the edit event
+        i <- info$row
+        j <- info$col
+        v <- info$value
+        
+        # copy the new value to the type of the target column to maintain data integrity
+        if (is.data.frame(mat)) {
+          # For data frames, copy to the column's class
+          v <- tryCatch(as(v, class(mat[[j]])), error = function(e) v)
+          mat[i, j] <- v
+        } else {
+          # For matrices, all elements have the same type. Coerce to the matrix's class.
+          v <- tryCatch(as(v, class(mat[1, 1])), error = function(e) v)
+          mat[i, j] <- v
+        }
+        
+        # Update the reactive value. This will trigger the table to re-render with the new value.
+        contrast$matrix <- mat
+      })
+      
       # Matrix output
       output$message = renderText({ check_cond() })
-      output$table = renderDataTable({ matrix_build() })
+      output$table = renderDataTable({
+        # This table now directly depends on contrast$matrix, so it updates on build or edit.
+        req(contrast$matrix)
+        mat <- contrast$matrix
+        
+        # Define editable options, disabling the 'GROUP' column for response curves
+        editable_options <- list(target = 'cell')
+        # Perform a case-insensitive check for the 'GROUP' column for robustness.
+        if (any(toupper(colnames(mat)) == "GROUP")) {
+          group_col_idx <- which(toupper(colnames(mat)) == "GROUP")
+          editable_options$disable <- list(columns = group_col_idx)
+        }
+        
+        DT::datatable(mat, editable = editable_options, options = list(scrollX = TRUE))
+      })
       
       output$matrix = renderUI({
         ns = session$ns
         tagList(
+          # CSS rule to ensure text in editable cells is always black.
+          # This overrides conflicting styles that may turn the text white during editing.
+          tags$head(tags$style(HTML(
+            "table.dataTable td input { color: black !important; }"
+          ))),
           h2("Comparison matrix"),
           br(),
           textOutput(ns("message")),
@@ -644,7 +691,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           op = plotOutput(ns("comp_plots"))
         } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
-          matrix = matrix_build()
+          matrix = contrast$matrix
           protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
           dia_prepared <- MSstatsPrepareDoseResponseFit(
             data = protein_level_data,
