@@ -676,6 +676,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             "table.dataTable td input { color: black !important; }"
           ))),
           h2("Comparison matrix"),
+          p(tags$i("This table is interactive. Click values to edit.")),
           br(),
           textOutput(ns("message")),
           br(),
