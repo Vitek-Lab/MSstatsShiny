@@ -71,8 +71,6 @@ render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   })
 }
 
-# Todo: Add helper function to render dose response curve inputs
-
 validate_contrast_inputs = function(input, contrast_mode, condition_list) {
   if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
     validate(
@@ -210,6 +208,34 @@ build_response_curve_matrix = function(condition_list) {
   return(data.frame(GROUP = condition_list, condition_to_metadata_table))
 }
 
+#' Update a matrix or data frame from a DT cell edit event
+#'
+#' @param mat The matrix or data.frame to be updated.
+#' @param info The `input$table_cell_edit` object from a DT edit event.
+#'
+#' @return The updated matrix or data.frame.
+#' @noRd
+update_matrix_from_edit = function(mat, info) {
+  # DT provides 1-based indices for rows and columns in the edit event
+  i <- info$row
+  j <- info$col
+  v <- info$value
+  
+  # Coerce the new value to the type of the target column to maintain data integrity
+  if (is.data.frame(mat)) {
+    # For data frames, coerce to the column's class.
+    # tryCatch prevents the app from crashing if the user enters an invalid
+    # value (e.g., text in a numeric column). If coercion fails, the original value is kept.
+    v <- tryCatch(as(v, class(mat[[j]])), error = function(e) v)
+    mat[i, j] <- v
+  } else {
+    # For matrices, all elements have the same type. Coerce to the matrix's class.
+    v <- tryCatch(as(v, class(mat[1, 1])), error = function(e) v)
+    mat[i, j] <- v
+  }
+  return(mat)
+}
+
 #' Get TMT moderation radio button conditioned on if experiment is TMT
 #' @noRd
 get_tmt_moderation_radio_button <- function(loadpage_input, ns) {
@@ -264,13 +290,12 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
     }
   })
   
-  
-  # Rudhik TODO: change build_response_curve_matrix(condition_list())$drug
+
   # to the drug column of the user-defined matrix
   output[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]] = renderUI({
     if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
         CONSTANTS_STATMODEL$plot_type_response_curve) {
-        response_curve_setup_matrix = build_response_curve_matrix(condition_list())
+        response_curve_setup_matrix = contrast$matrix
         unique_drugs = unique(response_curve_setup_matrix$drug)
         unique_drugs_without_control = unique_drugs[unique_drugs != "DMSO"]
         selectInput(session$ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug),
@@ -614,28 +639,14 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Handle edits to the contrast matrix from the UI
       observeEvent(input$table_cell_edit, {
-        info <- input$table_cell_edit
-        # Use isolate() to get the current matrix without creating a reactive dependency
-        mat <- isolate(contrast$matrix)
+        # Use isolate() to get a snapshot of the matrix. This is crucial to prevent
+        # a reactive loop where updating the matrix would re-trigger this observer.
+        current_matrix <- isolate(contrast$matrix)
         
-        # DT provides 1-based indices for rows and columns in the edit event
-        i <- info$row
-        j <- info$col
-        v <- info$value
+        updated_matrix <- update_matrix_from_edit(current_matrix, input$table_cell_edit)
         
-        # copy the new value to the type of the target column to maintain data integrity
-        if (is.data.frame(mat)) {
-          # For data frames, copy to the column's class
-          v <- tryCatch(as(v, class(mat[[j]])), error = function(e) v)
-          mat[i, j] <- v
-        } else {
-          # For matrices, all elements have the same type. Coerce to the matrix's class.
-          v <- tryCatch(as(v, class(mat[1, 1])), error = function(e) v)
-          mat[i, j] <- v
-        }
-        
-        # Update the reactive value. This will trigger the table to re-render with the new value.
-        contrast$matrix <- mat
+        # Update the reactive value. This will trigger re-rendering of the table.
+        contrast$matrix <- updated_matrix
       })
       
       # Matrix output

@@ -379,13 +379,48 @@ test_that("get_contrast_panel_ui returns correct UI for each mode", {
 
 test_that("build_response_curve_matrix returns correct columns", {
   condition_list = c("Dasatinib_001nM", "Dasatinib_001uM", "DMSO")
-  
-  contrast <- list(matrix = NULL)
   result <- build_response_curve_matrix(condition_list)
   
+  # This test requires the MSstatsResponse package to be installed
   expect_equal(nrow(result), 3)
   expect_equal(ncol(result), 3)
   expect_true("GROUP" %in% colnames(result))
   expect_true("drug" %in% colnames(result))
   expect_true("dose_nM" %in% colnames(result))
+})
+
+# ============================================================================
+# Tests for update_matrix_from_edit
+# ============================================================================
+
+test_that("update_matrix_from_edit updates a numeric matrix correctly", {
+  mat <- matrix(c(1, 2, 3, 4), nrow = 2, ncol = 2)
+  info <- list(row = 1, col = 2, value = "99")
+  
+  result <- update_matrix_from_edit(mat, info)
+  
+  expect_equal(result[1, 2], 99)
+  expect_true(is.numeric(result))
+})
+
+test_that("update_matrix_from_edit updates a data.frame with mixed types", {
+  df <- data.frame(
+    label = c("A", "B"),
+    value = c(10, 20),
+    stringsAsFactors = FALSE
+  )
+  
+  # Update numeric column
+  info_numeric <- list(row = 1, col = 2, value = "100.5")
+  result_numeric <- update_matrix_from_edit(df, info_numeric)
+  
+  expect_equal(result_numeric[1, 2], 100.5)
+  expect_true(is.numeric(result_numeric$value))
+  
+  # Update character column
+  info_char <- list(row = 2, col = 1, value = "Updated")
+  result_char <- update_matrix_from_edit(result_numeric, info_char)
+  
+  expect_equal(result_char[2, 1], "Updated")
+  expect_true(is.character(result_char$label))
 })
