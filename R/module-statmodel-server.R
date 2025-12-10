@@ -262,7 +262,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   output[[NAMESPACE_STATMODEL$visualization_which_protein]] = renderUI({
     selectInput(ns(NAMESPACE_STATMODEL$visualization_which_protein),
                 label = h4("which protein to plot"), 
-                unique(get_data()[[1]]))
+                unique(get_data()$ProteinName))
   })
   
   output[[NAMESPACE_STATMODEL$visualization_plot_options_conditional_panel]] <- renderUI({
