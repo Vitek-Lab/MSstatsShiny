@@ -250,7 +250,7 @@ get_tmt_moderation_radio_button <- function(loadpage_input, ns) {
 # Plotting Functions
 # ============================================================================
 
-render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list) {
+render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list,contrast) {
   ns = session$ns
   
   output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
@@ -559,7 +559,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         tryCatch({ rownames(matrix_build()) }, error = function(e) {})
       })
       
-      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list)
+      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list,contrast)
       
       # Reset on configuration change
       observeEvent(c(input[[NAMESPACE_STATMODEL$comparison_mode]], loadpage_input()$proceed1), {
