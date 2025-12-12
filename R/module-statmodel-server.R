@@ -71,8 +71,6 @@ render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   })
 }
 
-# Todo: Add helper function to render dose response curve inputs
-
 validate_contrast_inputs = function(input, contrast_mode, condition_list) {
   if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
     validate(
@@ -210,6 +208,34 @@ build_response_curve_matrix = function(condition_list) {
   return(data.frame(GROUP = condition_list, condition_to_metadata_table))
 }
 
+#' Update a matrix or data frame from a DT cell edit event
+#'
+#' @param mat The matrix or data.frame to be updated.
+#' @param info The `input$table_cell_edit` object from a DT edit event.
+#'
+#' @return The updated matrix or data.frame.
+#' @noRd
+update_matrix_from_edit = function(mat, info) {
+  # DT provides 1-based indices for rows and columns in the edit event
+  i <- info$row
+  j <- info$col
+  v <- info$value
+  
+  # Coerce the new value to the type of the target column to maintain data integrity
+  if (is.data.frame(mat)) {
+    # For data frames, coerce to the column's class.
+    # tryCatch prevents the app from crashing if the user enters an invalid
+    # value (e.g., text in a numeric column). If coercion fails, the original value is kept.
+    v <- tryCatch(as(v, class(mat[[j]])), error = function(e) v)
+    mat[i, j] <- v
+  } else {
+    # For matrices, all elements have the same type. Coerce to the matrix's class.
+    v <- tryCatch(as(v, class(mat[1, 1])), error = function(e) v)
+    mat[i, j] <- v
+  }
+  return(mat)
+}
+
 #' Get TMT moderation radio button conditioned on if experiment is TMT
 #' @noRd
 get_tmt_moderation_radio_button <- function(loadpage_input, ns) {
@@ -224,7 +250,7 @@ get_tmt_moderation_radio_button <- function(loadpage_input, ns) {
 # Plotting Functions
 # ============================================================================
 
-render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list) {
+render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list,contrast) {
   ns = session$ns
   
   output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
@@ -236,7 +262,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   output[[NAMESPACE_STATMODEL$visualization_which_protein]] = renderUI({
     selectInput(ns(NAMESPACE_STATMODEL$visualization_which_protein),
                 label = h4("which protein to plot"), 
-                unique(get_data()[[1]]))
+                unique(get_data()$ProteinName))
   })
   
   output[[NAMESPACE_STATMODEL$visualization_plot_options_conditional_panel]] <- renderUI({
@@ -264,13 +290,12 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
     }
   })
   
-  
-  # Rudhik TODO: change build_response_curve_matrix(condition_list())$drug
+
   # to the drug column of the user-defined matrix
   output[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]] = renderUI({
     if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
         CONSTANTS_STATMODEL$plot_type_response_curve) {
-        response_curve_setup_matrix = build_response_curve_matrix(condition_list())
+        response_curve_setup_matrix = contrast$matrix
         unique_drugs = unique(response_curve_setup_matrix$drug)
         unique_drugs_without_control = unique_drugs[unique_drugs != "DMSO"]
         selectInput(session$ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug),
@@ -534,7 +559,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         tryCatch({ rownames(matrix_build()) }, error = function(e) {})
       })
       
-      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list)
+      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list,contrast)
       
       # Reset on configuration change
       observeEvent(c(input[[NAMESPACE_STATMODEL$comparison_mode]], loadpage_input()$proceed1), {
@@ -591,7 +616,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Run analysis
       data_comparison = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
-        matrix = matrix_build()
+        req(contrast$matrix)
+        matrix = contrast$matrix
         if (input[[NAMESPACE_STATMODEL$comparison_mode]] == 
             CONSTANTS_STATMODEL$comparison_mode_response_curve) {
           fitResponseCurves(input, matrix, preprocess_data())
@@ -601,7 +627,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
       
       data_comparison_code = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
-        comp_mat = matrix_build()
+        req(contrast$matrix)
+        comp_mat = contrast$matrix
         generate_analysis_code(qc_input(), loadpage_input(), comp_mat, input)
       })
       
@@ -610,14 +637,46 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         extract_significant_proteins(data_comp, loadpage_input(), input[[NAMESPACE_STATMODEL$modeling_significance_level]])
       })
       
+      # Handle edits to the contrast matrix from the UI
+      observeEvent(input$table_cell_edit, {
+        # Use isolate() to get a snapshot of the matrix. This is crucial to prevent
+        # a reactive loop where updating the matrix would re-trigger this observer.
+        current_matrix <- isolate(contrast$matrix)
+        
+        updated_matrix <- update_matrix_from_edit(current_matrix, input$table_cell_edit)
+        
+        # Update the reactive value. This will trigger re-rendering of the table.
+        contrast$matrix <- updated_matrix
+      })
+      
       # Matrix output
       output$message = renderText({ check_cond() })
-      output$table = renderDataTable({ matrix_build() })
+      output$table = renderDataTable({
+        # This table now directly depends on contrast$matrix, so it updates on build or edit.
+        req(contrast$matrix)
+        mat <- contrast$matrix
+        
+        # Define editable options, disabling the 'GROUP' column for response curves
+        editable_options <- list(target = 'cell')
+        # Perform a case-insensitive check for the 'GROUP' column for robustness.
+        if (any(toupper(colnames(mat)) == "GROUP")) {
+          group_col_idx <- which(toupper(colnames(mat)) == "GROUP")
+          editable_options$disable <- list(columns = group_col_idx)
+        }
+        
+        DT::datatable(mat, editable = editable_options, options = list(scrollX = TRUE))
+      })
       
       output$matrix = renderUI({
         ns = session$ns
         tagList(
+          # CSS rule to ensure text in editable cells is always black.
+          # This overrides conflicting styles that may turn the text white during editing.
+          tags$head(tags$style(HTML(
+            "table.dataTable td input { color: black !important; }"
+          ))),
           h2("Comparison matrix"),
+          p(tags$i("This table is interactive. Click values to edit.")),
           br(),
           textOutput(ns("message")),
           br(),
@@ -644,7 +703,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           op = plotOutput(ns("comp_plots"))
         } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
-          matrix = matrix_build()
+          matrix = contrast$matrix
           protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
           dia_prepared <- MSstatsPrepareDoseResponseFit(
             data = protein_level_data,
