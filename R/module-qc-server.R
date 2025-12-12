@@ -36,12 +36,12 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
       #   selectizeInput(ns("names"), "choose standard", unique(get_data()[2]), multiple = TRUE)
       # }
       # else{
-      selectizeInput(ns("names"), "choose standard", unique(get_data()[1]), multiple = TRUE)
+      selectizeInput(ns("names"), "choose standard", unique(get_data()$ProteinName), multiple = TRUE)
       # }
       
     }
     else if (input$standards == "Peptides") {
-      selectizeInput(ns("names"), "choose standard", unique(get_data()[2]), multiple = TRUE)
+      selectizeInput(ns("names"), "choose standard", unique(get_data()$PeptideSequence), multiple = TRUE)
     }
     
   })
