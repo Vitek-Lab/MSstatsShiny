@@ -285,7 +285,23 @@ create_spectronaut_uploads <- function(ns) {
   conditionalPanel(
     condition = "input['loadpage-filetype'] == 'spec' && input['loadpage-BIO'] != 'PTM'",
     h4("4. Upload MSstats scheme output from Spectronaut"),
-    fileInput(ns('specdata'), "", multiple = FALSE, accept = NULL),
+
+    # Checkbox to switch between upload methods
+    checkboxInput(ns("big_file_spec"), "Use local file browser (for large files)"),
+
+    # Standard fileInput, shown when checkbox is NOT checked
+    conditionalPanel(
+      condition = "!input['loadpage-big_file_spec']",
+      fileInput(ns('specdata'), "", multiple = FALSE, accept = NULL)
+    ),
+
+    # Local browser button, shown when checkbox IS checked
+    conditionalPanel(
+      condition = "input['loadpage-big_file_spec']",
+      shinyFiles::shinyFilesButton(ns("specdata_big_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
+      verbatimTextOutput(ns("specdata_big_path"))
+    ),
+
     create_separator_buttons(ns, "sep_specdata")
   )
 }

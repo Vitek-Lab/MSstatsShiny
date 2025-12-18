@@ -1,3 +1,4 @@
+
 #' Loadpage Server module for data selection and upload server.
 #'
 #' This function sets up the loadpage server where it consists of several,
@@ -14,6 +15,33 @@
 #' 
 loadpageServer <- function(id, parent_session) {
   moduleServer(id, function(input, output, session) {
+    
+    # == shinyFiles LOGIC FOR LOCAL FILE BROWSER =================================
+    # Define volumes for the file selection.
+    volumes <- shinyFiles::getVolumes()()
+    
+    # Server-side logic for the shinyFiles button
+    shinyFiles::shinyFileChoose(input, "specdata_big_browse", roots = volumes, session = session)
+    
+    # Reactive to parse and store the full file information (path, name, etc.)
+    # This is efficient because parseFilePaths is only called once.
+    local_spec_file_info <- reactive({
+      req(is.list(input$specdata_big_browse))
+      shinyFiles::parseFilePaths(volumes, input$specdata_big_browse)
+    })
+    
+    # Reactive to get just the full datapath, for use in backend processing.
+    local_path_spec <- reactive({
+      path_info <- local_spec_file_info()
+      if (nrow(path_info) > 0) path_info$datapath else NULL
+    })
+    
+    # Render just the filename for user feedback in the UI.
+    output$specdata_big_path <- renderPrint({
+      req(nrow(local_spec_file_info()) > 0)
+      cat(local_spec_file_info()$name)
+    })
+    
     # toggle ui (DDA DIA SRM)
     observe({
       print("bio")
@@ -103,7 +131,9 @@ loadpageServer <- function(id, parent_session) {
                 enable("proceed1")
               }
             } else if (input$filetype == "spec") {
-              if(!is.null(input$specdata) && !is.null(input$sep_specdata)) { # && !is.null(input$annot)
+              spec_regular_file_ok <- !isTRUE(input$big_file_spec) && !is.null(input$specdata)
+              spec_big_file_ok <- isTRUE(input$big_file_spec) && length(local_path_spec()) > 0
+              if((spec_regular_file_ok || spec_big_file_ok) && !is.null(input$sep_specdata)) {
                 enable("proceed1")
               }
             } else if (input$filetype == "ump") {
@@ -221,7 +251,40 @@ loadpageServer <- function(id, parent_session) {
 
 
     get_data = eventReactive(input$proceed1, {
-      getData(input)
+      # Check if the filetype is Spectronaut AND the big file checkbox is checked
+      if (input$filetype == "spec" && isTRUE(input$big_file_spec)) {
+        # Ensure a file has been selected via the local browser
+        req(length(local_path_spec()) > 0)
+
+        # Show a busy indicator as this might take time
+        shinybusy::show_modal_spinner(
+          spin = "fading-circle",
+          text = "Processing large Spectronaut file..."
+        )
+
+        # Define the output path using a temporary file.
+        #currently can't use the timeporary file because bigSpectronauttoMSstatsFormat modifies the filepath internally 
+        #temp_output_path <- tempfile(fileext = ".csv")
+        
+        
+
+        # Call the big file conversion function from MSstatsConvert
+        converted_data <- MSstatsBig::bigSpectronauttoMSstatsFormat(
+          input = local_path_spec(),
+          output = "output_file.csv",
+          backend = "arrow"
+        )
+        
+        converted_data <- dplyr::collect(converted_data)
+        # Remove the busy indicator
+        shinybusy::remove_modal_spinner()
+
+        return(converted_data)
+      } else {
+        # For all other cases (non-spec files, or standard spec uploads),
+        # use the existing getData function.
+        getData(input)
+      }
     })
 
 
