@@ -223,7 +223,7 @@ create_standard_uploads <- function(ns) {
 #' @noRd
 create_standard_annotation_uploads <- function(ns) {
   conditionalPanel(
-    condition = "(input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' || input['loadpage-filetype'] == 'diann') && input['loadpage-BIO'] != 'PTM'",
+    condition = "(input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || (input['loadpage-filetype'] == 'spec' && !input['loadpage-big_file_spec']) || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' || input['loadpage-filetype'] == 'diann') && input['loadpage-BIO'] != 'PTM'",
     h4("5. Upload annotation File", class = "icon-wrapper", 
        icon("question-circle", lib = "font-awesome"),
        div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.", class = "icon-tooltip")),
@@ -299,7 +299,20 @@ create_spectronaut_uploads <- function(ns) {
     conditionalPanel(
       condition = "input['loadpage-big_file_spec']",
       shinyFiles::shinyFilesButton(ns("specdata_big_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
-      verbatimTextOutput(ns("specdata_big_path"))
+      verbatimTextOutput(ns("specdata_big_path")),
+      tags$hr(),
+      h4("Options for large file processing"),
+      checkboxInput(ns("filter_by_excluded"), "Filter by excluded from quantification", value = FALSE),
+      checkboxInput(ns("filter_by_identified"), "Filter by identified", value = FALSE),
+      checkboxInput(ns("filter_by_qvalue"), "Filter by q-value", value = TRUE),
+      conditionalPanel(
+        condition = "input['loadpage-filter_by_qvalue']",
+        numericInput(ns("qvalue_cutoff"), "Q-value cutoff", value = 0.01, min = 0, max = 1, step = 0.01)
+      ),
+      numericInput(ns("max_feature_count"), "Max feature count", value = 20, min = 1),
+      checkboxInput(ns("filter_unique_peptides"), "Use unique peptides", value = FALSE),
+      checkboxInput(ns("aggregate_psms"), "Aggregate PSMs to peptides", value = FALSE),
+      checkboxInput(ns("filter_few_obs"), "Filter features with few observations", value = FALSE)
     ),
 
     create_separator_buttons(ns, "sep_specdata")
@@ -502,14 +515,14 @@ create_tmt_options <- function(ns) {
 create_label_free_options <- function(ns) {
   tagList(
     conditionalPanel(
-      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] != 'sample' && input['loadpage-filetype'] != 'MRF'",
+      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] != 'sample' && input['loadpage-filetype'] != 'MRF' && (input['loadpage-filetype'] != 'spec' || !input['loadpage-big_file_spec'])",
       h4("Select the options for pre-processing"),
       checkboxInput(ns("unique_peptides"), "Use unique peptides", value = TRUE),
       checkboxInput(ns("remove"), "Remove proteins with 1 peptide and charge", value = FALSE)
     ),
     
     conditionalPanel(
-      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] != 'sample'",
+      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] != 'sample' && (input['loadpage-filetype'] != 'spec' || !input['loadpage-big_file_spec'])",
       checkboxInput(ns("remove"), "Remove proteins with 1 feature", value = FALSE),
       
       # Quality filtering options
