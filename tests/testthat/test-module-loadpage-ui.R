@@ -393,3 +393,44 @@ test_that("file inputs have proper accept attributes", {
   annot_html <- as.character(annot_input)
   expect_true(grepl('accept=.*csv', annot_html))
 })
+
+test_that("Spectronaut big file UI is configured correctly", {
+  # This test checks for the existence and conditional logic of UI elements 
+  # related to the Spectronaut big file workflow.
+  result <- loadpageUI("test")
+  html_output <- as.character(result)
+  
+  # 1. Check for the presence of the big file checkbox itself
+  expect_true(grepl("test-big_file_spec", html_output), 
+              info = "Spectronaut 'big file' checkbox is missing.")
+  
+  # 2. Check that the new processing options are present in the HTML.
+  new_options_labels <- c(
+    "Filter by excluded from quantification",
+    "Filter by q-value",
+    "Max feature count",
+    "Aggregate PSMs to peptides"
+  )
+  for(label in new_options_labels) {
+    expect_true(grepl(label, html_output), info = paste("Missing Spectronaut big file option:", label))
+  }
+  
+  # 3. Verify the conditional logic for hiding/showing related panels.
+  # Note: HTML entities encode ' as &#39;, && as &amp;&amp;, and || as ||
+  
+  # Annotation upload should be hidden for big spec files.
+  # Condition contains: (input['loadpage-filetype'] == 'spec' && !input['loadpage-big_file_spec'])
+  expected_annot_condition <- "input[&#39;loadpage-filetype&#39;] == &#39;spec&#39; &amp;&amp; !input[&#39;loadpage-big_file_spec&#39;]"
+  expect_true(
+    grepl(expected_annot_condition, html_output, fixed = TRUE),
+    info = "Conditional logic to hide annotation upload for big Spectronaut files is incorrect."
+  )
+  
+  # Standard pre-processing should be hidden for big spec files.
+  # Condition contains: (input['loadpage-filetype'] != 'spec' || !input['loadpage-big_file_spec'])
+  expected_preprocess_condition <- "input[&#39;loadpage-filetype&#39;] != &#39;spec&#39; || !input[&#39;loadpage-big_file_spec&#39;]"
+  expect_true(
+    grepl(expected_preprocess_condition, html_output, fixed = TRUE),
+    info = "Conditional logic to hide pre-processing options for big Spectronaut files is incorrect."
+  )
+})
