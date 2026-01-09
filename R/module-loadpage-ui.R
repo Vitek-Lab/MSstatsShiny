@@ -282,41 +282,58 @@ create_diann_uploads <- function(ns) {
 #' Create Spectronaut file uploads
 #' @noRd
 create_spectronaut_uploads <- function(ns) {
-  conditionalPanel(
-    condition = "input['loadpage-filetype'] == 'spec' && input['loadpage-BIO'] != 'PTM'",
-    h4("4. Upload MSstats scheme output from Spectronaut"),
+  uiOutput(ns("spectronaut_upload_ui"))
+}
 
-    # Checkbox to switch between upload methods
-    checkboxInput(ns("big_file_spec"), "Use local file browser (for large files)"),
-
-    # Standard fileInput, shown when checkbox is NOT checked
-    conditionalPanel(
-      condition = "!input['loadpage-big_file_spec']",
-      fileInput(ns('specdata'), "", multiple = FALSE, accept = NULL)
-    ),
-
-    # Local browser button, shown when checkbox IS checked
-    conditionalPanel(
-      condition = "input['loadpage-big_file_spec']",
-      shinyFiles::shinyFilesButton(ns("specdata_big_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
-      verbatimTextOutput(ns("specdata_big_path")),
-      tags$hr(),
-      h4("Options for large file processing"),
-      checkboxInput(ns("filter_by_excluded"), "Filter by excluded from quantification", value = FALSE),
-      checkboxInput(ns("filter_by_identified"), "Filter by identified", value = FALSE),
-      checkboxInput(ns("filter_by_qvalue"), "Filter by q-value", value = TRUE),
+#' Create content for Spectronaut upload UI
+#' @param ns Namespace function
+#' @param is_web_server Boolean indicating if running on web server
+#' @noRd
+create_spectronaut_ui_content <- function(ns, is_web_server) {
+  if (!is_web_server) {
+    tagList(
+      h4("4. Upload MSstats scheme output from Spectronaut"),
+      
+      # Checkbox to switch between upload methods
+      checkboxInput(ns("big_file_spec"), "Large file mode"),
+      
+      # Standard fileInput, shown when checkbox is NOT checked
       conditionalPanel(
-        condition = "input['loadpage-filter_by_qvalue']",
-        numericInput(ns("qvalue_cutoff"), "Q-value cutoff", value = 0.01, min = 0, max = 1, step = 0.01)
+        condition = paste0("!input['", ns("big_file_spec"), "']"),
+        fileInput(ns('specdata'), "", multiple = FALSE, accept = NULL)
       ),
-      numericInput(ns("max_feature_count"), "Max feature count", value = 20, min = 1),
-      checkboxInput(ns("filter_unique_peptides"), "Use unique peptides", value = FALSE),
-      checkboxInput(ns("aggregate_psms"), "Aggregate PSMs to peptides", value = FALSE),
-      checkboxInput(ns("filter_few_obs"), "Filter features with few observations", value = FALSE)
-    ),
-
-    create_separator_buttons(ns, "sep_specdata")
-  )
+      
+      # Local browser button, shown when checkbox IS checked
+      conditionalPanel(
+        condition = paste0("input['", ns("big_file_spec"), "']"),
+        shinyFiles::shinyFilesButton(ns("big_file_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
+        verbatimTextOutput(ns("specdata_big_path")),
+        tags$hr(),
+        h4("Options for large file processing"),
+        checkboxInput(ns("filter_by_excluded"), "Filter by excluded from quantification", value = FALSE),
+        checkboxInput(ns("filter_by_identified"), "Filter by identified", value = FALSE),
+        checkboxInput(ns("filter_by_qvalue"), "Filter by q-value", value = TRUE),
+        conditionalPanel(
+          condition = paste0("input['", ns("filter_by_qvalue"), "']"),
+          numericInput(ns("qvalue_cutoff"), "Q-value cutoff", value = 0.01, min = 0, max = 1, step = 0.01)
+        ),
+        numericInput(ns("max_feature_count"), "Max feature count", value = 20, min = 1),
+        checkboxInput(ns("filter_unique_peptides"), "Use unique peptides", value = FALSE),
+        checkboxInput(ns("aggregate_psms"), "Aggregate PSMs to peptides", value = FALSE),
+        checkboxInput(ns("filter_few_obs"), "Filter features with few observations", value = FALSE)
+      ),
+      
+      create_separator_buttons(ns, "sep_specdata")
+    )
+  } else {
+    tagList(
+      h4("4. Upload MSstats scheme output from Spectronaut"),
+      
+      fileInput(ns('specdata'), "", multiple = FALSE, accept = NULL),
+      
+      create_separator_buttons(ns, "sep_specdata")
+    )
+  }
 }
 
 #' Create PTM FragPipe uploads

@@ -36,76 +36,35 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
       volumes <- shinyFiles::getVolumes()()
       
       # Server-side logic for the shinyFiles button
-      shinyFiles::shinyFileChoose(input, "specdata_big_browse", roots = volumes, session = session)
+      shinyFiles::shinyFileChoose(input, "big_file_browse", roots = volumes, session = session)
       
       # Reactive to parse and store the full file information (path, name, etc.)
       # This is efficient because parseFilePaths is only called once.
-      local_spec_file_info <- reactive({
-        req(is.list(input$specdata_big_browse))
-        shinyFiles::parseFilePaths(volumes, input$specdata_big_browse)
+      local_file_info <- reactive({
+        req(is.list(input$big_file_browse))
+        shinyFiles::parseFilePaths(volumes, input$big_file_browse)
       })
       
       # Reactive to get just the full datapath, for use in backend processing.
-      local_path_spec <- reactive({
-        path_info <- local_spec_file_info()
+      local_big_file_path <- reactive({
+        path_info <- local_file_info()
         if (nrow(path_info) > 0) path_info$datapath else NULL
       })
       
       # Render just the filename for user feedback in the UI.
       output$specdata_big_path <- renderPrint({
-        req(nrow(local_spec_file_info()) > 0)
-        cat(local_spec_file_info()$name)
+        req(nrow(local_file_info()) > 0)
+        cat(local_file_info()$name)
       })
-    } else {
-      local_path_spec <- reactive({ NULL })
+    } 
+    else {
+      local_big_file_path <- reactive({ NULL })
     }
     
     output$spectronaut_upload_ui <- renderUI({
       req(input$filetype == 'spec', input$BIO != 'PTM')
       
-      if (!is_web_server) {
-        tagList(
-          h4("4. Upload MSstats scheme output from Spectronaut"),
-          
-          # Checkbox to switch between upload methods
-          checkboxInput(session$ns("big_file_spec"), "Use local file browser (for large files)"),
-          
-          # Standard fileInput, shown when checkbox is NOT checked
-          conditionalPanel(
-            condition = paste0("!input['", session$ns("big_file_spec"), "']"),
-            fileInput(session$ns('specdata'), "", multiple = FALSE, accept = NULL)
-          ),
-          
-          # Local browser button, shown when checkbox IS checked
-          conditionalPanel(
-            condition = paste0("input['", session$ns("big_file_spec"), "']"),
-            shinyFiles::shinyFilesButton(session$ns("specdata_big_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
-            verbatimTextOutput(session$ns("specdata_big_path"))
-          ),
-          
-          radioButtons(session$ns("sep_specdata"),
-                       label = h5("Column separator in uploaded file", class = "icon-wrapper", 
-                                  icon("question-circle", lib = "font-awesome"),
-                                  div("Choose how columns are separated in the uploaded file", class = "icon-tooltip")),
-                       c(Comma=",", Semicolon=";", Tab="\t", Pipe="|"),
-                       inline = TRUE
-          )
-        )
-      } else {
-        tagList(
-          h4("4. Upload MSstats scheme output from Spectronaut"),
-          
-          fileInput(session$ns('specdata'), "", multiple = FALSE, accept = NULL),
-          
-          radioButtons(session$ns("sep_specdata"),
-                       label = h5("Column separator in uploaded file", class = "icon-wrapper", 
-                                  icon("question-circle", lib = "font-awesome"),
-                                  div("Choose how columns are separated in the uploaded file", class = "icon-tooltip")),
-                       c(Comma=",", Semicolon=";", Tab="\t", Pipe="|"),
-                       inline = TRUE
-          )
-        )
-      }
+      create_spectronaut_ui_content(session$ns, is_web_server)
     })
     
     # toggle ui (DDA DIA SRM)
@@ -198,7 +157,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
               }
             } else if (input$filetype == "spec") {
               spec_regular_file_ok <- !isTRUE(input$big_file_spec) && !is.null(input$specdata)
-              spec_big_file_ok <- isTRUE(input$big_file_spec) && length(local_path_spec()) > 0
+              spec_big_file_ok <- isTRUE(input$big_file_spec) && length(local_big_file_path()) > 0
               if((spec_regular_file_ok || spec_big_file_ok) && !is.null(input$sep_specdata)) {
                 enable("proceed1")
               }
@@ -321,7 +280,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
       
       if (data_source == "big_spectronaut") {
         # Ensure a file has been selected via the local browser
-        req(length(local_path_spec()) > 0)
+        req(length(local_big_file_path()) > 0)
 
         # Show a busy indicator as this might take time
         shinybusy::show_modal_spinner(
@@ -336,7 +295,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
 
         # Call the big file conversion function from MSstatsConvert
         converted_data <- MSstatsBig::bigSpectronauttoMSstatsFormat(
-          input_file = local_path_spec(),
+          input_file = local_big_file_path(),
           output_file_name = "output_file.csv",
           backend = "arrow",
           filter_by_excluded = input$filter_by_excluded,
