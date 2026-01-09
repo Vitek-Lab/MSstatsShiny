@@ -242,7 +242,7 @@ getInputParameters <- function(input, selectedProteins) {
   }
   
   filterByCuration <- if(is.null(input$filterByCuration)) {
-    FALSE  # Default to FALSE if somehow NULL
+    FALSE  # Default to FALSE if somehow NULL 
   } else {
     as.logical(input$filterByCuration)
   }
