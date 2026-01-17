@@ -1,17 +1,3 @@
-#' Decide which data loading path to use
-#' 
-#' @param filetype The selected file type from the UI
-#' @param is_big_file Boolean indicating if the 'big file' checkbox is checked
-#' @return string "big_spectronaut" or "standard"
-#' @noRd
-.get_data_source_type <- function(filetype, is_big_file) {
-  if (filetype == "spec" && isTRUE(is_big_file)) {
-    "big_spectronaut"
-  } else {
-    "standard"
-  }
-}
-
 #' Loadpage Server module for data selection and upload server.
 #'
 #' This function sets up the loadpage server where it consists of several,
@@ -61,10 +47,53 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
       local_big_file_path <- reactive({ NULL })
     }
     
-    output$spectronaut_upload_ui <- renderUI({
+    output$spectronaut_header_ui <- renderUI({
+      req(input$filetype == 'spec', input$BIO != 'PTM')
+      create_spectronaut_header()
+    })
+    
+    output$spectronaut_file_selection_ui <- renderUI({
       req(input$filetype == 'spec', input$BIO != 'PTM')
       
-      create_spectronaut_ui_content(session$ns, is_web_server)
+      ui_elements <- tagList()
+      
+      if (!is_web_server) {
+        ui_elements <- tagList(ui_elements, create_spectronaut_mode_selector(session$ns, isTRUE(input$big_file_spec)))
+        
+        if (isTRUE(input$big_file_spec)) {
+          ui_elements <- tagList(ui_elements, create_spectronaut_large_file_ui(session$ns))
+        } else {
+          ui_elements <- tagList(ui_elements, create_spectronaut_standard_ui(session$ns))
+        }
+      } else {
+        ui_elements <- tagList(ui_elements, create_spectronaut_standard_ui(session$ns))
+      }
+      
+      tagList(ui_elements, create_separator_buttons(session$ns, "sep_specdata"))
+    })
+    
+    output$spectronaut_options_ui <- renderUI({
+      req(input$filetype == 'spec', input$BIO != 'PTM')
+      
+      if (!is_web_server && isTRUE(input$big_file_spec)) {
+        qval_def <- if (is.null(input$filter_by_qvalue)) TRUE else input$filter_by_qvalue
+        excluded_def <- if (is.null(input$filter_by_excluded)) FALSE else input$filter_by_excluded
+        identified_def <- if (is.null(input$filter_by_identified)) FALSE else input$filter_by_identified
+        cutoff_def <- if (is.null(input$qvalue_cutoff)) 0.01 else input$qvalue_cutoff
+        
+        max_feature_def <- if (is.null(input$max_feature_count)) 20 else input$max_feature_count
+        unique_peps_def <- if (is.null(input$filter_unique_peptides)) FALSE else input$filter_unique_peptides
+        agg_psms_def <- if (is.null(input$aggregate_psms)) FALSE else input$aggregate_psms
+        few_obs_def <- if (is.null(input$filter_few_obs)) FALSE else input$filter_few_obs
+        
+        tagList(
+          create_spectronaut_large_filter_options(session$ns, excluded_def, identified_def, qval_def),
+          if (qval_def) create_spectronaut_qvalue_cutoff_ui(session$ns, cutoff_def),
+          create_spectronaut_large_bottom_ui(session$ns, max_feature_def, unique_peps_def, agg_psms_def, few_obs_def)
+        )
+      } else {
+        NULL
+      }
     })
     
     # toggle ui (DDA DIA SRM)
@@ -276,63 +305,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
 
 
     get_data = eventReactive(input$proceed1, {
-      data_source <- .get_data_source_type(input$filetype, input$big_file_spec)
-      
-      if (data_source == "big_spectronaut") {
-        # Ensure a file has been selected via the local browser
-        req(length(local_big_file_path()) > 0)
-
-        # Show a busy indicator as this might take time
-        shinybusy::show_modal_spinner(
-          spin = "fading-circle",
-          text = "Processing large Spectronaut file..."
-        )
-
-        # Define the output path using a temporary file.
-        #currently can't use the timeporary file because bigSpectronauttoMSstatsFormat modifies the filepath internally 
-        #temp_output_path <- tempfile(fileext = ".csv")
-        
-
-        # Call the big file conversion function from MSstatsConvert
-        converted_data <- MSstatsBig::bigSpectronauttoMSstatsFormat(
-          input_file = local_big_file_path(),
-          output_file_name = "output_file.csv",
-          backend = "arrow",
-          filter_by_excluded = input$filter_by_excluded,
-          filter_by_identified = input$filter_by_identified,
-          filter_by_qvalue = input$filter_by_qvalue,
-          qvalue_cutoff = input$qvalue_cutoff,
-          max_feature_count = input$max_feature_count,
-          filter_unique_peptides = input$filter_unique_peptides,
-          aggregate_psms = input$aggregate_psms,
-          filter_few_obs = input$filter_few_obs
-        )
-        
-        # Attempt to load the data into memory. 
-        # If the data is too large for RAM, this will catch the allocation error.
-        converted_data <- tryCatch({
-          dplyr::collect(converted_data)
-        }, error = function(e) {
-          shinybusy::remove_modal_spinner()
-          showNotification(
-            paste("Memory Error: The dataset is too large to process in-memory.", e$message),
-            type = "error",
-            duration = NULL
-          )
-          return(NULL)
-        })
-        
-        if (is.null(converted_data)) return(NULL)
-        
-        # Remove the busy indicator
-        shinybusy::remove_modal_spinner()
-
-        return(converted_data)
-      } else {
-        # For all other cases (non-spec files, or standard spec uploads),
-        # use the existing getData function.
-        getData(input)
-      }
+      getData(input)
     })
 
 

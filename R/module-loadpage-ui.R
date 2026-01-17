@@ -282,58 +282,67 @@ create_diann_uploads <- function(ns) {
 #' Create Spectronaut file uploads
 #' @noRd
 create_spectronaut_uploads <- function(ns) {
-  uiOutput(ns("spectronaut_upload_ui"))
+  tagList(
+    uiOutput(ns("spectronaut_header_ui")),
+    uiOutput(ns("spectronaut_file_selection_ui")),
+    uiOutput(ns("spectronaut_options_ui"))
+  )
 }
 
-#' Create content for Spectronaut upload UI
-#' @param ns Namespace function
-#' @param is_web_server Boolean indicating if running on web server
+#' Create Spectronaut header
 #' @noRd
-create_spectronaut_ui_content <- function(ns, is_web_server) {
-  if (!is_web_server) {
-    tagList(
-      h4("4. Upload MSstats scheme output from Spectronaut"),
-      
-      # Checkbox to switch between upload methods
-      checkboxInput(ns("big_file_spec"), "Large file mode"),
-      
-      # Standard fileInput, shown when checkbox is NOT checked
-      conditionalPanel(
-        condition = paste0("!input['", ns("big_file_spec"), "']"),
-        fileInput(ns('specdata'), "", multiple = FALSE, accept = NULL)
-      ),
-      
-      # Local browser button, shown when checkbox IS checked
-      conditionalPanel(
-        condition = paste0("input['", ns("big_file_spec"), "']"),
-        shinyFiles::shinyFilesButton(ns("big_file_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
-        verbatimTextOutput(ns("specdata_big_path")),
-        tags$hr(),
-        h4("Options for large file processing"),
-        checkboxInput(ns("filter_by_excluded"), "Filter by excluded from quantification", value = FALSE),
-        checkboxInput(ns("filter_by_identified"), "Filter by identified", value = FALSE),
-        checkboxInput(ns("filter_by_qvalue"), "Filter by q-value", value = TRUE),
-        conditionalPanel(
-          condition = paste0("input['", ns("filter_by_qvalue"), "']"),
-          numericInput(ns("qvalue_cutoff"), "Q-value cutoff", value = 0.01, min = 0, max = 1, step = 0.01)
-        ),
-        numericInput(ns("max_feature_count"), "Max feature count", value = 20, min = 1),
-        checkboxInput(ns("filter_unique_peptides"), "Use unique peptides", value = FALSE),
-        checkboxInput(ns("aggregate_psms"), "Aggregate PSMs to peptides", value = FALSE),
-        checkboxInput(ns("filter_few_obs"), "Filter features with few observations", value = FALSE)
-      ),
-      
-      create_separator_buttons(ns, "sep_specdata")
-    )
-  } else {
-    tagList(
-      h4("4. Upload MSstats scheme output from Spectronaut"),
-      
-      fileInput(ns('specdata'), "", multiple = FALSE, accept = NULL),
-      
-      create_separator_buttons(ns, "sep_specdata")
-    )
-  }
+create_spectronaut_header <- function() {
+  h4("4. Upload MSstats scheme output from Spectronaut")
+}
+
+#' Create Spectronaut mode selector (Local only)
+#' @noRd
+create_spectronaut_mode_selector <- function(ns, selected = FALSE) {
+  checkboxInput(ns("big_file_spec"), "Large file mode", value = selected)
+}
+
+#' Create Spectronaut standard file input
+#' @noRd
+create_spectronaut_standard_ui <- function(ns) {
+  fileInput(ns('specdata'), "", multiple = FALSE, accept = NULL)
+}
+
+#' Create Spectronaut large file selection UI
+#' @noRd
+create_spectronaut_large_file_ui <- function(ns) {
+  tagList(
+    shinyFiles::shinyFilesButton(ns("big_file_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
+    verbatimTextOutput(ns("specdata_big_path"))
+  )
+}
+
+#' Create Spectronaut large file filter options
+#' @noRd
+create_spectronaut_large_filter_options <- function(ns, excluded_def = FALSE, identified_def = FALSE, qval_def = TRUE) {
+  tagList(
+    tags$hr(),
+    h4("Options for large file processing"),
+    checkboxInput(ns("filter_by_excluded"), "Filter by excluded from quantification", value = excluded_def),
+    checkboxInput(ns("filter_by_identified"), "Filter by identified", value = identified_def),
+    checkboxInput(ns("filter_by_qvalue"), "Filter by q-value", value = qval_def)
+  )
+}
+
+#' Create Spectronaut Q-value cutoff input
+#' @noRd
+create_spectronaut_qvalue_cutoff_ui <- function(ns, cutoff_def = 0.01) {
+  numericInput(ns("qvalue_cutoff"), "Q-value cutoff", value = cutoff_def, min = 0, max = 1, step = 0.01)
+}
+
+#' Create Spectronaut large file options (Bottom part)
+#' @noRd
+create_spectronaut_large_bottom_ui <- function(ns, max_feature_def = 20, unique_peps_def = FALSE, agg_psms_def = FALSE, few_obs_def = FALSE) {
+  tagList(
+    numericInput(ns("max_feature_count"), "Max feature count", value = max_feature_def, min = 1),
+    checkboxInput(ns("filter_unique_peptides"), "Use unique peptides", value = unique_peps_def),
+    checkboxInput(ns("aggregate_psms"), "Aggregate PSMs to peptides", value = agg_psms_def),
+    checkboxInput(ns("filter_few_obs"), "Filter features with few observations", value = few_obs_def)
+  )
 }
 
 #' Create PTM FragPipe uploads

@@ -501,33 +501,95 @@ getData <- function(input) {
     }
     else if(input$filetype == 'spec') {
       
-      # if (input$subset){
-      #   data = read.csv.sql(infile$datapath, sep="\t",
-      #                       sql = "select * from file order by random() limit 100000")
-      # } else {
-      data = read.csv(input$specdata$datapath, sep=input$sep_specdata, check.names = FALSE)
-      # }
-      # Base arguments for the Spectronaut converter
-      converter_args = list(
-        input = data,
-        annotation = getAnnot(input),
-        filter_with_Qvalue = input$q_val,
-        qvalue_cutoff = input$q_cutoff,
-        removeProtein_with1Feature = input$remove,
-        use_log_file = FALSE
-      )
-      
-      if (isTRUE(input$calculate_anomaly_scores) && !is.null(input$run_order_file)) {
-        # Add anomaly score parameters only if the checkbox is checked
-        converter_args$calculateAnomalyScores = TRUE
-        converter_args$runOrder = read.csv(input$run_order_file$datapath)
-        converter_args$anomalyModelFeatures = c("FG.ShapeQualityScore (MS2)", "FG.ShapeQualityScore (MS1)", "EGDeltaRT")
-        converter_args$anomalyModelFeatureTemporal = c("mean_decrease", "mean_decrease", "dispersion_increase")
-        converter_args$n_trees = 100
-        converter_args$max_depth = "auto"
-        converter_args$numberOfCores = 1
+      if (isTRUE(input$big_file_spec)) {
+        # Logic for big Spectronaut files
+        # Parse the file path from shinyFiles input
+        volumes <- shinyFiles::getVolumes()()
+        path_info <- shinyFiles::parseFilePaths(volumes, input$big_file_browse)
+        local_big_file_path <- if (nrow(path_info) > 0) path_info$datapath else NULL
+        
+        # Validate inputs
+        if (!is.numeric(input$qvalue_cutoff) || is.na(input$qvalue_cutoff) || input$qvalue_cutoff < 0 || input$qvalue_cutoff > 1) {
+          showNotification("Error: qvalue_cutoff must be between 0 and 1.", type = "error")
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+
+        if (!is.numeric(input$max_feature_count) || is.na(input$max_feature_count) || input$max_feature_count <= 0) {
+          showNotification("Error: max_feature_count must be a positive number.", type = "error")
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+
+        if (is.null(local_big_file_path) || !file.exists(local_big_file_path)) {
+          showNotification("Error: The selected file does not exist or is not readable.", type = "error")
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+        
+        shinybusy::update_modal_spinner(text = "Processing large Spectronaut file...")
+        
+        # Call the big file conversion function from MSstatsConvert
+        converted_data <- MSstatsBig::bigSpectronauttoMSstatsFormat(
+          input_file = local_big_file_path,
+          output_file_name = "output_file.csv",
+          backend = "arrow",
+          filter_by_excluded = input$filter_by_excluded,
+          filter_by_identified = input$filter_by_identified,
+          filter_by_qvalue = input$filter_by_qvalue,
+          qvalue_cutoff = input$qvalue_cutoff,
+          max_feature_count = input$max_feature_count,
+          filter_unique_peptides = input$filter_unique_peptides,
+          aggregate_psms = input$aggregate_psms,
+          filter_few_obs = input$filter_few_obs
+        )
+        
+        # Attempt to load the data into memory. 
+        mydata <- tryCatch({
+          dplyr::collect(converted_data)
+        }, error = function(e) {
+          showNotification(
+            paste("Memory Error: The dataset is too large to process in-memory.", e$message),
+            type = "error",
+            duration = NULL
+          )
+          return(NULL)
+        })
+        
+        if (is.null(mydata)) {
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+        
+      } else {
+        # if (input$subset){
+        #   data = read.csv.sql(infile$datapath, sep="\t",
+        #                       sql = "select * from file order by random() limit 100000")
+        # } else {
+        data = read.csv(input$specdata$datapath, sep=input$sep_specdata, check.names = FALSE)
+        # }
+        # Base arguments for the Spectronaut converter
+        converter_args = list(
+          input = data,
+          annotation = getAnnot(input),
+          filter_with_Qvalue = input$q_val,
+          qvalue_cutoff = input$q_cutoff,
+          removeProtein_with1Feature = input$remove,
+          use_log_file = FALSE
+        )
+        
+        if (isTRUE(input$calculate_anomaly_scores) && !is.null(input$run_order_file)) {
+          # Add anomaly score parameters only if the checkbox is checked
+          converter_args$calculateAnomalyScores = TRUE
+          converter_args$runOrder = read.csv(input$run_order_file$datapath)
+          converter_args$anomalyModelFeatures = c("FG.ShapeQualityScore (MS2)", "FG.ShapeQualityScore (MS1)", "EGDeltaRT")
+          converter_args$anomalyModelFeatureTemporal = c("mean_decrease", "mean_decrease", "dispersion_increase")
+          converter_args$n_trees = 100
+          converter_args$max_depth = "auto"
+          converter_args$numberOfCores = 1
+        }
+        mydata = do.call(SpectronauttoMSstatsFormat, converter_args)
       }
-      mydata = do.call(SpectronauttoMSstatsFormat, converter_args)
     }
     else if(input$filetype == 'diann') {
       if (getFileExtension(input$dianndata$name) %in% c("parquet", "pq")) {

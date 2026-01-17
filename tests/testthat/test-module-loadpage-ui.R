@@ -394,43 +394,54 @@ test_that("file inputs have proper accept attributes", {
   expect_true(grepl('accept=.*csv', annot_html))
 })
 
-test_that("Spectronaut big file UI is configured correctly", {
-  # This test checks for the existence and conditional logic of UI elements 
-  # related to the Spectronaut big file workflow.
-  result <- loadpageUI("test")
-  html_output <- as.character(result)
+# Tests for Spectronaut specific UI components
+test_that("create_spectronaut_uploads creates UI outputs", {
+  uploads <- create_spectronaut_uploads(NS("test"))
+  uploads_html <- as.character(uploads)
   
-  # 1. Check for the presence of the big file checkbox itself
-  expect_true(grepl("test-big_file_spec", html_output), 
-              info = "Spectronaut 'big file' checkbox is missing.")
+  expect_true(grepl("spectronaut_header_ui", uploads_html))
+  expect_true(grepl("spectronaut_file_selection_ui", uploads_html))
+  expect_true(grepl("spectronaut_options_ui", uploads_html))
+})
+
+test_that("Spectronaut helper functions create correct UI elements", {
+  # Header
+  header <- create_spectronaut_header()
+  expect_true(grepl("Upload MSstats scheme output from Spectronaut", as.character(header)))
   
-  # 2. Check that the new processing options are present in the HTML.
-  new_options_labels <- c(
-    "Filter by excluded from quantification",
-    "Filter by q-value",
-    "Max feature count",
-    "Aggregate PSMs to peptides"
-  )
-  for(label in new_options_labels) {
-    expect_true(grepl(label, html_output), info = paste("Missing Spectronaut big file option:", label))
-  }
+  # Mode selector
+  mode_sel <- create_spectronaut_mode_selector(NS("test"))
+  expect_true(grepl("Large file mode", as.character(mode_sel)))
+  expect_true(grepl("checkbox", as.character(mode_sel)))
   
-  # 3. Verify the conditional logic for hiding/showing related panels.
-  # Note: HTML entities encode ' as &#39;, && as &amp;&amp;, and || as ||
+  # Standard UI
+  std_ui <- create_spectronaut_standard_ui(NS("test"))
+  expect_true(grepl("file", as.character(std_ui)))
+  expect_true(grepl("specdata", as.character(std_ui)))
   
-  # Annotation upload should be hidden for big spec files.
-  # Condition contains: (input['loadpage-filetype'] == 'spec' && !input['loadpage-big_file_spec'])
-  expected_annot_condition <- "input[&#39;loadpage-filetype&#39;] == &#39;spec&#39; &amp;&amp; !input[&#39;loadpage-big_file_spec&#39;]"
-  expect_true(
-    grepl(expected_annot_condition, html_output, fixed = TRUE),
-    info = "Conditional logic to hide annotation upload for big Spectronaut files is incorrect."
-  )
+  # Large file UI
+  large_ui <- create_spectronaut_large_file_ui(NS("test"))
+  large_ui_html <- as.character(large_ui)
+  expect_true(grepl("Browse for local file", large_ui_html))
+  expect_true(grepl("specdata_big_path", large_ui_html))
   
-  # Standard pre-processing should be hidden for big spec files.
-  # Condition contains: (input['loadpage-filetype'] != 'spec' || !input['loadpage-big_file_spec'])
-  expected_preprocess_condition <- "input[&#39;loadpage-filetype&#39;] != &#39;spec&#39; || !input[&#39;loadpage-big_file_spec&#39;]"
-  expect_true(
-    grepl(expected_preprocess_condition, html_output, fixed = TRUE),
-    info = "Conditional logic to hide pre-processing options for big Spectronaut files is incorrect."
-  )
+  # Filter options
+  filter_opts <- create_spectronaut_large_filter_options(NS("test"))
+  opts_html <- as.character(filter_opts)
+  expect_true(grepl("Filter by excluded", opts_html))
+  expect_true(grepl("Filter by identified", opts_html))
+  expect_true(grepl("Filter by q-value", opts_html))
+  
+  # Q-value cutoff
+  qval_ui <- create_spectronaut_qvalue_cutoff_ui(NS("test"))
+  expect_true(grepl("Q-value cutoff", as.character(qval_ui)))
+  expect_true(grepl("0.01", as.character(qval_ui)))
+  
+  # Bottom UI
+  bottom_ui <- create_spectronaut_large_bottom_ui(NS("test"))
+  bottom_html <- as.character(bottom_ui)
+  expect_true(grepl("Max feature count", bottom_html))
+  expect_true(grepl("Use unique peptides", bottom_html))
+  expect_true(grepl("Aggregate PSMs", bottom_html))
+  expect_true(grepl("Filter features with few observations", bottom_html))
 })
