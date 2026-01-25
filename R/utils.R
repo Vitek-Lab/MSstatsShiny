@@ -592,6 +592,57 @@ getData <- function(input) {
       }
     }
     else if(input$filetype == 'diann') {
+      if (isTRUE(input$big_file_diann)) {
+        # Logic for big DIANN files
+        # Parse the file path from shinyFiles input
+        volumes <- shinyFiles::getVolumes()()
+        path_info <- shinyFiles::parseFilePaths(volumes, input$big_file_browse)
+        local_big_file_path <- if (nrow(path_info) > 0) path_info$datapath else NULL
+        
+        if (!is.numeric(input$max_feature_count) || is.na(input$max_feature_count) || input$max_feature_count <= 0) {
+          showNotification("Error: max_feature_count must be a positive number.", type = "error")
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+        
+        if (is.null(local_big_file_path) || !file.exists(local_big_file_path)) {
+          showNotification("Error: The selected file does not exist or is not readable.", type = "error")
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+        
+        shinybusy::update_modal_spinner(text = "Processing large DIANN file...")
+        
+        # Call the big file conversion function from MSstatsConvert
+        converted_data <- MSstatsBig::bigDIANNtoMSstatsFormat(
+          input_file = local_big_file_path,
+          output_file_name = "output_file.csv",
+          backend = "arrow",
+          MBR = isTRUE(input$diann_MBR),
+          quantificationColumn = input$diann_quantificationColumn,
+          max_feature_count = input$max_feature_count,
+          filter_unique_peptides = input$filter_unique_peptides,
+          aggregate_psms = input$aggregate_psms,
+          filter_few_obs = input$filter_few_obs
+        )
+        
+        # Attempt to load the data into memory. 
+        mydata <- tryCatch({
+          dplyr::collect(converted_data)
+        }, error = function(e) {
+          showNotification(
+            paste("Memory Error: The dataset is too large to process in-memory.", e$message),
+            type = "error",
+            duration = NULL
+          )
+          return(NULL)
+        })
+        
+        if (is.null(mydata)) {
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+      } else {
       if (getFileExtension(input$dianndata$name) %in% c("parquet", "pq")) {
         data = read_parquet(input$dianndata$datapath)
       } else {
@@ -620,6 +671,7 @@ getData <- function(input) {
                                     use_log_file = FALSE,
                                     quantificationColumn = quantificationColumn
       )
+      }
       print("Mydata from mstats")
       print(mydata)
     }

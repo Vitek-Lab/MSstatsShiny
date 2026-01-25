@@ -38,7 +38,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
       })
       
       # Render just the filename for user feedback in the UI.
-      output$specdata_big_path <- renderPrint({
+      output$big_file_path <- renderPrint({
         req(nrow(local_file_info()) > 0)
         cat(local_file_info()$name)
       })
@@ -70,6 +70,52 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
       }
       
       tagList(ui_elements, create_separator_buttons(session$ns, "sep_specdata"))
+    })
+    
+    output$diann_header_ui <- renderUI({
+      req(input$filetype == 'diann', input$BIO != 'PTM')
+      create_diann_header()
+    })
+    
+    output$diann_file_selection_ui <- renderUI({
+      req(input$filetype == 'diann', input$BIO != 'PTM')
+      
+      ui_elements <- tagList()
+      
+      if (!is_web_server) {
+        ui_elements <- tagList(ui_elements, create_diann_mode_selector(session$ns, isTRUE(input$big_file_diann)))
+        
+        if (isTRUE(input$big_file_diann)) {
+          ui_elements <- tagList(ui_elements, create_diann_large_file_ui(session$ns))
+        } else {
+          ui_elements <- tagList(ui_elements, create_diann_standard_ui(session$ns))
+        }
+      } else {
+        ui_elements <- tagList(ui_elements, create_diann_standard_ui(session$ns))
+      }
+      
+      ui_elements
+    })
+    
+    output$diann_options_ui <- renderUI({
+      req(input$filetype == 'diann', input$BIO != 'PTM')
+      
+      if (!is_web_server && isTRUE(input$big_file_diann)) {
+        mbr_def <- if (is.null(input$diann_MBR)) TRUE else input$diann_MBR
+        quant_col_def <- if (is.null(input$diann_quantificationColumn)) "Fragment.Quant.Corrected" else input$diann_quantificationColumn
+        
+        max_feature_def <- if (is.null(input$max_feature_count)) 100 else input$max_feature_count
+        unique_peps_def <- if (is.null(input$filter_unique_peptides)) FALSE else input$filter_unique_peptides
+        agg_psms_def <- if (is.null(input$aggregate_psms)) FALSE else input$aggregate_psms
+        few_obs_def <- if (is.null(input$filter_few_obs)) FALSE else input$filter_few_obs
+        
+        tagList(
+          create_diann_large_filter_options(session$ns, mbr_def, quant_col_def),
+          create_diann_large_bottom_ui(session$ns, max_feature_def, unique_peps_def, agg_psms_def, few_obs_def)
+        )
+      } else {
+        NULL
+      }
     })
     
     output$spectronaut_options_ui <- renderUI({
@@ -195,7 +241,9 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
                 enable("proceed1")
               }
             } else if (input$filetype == "diann") {
-              if(!is.null(input$dianndata) && !is.null(input$sep_dianndata)) { # && !is.null(input$annot)
+              diann_regular_file_ok <- !isTRUE(input$big_file_diann) && !is.null(input$dianndata) && !is.null(input$sep_dianndata)
+              diann_big_file_ok <- isTRUE(input$big_file_diann) && length(local_big_file_path()) > 0
+              if(diann_regular_file_ok || diann_big_file_ok) {
                 enable("proceed1")
               }
             }

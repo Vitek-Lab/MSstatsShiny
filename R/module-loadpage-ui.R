@@ -271,11 +271,10 @@ create_skyline_uploads <- function(ns) {
 #' Create DIANN file uploads
 #' @noRd
 create_diann_uploads <- function(ns) {
-  conditionalPanel(
-    condition = "input['loadpage-filetype'] == 'diann' && input['loadpage-BIO'] != 'PTM'",
-    h4("4. Upload MSstats report from DIANN"),
-    fileInput(ns('dianndata'), "", multiple = FALSE, accept = NULL),
-    create_separator_buttons(ns, "sep_dianndata")
+  tagList(
+    uiOutput(ns("diann_header_ui")),
+    uiOutput(ns("diann_file_selection_ui")),
+    uiOutput(ns("diann_options_ui"))
   )
 }
 
@@ -295,10 +294,22 @@ create_spectronaut_header <- function() {
   h4("4. Upload MSstats scheme output from Spectronaut")
 }
 
+#' Create DIANN header
+#' @noRd
+create_diann_header <- function() {
+  h4("4. Upload MSstats report from DIANN")
+}
+
 #' Create Spectronaut mode selector (Local only)
 #' @noRd
 create_spectronaut_mode_selector <- function(ns, selected = FALSE) {
   checkboxInput(ns("big_file_spec"), "Large file mode", value = selected)
+}
+
+#' Create DIANN mode selector (Local only)
+#' @noRd
+create_diann_mode_selector <- function(ns, selected = FALSE) {
+  checkboxInput(ns("big_file_diann"), "Large file mode", value = selected)
 }
 
 #' Create Spectronaut standard file input
@@ -307,12 +318,30 @@ create_spectronaut_standard_ui <- function(ns) {
   fileInput(ns('specdata'), "", multiple = FALSE, accept = NULL)
 }
 
+#' Create DIANN standard file input
+#' @noRd
+create_diann_standard_ui <- function(ns) {
+  tagList(
+    fileInput(ns('dianndata'), "", multiple = FALSE, accept = NULL),
+    create_separator_buttons(ns, "sep_dianndata")
+  )
+}
+
 #' Create Spectronaut large file selection UI
 #' @noRd
 create_spectronaut_large_file_ui <- function(ns) {
   tagList(
     shinyFiles::shinyFilesButton(ns("big_file_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
-    verbatimTextOutput(ns("specdata_big_path"))
+    verbatimTextOutput(ns("big_file_path"))
+  )
+}
+
+#' Create DIANN large file selection UI
+#' @noRd
+create_diann_large_file_ui <- function(ns) {
+  tagList(
+    shinyFiles::shinyFilesButton(ns("big_file_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
+    verbatimTextOutput(ns("big_file_path"))
   )
 }
 
@@ -328,6 +357,17 @@ create_spectronaut_large_filter_options <- function(ns, excluded_def = FALSE, id
   )
 }
 
+#' Create DIANN large file filter options
+#' @noRd
+create_diann_large_filter_options <- function(ns, mbr_def = TRUE, quant_col_def = "Fragment.Quant.Corrected") {
+  tagList(
+    tags$hr(),
+    h4("Options for large file processing"),
+    checkboxInput(ns("diann_MBR"), "MBR Enabled", value = mbr_def),
+    textInput(ns("diann_quantificationColumn"), "Quantification Column", value = quant_col_def)
+  )
+}
+
 #' Create Spectronaut Q-value cutoff input
 #' @noRd
 create_spectronaut_qvalue_cutoff_ui <- function(ns, cutoff_def = 0.01) {
@@ -337,6 +377,17 @@ create_spectronaut_qvalue_cutoff_ui <- function(ns, cutoff_def = 0.01) {
 #' Create Spectronaut large file options (Bottom part)
 #' @noRd
 create_spectronaut_large_bottom_ui <- function(ns, max_feature_def = 20, unique_peps_def = FALSE, agg_psms_def = FALSE, few_obs_def = FALSE) {
+  tagList(
+    numericInput(ns("max_feature_count"), "Max feature count", value = max_feature_def, min = 1),
+    checkboxInput(ns("filter_unique_peptides"), "Use unique peptides", value = unique_peps_def),
+    checkboxInput(ns("aggregate_psms"), "Aggregate PSMs to peptides", value = agg_psms_def),
+    checkboxInput(ns("filter_few_obs"), "Filter features with few observations", value = few_obs_def)
+  )
+}
+
+#' Create DIANN large file options (Bottom part)
+#' @noRd
+create_diann_large_bottom_ui <- function(ns, max_feature_def = 100, unique_peps_def = FALSE, agg_psms_def = FALSE, few_obs_def = FALSE) {
   tagList(
     numericInput(ns("max_feature_count"), "Max feature count", value = max_feature_def, min = 1),
     checkboxInput(ns("filter_unique_peptides"), "Use unique peptides", value = unique_peps_def),
