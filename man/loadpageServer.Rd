@@ -4,12 +4,14 @@
 \alias{loadpageServer}
 \title{Loadpage Server module for data selection and upload server.}
 \usage{
-loadpageServer(id, parent_session)
+loadpageServer(id, parent_session, is_web_server = FALSE)
 }
 \arguments{
 \item{id}{namespace prefix for the module}
 
 \item{parent_session}{session of the main calling module}
+
+\item{is_web_server}{boolean indicating if the app is running on a web server}
 }
 \value{
 input object with user selected options

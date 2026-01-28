@@ -1437,3 +1437,93 @@ describe("getData for Spectronaut input with anomaly scores", {
     expect_null(result_args$anomalyModelFeatures)
   })
 })
+
+describe("getData for Big Spectronaut", {
+  
+  # Common mock input for big spec
+  mock_input_big <- list(
+    filetype = "spec",
+    big_file_spec = TRUE,
+    big_file_browse = list(files = list("file.csv")),
+    qvalue_cutoff = 0.01,
+    max_feature_count = 20,
+    filter_by_excluded = FALSE,
+    filter_by_identified = FALSE,
+    filter_by_qvalue = TRUE,
+    filter_unique_peptides = TRUE,
+    aggregate_psms = TRUE,
+    filter_few_obs = TRUE,
+    BIO = "Protein",
+    DDA_DIA = "DIA"
+  )
+  
+  # Mock data to return
+  mock_arrow_obj <- list(dummy = "arrow")
+  mock_df <- data.frame(ProteinName = "P1", Intensity = 100)
+  
+  test_that("Valid input returns data", {
+    # Mocks
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat", mock_arrow_obj)
+    stub(getData, "dplyr::collect", mock_df)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    
+    res <- getData(mock_input_big)
+    expect_equal(res, mock_df)
+  })
+  
+  test_that("Invalid qvalue_cutoff returns NULL", {
+    bad_input <- mock_input_big
+    bad_input$qvalue_cutoff <- 1.5
+    
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "showNotification", function(msg, ...) expect_match(msg, "qvalue_cutoff"))
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+
+    res <- getData(bad_input)
+    expect_null(res)
+  })
+  
+  test_that("Invalid max_feature_count returns NULL", {
+    bad_input <- mock_input_big
+    bad_input$max_feature_count <- 0
+    
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "showNotification", function(msg, ...) expect_match(msg, "max_feature_count"))
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    
+    res <- getData(bad_input)
+    expect_null(res)
+  })
+  
+  test_that("File not found returns NULL", {
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "nonexistent.csv"))
+    stub(getData, "file.exists", FALSE)
+    stub(getData, "showNotification", function(msg, ...) expect_match(msg, "does not exist"))
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    
+    res <- getData(mock_input_big)
+    expect_null(res)
+  })
+  
+  test_that("Memory error returns NULL", {
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat", mock_arrow_obj)
+    stub(getData, "dplyr::collect", function(...) stop("Memory allocation failed"))
+    stub(getData, "showNotification", function(msg, ...) expect_match(msg, "Memory Error"))
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    
+    res <- getData(mock_input_big)
+    expect_null(res)
+  })
+})

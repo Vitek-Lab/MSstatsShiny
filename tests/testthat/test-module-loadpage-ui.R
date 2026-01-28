@@ -393,3 +393,55 @@ test_that("file inputs have proper accept attributes", {
   annot_html <- as.character(annot_input)
   expect_true(grepl('accept=.*csv', annot_html))
 })
+
+# Tests for Spectronaut specific UI components
+test_that("create_spectronaut_uploads creates UI outputs", {
+  uploads <- create_spectronaut_uploads(NS("test"))
+  uploads_html <- as.character(uploads)
+  
+  expect_true(grepl("spectronaut_header_ui", uploads_html))
+  expect_true(grepl("spectronaut_file_selection_ui", uploads_html))
+  expect_true(grepl("spectronaut_options_ui", uploads_html))
+})
+
+test_that("Spectronaut helper functions create correct UI elements", {
+  # Header
+  header <- create_spectronaut_header()
+  expect_true(grepl("Upload MSstats scheme output from Spectronaut", as.character(header)))
+  
+  # Mode selector
+  mode_sel <- create_spectronaut_mode_selector(NS("test"))
+  expect_true(grepl("Large file mode", as.character(mode_sel)))
+  expect_true(grepl("checkbox", as.character(mode_sel)))
+  
+  # Standard UI
+  std_ui <- create_spectronaut_standard_ui(NS("test"))
+  expect_true(grepl("file", as.character(std_ui)))
+  expect_true(grepl("specdata", as.character(std_ui)))
+  
+  # Large file UI
+  large_ui <- create_spectronaut_large_file_ui(NS("test"))
+  large_ui_html <- as.character(large_ui)
+  expect_true(grepl("Browse for local file", large_ui_html))
+  expect_true(grepl("specdata_big_path", large_ui_html))
+  
+  # Filter options
+  filter_opts <- create_spectronaut_large_filter_options(NS("test"))
+  opts_html <- as.character(filter_opts)
+  expect_true(grepl("Filter by excluded", opts_html))
+  expect_true(grepl("Filter by identified", opts_html))
+  expect_true(grepl("Filter by q-value", opts_html))
+  
+  # Q-value cutoff
+  qval_ui <- create_spectronaut_qvalue_cutoff_ui(NS("test"))
+  expect_true(grepl("Q-value cutoff", as.character(qval_ui)))
+  expect_true(grepl("0.01", as.character(qval_ui)))
+  
+  # Bottom UI
+  bottom_ui <- create_spectronaut_large_bottom_ui(NS("test"))
+  bottom_html <- as.character(bottom_ui)
+  expect_true(grepl("Max feature count", bottom_html))
+  expect_true(grepl("Use unique peptides", bottom_html))
+  expect_true(grepl("Aggregate PSMs", bottom_html))
+  expect_true(grepl("Filter features with few observations", bottom_html))
+})

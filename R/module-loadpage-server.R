@@ -5,6 +5,7 @@
 #'
 #' @param id namespace prefix for the module
 #' @param parent_session session of the main calling module
+#' @param is_web_server boolean indicating if the app is running on a web server
 #'
 #' @return input object with user selected options
 #'
@@ -12,8 +13,89 @@
 #' @examples
 #' NA
 #' 
-loadpageServer <- function(id, parent_session) {
+loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
   moduleServer(id, function(input, output, session) {
+    
+    # == shinyFiles LOGIC FOR LOCAL FILE BROWSER =================================
+    # Define volumes for the file selection.
+    if (!is_web_server) {
+      volumes <- shinyFiles::getVolumes()()
+      
+      # Server-side logic for the shinyFiles button
+      shinyFiles::shinyFileChoose(input, "big_file_browse", roots = volumes, session = session)
+      
+      # Reactive to parse and store the full file information (path, name, etc.)
+      # This is efficient because parseFilePaths is only called once.
+      local_file_info <- reactive({
+        req(is.list(input$big_file_browse))
+        shinyFiles::parseFilePaths(volumes, input$big_file_browse)
+      })
+      
+      # Reactive to get just the full datapath, for use in backend processing.
+      local_big_file_path <- reactive({
+        path_info <- local_file_info()
+        if (nrow(path_info) > 0) path_info$datapath else NULL
+      })
+      
+      # Render just the filename for user feedback in the UI.
+      output$specdata_big_path <- renderPrint({
+        req(nrow(local_file_info()) > 0)
+        cat(local_file_info()$name)
+      })
+    } 
+    else {
+      local_big_file_path <- reactive({ NULL })
+    }
+    
+    output$spectronaut_header_ui <- renderUI({
+      req(input$filetype == 'spec', input$BIO != 'PTM')
+      create_spectronaut_header()
+    })
+    
+    output$spectronaut_file_selection_ui <- renderUI({
+      req(input$filetype == 'spec', input$BIO != 'PTM')
+      
+      ui_elements <- tagList()
+      
+      if (!is_web_server) {
+        ui_elements <- tagList(ui_elements, create_spectronaut_mode_selector(session$ns, isTRUE(input$big_file_spec)))
+        
+        if (isTRUE(input$big_file_spec)) {
+          ui_elements <- tagList(ui_elements, create_spectronaut_large_file_ui(session$ns))
+        } else {
+          ui_elements <- tagList(ui_elements, create_spectronaut_standard_ui(session$ns))
+        }
+      } else {
+        ui_elements <- tagList(ui_elements, create_spectronaut_standard_ui(session$ns))
+      }
+      
+      tagList(ui_elements, create_separator_buttons(session$ns, "sep_specdata"))
+    })
+    
+    output$spectronaut_options_ui <- renderUI({
+      req(input$filetype == 'spec', input$BIO != 'PTM')
+      
+      if (!is_web_server && isTRUE(input$big_file_spec)) {
+        qval_def <- if (is.null(input$filter_by_qvalue)) TRUE else input$filter_by_qvalue
+        excluded_def <- if (is.null(input$filter_by_excluded)) FALSE else input$filter_by_excluded
+        identified_def <- if (is.null(input$filter_by_identified)) FALSE else input$filter_by_identified
+        cutoff_def <- if (is.null(input$qvalue_cutoff)) 0.01 else input$qvalue_cutoff
+        
+        max_feature_def <- if (is.null(input$max_feature_count)) 20 else input$max_feature_count
+        unique_peps_def <- if (is.null(input$filter_unique_peptides)) FALSE else input$filter_unique_peptides
+        agg_psms_def <- if (is.null(input$aggregate_psms)) FALSE else input$aggregate_psms
+        few_obs_def <- if (is.null(input$filter_few_obs)) FALSE else input$filter_few_obs
+        
+        tagList(
+          create_spectronaut_large_filter_options(session$ns, excluded_def, identified_def, qval_def),
+          if (qval_def) create_spectronaut_qvalue_cutoff_ui(session$ns, cutoff_def),
+          create_spectronaut_large_bottom_ui(session$ns, max_feature_def, unique_peps_def, agg_psms_def, few_obs_def)
+        )
+      } else {
+        NULL
+      }
+    })
+    
     # toggle ui (DDA DIA SRM)
     observe({
       print("bio")
@@ -103,7 +185,9 @@ loadpageServer <- function(id, parent_session) {
                 enable("proceed1")
               }
             } else if (input$filetype == "spec") {
-              if(!is.null(input$specdata) && !is.null(input$sep_specdata)) { # && !is.null(input$annot)
+              spec_regular_file_ok <- !isTRUE(input$big_file_spec) && !is.null(input$specdata)
+              spec_big_file_ok <- isTRUE(input$big_file_spec) && length(local_big_file_path()) > 0
+              if((spec_regular_file_ok || spec_big_file_ok) && !is.null(input$sep_specdata)) {
                 enable("proceed1")
               }
             } else if (input$filetype == "ump") {
