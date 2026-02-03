@@ -773,7 +773,8 @@ library(MSstatsTMT)
 library(MSstatsPTM)\n", sep = "")
   codes = paste(codes, "\n# Package versions\n# MSstats version ", packageVersion("MSstats"),
                 "\n# MSstatsTMT version ", packageVersion("MSstatsTMT"),
-                "\n# MSstatsPTM version ", packageVersion("MSstatsPTM"), sep = "")
+                "\n# MSstatsPTM version ", packageVersion("MSstatsPTM"),
+                "\n# MSstatsBig version ", tryCatch(packageVersion("MSstatsBig"), error = function(e) "Not Installed"), sep = "")
   codes = paste(codes, "\n\n# Read data\n", sep = "")
   if(input$filetype == 'sample') {
     if(input$BIO != "PTM" &&  input$DDA_DIA =='LType' && input$LabelFreeType == "SRM_PRM") {
@@ -895,27 +896,60 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'spec') {
 
-      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from Spectronaut filepath\", header = TRUE, sep = ",input$sep_specdata,")\nannot_file = read.csv(\"insert your annotation filepath\", sep='\t')#Optional\n"
-                    , sep = "")
-
-      codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
-                                       annotation = annot_file #Optional,
-                                       filter_with_Qvalue = TRUE, ## same as default
-                                       qvalue_cutoff = 0.01, ## same as default
-                                       fewMeasurements=\"remove\",
-                                       removeProtein_with1Feature = TRUE,
-                                       use_log_file = FALSE)\n", sep = "")
+      if (isTRUE(input$big_file_spec)) {
+        codes = paste(codes, "library(MSstatsBig)\n", sep = "")
+        codes = paste(codes, "data = MSstatsBig::bigSpectronauttoMSstatsFormat(\n", sep = "")
+        codes = paste(codes, "  input_file = \"insert your large Spectronaut file path\",\n", sep = "")
+        codes = paste(codes, "  output_file_name = \"output_file.csv\",\n", sep = "")
+        codes = paste(codes, "  backend = \"arrow\",\n", sep = "")
+        codes = paste(codes, "  filter_by_excluded = ", input$filter_by_excluded, ",\n", sep = "")
+        codes = paste(codes, "  filter_by_identified = ", input$filter_by_identified, ",\n", sep = "")
+        codes = paste(codes, "  filter_by_qvalue = ", input$filter_by_qvalue, ",\n", sep = "")
+        codes = paste(codes, "  qvalue_cutoff = ", input$qvalue_cutoff, ",\n", sep = "")
+        codes = paste(codes, "  max_feature_count = ", input$max_feature_count, ",\n", sep = "")
+        codes = paste(codes, "  filter_unique_peptides = ", input$filter_unique_peptides, ",\n", sep = "")
+        codes = paste(codes, "  aggregate_psms = ", input$aggregate_psms, ",\n", sep = "")
+        codes = paste(codes, "  filter_few_obs = ", input$filter_few_obs, "\n", sep = "")
+        codes = paste(codes, ")\n", sep = "")
+        codes = paste(codes, "data = dplyr::collect(data)\n", sep = "")
+      } else {
+        codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from Spectronaut filepath\", header = TRUE, sep = ",input$sep_specdata,")\nannot_file = read.csv(\"insert your annotation filepath\", sep='\t')#Optional\n"
+                      , sep = "")
+        codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
+                                         annotation = annot_file #Optional,
+                                         filter_with_Qvalue = TRUE, ## same as default
+                                         qvalue_cutoff = 0.01, ## same as default
+                                         fewMeasurements=\"remove\",
+                                         removeProtein_with1Feature = TRUE,
+                                         use_log_file = FALSE)\n", sep = "")
+      }
     }
     else if(input$filetype == 'diann') {
       
-      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from DIANN filepath\", header = TRUE, sep = '\\t')\nannot_file = read.csv(\"insert your annotation filepath\")#Optional\n"
-                    , sep = "")
-      
-      codes = paste(codes, "data = DIANNtoMSstatsFormat(data,
-                                       annotation = annot_file, #Optional
-                                       qvalue_cutoff = 0.01, ## same as default
-                                       removeProtein_with1Feature = TRUE,
-                                       use_log_file = FALSE)\n", sep = "")
+      if (isTRUE(input$big_file_diann)) {
+        codes = paste(codes, "library(MSstatsBig)\n", sep = "")
+        codes = paste(codes, "data = MSstatsBig::bigDIANNtoMSstatsFormat(\n", sep = "")
+        codes = paste(codes, "  input_file = \"insert your large DIANN file path\",\n", sep = "")
+        codes = paste(codes, "  output_file_name = \"output_file.csv\",\n", sep = "")
+        codes = paste(codes, "  backend = \"arrow\",\n", sep = "")
+        codes = paste(codes, "  MBR = ", isTRUE(input$diann_MBR), ",\n", sep = "")
+        codes = paste(codes, "  quantificationColumn = \"", input$diann_quantificationColumn, "\",\n", sep = "")
+        codes = paste(codes, "  max_feature_count = ", input$max_feature_count, ",\n", sep = "")
+        codes = paste(codes, "  filter_unique_peptides = ", input$filter_unique_peptides, ",\n", sep = "")
+        codes = paste(codes, "  aggregate_psms = ", input$aggregate_psms, ",\n", sep = "")
+        codes = paste(codes, "  filter_few_obs = ", input$filter_few_obs, "\n", sep = "")
+        codes = paste(codes, ")\n", sep = "")
+        codes = paste(codes, "data = dplyr::collect(data)\n", sep = "")
+      } else {
+        codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from DIANN filepath\", header = TRUE, sep = '\\t')\nannot_file = read.csv(\"insert your annotation filepath\")#Optional\n"
+                      , sep = "")
+        
+        codes = paste(codes, "data = DIANNtoMSstatsFormat(data,
+                                         annotation = annot_file, #Optional
+                                         qvalue_cutoff = 0.01, ## same as default
+                                         removeProtein_with1Feature = TRUE,
+                                         use_log_file = FALSE)\n", sep = "")
+      }
     }
     else if(input$filetype == 'open') {
 
