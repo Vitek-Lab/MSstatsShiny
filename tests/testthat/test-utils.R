@@ -1527,3 +1527,78 @@ describe("getData for Big Spectronaut", {
     expect_null(res)
   })
 })
+
+describe("getData for Big DIANN", {
+  
+  # Common mock input for big diann
+  mock_input_big_diann <- list(
+    filetype = "diann",
+    big_file_diann = TRUE,
+    big_file_browse = list(files = list("file.csv")),
+    max_feature_count = 20,
+    diann_MBR = TRUE,
+    diann_quantificationColumn = "Fragment.Quant.Corrected",
+    filter_unique_peptides = TRUE,
+    aggregate_psms = TRUE,
+    filter_few_obs = TRUE,
+    BIO = "Protein",
+    DDA_DIA = "DIA"
+  )
+  
+  # Mock data to return
+  mock_arrow_obj <- list(dummy = "arrow")
+  mock_df <- data.frame(ProteinName = "P1", Intensity = 100)
+  
+  test_that("Valid input returns data", {
+    # Mocks
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat", mock_arrow_obj)
+    stub(getData, "dplyr::collect", mock_df)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    
+    res <- getData(mock_input_big_diann)
+    expect_equal(res, mock_df)
+  })
+  
+  test_that("Invalid max_feature_count returns NULL", {
+    bad_input <- mock_input_big_diann
+    bad_input$max_feature_count <- 0
+    
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "showNotification", function(msg, ...) expect_match(msg, "max_feature_count"))
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    
+    res <- getData(bad_input)
+    expect_null(res)
+  })
+  
+  test_that("File not found returns NULL", {
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "nonexistent.csv"))
+    stub(getData, "file.exists", FALSE)
+    stub(getData, "showNotification", function(msg, ...) expect_match(msg, "does not exist"))
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    
+    res <- getData(mock_input_big_diann)
+    expect_null(res)
+  })
+  
+  test_that("Memory error returns NULL", {
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat", mock_arrow_obj)
+    stub(getData, "dplyr::collect", function(...) stop("Memory allocation failed"))
+    stub(getData, "showNotification", function(msg, ...) expect_match(msg, "Memory Error"))
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    
+    res <- getData(mock_input_big_diann)
+    expect_null(res)
+  })
+})
