@@ -646,7 +646,15 @@ getData <- function(input) {
       if (getFileExtension(input$dianndata$name) %in% c("parquet", "pq")) {
         data = read_parquet(input$dianndata$datapath)
       } else {
-        data = read.csv(input$dianndata$datapath, sep=input$sep_dianndata)
+        sep = input$sep_dianndata
+        if(is.null(sep)) {
+          sep = "\t"
+        }
+        if (sep == "\t") {
+          data = read.delim(input$dianndata$datapath)
+        } else {
+          data = read.csv(input$dianndata$datapath, sep = sep)
+        }
       }
       
       qvalue_cutoff = 0.01
@@ -941,8 +949,16 @@ library(MSstatsPTM)\n", sep = "")
         codes = paste(codes, ")\n", sep = "")
         codes = paste(codes, "data = dplyr::collect(data)\n", sep = "")
       } else {
-        codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from DIANN filepath\", header = TRUE, sep = '\\t')\nannot_file = read.csv(\"insert your annotation filepath\")#Optional\n"
-                      , sep = "")
+        sep = input$sep_dianndata
+        if(is.null(sep)) {
+          sep = "\t"
+        }
+        
+        if (sep == "\t") {
+          codes = paste(codes, "data = read.delim(\"insert your MSstats scheme output from DIANN filepath\")\nannot_file = read.csv(\"insert your annotation filepath\")#Optional\n", sep = "")
+        } else {
+          codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from DIANN filepath\", header = TRUE, sep = '", sep, "')\nannot_file = read.csv(\"insert your annotation filepath\")#Optional\n", sep = "")
+        }
         
         codes = paste(codes, "data = DIANNtoMSstatsFormat(data,
                                          annotation = annot_file, #Optional
