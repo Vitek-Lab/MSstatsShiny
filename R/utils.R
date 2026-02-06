@@ -1307,7 +1307,7 @@ fitResponseCurves <- function(statmodel_input, matrix, input_data) {
   protein_level_data <- merge(input_data$ProteinLevelData, matrix, by = "GROUP")
   dia_prepared <- MSstatsPrepareDoseResponseFit(
     data = protein_level_data,
-    dose_column = "dose_nM",
+    dose_column = "dose_value",
     drug_column = "drug",
     protein_column = "Protein",
     log_abundance_column = "LogIntensities",

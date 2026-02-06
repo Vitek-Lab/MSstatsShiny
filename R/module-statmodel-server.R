@@ -202,10 +202,46 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
   return(contrast$matrix)
 }
 
-#' @importFrom MSstatsResponse convertGroupToNumericDose
 build_response_curve_matrix = function(condition_list) {
-  condition_to_metadata_table = convertGroupToNumericDose(condition_list)
-  return(data.frame(GROUP = condition_list, condition_to_metadata_table))
+  tibble(GROUP = as.character(condition_list)) %>%
+    mutate(
+      is_control = str_detect(str_to_upper(GROUP), "^(DMSO|CONTROL|VEHICLE)$"),
+      
+      drug = if_else(
+        is_control,
+        GROUP,
+        str_extract(GROUP, "^[^_0-9]+") %>% str_trim()
+      ),
+      
+      measurements = str_extract_all(GROUP, "[0-9.]+[a-zA-Z]+")
+    ) %>%
+    # Only unnest for non-controls
+    {
+      controls <- filter(., is_control) %>%
+        select(GROUP, drug)
+      
+      treatments <- filter(., !is_control) %>%
+        unnest_longer(measurements, indices_to = "measurement_idx") %>%
+        mutate(
+          value = as.numeric(str_extract(measurements, "[0-9.]+")),
+          unit = str_extract(measurements, "[a-zA-Z]+"),
+          
+          measurement_type = case_when(
+            unit %in% c("nM", "uM", "mM", "M", "mg", "ug") ~ "dose",
+            unit %in% c("h", "hr", "min", "d", "day") ~ "time",
+            unit %in% c("C", "F") ~ "temperature",
+            TRUE ~ "other"
+          )
+        ) %>%
+        pivot_wider(
+          id_cols = c(GROUP, drug),
+          names_from = measurement_type,
+          values_from = c(value, unit),
+          names_glue = "{measurement_type}_{.value}"
+        )
+      
+      bind_rows(controls, treatments)
+    }
 }
 
 #' Update a matrix or data frame from a DT cell edit event
@@ -707,7 +743,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
           dia_prepared <- MSstatsPrepareDoseResponseFit(
             data = protein_level_data,
-            dose_column = "dose_nM",
+            dose_column = "dose_value",
             drug_column = "drug",
             protein_column = "Protein",
             log_abundance_column = "LogIntensities",
