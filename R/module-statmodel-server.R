@@ -273,11 +273,16 @@ prepare_dose_response_fit = function(data) {
   } else {
     intervention_value = "dose_value"
   }
-  
-  # Create subset with renamed columns
-  subset_df = data[, c("Protein", "drug", intervention_value, "LogIntensities")]
-  colnames(subset_df) = c("protein", "drug", "dose", "response")
-  
+
+  cols_to_use <- c(
+    protein = if("Protein" %in% colnames(data)) "Protein" else NA,
+    drug = "drug",
+    dose = intervention_value,
+    response = if("LogIntensities" %in% colnames(data)) "LogIntensities" else NA
+  )
+  cols_to_use <- cols_to_use[!is.na(cols_to_use)]
+  subset_df <- data[, cols_to_use, drop = FALSE]
+  colnames(subset_df) <- names(cols_to_use)
   return(subset_df)
 }
 
@@ -368,11 +373,11 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   output[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]] = renderUI({
     if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
         CONSTANTS_STATMODEL$plot_type_response_curve) {
-        response_curve_setup_matrix = contrast$matrix
+        response_curve_setup_matrix = prepare_dose_response_fit(contrast$matrix)
         unique_drugs = unique(response_curve_setup_matrix$drug)
         unique_drugs_without_control = unique_drugs[unique_drugs != "DMSO"]
         selectInput(session$ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug),
-                    label = h5("Select Drug"), 
+                    label = h5("Select Treatment"), 
                     unique_drugs_without_control, selected = unique_drugs_without_control[[1]])
     } else {
       NULL
