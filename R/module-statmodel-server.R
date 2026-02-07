@@ -203,45 +203,56 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
 }
 
 build_response_curve_matrix = function(condition_list) {
-  tibble(GROUP = as.character(condition_list)) %>%
+  matrix = data.frame(GROUP = as.character(condition_list))
+  matrix = matrix %>% mutate(
+    is_control = str_detect(str_to_upper(GROUP), "^(DMSO|CONTROL|VEHICLE)$"),
+    measurements = str_extract_all(GROUP, "[0-9.]+[a-zA-Z]+")
+  )
+  controls = matrix %>% filter(is_control) %>% select(GROUP)
+  treatments = matrix %>% filter(!is_control) %>%
     mutate(
-      is_control = str_detect(str_to_upper(GROUP), "^(DMSO|CONTROL|VEHICLE)$"),
-      
-      drug = if_else(
-        is_control,
-        GROUP,
-        str_extract(GROUP, "^[^_0-9]+") %>% str_trim()
-      ),
-      
-      measurements = str_extract_all(GROUP, "[0-9.]+[a-zA-Z]+")
+      value = as.numeric(str_extract(measurements, "[0-9.]+")),
+      unit = str_extract(measurements, "[a-zA-Z]+"),
+      measurement_type = case_when(
+        unit %in% c("nM", "uM", "mM", "M", "mg", "ug") ~ "dose",
+        unit %in% c("h", "hr", "hrs", "min", "d", "day") ~ "time",
+        unit %in% c("C", "F", "K") ~ "temperature",
+        TRUE ~ "other"
+      )
     ) %>%
-    # Only unnest for non-controls
-    {
-      controls <- filter(., is_control) %>%
-        select(GROUP, drug)
-      
-      treatments <- filter(., !is_control) %>%
-        unnest_longer(measurements, indices_to = "measurement_idx") %>%
+    pivot_wider(
+      id_cols = c(GROUP),
+      names_from = measurement_type,
+      values_from = c(value, unit),
+      names_glue = "{measurement_type}_{.value}"
+    )
+    matrix = bind_rows(controls, treatments)
+    if ("dose_value" %in% colnames(matrix)) {
+      matrix = matrix %>% 
         mutate(
-          value = as.numeric(str_extract(measurements, "[0-9.]+")),
-          unit = str_extract(measurements, "[a-zA-Z]+"),
-          
-          measurement_type = case_when(
-            unit %in% c("nM", "uM", "mM", "M", "mg", "ug") ~ "dose",
-            unit %in% c("h", "hr", "min", "d", "day") ~ "time",
-            unit %in% c("C", "F") ~ "temperature",
-            TRUE ~ "other"
+          drug = if_else(
+            is_control,
+            GROUP,
+            str_extract(GROUP, "^[^_0-9]+") %>% str_trim()
           )
-        ) %>%
-        pivot_wider(
-          id_cols = c(GROUP, drug),
-          names_from = measurement_type,
-          values_from = c(value, unit),
-          names_glue = "{measurement_type}_{.value}"
         )
-      
-      bind_rows(controls, treatments)
     }
+    
+    return(matrix)
+}
+
+prepare_dose_response_fit = function(data) {
+  required_cols = c(dose_column, drug_column, protein_column, 
+                    log_abundance_column)
+  missing_cols = setdiff(required_cols, names(data))
+  if (length(missing_cols) > 0) {
+    stop("Missing required column(s): ", paste(missing_cols, 
+                                               collapse = ", "))
+  }
+  subset_df = data[, c(protein_column, drug_column, dose_column, 
+                       log_abundance_column)]
+  colnames(subset_df) = c("protein", "drug", "dose", "response")
+  return(subset_df)
 }
 
 #' Update a matrix or data frame from a DT cell edit event
