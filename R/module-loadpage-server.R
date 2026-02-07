@@ -241,9 +241,9 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
                 enable("proceed1")
               }
             } else if (input$filetype == "diann") {
-              diann_regular_file_ok <- !isTRUE(input$big_file_diann) && !is.null(input$dianndata) && !is.null(input$sep_dianndata)
+              diann_regular_file_ok <- !isTRUE(input$big_file_diann) && !is.null(input$dianndata)
               diann_big_file_ok <- isTRUE(input$big_file_diann) && length(local_big_file_path()) > 0
-              if(diann_regular_file_ok || diann_big_file_ok) {
+              if((diann_regular_file_ok || diann_big_file_ok) && !is.null(input$sep_dianndata)) {
                 enable("proceed1")
               }
             }
