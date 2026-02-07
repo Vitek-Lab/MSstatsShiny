@@ -208,7 +208,7 @@ build_response_curve_matrix = function(condition_list) {
     is_control = str_detect(toupper(GROUP), "^(DMSO|CONTROL|VEHICLE)$"),
     measurements = str_extract_all(GROUP, "[0-9.]+[a-zA-Z]+")
   )
-  controls = matrix %>% filter(is_control) %>% select(GROUP)
+  controls = matrix %>% filter(is_control) %>% select(GROUP, is_control)
   treatments = matrix %>% filter(!is_control) %>%
     mutate(
       value = as.numeric(str_extract(measurements, "[0-9.]+")),
@@ -221,22 +221,22 @@ build_response_curve_matrix = function(condition_list) {
       )
     ) 
     if (length(unique(treatments$unit)) > 1) {
-      showNotification(
-        paste("Multiple units of measurement detected in group names: ",
-              paste(unique(treatments$unit), collapse = ", "),
-              " Edit the metadata table to ensure consistent units."),
-        type = "warning",
-        duration = 10
-      )
+      # showNotification(
+      #   paste("Multiple units of measurement detected in group names: ",
+      #         paste(unique(treatments$unit), collapse = ", "),
+      #         " Edit the metadata table to ensure consistent units."),
+      #   type = "warning",
+      #   duration = 10
+      # )
     }
     treatments = treatments %>%
       pivot_wider(
-        id_cols = c(GROUP),
+        id_cols = c(GROUP, is_control),
         names_from = measurement_type,
         values_from = c(value, unit),
         names_glue = "{measurement_type}_{.value}"
       )
-    matrix = rbind(controls, treatments)
+    matrix = bind_rows(controls, treatments)
     if ("dose_value" %in% colnames(matrix)) {
       matrix = matrix %>% 
         mutate(
@@ -247,6 +247,7 @@ build_response_curve_matrix = function(condition_list) {
           )
         )
     }
+    matrix = matrix %>% select(-is_control)
     
     return(matrix)
 }

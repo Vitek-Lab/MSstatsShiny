@@ -32,7 +32,7 @@
 #' @importFrom htmltools attachDependencies
 #' @importFrom uuid UUIDgenerate
 #' @importFrom Hmisc describe
-#' @importFrom dplyr `%>%` filter summarise n_distinct group_by ungroup select n mutate case_when 
+#' @importFrom dplyr `%>%` filter summarise n_distinct group_by ungroup select n mutate case_when bind_rows 
 #' @importFrom tidyr unite pivot_wider
 #' @importFrom MSstatsConvert MSstatsLogsSettings
 #' @importFrom MSstatsPTM dataProcessPlotsPTM groupComparisonPlotsPTM MaxQtoMSstatsPTMFormat PDtoMSstatsPTMFormat FragPipetoMSstatsPTMFormat SkylinetoMSstatsPTMFormat SpectronauttoMSstatsPTMFormat
