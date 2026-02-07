@@ -219,13 +219,23 @@ build_response_curve_matrix = function(condition_list) {
         unit %in% c("C", "F", "K") ~ "temperature",
         TRUE ~ "treatment"
       )
-    ) %>%
-    pivot_wider(
-      id_cols = c(GROUP),
-      names_from = measurement_type,
-      values_from = c(value, unit),
-      names_glue = "{measurement_type}_{.value}"
-    )
+    ) 
+    if (length(unique(treatments$unit)) > 1) {
+      showNotification(
+        paste("Multiple units of measurement detected in group names: ",
+              paste(unique(treatments$unit), collapse = ", "),
+              " Edit the metadata table to ensure consistent units."),
+        type = "warning",
+        duration = 10
+      )
+    }
+    treatments = treatments %>%
+      pivot_wider(
+        id_cols = c(GROUP),
+        names_from = measurement_type,
+        values_from = c(value, unit),
+        names_glue = "{measurement_type}_{.value}"
+      )
     matrix = rbind(controls, treatments)
     if ("dose_value" %in% colnames(matrix)) {
       matrix = matrix %>% 
