@@ -205,7 +205,7 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
 build_response_curve_matrix = function(condition_list) {
   matrix = data.frame(GROUP = as.character(condition_list))
   matrix = matrix %>% mutate(
-    is_control = str_detect(str_to_upper(GROUP), "^(DMSO|CONTROL|VEHICLE)$"),
+    is_control = str_detect(toupper(GROUP), "^(DMSO|CONTROL|VEHICLE)$"),
     measurements = str_extract_all(GROUP, "[0-9.]+[a-zA-Z]+")
   )
   controls = matrix %>% filter(is_control) %>% select(GROUP)
@@ -217,7 +217,7 @@ build_response_curve_matrix = function(condition_list) {
         unit %in% c("nM", "uM", "mM", "M", "mg", "ug") ~ "dose",
         unit %in% c("h", "hr", "hrs", "min", "d", "day") ~ "time",
         unit %in% c("C", "F", "K") ~ "temperature",
-        TRUE ~ "other"
+        TRUE ~ "treatment"
       )
     ) %>%
     pivot_wider(
@@ -226,11 +226,11 @@ build_response_curve_matrix = function(condition_list) {
       values_from = c(value, unit),
       names_glue = "{measurement_type}_{.value}"
     )
-    matrix = bind_rows(controls, treatments)
+    matrix = rbind(controls, treatments)
     if ("dose_value" %in% colnames(matrix)) {
       matrix = matrix %>% 
         mutate(
-          drug = if_else(
+          drug = ifelse(
             is_control,
             GROUP,
             str_extract(GROUP, "^[^_0-9]+") %>% str_trim()
@@ -241,17 +241,28 @@ build_response_curve_matrix = function(condition_list) {
     return(matrix)
 }
 
+# A hacky function to make metadata compatible with MSstatsResponse format
+# based on build_response_curve_matrix output
 prepare_dose_response_fit = function(data) {
-  required_cols = c(dose_column, drug_column, protein_column, 
-                    log_abundance_column)
-  missing_cols = setdiff(required_cols, names(data))
-  if (length(missing_cols) > 0) {
-    stop("Missing required column(s): ", paste(missing_cols, 
-                                               collapse = ", "))
+  if (!("drug" %in% colnames(data))) {
+    column_names = colnames(data)
+    intervention_cols = grep("time|temperature|treatment", column_names, 
+                             ignore.case = TRUE, value = TRUE)
+    if (length(intervention_cols) > 0) {
+      intervention_type = sub("_.*", "", intervention_cols[1])
+      data$drug = intervention_type
+      intervention_value = paste0(intervention_type, "_value")
+    } else {
+      stop("No intervention columns found (time, temperature, or treatment)")
+    }
+  } else {
+    intervention_value = "dose_value"
   }
-  subset_df = data[, c(protein_column, drug_column, dose_column, 
-                       log_abundance_column)]
+  
+  # Create subset with renamed columns
+  subset_df = data[, c("Protein", "drug", intervention_value, "LogIntensities")]
   colnames(subset_df) = c("protein", "drug", "dose", "response")
+  
   return(subset_df)
 }
 
@@ -752,13 +763,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
           matrix = contrast$matrix
           protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
-          dia_prepared <- MSstatsPrepareDoseResponseFit(
-            data = protein_level_data,
-            dose_column = "dose_value",
-            drug_column = "drug",
-            protein_column = "Protein",
-            log_abundance_column = "LogIntensities",
-            transform_nM_to_M = TRUE  
+          dia_prepared <- prepare_dose_response_fit(
+            data = protein_level_data
           )
           output$comp_plots = renderPlot({ 
             visualizeResponseProtein(
