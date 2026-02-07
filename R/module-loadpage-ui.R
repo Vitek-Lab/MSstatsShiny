@@ -321,10 +321,7 @@ create_spectronaut_standard_ui <- function(ns) {
 #' Create DIANN standard file input
 #' @noRd
 create_diann_standard_ui <- function(ns) {
-  tagList(
-    fileInput(ns('dianndata'), "", multiple = FALSE, accept = NULL),
-    create_separator_buttons(ns, "sep_dianndata")
-  )
+  fileInput(ns('dianndata'), "", multiple = FALSE, accept = NULL)
 }
 
 #' Create Spectronaut large file selection UI

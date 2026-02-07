@@ -94,7 +94,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
         ui_elements <- tagList(ui_elements, create_diann_standard_ui(session$ns))
       }
       
-      ui_elements
+      tagList(ui_elements, create_separator_buttons(session$ns, "sep_dianndata"))
     })
     
     output$diann_options_ui <- renderUI({
@@ -117,7 +117,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
         NULL
       }
     })
-    
+
     output$spectronaut_options_ui <- renderUI({
       req(input$filetype == 'spec', input$BIO != 'PTM')
       
