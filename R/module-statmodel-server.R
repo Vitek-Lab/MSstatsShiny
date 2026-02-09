@@ -676,11 +676,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             "table.dataTable td input { color: black !important; }"
           ))),
           h2("Comparison matrix"),
-          if (!is.null(input[[NAMESPACE_STATMODEL$comparison_mode]]) &&
-              input[[NAMESPACE_STATMODEL$comparison_mode]] ==
-                CONSTANTS_STATMODEL$comparison_mode_response_curve) {
-            p(tags$i("This table is interactive. Click values to edit."))
-          },
+          p(tags$i("This table is interactive. Click values to edit.")),
           if (!is.null(input[[NAMESPACE_STATMODEL$comparison_mode]]) &&
               input[[NAMESPACE_STATMODEL$comparison_mode]] %in% c(
                 CONSTANTS_STATMODEL$comparison_mode_all_pairwise,
