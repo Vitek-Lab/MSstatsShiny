@@ -677,6 +677,14 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           ))),
           h2("Comparison matrix"),
           p(tags$i("This table is interactive. Click values to edit.")),
+          if (!is.null(input[[NAMESPACE_STATMODEL$comparison_mode]]) &&
+              input[[NAMESPACE_STATMODEL$comparison_mode]] %in% c(
+                CONSTANTS_STATMODEL$comparison_mode_all_pairwise,
+                CONSTANTS_STATMODEL$comparison_mode_all_vs_one,
+                CONSTANTS_STATMODEL$comparison_mode_custom_pairwise
+              )) {
+            p(tags$i("A value of −1 represents the control group, and a value of 1 represents the treatment group"))
+          },
           br(),
           textOutput(ns("message")),
           br(),
