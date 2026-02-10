@@ -325,7 +325,7 @@ get_tmt_moderation_radio_button <- function(loadpage_input, ns) {
 #' Get response curve fitting options conditioned on if contrast mode is response curve
 #' @noRd
 get_response_curve_fitting_options <- function(mode, ns) {
-  if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+  if (!is.null(mode) && mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
     tagList(
       create_response_curve_log_xaxis_checkbox(ns),
       create_response_curve_increasing_trend_checkbox(ns)
@@ -818,9 +818,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               ratio_response = TRUE,
               show_ic50 = TRUE,
               add_ci = TRUE, 
-              transform_dose = TRUE, 
+              transform_dose = input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]], 
               n_samples = 1000,
-              increasing = FALSE 
+              increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
             )
           })
           op = plotOutput(ns("comp_plots"))

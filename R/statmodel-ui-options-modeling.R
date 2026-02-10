@@ -49,7 +49,7 @@ create_response_curve_log_xaxis_checkbox <- function(ns) {
 
 create_response_curve_increasing_trend_checkbox <- function(ns) {
   checkboxInput(
-    ns(NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis), 
+    ns(NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend), 
     label = tags$div("Increasing trend for dose response curves",
                      class = "icon-wrapper",
                      icon("question-circle", lib = "font-awesome"),
