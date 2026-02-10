@@ -794,23 +794,25 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                                data_comparison_code)
       
       # Plot rendering
-      observeEvent(input[[NAMESPACE_STATMODEL$visualization_view_results]], {
-        ns = session$ns
+      output$comparison_plots <- renderUI({
+        req(input[[NAMESPACE_STATMODEL$visualization_view_results]])
+        ns <- session$ns
+        
         if (loadpage_input()$BIO == "PTM") {
-          output$comp_plots = renderPlot({ 
+          output$comp_plots <- renderPlot({ 
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
             )
           })
-          op = plotOutput(ns("comp_plots"))
+          op <- plotOutput(ns("comp_plots"))
+          
         } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
-          matrix = contrast$matrix
+          matrix <- contrast$matrix
           protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
-          dia_prepared <- prepare_dose_response_fit(
-            data = protein_level_data
-          )
-          output$comp_plots = renderPlot({ 
+          dia_prepared <- prepare_dose_response_fit(data = protein_level_data)
+          
+          output$comp_plots <- renderPlot({ 
             visualizeResponseProtein(
               data = dia_prepared,
               protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
@@ -823,29 +825,28 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
             )
           })
-          op = plotOutput(ns("comp_plots"))
+          op <- plotOutput(ns("comp_plots"))
+          
         } else {
-          output$comp_plots = renderPlotly({ 
+          output$comp_plots <- renderPlotly({ 
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
             )
           })
-          op = plotlyOutput(ns("comp_plots"), height = input$height)
+          op <- plotlyOutput(ns("comp_plots"), height = input$height)
         }
         
-        insertUI(
-          selector = paste0("#", ns("comparison_plots")),
-          ui = tags$div(
-            op,
-            conditionalPanel(
-              condition = paste0("input['statmodel-", NAMESPACE_STATMODEL$visualization_plot_type, "'] == '", CONSTANTS_STATMODEL$plot_type_volcano_plot, "' && input['loadpage-BIO']!='PTM'"),
-              h5("Hover over plot for details")
-            ),
-            conditionalPanel(
-              condition = paste0("input['statmodel-", NAMESPACE_STATMODEL$visualization_plot_type, "'] == '", CONSTANTS_STATMODEL$plot_type_heatmap, "'"),
-              sliderInput(ns("height"), "Plot height", 
-                          value = 500, min = 200, max = 1300, post = "px")
-            )
+        # Return the UI
+        tags$div(
+          op,
+          conditionalPanel(
+            condition = paste0("input['statmodel-", NAMESPACE_STATMODEL$visualization_plot_type, "'] == '", CONSTANTS_STATMODEL$plot_type_volcano_plot, "' && input['loadpage-BIO']!='PTM'"),
+            h5("Hover over plot for details")
+          ),
+          conditionalPanel(
+            condition = paste0("input['statmodel-", NAMESPACE_STATMODEL$visualization_plot_type, "'] == '", CONSTANTS_STATMODEL$plot_type_heatmap, "'"),
+            sliderInput(ns("height"), "Plot height", 
+                        value = 500, min = 200, max = 1300, post = "px")
           )
         )
       })
