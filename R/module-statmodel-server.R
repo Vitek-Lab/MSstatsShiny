@@ -322,6 +322,17 @@ get_tmt_moderation_radio_button <- function(loadpage_input, ns) {
   }
 }
 
+#' Get response curve fitting options conditioned on if contrast mode is response curve
+#' @noRd
+get_response_curve_fitting_options <- function(mode, ns) {
+  if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+    tagList(
+      create_response_curve_log_xaxis_checkbox(ns),
+      create_response_curve_increasing_trend_checkbox(ns)
+    )
+  }
+}
+
 # Todo: Add helper function to build dose response curve mapper matrix
 
 # ============================================================================
@@ -686,6 +697,11 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         disable(NAMESPACE_STATMODEL$modeling_start)
         comp_list$dList = NULL
         contrast$matrix = NULL
+      })
+      
+      output[[NAMESPACE_STATMODEL$modeling_response_curve_fitting_options]] <- renderUI({
+        get_response_curve_fitting_options(
+          input[[NAMESPACE_STATMODEL$comparison_mode]], session$ns)
       })
       
       output[[NAMESPACE_STATMODEL$modeling_tmt_moderation]] <- renderUI({
