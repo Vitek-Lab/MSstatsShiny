@@ -28,7 +28,9 @@ NAMESPACE_STATMODEL = list(
   visualization_heatmap_cluster_option = "visualization_heatmap_cluster_option", 
   visualization_response_curve_which_drug = "visualization_response_curve_which_drug",
   visualization_view_results = "visualization_view_results", 
-  visualization_download_plot_results = "visualization_download_plot_results" 
+  visualization_download_plot_results = "visualization_download_plot_results",
+  visualization_plot_output = "visualization_plot_output",
+  visualization_plot_height_slider = "visualization_plot_height_slider"
 )
 
 CONSTANTS_STATMODEL = list(

@@ -430,7 +430,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
         which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
-        height = input$height,
+        height = input[[NAMESPACE_STATMODEL$visualization_plot_height_slider]],
         address = "Ex_",
         isPlotly = TRUE
       )[[1]]
@@ -446,7 +446,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
         which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
-        height = input$height,
+        height = input[[NAMESPACE_STATMODEL$visualization_plot_height_slider]],
         address = "Ex_",
         isPlotly = TRUE
       )[[1]]
@@ -794,17 +794,16 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                                data_comparison_code)
       
       # Plot rendering
-      output$comparison_plots <- renderUI({
+      output[[NAMESPACE_STATMODEL$visualization_plot_output]] <- renderUI({
         req(input[[NAMESPACE_STATMODEL$visualization_view_results]])
         ns <- session$ns
         
         if (loadpage_input()$BIO == "PTM") {
-          output$comp_plots <- renderPlot({ 
+          output_plot <- renderPlot({ 
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
             )
           })
-          op <- plotOutput(ns("comp_plots"))
           
         } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
@@ -812,7 +811,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
           dia_prepared <- prepare_dose_response_fit(data = protein_level_data)
           
-          output$comp_plots <- renderPlot({ 
+          output_plot <- renderPlot({ 
             visualizeResponseProtein(
               data = dia_prepared,
               protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
@@ -825,29 +824,26 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
             )
           })
-          op <- plotOutput(ns("comp_plots"))
           
         } else {
-          output$comp_plots <- renderPlotly({ 
+          output_plot <- renderPlotly({ 
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
             )
           })
-          op <- plotlyOutput(ns("comp_plots"), height = input$height)
         }
         
         # Return the UI
         tags$div(
-          op,
-          conditionalPanel(
-            condition = paste0("input['statmodel-", NAMESPACE_STATMODEL$visualization_plot_type, "'] == '", CONSTANTS_STATMODEL$plot_type_volcano_plot, "' && input['loadpage-BIO']!='PTM'"),
+          output_plot,
+          if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == CONSTANTS_STATMODEL$plot_type_volcano_plot && 
+                loadpage_input()$BIO != "PTM") {
             h5("Hover over plot for details")
-          ),
-          conditionalPanel(
-            condition = paste0("input['statmodel-", NAMESPACE_STATMODEL$visualization_plot_type, "'] == '", CONSTANTS_STATMODEL$plot_type_heatmap, "'"),
-            sliderInput(ns("height"), "Plot height", 
+          },
+          if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == CONSTANTS_STATMODEL$plot_type_heatmap) {
+            sliderInput(ns(NAMESPACE_STATMODEL$visualization_plot_height_slider), "Plot height", 
                         value = 500, min = 200, max = 1300, post = "px")
-          )
+          }
         )
       })
       
