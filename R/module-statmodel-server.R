@@ -202,10 +202,88 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
   return(contrast$matrix)
 }
 
-#' @importFrom MSstatsResponse convertGroupToNumericDose
 build_response_curve_matrix = function(condition_list) {
-  condition_to_metadata_table = convertGroupToNumericDose(condition_list)
-  return(data.frame(GROUP = condition_list, condition_to_metadata_table))
+  matrix = data.frame(GROUP = as.character(condition_list))
+  matrix = matrix %>% mutate(
+    is_control = str_detect(toupper(GROUP), "^(DMSO|CONTROL|VEHICLE)$"),
+    measurements = str_extract_all(GROUP, "[0-9.]+[a-zA-Z]+")
+  )
+  controls = matrix %>% filter(is_control) %>% select(GROUP, is_control)
+  treatments = matrix %>% filter(!is_control) %>%
+    mutate(
+      value = as.numeric(str_extract(measurements, "[0-9.]+")),
+      unit = str_extract(measurements, "[a-zA-Z]+"),
+      measurement_type = case_when(
+        unit %in% c("nM", "uM", "mM", "M", "mg", "ug") ~ "dose",
+        unit %in% c("h", "hr", "hrs", "min", "d", "day") ~ "time",
+        unit %in% c("C", "F", "K") ~ "temperature",
+        TRUE ~ "treatment"
+      )
+    ) 
+    if (length(unique(treatments$unit)) > 1) {
+      showNotification(
+        paste("Multiple units of measurement detected in group names: ",
+              paste(unique(treatments$unit), collapse = ", "),
+              " Edit the metadata table to ensure consistent units."),
+        type = "warning",
+        duration = 10
+      )
+    }
+    treatments = treatments %>%
+      pivot_wider(
+        id_cols = c(GROUP, is_control),
+        names_from = measurement_type,
+        values_from = c(value, unit),
+        names_glue = "{measurement_type}_{.value}"
+      )
+    matrix = bind_rows(controls, treatments)
+    value_cols = grep("_value$", colnames(matrix), value = TRUE)
+    for (col in value_cols) {
+      matrix[[col]][matrix$is_control] = 0
+    }
+    if ("dose_value" %in% colnames(matrix)) {
+      matrix = matrix %>% 
+        mutate(
+          drug = ifelse(
+            is_control,
+            GROUP,
+            str_extract(GROUP, "^[^_0-9]+") %>% str_trim()
+          )
+        )
+    }
+    matrix = matrix %>% select(-is_control)
+    
+    return(matrix)
+}
+
+# A hacky function to make metadata compatible with MSstatsResponse format
+# based on build_response_curve_matrix output
+prepare_dose_response_fit = function(data) {
+  if (!("drug" %in% colnames(data))) {
+    column_names = colnames(data)
+    intervention_cols = grep("time|temperature|treatment", column_names, 
+                             ignore.case = TRUE, value = TRUE)
+    if (length(intervention_cols) > 0) {
+      intervention_type = sub("_.*", "", intervention_cols[1])
+      data$drug = intervention_type
+      intervention_value = paste0(intervention_type, "_value")
+    } else {
+      stop("No intervention columns found (time, temperature, or treatment)")
+    }
+  } else {
+    intervention_value = "dose_value"
+  }
+
+  cols_to_use <- c(
+    protein = if("Protein" %in% colnames(data)) "Protein" else NA,
+    drug = "drug",
+    dose = intervention_value,
+    response = if("LogIntensities" %in% colnames(data)) "LogIntensities" else NA
+  )
+  cols_to_use <- cols_to_use[!is.na(cols_to_use)]
+  subset_df <- data[, cols_to_use, drop = FALSE]
+  colnames(subset_df) <- names(cols_to_use)
+  return(subset_df)
 }
 
 #' Update a matrix or data frame from a DT cell edit event
@@ -295,11 +373,11 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   output[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]] = renderUI({
     if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
         CONSTANTS_STATMODEL$plot_type_response_curve) {
-        response_curve_setup_matrix = contrast$matrix
+        response_curve_setup_matrix = prepare_dose_response_fit(contrast$matrix)
         unique_drugs = unique(response_curve_setup_matrix$drug)
         unique_drugs_without_control = unique_drugs[unique_drugs != "DMSO"]
         selectInput(session$ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug),
-                    label = h5("Select Drug"), 
+                    label = h5("Select Treatment"), 
                     unique_drugs_without_control, selected = unique_drugs_without_control[[1]])
     } else {
       NULL
@@ -713,13 +791,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
           matrix = contrast$matrix
           protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
-          dia_prepared <- MSstatsPrepareDoseResponseFit(
-            data = protein_level_data,
-            dose_column = "dose_nM",
-            drug_column = "drug",
-            protein_column = "Protein",
-            log_abundance_column = "LogIntensities",
-            transform_nM_to_M = TRUE  
+          dia_prepared <- prepare_dose_response_fit(
+            data = protein_level_data
           )
           output$comp_plots = renderPlot({ 
             visualizeResponseProtein(
