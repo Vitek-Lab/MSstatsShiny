@@ -322,6 +322,17 @@ get_tmt_moderation_radio_button <- function(loadpage_input, ns) {
   }
 }
 
+#' Get response curve fitting options conditioned on if contrast mode is response curve
+#' @noRd
+get_response_curve_fitting_options <- function(mode, ns) {
+  if (!is.null(mode) && mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+    tagList(
+      create_response_curve_log_xaxis_checkbox(ns),
+      create_response_curve_increasing_trend_checkbox(ns)
+    )
+  }
+}
+
 # Todo: Add helper function to build dose response curve mapper matrix
 
 # ============================================================================
@@ -419,7 +430,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
         which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
-        height = input$height,
+        height = input[[NAMESPACE_STATMODEL$visualization_plot_height_slider]],
         address = "Ex_",
         isPlotly = TRUE
       )[[1]]
@@ -435,7 +446,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
         which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
-        height = input$height,
+        height = input[[NAMESPACE_STATMODEL$visualization_plot_height_slider]],
         address = "Ex_",
         isPlotly = TRUE
       )[[1]]
@@ -688,6 +699,11 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         contrast$matrix = NULL
       })
       
+      output[[NAMESPACE_STATMODEL$modeling_response_curve_fitting_options]] <- renderUI({
+        get_response_curve_fitting_options(
+          input[[NAMESPACE_STATMODEL$comparison_mode]], session$ns)
+      })
+      
       output[[NAMESPACE_STATMODEL$modeling_tmt_moderation]] <- renderUI({
         get_tmt_moderation_radio_button(loadpage_input(), session$ns)
       })
@@ -778,23 +794,24 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                                data_comparison_code)
       
       # Plot rendering
-      observeEvent(input[[NAMESPACE_STATMODEL$visualization_view_results]], {
-        ns = session$ns
+      output[[NAMESPACE_STATMODEL$visualization_plot_output]] <- renderUI({
+        req(input[[NAMESPACE_STATMODEL$visualization_view_results]])
+        ns <- session$ns
+        
         if (loadpage_input()$BIO == "PTM") {
-          output$comp_plots = renderPlot({ 
+          output_plot <- renderPlot({ 
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
             )
           })
-          op = plotOutput(ns("comp_plots"))
+          
         } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
-          matrix = contrast$matrix
+          matrix <- contrast$matrix
           protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
-          dia_prepared <- prepare_dose_response_fit(
-            data = protein_level_data
-          )
-          output$comp_plots = renderPlot({ 
+          dia_prepared <- prepare_dose_response_fit(data = protein_level_data)
+          
+          output_plot <- renderPlot({ 
             visualizeResponseProtein(
               data = dia_prepared,
               protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
@@ -802,35 +819,31 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               ratio_response = TRUE,
               show_ic50 = TRUE,
               add_ci = TRUE, 
-              transform_dose = TRUE, 
+              transform_dose = input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]], 
               n_samples = 1000,
-              increasing = FALSE 
+              increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
             )
           })
-          op = plotOutput(ns("comp_plots"))
+          
         } else {
-          output$comp_plots = renderPlotly({ 
+          output_plot <- renderPlotly({ 
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
             )
           })
-          op = plotlyOutput(ns("comp_plots"), height = input$height)
         }
         
-        insertUI(
-          selector = paste0("#", ns("comparison_plots")),
-          ui = tags$div(
-            op,
-            conditionalPanel(
-              condition = paste0("input['statmodel-", NAMESPACE_STATMODEL$visualization_plot_type, "'] == '", CONSTANTS_STATMODEL$plot_type_volcano_plot, "' && input['loadpage-BIO']!='PTM'"),
-              h5("Hover over plot for details")
-            ),
-            conditionalPanel(
-              condition = paste0("input['statmodel-", NAMESPACE_STATMODEL$visualization_plot_type, "'] == '", CONSTANTS_STATMODEL$plot_type_heatmap, "'"),
-              sliderInput(ns("height"), "Plot height", 
-                          value = 500, min = 200, max = 1300, post = "px")
-            )
-          )
+        # Return the UI
+        tags$div(
+          output_plot,
+          if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == CONSTANTS_STATMODEL$plot_type_volcano_plot && 
+                loadpage_input()$BIO != "PTM") {
+            h5("Hover over plot for details")
+          },
+          if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == CONSTANTS_STATMODEL$plot_type_heatmap) {
+            sliderInput(ns(NAMESPACE_STATMODEL$visualization_plot_height_slider), "Plot height", 
+                        value = 500, min = 200, max = 1300, post = "px")
+          }
         )
       })
       

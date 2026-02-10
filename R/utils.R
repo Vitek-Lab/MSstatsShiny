@@ -1308,8 +1308,8 @@ fitResponseCurves <- function(statmodel_input, matrix, input_data) {
   dia_prepared <- prepare_dose_response_fit(protein_level_data)
   response_results <- doseResponseFit(
     data = dia_prepared,
-    increasing = FALSE,
-    transform_dose = TRUE,
+    increasing = statmodel_input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]],
+    transform_dose = statmodel_input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]],
     ratio_response = FALSE
   )
   return(list(ComparisonResult = response_results))
