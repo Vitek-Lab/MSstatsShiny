@@ -502,6 +502,39 @@ test_that("dda prog", {
   })
 })
 
+# Metamorpheus converter integration
+test_that("dda metamorpheus", {
+  suppressWarnings({
+    mock_input$BIO <- "Protein"
+    mock_input$DDA_DIA <- "LType"
+    mock_input$filetype <- "meta"
+    mock_input$sep_data <- "\t"
+    mock_input$unique_peptides <- TRUE
+    mock_input$remove <- FALSE
+
+    mock_input$data$datapath <-
+      system.file("tinytest/raw_data/Metamorpheus/QuantifiedPeaks.tsv",
+        package = "MSstatsConvert"
+      )
+
+    stub(getData, "getAnnot", data.table::fread(
+      system.file("tinytest/raw_data/Metamorpheus/annotation.csv",
+        package = "MSstatsConvert"
+      )
+    ))
+
+    output <- getData(mock_input)
+    expected_names <- c(
+      "ProteinName", "PeptideSequence", "PrecursorCharge",
+      "FragmentIon", "ProductCharge", "IsotopeLabelType",
+      "Condition", "BioReplicate", "Run", "Fraction", "Intensity"
+    )
+    expect_type(output, "list")
+    expect_identical(names(output), expected_names)
+    expect_gt(nrow(output), 0)
+  })
+})
+
 test_that("dda dia skyline", {
   suppressWarnings({
     mock_input$BIO <- "Protein"

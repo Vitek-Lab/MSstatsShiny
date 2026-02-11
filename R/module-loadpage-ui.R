@@ -150,7 +150,8 @@ create_main_selection_controls <- function(ns) {
                              "Progenesis" = "prog", "Proteome Discoverer" = "PD",
                              "OpenMS" = "openms", "Spectronaut" = "spec",
                              "OpenSWATH" = "open", "DIA-Umpire" = "ump",
-                             "SpectroMine" = "spmin", "FragPipe" = "phil", "DIANN"="diann"),
+                             "SpectroMine" = "spmin", "FragPipe" = "phil", "DIANN"="diann",
+                             "Metamorpheus" = "meta"),
                  selected = character(0)
     )
   )
@@ -212,7 +213,7 @@ create_file_upload_sections <- function(ns) {
 create_standard_uploads <- function(ns) {
   conditionalPanel(
     condition = "(input['loadpage-filetype'] =='10col' || input['loadpage-filetype'] =='prog' || input['loadpage-filetype'] =='PD' || input['loadpage-filetype'] =='open'||
-                   input['loadpage-filetype'] =='openms' || input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil') && input['loadpage-BIO'] != 'PTM'",
+                   input['loadpage-filetype'] =='openms' || input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' || input['loadpage-filetype'] == 'meta') && input['loadpage-BIO'] != 'PTM'",
     h4("4. Upload quantification dataset"),
     fileInput(ns('data'), "", multiple = FALSE, accept = NULL),
     create_separator_buttons(ns, "sep_data")
@@ -223,7 +224,7 @@ create_standard_uploads <- function(ns) {
 #' @noRd
 create_standard_annotation_uploads <- function(ns) {
   conditionalPanel(
-    condition = "(input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || (input['loadpage-filetype'] == 'spec' && !input['loadpage-big_file_spec']) || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' || input['loadpage-filetype'] == 'diann') && input['loadpage-BIO'] != 'PTM'",
+    condition = "(input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || (input['loadpage-filetype'] == 'spec' && !input['loadpage-big_file_spec']) || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' || input['loadpage-filetype'] == 'diann' || input['loadpage-filetype'] == 'meta') && input['loadpage-BIO'] != 'PTM'",
     h4("5. Upload annotation File", class = "icon-wrapper", 
        icon("question-circle", lib = "font-awesome"),
        div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.", class = "icon-tooltip")),

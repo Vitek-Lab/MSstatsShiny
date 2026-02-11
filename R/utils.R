@@ -623,6 +623,16 @@ getData <- function(input) {
       print("Mydata from mstats")
       print(mydata)
     }
+    else if(input$filetype == 'meta') {
+      cat(file=stderr(), "Reached in metamorpheus\n")
+      data = data.table::fread(infile$datapath)
+      mydata = MetamorpheusToMSstatsFormat(data,
+                                           annotation = getAnnot(input),
+                                           useUniquePeptide = input$unique_peptides,
+                                           removeFewMeasurements = FALSE,
+                                           removeProtein_with1Feature = input$remove,
+                                           use_log_file = FALSE)
+    }
     else if(input$filetype == 'open') {
 
       # if (input$subset){
