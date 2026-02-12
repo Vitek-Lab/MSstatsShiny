@@ -881,7 +881,7 @@ library(MSstatsPTM)\n", sep = "")
 
       codes = paste(codes, "data = MetamorpheusToMSstatsFormat(data,
                                        annotation = annot_file,
-                                       useUniquePeptide = TRUE,
+                                       useUniquePeptide = ", input$unique_peptides, ",
                                        removeFewMeasurements = FALSE,
                                        removeProtein_with1Feature = ", input$remove, ",\n\t\t\t\t       ",
                     "use_log_file = FALSE)\n", sep = "")
