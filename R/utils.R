@@ -875,6 +875,17 @@ library(MSstatsPTM)\n", sep = "")
                                        removeProtein_with1Feature = TRUE,
                                        use_log_file = FALSE)\n", sep = "")
     }
+    else if(input$filetype == 'meta') {
+      codes = paste(codes, "data = data.table::fread(\"insert your QuantifiedPeaks.tsv filepath\")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
+                    , sep = "")
+
+      codes = paste(codes, "data = MetamorpheusToMSstatsFormat(data,
+                                       annotation = annot_file,
+                                       useUniquePeptide = TRUE,
+                                       removeFewMeasurements = FALSE,
+                                       removeProtein_with1Feature = ", input$remove, ",\n\t\t\t\t       ",
+                    "use_log_file = FALSE)\n", sep = "")
+    }
     else if(input$filetype == 'open') {
 
       codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
