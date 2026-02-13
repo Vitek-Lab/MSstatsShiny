@@ -2,6 +2,13 @@
 # Contrast Matrix Building Functions
 # ============================================================================
 
+#' Get experimental conditions from preprocessed data
+#'
+#' @param loadpage_input List containing BIO, DDA_DIA, and filetype parameters
+#' @param preprocess_data Preprocessed data object containing ProteinLevelData
+#'
+#' @return Character vector of condition levels
+#' @noRd
 get_experimental_conditions = function(loadpage_input, preprocess_data) {
   if (loadpage_input$BIO == "PTM" & 
       ((loadpage_input$BIO == "PTM" & loadpage_input$DDA_DIA == "TMT") | 
@@ -18,6 +25,11 @@ get_experimental_conditions = function(loadpage_input, preprocess_data) {
 }
 
 #' Get contrast panel UI based on mode
+#'
+#' @param mode Character string indicating the comparison mode
+#' @param ns Namespace function for module
+#'
+#' @return UI element or NULL
 #' @noRd
 get_contrast_panel_ui = function(mode, ns) {
   if (is.null(mode) || length(mode) == 0) {
@@ -39,6 +51,14 @@ get_contrast_panel_ui = function(mode, ns) {
   }
 }
 
+#' Render all-against-one comparison input UI
+#'
+#' @param output Shiny output object
+#' @param session Shiny session object
+#' @param condition_list Reactive expression containing list of conditions
+#'
+#' @return NULL (side effect: renders UI)
+#' @noRd
 render_all_against_one_inputs = function(output, session, condition_list) {
   ns = session$ns
   
@@ -47,6 +67,14 @@ render_all_against_one_inputs = function(output, session, condition_list) {
   })
 }
 
+#' Render custom pairwise comparison input UI
+#'
+#' @param output Shiny output object
+#' @param session Shiny session object
+#' @param condition_list Reactive expression containing list of conditions
+#'
+#' @return NULL (side effect: renders UI)
+#' @noRd
 render_custom_pairwise_inputs = function(output, session, condition_list) {
   ns = session$ns
   
@@ -59,6 +87,14 @@ render_custom_pairwise_inputs = function(output, session, condition_list) {
   })
 }
 
+#' Render custom non-pairwise comparison input UI
+#'
+#' @param output Shiny output object
+#' @param session Shiny session object
+#' @param condition_list Reactive expression containing list of conditions
+#'
+#' @return NULL (side effect: renders UI)
+#' @noRd
 render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   ns = session$ns
   output[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights]] = renderUI({
@@ -71,6 +107,14 @@ render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   })
 }
 
+#' Validate contrast inputs based on comparison mode
+#'
+#' @param input Shiny input object
+#' @param contrast_mode Character string indicating the comparison mode
+#' @param condition_list Character vector of condition names
+#'
+#' @return NULL (side effect: validates inputs, throws error if invalid)
+#' @noRd
 validate_contrast_inputs = function(input, contrast_mode, condition_list) {
   if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_custom_pairwise) {
     validate(
@@ -87,6 +131,16 @@ validate_contrast_inputs = function(input, contrast_mode, condition_list) {
   }
 }
 
+#' Build custom pairwise contrast matrix
+#'
+#' @param input Shiny input object
+#' @param condition_list Character vector of condition names
+#' @param contrast List containing contrast row and matrix
+#' @param comp_list List containing comparison labels (dList)
+#' @param row Numeric vector template for contrast row
+#'
+#' @return Updated contrast matrix
+#' @noRd
 build_custom_pairwise_contrast = function(input, condition_list, contrast, comp_list, row) {
   if (input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] == input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]]) {
     return(contrast$matrix)
@@ -115,6 +169,16 @@ build_custom_pairwise_contrast = function(input, condition_list, contrast, comp_
   return(contrast$matrix)
 }
 
+#' Build custom non-pairwise contrast matrix
+#'
+#' @param input Shiny input object
+#' @param condition_list Character vector of condition names
+#' @param contrast List containing contrast row and matrix
+#' @param comp_list List containing comparison labels (dList)
+#' @param row Numeric vector template for contrast row
+#'
+#' @return Updated contrast matrix
+#' @noRd
 build_custom_non_pairwise_contrast = function(input, condition_list, contrast, comp_list, row) {
   wt_sum = sum(sapply(1:length(condition_list), function(i) {
     input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, i)]]
@@ -145,6 +209,17 @@ build_custom_non_pairwise_contrast = function(input, condition_list, contrast, c
   return(contrast$matrix)
 }
 
+#' Build all-against-one contrast matrix
+#'
+#' @param input Shiny input object
+#' @param condition_list Character vector of condition names
+#' @param contrast List containing contrast row and matrix
+#' @param comp_list List containing comparison labels (dList)
+#' @param row Numeric vector template for contrast row
+#' @param loadpage_input List containing load page parameters (unused)
+#'
+#' @return Updated contrast matrix
+#' @noRd
 build_all_against_one_contrast = function(input, condition_list, contrast, comp_list, row, loadpage_input) {
   index3 = which(condition_list == input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_choice]])
   
@@ -171,6 +246,17 @@ build_all_against_one_contrast = function(input, condition_list, contrast, comp_
   return(contrast$matrix)
 }
 
+#' Build all-pairwise contrast matrix
+#'
+#' @param input Shiny input object (unused)
+#' @param condition_list Character vector of condition names
+#' @param contrast List containing contrast row and matrix
+#' @param comp_list List containing comparison labels (dList)
+#' @param row Numeric vector template for contrast row
+#' @param loadpage_input List containing load page parameters (unused)
+#'
+#' @return Updated contrast matrix
+#' @noRd
 build_all_pair_contrast = function(input, condition_list, contrast, comp_list, row, loadpage_input) {
   contrast$matrix = NULL
   comp_list$dList = NULL
@@ -202,6 +288,15 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
   return(contrast$matrix)
 }
 
+#' Build response curve matrix from condition list
+#'
+#' Parses condition names to extract dose, time, temperature, or treatment
+#' information and creates a structured matrix for dose-response analysis.
+#'
+#' @param condition_list Character vector of condition names
+#'
+#' @return Data frame with parsed condition information
+#' @noRd
 build_response_curve_matrix = function(condition_list) {
   matrix = data.frame(GROUP = as.character(condition_list))
   matrix = matrix %>% mutate(
@@ -256,8 +351,15 @@ build_response_curve_matrix = function(condition_list) {
   return(matrix)
 }
 
-# A hacky function to make metadata compatible with MSstatsResponse format
-# based on build_response_curve_matrix output
+#' Prepare data for dose-response fitting
+#'
+#' Transforms data into MSstatsResponse-compatible format by selecting and
+#' renaming appropriate columns for dose-response analysis.
+#'
+#' @param data Data frame from build_response_curve_matrix
+#'
+#' @return Data frame with columns: protein, drug, dose, response
+#' @noRd
 prepare_dose_response_fit = function(data) {
   if (!("drug" %in% colnames(data))) {
     column_names = colnames(data)
