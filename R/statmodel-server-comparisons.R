@@ -19,7 +19,7 @@ get_experimental_conditions = function(loadpage_input, preprocess_data) {
 
 #' Get contrast panel UI based on mode
 #' @noRd
-get_contrast_panel_ui <- function(mode, ns) {
+get_contrast_panel_ui = function(mode, ns) {
   if (is.null(mode) || length(mode) == 0) {
     return(NULL)
   }
@@ -274,15 +274,15 @@ prepare_dose_response_fit = function(data) {
     intervention_value = "dose_value"
   }
   
-  cols_to_use <- c(
+  cols_to_use = c(
     protein = if("Protein" %in% colnames(data)) "Protein" else NA,
     drug = "drug",
     dose = intervention_value,
     response = if("LogIntensities" %in% colnames(data)) "LogIntensities" else NA
   )
-  cols_to_use <- cols_to_use[!is.na(cols_to_use)]
-  subset_df <- data[, cols_to_use, drop = FALSE]
-  colnames(subset_df) <- names(cols_to_use)
+  cols_to_use = cols_to_use[!is.na(cols_to_use)]
+  subset_df = data[, cols_to_use, drop = FALSE]
+  colnames(subset_df) = names(cols_to_use)
   return(subset_df)
 }
 
@@ -295,21 +295,21 @@ prepare_dose_response_fit = function(data) {
 #' @noRd
 update_matrix_from_edit = function(mat, info) {
   # DT provides 1-based indices for rows and columns in the edit event
-  i <- info$row
-  j <- info$col
-  v <- info$value
+  i = info$row
+  j = info$col
+  v = info$value
   
   # Coerce the new value to the type of the target column to maintain data integrity
   if (is.data.frame(mat)) {
     # For data frames, coerce to the column's class.
     # tryCatch prevents the app from crashing if the user enters an invalid
     # value (e.g., text in a numeric column). If coercion fails, the original value is kept.
-    v <- tryCatch(as(v, class(mat[[j]])), error = function(e) v)
-    mat[i, j] <- v
+    v = tryCatch(as(v, class(mat[[j]])), error = function(e) v)
+    mat[i, j] = v
   } else {
     # For matrices, all elements have the same type. Coerce to the matrix's class.
-    v <- tryCatch(as(v, class(mat[1, 1])), error = function(e) v)
-    mat[i, j] <- v
+    v = tryCatch(as(v, class(mat[1, 1])), error = function(e) v)
+    mat[i, j] = v
   }
   return(mat)
 }

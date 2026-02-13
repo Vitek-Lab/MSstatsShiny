@@ -17,11 +17,11 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
                 unique(get_data()$ProteinName))
   })
   
-  output[[NAMESPACE_STATMODEL$visualization_plot_options_conditional_panel]] <- renderUI({
-    plot_type <- input[[NAMESPACE_STATMODEL$visualization_plot_type]]
+  output[[NAMESPACE_STATMODEL$visualization_plot_options_conditional_panel]] = renderUI({
+    plot_type = input[[NAMESPACE_STATMODEL$visualization_plot_type]]
     
     if (plot_type == CONSTANTS_STATMODEL$plot_type_volcano_plot) {
-      show_protein_name <- !is.null(loadpage_input()$DDA_DIA) &&
+      show_protein_name = !is.null(loadpage_input()$DDA_DIA) &&
         loadpage_input()$DDA_DIA != "TMT"
       create_volcano_plot_options(ns, show_protein_name)
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_comparison_plot) {
@@ -35,7 +35,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
     }
   })
   
-  output[[NAMESPACE_STATMODEL$visualization_fold_change_input]] <- renderUI({
+  output[[NAMESPACE_STATMODEL$visualization_fold_change_input]] = renderUI({
     req(input[[NAMESPACE_STATMODEL$visualization_fold_change_checkbox]])
     if (input[[NAMESPACE_STATMODEL$visualization_fold_change_checkbox]]) {
       numericInput(ns(NAMESPACE_STATMODEL$visualization_fold_change_input), "Fold change cutoff", 1, 0, 100, 0.1)
@@ -59,7 +59,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
 
 create_group_comparison_plot = function(input, loadpage_input, data_comparison) {
   show_modal_spinner()
-  fold_change_cutoff <- ifelse(!is.null(input[[NAMESPACE_STATMODEL$visualization_fold_change_input]]), input[[NAMESPACE_STATMODEL$visualization_fold_change_input]], FALSE)
+  fold_change_cutoff = ifelse(!is.null(input[[NAMESPACE_STATMODEL$visualization_fold_change_input]]), input[[NAMESPACE_STATMODEL$visualization_fold_change_input]], FALSE)
   
   tryCatch({
     if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == CONSTANTS_STATMODEL$plot_type_volcano_plot && input[[NAMESPACE_STATMODEL$visualization_which_comparison]] == "all") {

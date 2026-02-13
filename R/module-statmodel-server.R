@@ -46,7 +46,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         }
       })
       
-      output[[NAMESPACE_STATMODEL$comparisons_conditional_panel]] <- renderUI({
+      output[[NAMESPACE_STATMODEL$comparisons_conditional_panel]] = renderUI({
         get_contrast_panel_ui(input[[NAMESPACE_STATMODEL$comparison_mode]], session$ns)
       })
       
@@ -112,12 +112,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         contrast$matrix = NULL
       })
       
-      output[[NAMESPACE_STATMODEL$modeling_response_curve_fitting_options]] <- renderUI({
+      output[[NAMESPACE_STATMODEL$modeling_response_curve_fitting_options]] = renderUI({
         get_response_curve_fitting_options(
           input[[NAMESPACE_STATMODEL$comparison_mode]], session$ns)
       })
       
-      output[[NAMESPACE_STATMODEL$modeling_tmt_moderation]] <- renderUI({
+      output[[NAMESPACE_STATMODEL$modeling_tmt_moderation]] = renderUI({
         get_tmt_moderation_radio_button(loadpage_input(), session$ns)
       })
       
@@ -148,12 +148,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       observeEvent(input$table_cell_edit, {
         # Use isolate() to get a snapshot of the matrix. This is crucial to prevent
         # a reactive loop where updating the matrix would re-trigger this observer.
-        current_matrix <- isolate(contrast$matrix)
+        current_matrix = isolate(contrast$matrix)
         
-        updated_matrix <- update_matrix_from_edit(current_matrix, input$table_cell_edit)
+        updated_matrix = update_matrix_from_edit(current_matrix, input$table_cell_edit)
         
         # Update the reactive value. This will trigger re-rendering of the table.
-        contrast$matrix <- updated_matrix
+        contrast$matrix = updated_matrix
       })
       
       # Matrix output
@@ -161,14 +161,14 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       output$table = renderDataTable({
         # This table now directly depends on contrast$matrix, so it updates on build or edit.
         req(contrast$matrix)
-        mat <- contrast$matrix
+        mat = contrast$matrix
         
         # Define editable options, disabling the 'GROUP' column for response curves
-        editable_options <- list(target = 'cell')
+        editable_options = list(target = 'cell')
         # Perform a case-insensitive check for the 'GROUP' column for robustness.
         if (any(toupper(colnames(mat)) == "GROUP")) {
-          group_col_idx <- which(toupper(colnames(mat)) == "GROUP")
-          editable_options$disable <- list(columns = group_col_idx)
+          group_col_idx = which(toupper(colnames(mat)) == "GROUP")
+          editable_options$disable = list(columns = group_col_idx)
         }
         
         DT::datatable(mat, editable = editable_options, options = list(scrollX = TRUE))
@@ -207,12 +207,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                                data_comparison_code)
       
       # Plot rendering
-      output[[NAMESPACE_STATMODEL$visualization_plot_output]] <- renderUI({
+      output[[NAMESPACE_STATMODEL$visualization_plot_output]] = renderUI({
         req(input[[NAMESPACE_STATMODEL$visualization_view_results]])
-        ns <- session$ns
+        ns = session$ns
         
         if (loadpage_input()$BIO == "PTM") {
-          output_plot <- renderPlot({ 
+          output_plot = renderPlot({ 
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
             )
@@ -220,11 +220,11 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           
         } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
-          matrix <- contrast$matrix
-          protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
-          dia_prepared <- prepare_dose_response_fit(data = protein_level_data)
+          matrix = contrast$matrix
+          protein_level_data = merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
+          dia_prepared = prepare_dose_response_fit(data = protein_level_data)
           
-          output_plot <- renderPlot({ 
+          output_plot = renderPlot({ 
             visualizeResponseProtein(
               data = dia_prepared,
               protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
@@ -239,7 +239,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           })
           
         } else {
-          output_plot <- renderPlotly({ 
+          output_plot = renderPlotly({ 
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
             )
