@@ -445,3 +445,17 @@ test_that("Spectronaut helper functions create correct UI elements", {
   expect_true(grepl("Aggregate PSMs", bottom_html))
   expect_true(grepl("Filter features with few observations", bottom_html))
 })
+
+# Tests for Metamorpheus specific UI components
+test_that("Metamorpheus converter option exists in filetype choices", {
+  result <- loadpageUI("test")
+  html_output <- as.character(result)
+
+  # Check that the display label "Metamorpheus" is present
+  expect_true(grepl("Metamorpheus", html_output),
+              info = "Metamorpheus label not found in UI")
+
+  # Check that the radio button value "meta" is present
+  expect_true(grepl("value=\"meta\"", html_output),
+              info = "Metamorpheus radio button value 'meta' not found in UI")
+})

@@ -623,6 +623,16 @@ getData <- function(input) {
       print("Mydata from mstats")
       print(mydata)
     }
+    else if(input$filetype == 'meta') {
+      cat(file=stderr(), "Reached in metamorpheus\n")
+      data = data.table::fread(infile$datapath)
+      mydata = MetamorpheusToMSstatsFormat(data,
+                                           annotation = getAnnot(input),
+                                           useUniquePeptide = input$unique_peptides,
+                                           removeFewMeasurements = FALSE,
+                                           removeProtein_with1Feature = input$remove,
+                                           use_log_file = FALSE)
+    }
     else if(input$filetype == 'open') {
 
       # if (input$subset){
@@ -864,6 +874,17 @@ library(MSstatsPTM)\n", sep = "")
                                        qvalue_cutoff = 0.01, ## same as default
                                        removeProtein_with1Feature = TRUE,
                                        use_log_file = FALSE)\n", sep = "")
+    }
+    else if(input$filetype == 'meta') {
+      codes = paste(codes, "data = data.table::fread(\"insert your QuantifiedPeaks.tsv filepath\")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
+                    , sep = "")
+
+      codes = paste(codes, "data = MetamorpheusToMSstatsFormat(data,
+                                       annotation = annot_file,
+                                       useUniquePeptide = ", input$unique_peptides, ",
+                                       removeFewMeasurements = FALSE,
+                                       removeProtein_with1Feature = ", input$remove, ",\n\t\t\t\t       ",
+                    "use_log_file = FALSE)\n", sep = "")
     }
     else if(input$filetype == 'open') {
 

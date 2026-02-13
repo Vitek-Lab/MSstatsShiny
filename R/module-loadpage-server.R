@@ -116,6 +116,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
         disable(selector = "[type=radio][value=open]")
         disable(selector = "[type=radio][value=ump]")
         disable(selector = "[type=radio][value=diann]")
+        disable(selector = "[type=radio][value=meta]")
         runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
         
       } else if (input$BIO == "PTM" && input$DDA_DIA == "LType"){
@@ -130,6 +131,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
         disable(selector = "[type=radio][value=ump]")
         disable(selector = "[type=radio][value=phil]")
         disable(selector = "[type=radio][value=diann]")
+        disable(selector = "[type=radio][value=meta]")
 
         runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })") 
       }else if (input$BIO == "PTM" && input$DDA_DIA == "TMT"){
@@ -143,6 +145,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
         disable(selector = "[type=radio][value=spmin]")
         disable(selector = "[type=radio][value=diann]")
         disable(selector = "[type=radio][value=sky]")
+        disable(selector = "[type=radio][value=meta]")
         
         runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })") 
       }
@@ -176,7 +179,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
               if(!is.null(input$evidence) && !is.null(input$pGroup)) { # && !is.null(input$annot1)
                 enable("proceed1")
               }
-            } else if (input$filetype == "prog" || input$filetype == "PD" || input$filetype == "open" || input$filetype == "phil") {
+            } else if (input$filetype == "prog" || input$filetype == "PD" || input$filetype == "open" || input$filetype == "phil" || input$filetype == "meta") {
               if(!is.null(input$data) && !is.null(input$sep_data)) { # && !is.null(input$annot)
                 enable("proceed1")
               }
