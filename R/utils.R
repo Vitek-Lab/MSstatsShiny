@@ -530,7 +530,7 @@ getData <- function(input) {
         shinybusy::update_modal_spinner(text = "Processing large Spectronaut file...")
         
         # Call the big file conversion function from MSstatsConvert
-        converted_data <- MSstatsBig::bigSpectronauttoMSstatsFormat(
+        converted_data <- bigSpectronauttoMSstatsFormat(
           input_file = local_big_file_path,
           output_file_name = "output_file.csv",
           backend = "arrow",
@@ -614,8 +614,9 @@ getData <- function(input) {
         shinybusy::update_modal_spinner(text = "Processing large DIANN file...")
         
         # Call the big file conversion function from MSstatsConvert
-        converted_data <- MSstatsBig::bigDIANNtoMSstatsFormat(
+        converted_data <- bigDIANNtoMSstatsFormat(
           input_file = local_big_file_path,
+          annotation = getAnnot(input),
           output_file_name = "output_file.csv",
           backend = "arrow",
           MBR = isTRUE(input$diann_MBR),
