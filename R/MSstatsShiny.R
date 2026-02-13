@@ -28,7 +28,7 @@
 #' @importFrom shinyjs disabled hidden useShinyjs runjs enable disable toggleState onclick hide show js toggleClass refresh extendShinyjs
 #' @importFrom shinybusy use_busy_spinner remove_modal_spinner show_modal_spinner
 #' @importFrom DT dataTableOutput renderDataTable
-#' @importFrom data.table copy
+#' @importFrom data.table copy fread
 #' @importFrom htmltools attachDependencies
 #' @importFrom uuid UUIDgenerate
 #' @importFrom Hmisc describe

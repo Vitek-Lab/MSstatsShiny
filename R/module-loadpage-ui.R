@@ -542,16 +542,10 @@ create_tmt_options <- function(ns) {
 create_label_free_options <- function(ns) {
   tagList(
     conditionalPanel(
-      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] != 'sample' && input['loadpage-filetype'] != 'MRF' && (input['loadpage-filetype'] != 'spec' || !input['loadpage-big_file_spec'])",
+      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] != 'sample' && (input['loadpage-filetype'] != 'spec' || !input['loadpage-big_file_spec'])",
       h4("Select the options for pre-processing"),
       checkboxInput(ns("unique_peptides"), "Use unique peptides", value = TRUE),
-      checkboxInput(ns("remove"), "Remove proteins with 1 peptide and charge", value = FALSE)
-    ),
-    
-    conditionalPanel(
-      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] != 'sample' && (input['loadpage-filetype'] != 'spec' || !input['loadpage-big_file_spec'])",
       checkboxInput(ns("remove"), "Remove proteins with 1 feature", value = FALSE),
-      
       # Quality filtering options
       create_quality_filtering_options(ns)
     ),
