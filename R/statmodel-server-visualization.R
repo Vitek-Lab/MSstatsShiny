@@ -43,6 +43,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   })
   
   output[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]] = renderUI({
+    req(contrast$matrix)
     if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
         CONSTANTS_STATMODEL$plot_type_response_curve) {
       response_curve_setup_matrix = prepare_dose_response_fit(contrast$matrix)
@@ -114,7 +115,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
     return(plot_result)
   }, error = function(e) {
     remove_modal_spinner()
-    message("An error occurred: ", conditionMessage(e))
+    showNotification(conditionMessage(e), type = "error", duration = 8)
   })
 }
 
