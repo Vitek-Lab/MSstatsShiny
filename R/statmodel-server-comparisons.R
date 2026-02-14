@@ -370,7 +370,7 @@ prepare_dose_response_fit = function(data) {
       data$drug = intervention_type
       intervention_value = paste0(intervention_type, "_value")
     } else {
-      stop("No intervention columns found (time, temperature, or treatment)")
+      validate(need(FALSE, "No intervention columns found (time, temperature, or treatment)"))
     }
   } else {
     intervention_value = "dose_value"
