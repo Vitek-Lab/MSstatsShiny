@@ -98,7 +98,7 @@ render_custom_pairwise_inputs = function(output, session, condition_list) {
 render_custom_non_pairwise_inputs = function(output, session, condition_list) {
   ns = session$ns
   output[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights]] = renderUI({
-    lapply(1:length(condition_list()), function(i) {
+    lapply(seq_along(condition_list()), function(i) {
       list(numericInput(ns(paste0(
         NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, i)
       ), 
@@ -121,7 +121,7 @@ validate_contrast_inputs = function(input, contrast_mode, condition_list) {
       need(input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice1]] != input[[NAMESPACE_STATMODEL$comparisons_custom_pairwise_choice2]], "Please select different groups")
     )
   } else if (contrast_mode == CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise) {
-    wt_sum = sum(sapply(1:length(condition_list), function(i) {
+    wt_sum = sum(sapply(seq_along(condition_list), function(i) {
       input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, i)]]
     }))
     
@@ -180,7 +180,7 @@ build_custom_pairwise_contrast = function(input, condition_list, contrast, comp_
 #' @return Updated contrast matrix
 #' @noRd
 build_custom_non_pairwise_contrast = function(input, condition_list, contrast, comp_list, row) {
-  wt_sum = sum(sapply(1:length(condition_list), function(i) {
+  wt_sum = sum(sapply(seq_along(condition_list), function(i) {
     input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, i)]]
   }))
   
@@ -192,7 +192,7 @@ build_custom_non_pairwise_contrast = function(input, condition_list, contrast, c
                              input[[NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name]]))
   contrast$row = matrix(row, nrow = 1)
   
-  for (index in 1:length(condition_list)) {
+  for (index in seq_along(condition_list)) {
     contrast$row[index] = input[[paste0(NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_weights, index)]]
   }
   
@@ -223,7 +223,7 @@ build_custom_non_pairwise_contrast = function(input, condition_list, contrast, c
 build_all_against_one_contrast = function(input, condition_list, contrast, comp_list, row, loadpage_input) {
   index3 = which(condition_list == input[[NAMESPACE_STATMODEL$comparisons_all_vs_one_choice]])
   
-  for (index in 1:length(condition_list)) {
+  for (index in seq_along(condition_list)) {
     if (index == index3) next
     
     comp_list$dList = c(isolate(comp_list$dList),
@@ -261,8 +261,8 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
   contrast$matrix = NULL
   comp_list$dList = NULL
   
-  for (index in 1:length(condition_list)) {
-    for (index1 in 1:length(condition_list)) {
+  for (index in seq_along(condition_list)) {
+    for (index1 in seq_along(condition_list)) {
       if (index == index1) next
       if (index < index1) {
         comp_list$dList = c(isolate(comp_list$dList),

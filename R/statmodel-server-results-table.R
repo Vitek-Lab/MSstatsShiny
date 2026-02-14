@@ -8,20 +8,15 @@ render_results_table = function(output, session, data_comparison, SignificantPro
   output$table_results = renderUI({
     req(data_comparison())
     req(SignificantProteins())
-    
-    if (is.null(SignificantProteins())) {
-      tagList(tags$br())
-    } else {
-      tagList(
-        tags$br(),
-        h2("Results"),
-        h5("There are ", textOutput(ns("number"), inline = TRUE), "significant proteins"),
-        tags$br(),
-        dataTableOutput(ns("significant")),
-        downloadButton(ns("download_compar"), "Download all modeling results"),
-        downloadButton(ns("download_signif"), "Download significant proteins")
-      )
-    }
+    tagList(
+      tags$br(),
+      h2("Results"),
+      h5("There are ", textOutput(ns("number"), inline = TRUE), "significant proteins"),
+      tags$br(),
+      dataTableOutput(ns("significant")),
+      downloadButton(ns("download_compar"), "Download all modeling results"),
+      downloadButton(ns("download_signif"), "Download significant proteins")
+    )
   })
   
   output$significant = renderDataTable({ SignificantProteins() })

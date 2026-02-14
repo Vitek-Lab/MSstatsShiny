@@ -4,7 +4,7 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
   codes = paste(codes, "\n# Create the contrast matrix\n", sep = "")
   codes = paste(codes, "contrast.matrix = NULL\n", sep = "")
   
-  for (i in 1:nrow(comp_mat)) {
+  for (i in seq_len(nrow(comp_mat))) {
     codes = paste(codes, "comparison = matrix(c(", 
                   toString(comp_mat[i,]), "),nrow=1)\n", sep = "")
     codes = paste(codes, "contrast.matrix = rbind(contrast.matrix, comparison)\n", sep = "")
