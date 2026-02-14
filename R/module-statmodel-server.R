@@ -205,6 +205,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       # Download handlers
       create_download_handlers(output, data_comparison, SignificantProteins, 
                                data_comparison_code)
+      create_download_plot_handler(output)
       
       # Plot rendering
       output[[NAMESPACE_STATMODEL$visualization_plot_output]] = renderUI({
