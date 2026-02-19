@@ -131,7 +131,6 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
         disable(selector = "[type=radio][value=ump]")
         disable(selector = "[type=radio][value=phil]")
         disable(selector = "[type=radio][value=diann]")
-        disable(selector = "[type=radio][value=meta]")
 
         runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })") 
       }else if (input$BIO == "PTM" && input$DDA_DIA == "TMT"){
@@ -238,7 +237,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
               if(!is.null(input$msstatsptmdata) && !is.null(input$sep_msstatsptmdata)) {
                 enable("proceed1")
               }
-            } else if (input$filetype == "sky" || input$filetype == "maxq" || input$filetype == "spec" || input$filetype == "PD") {
+            } else if (input$filetype == "sky" || input$filetype == "maxq" || input$filetype == "spec" || input$filetype == "PD" || input$filetype == "meta") {
               if(!is.null(input$ptm_input) && !is.null(input$fasta)) { # && !is.null(input$ptm_annot)
                 enable("proceed1")
               }

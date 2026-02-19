@@ -459,3 +459,15 @@ test_that("Metamorpheus converter option exists in filetype choices", {
   expect_true(grepl("value=\"meta\"", html_output),
               info = "Metamorpheus radio button value 'meta' not found in UI")
 })
+
+test_that("Metamorpheus PTM upload fields exist in UI", {
+  result <- loadpageUI("test")
+  html_output <- as.character(result)
+
+  expect_true(grepl("mod_id_meta", html_output),
+              info = "Metamorpheus PTM modification ID field not found in UI")
+  expect_true(grepl("ptm_protein_annot", html_output),
+              info = "Metamorpheus PTM protein annotation upload not found in UI")
+  expect_true(grepl("Modification IDs", html_output),
+              info = "Metamorpheus PTM Modification IDs label not found in UI")
+})

@@ -407,7 +407,7 @@ create_maxquant_uploads <- function(ns) {
 create_ptm_uploads <- function(ns) {
   tagList(
     conditionalPanel(
-      condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'sky') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
+      condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'meta') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
       h4("4. Upload PTM input.txt File"),
       fileInput(ns('ptm_input'), "", multiple = FALSE, accept = NULL),
       
@@ -431,13 +431,30 @@ create_ptm_uploads <- function(ns) {
       h4("8. (Optional) Upload Unmodified Protein proteinGroups.txt File"),
       fileInput(ns('ptm_pgroup'), "", multiple = FALSE, accept = NULL)
     ),
+
+    # Metamorpheus specific PTM
+    conditionalPanel(
+      condition = "(input['loadpage-filetype'] == 'meta') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
+      h4("8. (Recommended) Upload Unmodified Protein Annotation File"),
+      fileInput(
+        ns("ptm_protein_annot"),
+        "",
+        multiple = FALSE,
+        accept = c(".csv", ".tsv")
+      ),
+
+      h4("Modification IDs", class = "icon-wrapper",
+         icon("question-circle", lib = "font-awesome"),
+         div("Enter the modification ID pattern to filter for PTMs (e.g. phosphorylation pattern from Metamorpheus output).", class = "icon-tooltip")),
+      textInput(ns("mod_id_meta"), "", value="\\[Common Biological:Phosphorylation on S\\]")
+    ),
     
     # PTM modification labels
     create_ptm_modification_labels(ns),
     
     # FASTA file column name
     conditionalPanel(
-      condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'sky') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
+      condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'meta') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
       h4("FASTA file column name", class = "icon-wrapper", 
          icon("question-circle", lib = "font-awesome"),
          div("Name of column in FASTA file that matches with Protein name column in input. It is critical the values in both columns match so that the modfication can be identified.", class = "icon-tooltip")),
