@@ -920,12 +920,12 @@ library(MSstatsPTM)\n", sep = "")
         codes = paste(codes, "fasta_path = \"insert your FASTA filepath\"\n", sep = "")
         codes = paste(codes, "protein_data = data.table::fread(\"insert your GlobalProteome AllQuantifiedPeaks.tsv filepath\") # Optional\n", sep = "")
         codes = paste(codes, "annot_protein = read.csv(\"insert your GlobalProteome annotation filepath\") # Optional\n", sep = "")
-        codes = paste(codes, "data = MetamorpheusToMSstatsPTMFormat(ptm_data,
+        codes = paste(codes, "use_unmod_peptides = is.null(protein_data)\ndata = MetamorpheusToMSstatsPTMFormat(ptm_data,
                                        annot,
                                        fasta_path = fasta_path,
                                        input_protein = protein_data,
                                        annotation_protein = annot_protein,
-                                       use_unmod_peptides = FALSE,
+                                       use_unmod_peptides = use_unmod_peptides,
                                        mod_ids = c(\"", gsub("\\\\", "\\\\\\\\", input$mod_id_meta), "\"))\n", sep = "")
       } else {
         codes = paste(codes, "data = data.table::fread(\"insert your QuantifiedPeaks.tsv filepath\")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
