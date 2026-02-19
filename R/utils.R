@@ -378,7 +378,7 @@ getData <- function(input) {
 
       # Read recommended unmodified protein data
       protein_data_raw = try(data.table::fread(input$ptm_protein_input$datapath), silent=TRUE)
-      if (typeof(protein_data_raw) == "character") {
+      if (is(protein_data_raw, "try-error")) {
         protein_data = NULL
         use_unmod_peptides = TRUE
       } else {
@@ -387,7 +387,7 @@ getData <- function(input) {
       }
 
       # Use PTM annotation as default for protein; override if uploaded
-      protein_annotation = data.table::copy(as.data.frame(ptm_annotation))
+      protein_annotation = as.data.frame(ptm_annotation)
       if (!is.null(input$ptm_protein_annot)) {
         protein_annot_raw = try(as.data.frame(data.table::fread(input$ptm_protein_annot$datapath)), silent=TRUE)
         if (!is(protein_annot_raw, "try-error")) {
@@ -400,10 +400,10 @@ getData <- function(input) {
       
       mydata = MetamorpheusToMSstatsPTMFormat(
         data.table::copy(ptm_data),
-        data.table::copy(ptm_annotation),
+        ptm_annotation,
         fasta_path = input$fasta$datapath,
         input_protein = if (!is.null(protein_data)) data.table::copy(protein_data) else NULL,
-        annotation_protein = data.table::copy(protein_annotation),
+        annotation_protein = protein_annotation,
         use_unmod_peptides = use_unmod_peptides,
         mod_ids = c(input$mod_id_meta)
       )
@@ -918,8 +918,8 @@ library(MSstatsPTM)\n", sep = "")
         codes = paste(codes, "ptm_data = data.table::fread(\"insert your AllQuantifiedPeaks.tsv filepath\")\n", sep = "")
         codes = paste(codes, "annot = read.csv(\"insert your ExperimentalDesign annotation filepath\")\n", sep = "")
         codes = paste(codes, "fasta_path = \"insert your FASTA filepath\"\n", sep = "")
-        codes = paste(codes, "protein_data = data.table::fread(\"insert your GlobalProteome AllQuantifiedPeaks.tsv filepath\") # Optional\n", sep = "")
-        codes = paste(codes, "annot_protein = read.csv(\"insert your GlobalProteome annotation filepath\") # Optional\n", sep = "")
+        codes = paste(codes, "# Optional: set protein_data = NULL if no GlobalProteome data\nprotein_data = tryCatch(data.table::fread(\"insert your GlobalProteome AllQuantifiedPeaks.tsv filepath\"), error = function(e) NULL)\n", sep = "")
+        codes = paste(codes, "annot_protein = read.csv(\"insert your GlobalProteome annotation filepath\") # Required when protein_data is not NULL\n", sep = "")
         codes = paste(codes, "use_unmod_peptides = is.null(protein_data)\ndata = MetamorpheusToMSstatsPTMFormat(ptm_data,
                                        annot,
                                        fasta_path = fasta_path,
