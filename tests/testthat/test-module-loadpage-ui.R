@@ -301,9 +301,9 @@ test_that("create_ptm_uploads creates PTM-specific inputs", {
   uploads_html <- as.character(uploads)
   
   # Check for PTM specific uploads
-  expect_true(grepl("Upload PTM input.txt File", uploads_html))
+  expect_true(grepl("Upload PTM Input File", uploads_html))
   expect_true(grepl("Upload fasta File", uploads_html))
-  expect_true(grepl("Upload Unmodified Protein input.txt File", uploads_html))
+  expect_true(grepl("Upload Unmodified Protein Input File", uploads_html))
   
   # Check for modification labels
   expect_true(grepl("Modification Label", uploads_html))
