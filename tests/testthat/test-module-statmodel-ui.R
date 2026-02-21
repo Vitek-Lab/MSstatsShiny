@@ -244,6 +244,6 @@ test_that("Response curve ratio scale checkbox is checked by default", {
   ui_html <- htmltools::renderTags(ui)$html
   
   # Check for the value = TRUE in the checkbox definition
-  expect_true(grepl("value = TRUE", ui_html) || grepl('checked["\']', ui_html),
+  expect_true(grepl('checked["\']', ui_html),
               info = "Ratio scale checkbox should be checked by default")
 })
