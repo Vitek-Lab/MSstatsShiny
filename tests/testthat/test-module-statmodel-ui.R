@@ -244,6 +244,13 @@ test_that("Response curve ratio scale checkbox is checked by default", {
   ui_html <- htmltools::renderTags(ui)$html
   
   # Check for the value = TRUE in the checkbox definition
-  expect_true(grepl('checked["\']', ui_html),
-              info = "Ratio scale checkbox should be checked by default")
+  ratio_scale_id <- paste0("test-",
+    MSstatsShiny:::NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale)
+  expect_true(
+    grepl(
+      paste0('id="', ratio_scale_id, '"[^>]*checked|checked[^>]*id="', ratio_scale_id, '"'),
+      ui_html
+    ),
+    info = "Ratio scale checkbox should be checked by default"
+  )
 })

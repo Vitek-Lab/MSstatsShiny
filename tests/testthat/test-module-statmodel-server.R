@@ -599,11 +599,3 @@ test_that("visualization_response_curve_ratio_scale is present in NAMESPACE_STAT
   expect_equal(checkbox_id, "visualization_response_curve_ratio_scale",
                info = "Checkbox ID should match the namespace key")
 })
-
-test_that("Ratio scale checkbox defaults to checked in UI", {
-  ui <- MSstatsShiny:::create_response_curve_options(shiny::NS("test"))
-  ui_html <- htmltools::renderTags(ui)$html
-  
-  expect_true(grepl('type="checkbox"[^>]*checked|checked[^>]*type="checkbox"', ui_html),
-              info = "Ratio scale checkbox should be checked by default")
-})
