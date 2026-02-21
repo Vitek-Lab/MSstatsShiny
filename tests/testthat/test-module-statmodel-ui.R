@@ -231,8 +231,15 @@ test_that("Response curve ratio scale checkbox has tooltip", {
   ui <- MSstatsShiny:::create_response_curve_options(shiny::NS("test"))
   ui_html <- htmltools::renderTags(ui)$html
   
-  expect_true(grepl("icon-tooltip", ui_html),
-              info = "Tooltip class should be present")
+  ratio_scale_id <- paste0("test-",
+    MSstatsShiny:::NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale)
+  expect_true(
+    grepl(
+      paste0(ratio_scale_id, '.*icon-tooltip|icon-tooltip.*', ratio_scale_id),
+      ui_html
+    ),
+    info = "Tooltip class should be present near ratio scale checkbox"
+  )
   expect_true(grepl("fa-circle-question|question-circle", ui_html),
               info = "Question mark icon should be present")
   expect_true(grepl("protein abundances are shown relative to the control", ui_html),
