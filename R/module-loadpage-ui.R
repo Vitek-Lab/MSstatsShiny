@@ -408,7 +408,7 @@ create_ptm_uploads <- function(ns) {
   tagList(
     conditionalPanel(
       condition = "(input['loadpage-filetype'] == 'maxq' || input['loadpage-filetype'] == 'PD' || input['loadpage-filetype'] == 'spec' || input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'meta') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
-      h4("4. Upload PTM input.txt File"),
+      h4("4. Upload PTM Input File"),
       fileInput(ns('ptm_input'), "", multiple = FALSE, accept = NULL),
       
       h4("5. Upload annotation File", class = "icon-wrapper", 
@@ -421,7 +421,7 @@ create_ptm_uploads <- function(ns) {
          div("Upload FASTA file. This file allows us to identify where in the protein sequence a modification occurs.", class = "icon-tooltip")),
       fileInput(ns('fasta'), "", multiple = FALSE),
       
-      h4("7. (Optional) Upload Unmodified Protein input.txt File"),
+      h4("7. (Recommended) Upload Unmodified Protein Input File"),
       fileInput(ns('ptm_protein_input'), "", multiple = FALSE, accept = NULL)
     ),
     
@@ -434,7 +434,7 @@ create_ptm_uploads <- function(ns) {
 
     # Metamorpheus specific PTM
     conditionalPanel(
-      condition = "(input['loadpage-filetype'] == 'meta') && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
+      condition = "(input['loadpage-filetype'] == 'meta') && (input['loadpage-BIO'] == 'PTM')",
       h4("8. (Recommended) Upload Unmodified Protein Annotation File"),
       fileInput(
         ns("ptm_protein_annot"),
