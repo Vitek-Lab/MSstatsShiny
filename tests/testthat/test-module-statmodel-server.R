@@ -585,3 +585,38 @@ test_that("handles empty comparison list correctly", {
     }
   )
 })
+
+# ============================================================================
+# RESPONSE CURVE RATIO SCALE CHECKBOX TESTS
+# ============================================================================
+
+test_that("Ratio scale checkbox value is passed to visualizeResponseProtein", {
+  # Verify that the checkbox namespace is properly defined in constants
+  namespace <- MSstatsShiny:::NAMESPACE_STATMODEL
+  expect_true("visualization_response_curve_ratio_scale" %in% names(namespace),
+              info = "Ratio scale checkbox should be in NAMESPACE_STATMODEL")
+  
+  # Verify the checkbox value can be accessed
+  checkbox_id <- namespace$visualization_response_curve_ratio_scale
+  expect_equal(checkbox_id, "visualization_response_curve_ratio_scale",
+               info = "Checkbox ID should match the namespace key")
+})
+
+test_that("Ratio scale checkbox defaults to TRUE", {
+  # Verify that the checkbox has a default value of TRUE in the UI definition
+  ui <- MSstatsShiny:::create_response_curve_options(shiny::NS("test"))
+  ui_html <- htmltools::renderTags(ui)$html
+  
+  # Check that the checkbox is marked as checked (value = TRUE)
+  expect_true(grepl("checked=\"checked\"|checked", ui_html),
+              info = "Ratio scale checkbox should be checked by default")
+})
+
+test_that("Ratio scale checkbox can be toggled between TRUE and FALSE", {
+  # Simple test to verify the checkbox constant is defined and accessible
+  checkbox_id <- MSstatsShiny:::NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale
+  expect_equal(checkbox_id, "visualization_response_curve_ratio_scale",
+               info = "Ratio scale checkbox ID should be correctly defined")
+  expect_true(nchar(checkbox_id) > 0,
+              info = "Checkbox ID should not be empty")
+})

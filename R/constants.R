@@ -27,6 +27,7 @@ NAMESPACE_STATMODEL = list(
   visualization_heatmap_number_proteins = "visualization_heatmap_number_proteins",
   visualization_heatmap_cluster_option = "visualization_heatmap_cluster_option", 
   visualization_response_curve_which_drug = "visualization_response_curve_which_drug",
+  visualization_response_curve_ratio_scale = "visualization_response_curve_ratio_scale",
   visualization_view_results = "visualization_view_results", 
   visualization_download_plot_results = "visualization_download_plot_results",
   visualization_plot_output = "visualization_plot_output",
