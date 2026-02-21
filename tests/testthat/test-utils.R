@@ -541,8 +541,6 @@ test_that("ptm metamorpheus", {
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype <- "meta"
     mock_input$mod_id_meta <- "\\[Common Fixed:Carbamidomethyl on C\\]"
-    mock_input$ptm_protein_annot <- NULL
-
     mock_input$ptm_input$datapath <- system.file(
       "tinytest/raw_data/Metamorpheus/AllQuantifiedPeaks.tsv",
       package = "MSstatsPTM")
@@ -554,6 +552,9 @@ test_that("ptm metamorpheus", {
       package = "MSstatsPTM")
     mock_input$ptm_protein_input$datapath <- system.file(
       "tinytest/raw_data/Metamorpheus/AllQuantifiedPeaksGlobalProteome.tsv",
+      package = "MSstatsPTM")
+    mock_input$ptm_protein_annot$datapath <- system.file(
+      "tinytest/raw_data/Metamorpheus/ExperimentalDesignGlobalProteome.tsv",
       package = "MSstatsPTM")
 
     output <- getData(mock_input)
