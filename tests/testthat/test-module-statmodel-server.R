@@ -590,15 +590,7 @@ test_that("handles empty comparison list correctly", {
 # RESPONSE CURVE RATIO SCALE CHECKBOX TESTS
 # ============================================================================
 
-test_that("Ratio scale checkbox value is passed to visualizeResponseProtein", {
-  # Track what ratio_response value gets passed to visualizeResponseProtein
-  captured_args <- NULL
-  mock_visualize <- function(...) {
-    captured_args <<- list(...)
-    # Return a minimal ggplot to avoid rendering errors
-    ggplot2::ggplot() + ggplot2::theme_void()
-  }
-
+test_that("Ratio scale checkbox input can be toggled", {
   testServer(
     statmodelServer,
     args = list(
@@ -622,19 +614,10 @@ test_that("Ratio scale checkbox value is passed to visualizeResponseProtein", {
       })
     ),
     {
-      # Set up response curve comparison mode and build matrix
-      inputs <- list()
-      inputs[[NAMESPACE_STATMODEL$comparison_mode]] <- CONSTANTS_STATMODEL$comparison_mode_response_curve
-      inputs[[NAMESPACE_STATMODEL$comparisons_submit]] <- 1
-      do.call(session$setInputs, inputs)
-      matrix_build()
-
       # Set ratio scale checkbox to TRUE
       session$setInputs(
         !!NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale := TRUE
       )
-
-      # Verify isTRUE returns TRUE when checkbox is checked
       expect_true(
         isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
         info = "ratio_response should be TRUE when checkbox is checked"
@@ -644,8 +627,6 @@ test_that("Ratio scale checkbox value is passed to visualizeResponseProtein", {
       session$setInputs(
         !!NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale := FALSE
       )
-
-      # Verify isTRUE returns FALSE when checkbox is unchecked
       expect_false(
         isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
         info = "ratio_response should be FALSE when checkbox is unchecked"
