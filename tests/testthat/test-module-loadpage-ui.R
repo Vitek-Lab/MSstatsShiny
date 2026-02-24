@@ -301,9 +301,9 @@ test_that("create_ptm_uploads creates PTM-specific inputs", {
   uploads_html <- as.character(uploads)
   
   # Check for PTM specific uploads
-  expect_true(grepl("Upload PTM input.txt File", uploads_html))
+  expect_true(grepl("Upload PTM Input File", uploads_html))
   expect_true(grepl("Upload fasta File", uploads_html))
-  expect_true(grepl("Upload Unmodified Protein input.txt File", uploads_html))
+  expect_true(grepl("Upload Unmodified Protein Input File", uploads_html))
   
   # Check for modification labels
   expect_true(grepl("Modification Label", uploads_html))
@@ -458,4 +458,16 @@ test_that("Metamorpheus converter option exists in filetype choices", {
   # Check that the radio button value "meta" is present
   expect_true(grepl("value=\"meta\"", html_output),
               info = "Metamorpheus radio button value 'meta' not found in UI")
+})
+
+test_that("Metamorpheus PTM upload fields exist in UI", {
+  result <- loadpageUI("test")
+  html_output <- as.character(result)
+
+  expect_true(grepl("mod_id_meta", html_output),
+              info = "Metamorpheus PTM modification ID field not found in UI")
+  expect_true(grepl("ptm_protein_annot", html_output),
+              info = "Metamorpheus PTM protein annotation upload not found in UI")
+  expect_true(grepl("Modification IDs", html_output),
+              info = "Metamorpheus PTM Modification IDs label not found in UI")
 })

@@ -369,7 +369,46 @@ getData <- function(input) {
                                          annotation_protein=annotation,
                                          use_unmod_peptides=use_unmod_peptides)
 
-    }else {
+    } else if (input$filetype == "meta") {
+      cat(file=stderr(), "Reached in metamorpheus PTM\n")
+
+      # Read PTM input data and annotation
+      if (is.null(input$ptm_input) || is.null(input$ptm_annot)) {
+        remove_modal_spinner()
+        showNotification("Please upload both PTM peaks and annotation files.", type = "error")
+        return(NULL)
+      }
+      ptm_data = data.table::fread(input$ptm_input$datapath)
+      ptm_annotation = as.data.frame(data.table::fread(input$ptm_annot$datapath))
+
+      # Read recommended unmodified protein data
+      protein_data_raw = try(data.table::fread(input$ptm_protein_input$datapath), silent=TRUE)
+      if (is(protein_data_raw, "try-error")) {
+        protein_data = NULL
+      } else {
+        protein_data = protein_data_raw
+      }
+      use_unmod_peptides = FALSE
+
+      # Default protein annotation to NULL; override if uploaded
+      protein_annotation = NULL
+      if (!is.null(input$ptm_protein_annot)) {
+        protein_annot_raw = try(as.data.frame(data.table::fread(input$ptm_protein_annot$datapath)), silent=TRUE)
+        if (!is(protein_annot_raw, "try-error")) {
+          protein_annotation = protein_annot_raw
+        }
+      }
+      
+      mydata = MetamorpheusToMSstatsPTMFormat(
+        data.table::copy(ptm_data),
+        ptm_annotation,
+        fasta_path = input$fasta$datapath,
+        input_protein = if (!is.null(protein_data)) data.table::copy(protein_data) else NULL,
+        annotation_protein = protein_annotation,
+        use_unmod_peptides = use_unmod_peptides,
+        mod_ids = c(input$mod_id_meta)
+      )
+    } else {
       data = read.csv(input$msstatsptmdata$datapath, header = TRUE,sep = input$sep_msstatsptmdata, 
                       stringsAsFactors=FALSE)
       mydata = list("PTM" = data, "PROTEIN" = unmod)
@@ -876,15 +915,30 @@ library(MSstatsPTM)\n", sep = "")
                                        use_log_file = FALSE)\n", sep = "")
     }
     else if(input$filetype == 'meta') {
-      codes = paste(codes, "data = data.table::fread(\"insert your QuantifiedPeaks.tsv filepath\")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
-                    , sep = "")
+      if (input$BIO == "PTM") {
+        codes = paste(codes, "ptm_data = data.table::fread(\"insert your AllQuantifiedPeaks.tsv filepath\")\n", sep = "")
+        codes = paste(codes, "annot = read.csv(\"insert your ExperimentalDesign annotation filepath\")\n", sep = "")
+        codes = paste(codes, "fasta_path = \"insert your FASTA filepath\"\n", sep = "")
+        codes = paste(codes, "# Optional: set protein_data = NULL if no GlobalProteome data\nprotein_data = tryCatch(data.table::fread(\"insert your GlobalProteome AllQuantifiedPeaks.tsv filepath\"), error = function(e) NULL)\n", sep = "")
+        codes = paste(codes, "annot_protein = if (!is.null(protein_data)) read.csv(\"insert your GlobalProteome annotation filepath\") else NULL\n", sep = "")
+        codes = paste(codes, "use_unmod_peptides = FALSE\ndata = MetamorpheusToMSstatsPTMFormat(data.table::copy(ptm_data),
+                                       annot,
+                                       fasta_path = fasta_path,
+                                       input_protein = protein_data,
+                                       annotation_protein = annot_protein,
+                                       use_unmod_peptides = use_unmod_peptides,
+                                       mod_ids = c(\"", gsub('"', '\\\\"', gsub("\\\\", "\\\\\\\\", input$mod_id_meta)), "\"))\n", sep = "")
+      } else {
+        codes = paste(codes, "data = data.table::fread(\"insert your QuantifiedPeaks.tsv filepath\")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
+                      , sep = "")
 
-      codes = paste(codes, "data = MetamorpheusToMSstatsFormat(data,
+        codes = paste(codes, "data = MetamorpheusToMSstatsFormat(data,
                                        annotation = annot_file,
                                        useUniquePeptide = ", input$unique_peptides, ",
                                        removeFewMeasurements = FALSE,
                                        removeProtein_with1Feature = ", input$remove, ",\n\t\t\t\t       ",
-                    "use_log_file = FALSE)\n", sep = "")
+                      "use_log_file = FALSE)\n", sep = "")
+      }
     }
     else if(input$filetype == 'open') {
 
