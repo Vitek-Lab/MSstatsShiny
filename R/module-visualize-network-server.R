@@ -293,8 +293,7 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes,
                            sources_filter = sources,
                            logfc_cutoff = absLogFC,
                            force_include_other = selectedProteins,
-                           filter_by_curation = filterByCuration,
-                           api_key = "")
+                           filter_by_curation = filterByCuration)
   }, error = function(e) {
     showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
     print(e$message)
