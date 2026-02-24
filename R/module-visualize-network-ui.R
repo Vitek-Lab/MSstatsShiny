@@ -260,7 +260,7 @@ createFilterDropdowns <- function(ns) {
         "Force Include Proteins (optional):",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Search for specific proteins to include in the network analysis regardless of other filtering criteria. Type a protein name or gene symbol to search.", 
+        div("Search for specific proteins to include in the network analysis regardless of other filtering criteria. As a hidden feature, you can also search by any biological agent, e.g. drugs, GO terms, etc!", 
             class = "icon-tooltip")
       ),
       # Container for selected proteins
@@ -286,6 +286,21 @@ createFilterDropdowns <- function(ns) {
         uiOutput(ns("proteinSearchResults"))
       )
     )
+  )
+}
+
+createCurationFilterCheckbox <- function(ns) {
+  div(
+    tags$label(
+      "Filter Out Incorrect Statements:",
+      class = "icon-wrapper",
+      icon("question-circle", lib = "font-awesome"),
+      div("When checked, excludes protein regulatory relationships that have been manually curated as incorrect in the INDRA database.", 
+          class = "icon-tooltip")
+    ),
+    checkboxInput(ns("filterByCuration"),
+                  label = "Filter out statements curated as incorrect",
+                  value = FALSE)
   )
 }
 
@@ -321,6 +336,7 @@ createDataUploadBox <- function(ns) {
     createDisplayLabelRadioButtons(ns),
     createParameterSliders(ns),
     createFilterDropdowns(ns),
+    createCurationFilterCheckbox(ns),
     createDisplayNetworkButton(ns)
   )
 }

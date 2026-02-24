@@ -241,6 +241,12 @@ getInputParameters <- function(input, selectedProteins) {
     selectedProteins
   }
   
+  filterByCuration <- if(is.null(input$filterByCuration)) {
+    FALSE  # Default to FALSE if somehow NULL 
+  } else {
+    as.logical(input$filterByCuration)
+  }
+  
   list(
     proteinIdType = req(input$proteinIdType),
     pValue = as.numeric(req(input$pValue)),
@@ -249,7 +255,8 @@ getInputParameters <- function(input, selectedProteins) {
     statementTypes = statementTypes,
     sources = sources,
     selectedLabel = req(input$selectedLabel),
-    selectedProteins = selectedProteins
+    selectedProteins = selectedProteins,
+    filterByCuration = filterByCuration
   )
 }
 
@@ -277,7 +284,7 @@ annotateProteinData <- function(df, proteinIdType) {
 }
 
 extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes, 
-                              sources, absLogFC, selectedProteins) {
+                              sources, absLogFC, selectedProteins, filterByCuration) {
   tryCatch({
     getSubnetworkFromIndra(annotated_df, 
                            pvalueCutoff = pValue, 
@@ -285,7 +292,8 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes,
                            statement_types = statementTypes,
                            sources_filter = sources,
                            logfc_cutoff = absLogFC,
-                           force_include_other = selectedProteins)
+                           force_include_other = selectedProteins,
+                           filter_by_curation = filterByCuration)
   }, error = function(e) {
     showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
     print(e$message)
@@ -521,7 +529,8 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     
     subnetwork <- extractSubnetwork(annotated_df, params$pValue, params$evidence, 
                                     params$statementTypes, params$sources,
-                                    params$absLogFC, params$selectedProteins)
+                                    params$absLogFC, params$selectedProteins,
+                                    params$filterByCuration)
     if (is.null(subnetwork)) return(NULL)
     
     return(list(
@@ -602,6 +611,8 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     } else {
       codes <- paste(codes, ",\n  force_include_other = NULL\n", sep = "")
     }
+    
+    codes <- paste(codes, ",\n  filter_by_curation = ", params$filterByCuration, "\n", sep = "")
     
     codes <- paste(codes, ")\n\n", sep = "")
     
