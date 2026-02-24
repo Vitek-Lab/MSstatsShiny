@@ -111,7 +111,7 @@ create_response_curve_options <- function(ns) {
         "Use ratio scale",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("When enabled, protein abundances are shown relative to the control (control = 1.0). Useful for drug experiments to display fold-change vs. untreated samples. Disable for non-drug experiments (e.g., time courses) where absolute abundances are more meaningful.",
+        div("When enabled, protein abundances are shown relative to the control (control = 1.0). Useful for chemoproteomic experiments to display fold-change vs. DMSO. Disable for non-chemoproteomic experiments (e.g., time courses) where absolute abundances are more meaningful.",
             class = "icon-tooltip",
             style = "max-width: 280px; width: max-content; white-space: normal; line-height: 1.4; text-align: left;")
       ),

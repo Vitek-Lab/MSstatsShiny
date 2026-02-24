@@ -244,6 +244,8 @@ test_that("Response curve ratio scale checkbox has tooltip", {
               info = "Question mark icon should be present")
   expect_true(grepl("protein abundances are shown relative to the control", ui_html),
               info = "Tooltip text should describe ratio scale")
+  expect_true(grepl("chemoproteomic", ui_html),
+              info = "Tooltip text should mention chemoproteomic experiments")
 })
 
 test_that("Response curve ratio scale checkbox is checked by default", {
