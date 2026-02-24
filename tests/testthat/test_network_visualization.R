@@ -193,7 +193,8 @@ test_that("extractSubnetwork works with mocked MSstatsBioNet function", {
     statementTypes = NULL,
     sources = NULL, 
     absLogFC = 0.5, 
-    selectedProteins = NULL
+    selectedProteins = NULL,
+    filterByCuration = FALSE
   )
   
   expect_type(result, "list")
@@ -233,7 +234,7 @@ test_that("Full pipeline works with mocked functions", {
   # Test the full pipeline
   filtered_df <- filterDataByLabel(input_df, "Treatment_vs_Control")
   annotated <- annotateProteinData(filtered_df, "Uniprot")
-  subnet <- extractSubnetwork(annotated, 0.05, 5, NULL, NULL, 0.5, NULL)
+  subnet <- extractSubnetwork(annotated, 0.05, 5, NULL, NULL, 0.5, NULL, FALSE)
   
   # Generate configuration
   js_code <- generateCytoscapeJSForShiny(subnet$nodes, subnet$edges)
@@ -265,7 +266,7 @@ test_that("Functions handle errors gracefully", {
   # Test extractSubnetwork with error
   stub(extractSubnetwork, "getSubnetworkFromIndra", mock_error_func)
   stub(extractSubnetwork, "showNotification", mock_show_notification)
-  result2 <- extractSubnetwork(create_mock_annotated_data(), 0.05, 5, NULL, NULL, 0.5, NULL)
+  result2 <- extractSubnetwork(create_mock_annotated_data(), 0.05, 5, NULL, NULL, 0.5, NULL, FALSE)
   expect_null(result2)
 })
 
