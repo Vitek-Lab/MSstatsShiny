@@ -212,3 +212,47 @@ test_that("Informative messages are present", {
   expect_true(grepl("Please add a comparison matrix before modeling", ui_html),
               info = "Matrix requirement message should be present")
 })
+
+# ============================================================================
+# 12. RESPONSE CURVE RATIO SCALE CHECKBOX TESTS
+# ============================================================================
+
+test_that("Response curve ratio scale checkbox is present in response curve options", {
+  ui <- MSstatsShiny:::create_response_curve_options(shiny::NS("test"))
+  ui_html <- htmltools::renderTags(ui)$html
+  
+  expect_true(grepl("Use ratio scale", ui_html),
+              info = "Ratio scale checkbox label should be present")
+  expect_true(grepl(MSstatsShiny:::NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale, ui_html),
+              info = "Ratio scale checkbox input ID should be present")
+})
+
+test_that("Response curve ratio scale checkbox has tooltip", {
+  ui <- MSstatsShiny:::create_response_curve_options(shiny::NS("test"))
+  ui_html <- htmltools::renderTags(ui)$html
+  
+  expect_true(grepl("icon-tooltip", ui_html),
+              info = "Tooltip class should be present")
+  expect_true(grepl("fa-circle-question|question-circle", ui_html),
+              info = "Question mark icon should be present")
+  expect_true(grepl("protein abundances are shown relative to the control", ui_html),
+              info = "Tooltip text should describe ratio scale")
+  expect_true(grepl("chemoproteomic", ui_html),
+              info = "Tooltip text should mention chemoproteomic experiments")
+})
+
+test_that("Response curve ratio scale checkbox is checked by default", {
+  ui <- MSstatsShiny:::create_response_curve_options(shiny::NS("test"))
+  ui_html <- htmltools::renderTags(ui)$html
+  
+  # Check for the value = TRUE in the checkbox definition
+  ratio_scale_id <- paste0("test-",
+    MSstatsShiny:::NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale)
+  expect_true(
+    grepl(
+      paste0('id="', ratio_scale_id, '"[^>]*checked|checked[^>]*id="', ratio_scale_id, '"'),
+      ui_html
+    ),
+    info = "Ratio scale checkbox should be checked by default"
+  )
+})

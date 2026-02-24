@@ -104,7 +104,19 @@ create_heatmap_options <- function(ns) {
 create_response_curve_options <- function(ns) {
   tagList(
     uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_protein)),
-    uiOutput(ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug))
+    uiOutput(ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug)),
+    checkboxInput(
+      ns(NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale),
+      label = span(
+        "Use ratio scale",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("When enabled, protein abundances are shown relative to the control (control = 1.0). Useful for chemoproteomic experiments to display fold-change vs. DMSO. Disable for non-chemoproteomic experiments (e.g., time courses) where protein abundance values are more meaningful.",
+            class = "icon-tooltip",
+            style = "max-width: 280px; width: max-content; white-space: normal; line-height: 1.4; text-align: left;")
+      ),
+      value = TRUE
+    )
   )
 }
 

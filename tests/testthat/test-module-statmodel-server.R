@@ -585,3 +585,52 @@ test_that("handles empty comparison list correctly", {
     }
   )
 })
+
+# ============================================================================
+# RESPONSE CURVE RATIO SCALE CHECKBOX TESTS
+# ============================================================================
+
+test_that("Ratio scale checkbox input can be toggled", {
+  testServer(
+    statmodelServer,
+    args = list(
+      parent_session = MockShinySession$new(),
+      loadpage_input = reactive({
+        list(
+          BIO = "protein",
+          DDA_DIA = "DDA",
+          filetype = "standard",
+          proceed1 = 0
+        )
+      }),
+      qc_input = reactive({
+        list(normalization = "equalizeMedians")
+      }),
+      get_data = reactive({
+        create_mock_raw_data()
+      }),
+      preprocess_data = reactive({
+        create_mock_data("DDA", "protein")
+      })
+    ),
+    {
+      # Set ratio scale checkbox to TRUE
+      session$setInputs(
+        !!NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale := TRUE
+      )
+      expect_true(
+        isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
+        info = "ratio_response should be TRUE when checkbox is checked"
+      )
+
+      # Set ratio scale checkbox to FALSE
+      session$setInputs(
+        !!NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale := FALSE
+      )
+      expect_false(
+        isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
+        info = "ratio_response should be FALSE when checkbox is unchecked"
+      )
+    }
+  )
+})
