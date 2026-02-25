@@ -307,9 +307,7 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes,
 
 #' Server logic for network visualization module
 #'
-#' @param input Shiny input object
-#' @param output Shiny output object
-#' @param session Shiny session object
+#' @param id Module ID string
 #' @param parent_session Parent Shiny session
 #' @param dataComparison Reactive expression containing comparison data
 #'
@@ -317,8 +315,9 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes,
 #' 
 #' @importFrom MSstatsBioNet annotateProteinInfoFromIndra getSubnetworkFromIndra
 #' @importFrom DT renderDT datatable
-#' @importFrom shiny updateSelectizeInput showNotification outputOptions
-visualizeNetworkServer <- function(input, output, session, parent_session, dataComparison) {
+#' @importFrom shiny moduleServer updateSelectizeInput showNotification outputOptions
+visualizeNetworkServer <- function(id, parent_session, dataComparison) {
+  moduleServer(id, function(input, output, session) {
   
   # Output to control conditional panels
   output$hasValidDataComparison <- reactive({
@@ -714,4 +713,5 @@ visualizeNetworkServer <- function(input, output, session, parent_session, dataC
     updateLabelChoices(session, current_df)
     updateProteinChoices(session, current_df)
   })
+  }) # end moduleServer
 }

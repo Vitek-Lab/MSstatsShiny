@@ -4,14 +4,10 @@
 \alias{visualizeNetworkServer}
 \title{Server logic for network visualization module}
 \usage{
-visualizeNetworkServer(input, output, session, parent_session, dataComparison)
+visualizeNetworkServer(id, parent_session, dataComparison)
 }
 \arguments{
-\item{input}{Shiny input object}
-
-\item{output}{Shiny output object}
-
-\item{session}{Shiny session object}
+\item{id}{Module ID string}
 
 \item{parent_session}{Parent Shiny session}
 
