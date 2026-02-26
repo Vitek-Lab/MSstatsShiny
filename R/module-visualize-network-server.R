@@ -1,62 +1,3 @@
-# =============================================================================
-# UI RENDERING FUNCTIONS (SHINY-SPECIFIC)
-# These functions stay in your Shiny application
-# =============================================================================
-
-#' Generate Cytoscape JavaScript with Shiny event handling
-#' 
-#' This function wraps the package's generateCytoscapeConfig() function
-#' and adds Shiny-specific event handling for table highlighting
-#' 
-#' @param node_elements Node elements from package
-#' @param edge_elements Edge elements from package  
-#' @param display_label_type Column to display the label from the node table
-#' @param container_id Network Visualization Container ID (default: 'network-cy')
-#' @param module_id Module ID for Shiny Application (default: 'network')
-#' @importFrom MSstatsBioNet generateCytoscapeConfig
-#' @return JavaScript code string with Shiny event handlers
-generateCytoscapeJSForShiny <- function(node_elements, edge_elements, 
-                                        display_label_type = "id",
-                                        container_id = "network-cy", module_id = "network") {
-  
-  # Define Shiny-specific event handlers for both edges and nodes
-  shiny_event_handlers <- list(
-    edge_click = paste0("function(evt) {
-        var edge = evt.target;
-        const edgeId = edge.id();
-        Shiny.setInputValue('", module_id, "-edgeClicked', {
-            source: edge.data('source'),
-            target: edge.data('target'),
-            interaction: edge.data('interaction'),
-            edge_type: edge.data('edge_type'),
-            category: edge.data('category'),
-            evidenceLink: edge.data('evidenceLink')
-        });
-    }"),
-    node_click = paste0("function(evt) {
-        var node = evt.target;
-        const nodeId = node.id();
-        Shiny.setInputValue('", module_id, "-nodeClicked', { 
-            id: node.data('id'),
-            label: node.data('label'),
-            color: node.data('color')
-        });
-    }")
-  )
-  
-  # Use the package function to generate configuration
-  config <- generateCytoscapeConfig(
-    nodes = node_elements,
-    edges = edge_elements,
-    display_label_type = display_label_type,
-    container_id = container_id,
-    event_handlers = shiny_event_handlers
-  )
-  
-  # Return the JavaScript code
-  return(config$js_code)
-}
-
 renderDataTables <- function(output, nodes_table, edges_table) {
   output$nodesTable <- renderDT({
     datatable(nodes_table, 
@@ -541,18 +482,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   networkVisualization <- reactive({
     network_data <- renderNetwork()
     if (is.null(network_data)) return(NULL)
-    
-    # Generate JavaScript code with Shiny-specific event handling
-    js_code <- generateCytoscapeJSForShiny(
-      network_data$nodes_table, 
-      network_data$edges_table,
-      display_label_type = input$displayLabelType,
-      container_id = session$ns("cy"),
-      module_id = session$ns(NULL)
-    )
-    
     return(list(
-      js_code = js_code,
       edges_table = network_data$edges_table,
       nodes_table = network_data$nodes_table
     ))
