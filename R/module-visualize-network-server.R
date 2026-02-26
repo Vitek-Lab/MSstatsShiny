@@ -74,22 +74,6 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
   }
 }
 
-# Open evidence link in new tab
-openEvidenceLink <- function(session, evidence_link) {
-  if (is.null(evidence_link) || is.na(evidence_link)) return(invisible(NULL))
-  link <- trimws(as.character(evidence_link)[1])
-  if (!nzchar(link)) return(invisible(NULL))
-  # Allow only http(s)
-    if (!grepl("^https?://", link, ignore.case = TRUE)) {
-        showNotification("Blocked non-http(s) evidence link.", type = "warning")
-        return(invisible(NULL))
-      }
-  session$sendCustomMessage(
-      type = 'openLinkInNewTab',
-      message = list(url = link)
-    )
-}
-
 # =============================================================================
 # UPDATED SERVER CODE - Using the decoupled architecture
 # =============================================================================
@@ -629,9 +613,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     network_data <- renderNetwork()
     req(network_data)
     edges_table <- network_data$edges_table
-    
     highlightEdgeInTable(output, edge_data, edges_table)
-    openEvidenceLink(session, edge_data$evidenceLink) # might not be needed
   })
   
   # Observe node click events
@@ -640,7 +622,6 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     network_data <- renderNetwork()
     req(network_data)
     nodes_table <- network_data$nodes_table
-    
     highlightNodeInTable(output, node_data, nodes_table)
   })
   
