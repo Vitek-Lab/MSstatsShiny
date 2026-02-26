@@ -540,8 +540,9 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     codes <- paste(codes, "write.csv(subnetwork$edges, \"network_edges.csv\", row.names = FALSE)\n", sep = "")
     codes <- paste(codes, "# Visualize network on web browser and export as an HTML file\n", sep = "")
     displayLabelTypeStr <- paste0("\"", paste(input$displayLabelType, collapse = "\", \""), "\"")
-    codes <- paste(codes, "previewNetworkInBrowser(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
-    codes <- paste(codes, "exportNetworkToHTML(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
+    codes <- paste(codes, "cytoscapeNetwork(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
+    codes <- paste(codes, "widget = cytoscapeNetwork(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
+    codes <- paste(codes, "htmlwidgets::saveWidget(widget,\n   file = \"network.html\",\n    selfcontained = TRUE\n)")
     
     return(codes)
   })
