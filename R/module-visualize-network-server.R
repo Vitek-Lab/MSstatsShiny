@@ -649,8 +649,6 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
       shinyjs::enable("showNetwork")
       return()
     }
-    print(head(render_data$nodes_table))
-    print(head(render_data$edges_table))
     
     output$network <- MSstatsBioNet::renderCytoscapeNetwork({
       MSstatsBioNet::cytoscapeNetwork(
@@ -661,11 +659,8 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
       )
     })
     
-    # Send JavaScript code to frontend
-    # session$sendCustomMessage(type = 'runCytoscape', message = render_data$js_code)
-    
     # Render data tables
-    # renderDataTables(output, render_data$nodes_table, render_data$edges_table)
+    renderDataTables(output, render_data$nodes_table, render_data$edges_table)
     
     # Hide loading indicator and re-enable button when done
     shinyjs::hide("loadingIndicator")
@@ -699,19 +694,19 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   )
   
   # Observe edge click events
-  observeEvent(input$edgeClicked, {
-    edge_data <- input$edgeClicked
+  observeEvent(input$network_edge_clicked, {
+    edge_data <- input$network_edge_clicked
     network_data <- renderNetwork()
     req(network_data)
     edges_table <- network_data$edges_table
     
     highlightEdgeInTable(output, edge_data, edges_table)
-    openEvidenceLink(session, edge_data$evidenceLink)
+    openEvidenceLink(session, edge_data$evidenceLink) # might not be needed
   })
   
   # Observe node click events
-  observeEvent(input$nodeClicked, {
-    node_data <- input$nodeClicked
+  observeEvent(input$network_node_clicked, {
+    node_data <- input$network_node_clicked
     network_data <- renderNetwork()
     req(network_data)
     nodes_table <- network_data$nodes_table
