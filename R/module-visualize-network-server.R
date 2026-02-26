@@ -649,12 +649,15 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
       shinyjs::enable("showNetwork")
       return()
     }
+    print(head(render_data$nodes_table))
+    print(head(render_data$edges_table))
     
     output$network <- MSstatsBioNet::renderCytoscapeNetwork({
       MSstatsBioNet::cytoscapeNetwork(
         nodes        = render_data$nodes_table,
         edges        = render_data$edges_table,
-        nodeFontSize = 12
+        nodeFontSize = 12,
+        displayLabelType = input$displayLabelType
       )
     })
     
