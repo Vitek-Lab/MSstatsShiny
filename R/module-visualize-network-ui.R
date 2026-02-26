@@ -445,13 +445,17 @@ createNetworkVisualizationBox <- function(ns) {
       style = "position: relative; width: 100%; height: 500px;",
       
       # Main network container
-      tags$div(
-        id = ns("cy"),
-        style = "width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;"
-      ),
+      # tags$div(
+      #   id = ns("cy"),
+      #   style = "width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;"
+      # ),
+      mainPanel(
+        # Use the Shiny output binding
+        MSstatsBioNet::cytoscapeNetworkOutput("network", height = "600px")
+      )
       
       # Combined legend overlay
-      createNetworkLegends()
+      # createNetworkLegends()
     )
   )
 }

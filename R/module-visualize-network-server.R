@@ -650,11 +650,19 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
       return()
     }
     
+    output$network <- MSstatsBioNet::renderCytoscapeNetwork({
+      MSstatsBioNet::cytoscapeNetwork(
+        nodes        = render_data$nodes_table,
+        edges        = render_data$edges_table,
+        nodeFontSize = 12
+      )
+    })
+    
     # Send JavaScript code to frontend
-    session$sendCustomMessage(type = 'runCytoscape', message = render_data$js_code)
+    # session$sendCustomMessage(type = 'runCytoscape', message = render_data$js_code)
     
     # Render data tables
-    renderDataTables(output, render_data$nodes_table, render_data$edges_table)
+    # renderDataTables(output, render_data$nodes_table, render_data$edges_table)
     
     # Hide loading indicator and re-enable button when done
     shinyjs::hide("loadingIndicator")
