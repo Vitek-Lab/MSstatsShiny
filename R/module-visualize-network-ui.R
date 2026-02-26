@@ -1,40 +1,4 @@
 # =============================================================================
-# HELPER FUNCTIONS - External Dependencies
-# =============================================================================
-
-createCytoscapeScripts <- function() {
-  tags$head(
-    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.32.0/cytoscape.min.js"),
-    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/graphlib/2.1.8/graphlib.min.js"),
-    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"),
-    tags$script(src = "https://unpkg.com/cytoscape-dagre@2.3.0/cytoscape-dagre.js"),
-    tags$script("
-            Shiny.addCustomMessageHandler('runCytoscape', function(code) {
-              try {
-                new Function(code)();
-              } catch (err) {
-                console.error('Error running Cytoscape code:', err);
-              }
-            });
-        "),
-    tags$script("
-            Shiny.addCustomMessageHandler('openLinkInNewTab', function(message) {
-              try {
-                if (!message || typeof message.url !== 'string') return;
-                var url = message.url.trim();
-                if (!url) return;
-                if (!/^https?:\\/\\//i.test(url)) { console.warn('Blocked non-http(s) URL'); return; }
-                var win = window.open(url, '_blank', 'noopener,noreferrer');
-                if (win) { win.opener = null; }
-              } catch (err) {
-                console.error('Error opening link:', err);
-              }
-            });
-        ")
-  )
-}
-
-# =============================================================================
 # HELPER FUNCTIONS - UI Components
 # =============================================================================
 
@@ -454,7 +418,6 @@ networkUI <- function(id) {
   
   tagList(
     shinyjs::useShinyjs(),
-    createCytoscapeScripts(),
     dashboardPage(
       createDashboardHeader(),
       dashboardSidebar(disable = TRUE),
