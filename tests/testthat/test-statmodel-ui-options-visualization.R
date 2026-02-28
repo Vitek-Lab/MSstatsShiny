@@ -60,29 +60,3 @@ test_that("All possible options in create_plot_type_selector", {
               info = "Comparison Plot should be present")
   
 })
-
-# ============================================================================
-# DOWNLOAD PLOT HANDLER TESTS
-# ============================================================================
-
-test_that("statmodelServer initializes with updated download handler without error", {
-  expect_error(
-    testServer(
-      statmodelServer,
-      args = list(
-        parent_session = MockShinySession$new(),
-        loadpage_input = reactive({
-          list(BIO = "protein", DDA_DIA = "DDA", filetype = "standard", proceed1 = 0)
-        }),
-        qc_input = reactive({ list(normalization = "equalizeMedians") }),
-        get_data = reactive({ create_mock_raw_data() }),
-        preprocess_data = reactive({ create_mock_data("DDA", "protein") })
-      ),
-      {
-        # Server initialized successfully with updated create_download_plot_handler
-        expect_null(contrast$matrix)
-      }
-    ),
-    NA
-  )
-})

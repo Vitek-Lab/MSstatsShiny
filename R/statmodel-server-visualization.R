@@ -133,6 +133,10 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
         CONSTANTS_STATMODEL$plot_type_response_curve) {
         # Generate response curve plot
         matrix <- contrast$matrix
+        if (is.null(matrix)) {
+          showNotification("Please build a contrast matrix first.", type = "error")
+          return(NULL)
+        }
         protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
         dia_prepared <- prepare_dose_response_fit(data = protein_level_data)
 
@@ -159,9 +163,14 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
         zip_path <- file.path(temp_dir, "Ex_ResponseCurvePlot.zip")
         utils::zip(zip_path, files = pdf_path, flags = "-j")
         file.copy(zip_path, file)
+        unlink(c(pdf_path, zip_path))
       } else {
         # Existing behavior for other plot types (TODO: refactor in future issue)
         files <- list.files(getwd(), pattern = "^Ex_", full.names = TRUE)
+        if (length(files) == 0) {
+          showNotification("No plot files found to download.", type = "error")
+          return(NULL)
+        }
         file_info <- file.info(files)
         latest_file <- files[which.max(file_info$mtime)]
         file.copy(latest_file, file)
