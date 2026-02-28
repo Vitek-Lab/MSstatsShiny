@@ -118,15 +118,54 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
     showNotification(conditionMessage(e), type = "error", duration = 8)
   })
 }
-
-create_download_plot_handler = function(output) {
-  output[[NAMESPACE_STATMODEL$visualization_download_plot_results]] = downloadHandler(
-    filename = function() paste("SummaryPlot-", Sys.Date(), ".zip", sep = ""),
+create_download_plot_handler <- function(output, input, contrast, preprocess_data) {
+  output[[NAMESPACE_STATMODEL$visualization_download_plot_results]] <- downloadHandler(
+    filename = function() {
+      if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
+        CONSTANTS_STATMODEL$plot_type_response_curve) {
+        paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
+      } else {
+        paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
+      }
+    },
     content = function(file) {
-      files = list.files(getwd(), pattern = "^Ex_", full.names = TRUE)
-      file_info = file.info(files)
-      latest_file = files[which.max(file_info$mtime)]
-      file.copy(latest_file, file)
+      if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
+        CONSTANTS_STATMODEL$plot_type_response_curve) {
+        # Generate response curve plot
+        matrix <- contrast$matrix
+        protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
+        dia_prepared <- prepare_dose_response_fit(data = protein_level_data)
+
+        response_plot <- visualizeResponseProtein(
+          data = dia_prepared,
+          protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
+          drug_name = input[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]],
+          ratio_response = isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
+          show_ic50 = TRUE,
+          add_ci = TRUE,
+          transform_dose = input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]],
+          n_samples = 1000,
+          increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
+        )
+
+        # Save plot to a temp PDF, then zip it
+        temp_dir <- tempdir()
+        pdf_path <- file.path(temp_dir, "Ex_ResponseCurvePlot.pdf")
+        ggplot2::ggsave(pdf_path,
+          plot = response_plot, device = "pdf",
+          width = 10, height = 8
+        )
+
+        zip_path <- file.path(temp_dir, "Ex_ResponseCurvePlot.zip")
+        utils::zip(zip_path, files = pdf_path, flags = "-j")
+        file.copy(zip_path, file)
+      } else {
+        # Existing behavior for other plot types (TODO: refactor in future issue)
+        files <- list.files(getwd(), pattern = "^Ex_", full.names = TRUE)
+        file_info <- file.info(files)
+        latest_file <- files[which.max(file_info$mtime)]
+        file.copy(latest_file, file)
+      }
     }
   )
 }

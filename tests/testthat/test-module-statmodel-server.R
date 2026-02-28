@@ -634,3 +634,28 @@ test_that("Ratio scale checkbox input can be toggled", {
     }
   )
 })
+
+# ============================================================================
+# DOWNLOAD PLOT HANDLER TESTS
+# ============================================================================
+
+test_that("statmodelServer initializes with updated download handler without error", {
+  expect_error(
+    testServer(
+      statmodelServer,
+      args = list(
+        parent_session = MockShinySession$new(),
+        loadpage_input = reactive({
+          list(BIO = "protein", DDA_DIA = "DDA", filetype = "standard", proceed1 = 0)
+        }),
+        qc_input = reactive({ list(normalization = "equalizeMedians") }),
+        get_data = reactive({ create_mock_raw_data() }),
+        preprocess_data = reactive({ create_mock_data("DDA", "protein") })
+      ),
+      {
+        expect_null(contrast$matrix)
+      }
+    ),
+    NA
+  )
+})
