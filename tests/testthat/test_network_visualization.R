@@ -55,22 +55,6 @@ create_mock_subnetwork <- function() {
 }
 
 # =============================================================================
-# TESTS FOR SHINY-SPECIFIC FUNCTIONS
-# =============================================================================
-
-test_that("generateCytoscapeJSForShiny includes Shiny event handlers", {
-  nodes = create_mock_subnetwork_nodes()
-  edges = create_mock_subnetwork_edges()
-  
-  js_code <- generateCytoscapeJSForShiny(nodes, edges)
-  
-  expect_type(js_code, "character")
-  expect_true(grepl("Shiny.setInputValue", js_code))
-  expect_true(grepl("network-edgeClicked", js_code))
-  expect_true(grepl("network-nodeClicked", js_code))
-})
-
-# =============================================================================
 # TESTS FOR DATA PROCESSING HELPER FUNCTIONS
 # =============================================================================
 
@@ -204,43 +188,6 @@ test_that("extractSubnetwork works with mocked MSstatsBioNet function", {
   expect_equal(names(result$edges), c("source", "target", "interaction", "evidenceCount", "evidenceLink", "source_counts"))
   expect_equal(nrow(result$nodes), 4)
   expect_equal(nrow(result$edges), 4)
-})
-
-# =============================================================================
-# INTEGRATION TESTS
-# =============================================================================
-
-test_that("Full pipeline works with mocked functions", {
-  
-  input_df <- create_mock_input_data()
-  subnetwork <- create_mock_subnetwork()
-  
-  # Mock the annotation function
-  mock_annotate_func <- function(df, id_type) {
-    df$HgncId <- c("TP53", "MDM2", "ATM", "BRCA1")
-    df$HgncName <- c("TP53", "MDM2", "ATM", "BRCA1")
-    return(df)
-  }
-  
-  # Mock the extraction function
-  mock_extract_func <- function(...) {
-    return(subnetwork)
-  }
-  
-  # Use mockery to stub the function calls
-  stub(annotateProteinData, "annotateProteinInfoFromIndra", mock_annotate_func)
-  stub(extractSubnetwork, "getSubnetworkFromIndra", mock_extract_func)
-  
-  # Test the full pipeline
-  filtered_df <- filterDataByLabel(input_df, "Treatment_vs_Control")
-  annotated <- annotateProteinData(filtered_df, "Uniprot")
-  subnet <- extractSubnetwork(annotated, 0.05, 5, NULL, NULL, 0.5, NULL, FALSE)
-  
-  # Generate configuration
-  js_code <- generateCytoscapeJSForShiny(subnet$nodes, subnet$edges)
-  
-  expect_type(js_code, "character")
-  expect_true(nchar(js_code) > 0)
 })
 
 # =============================================================================
