@@ -1,62 +1,3 @@
-# =============================================================================
-# UI RENDERING FUNCTIONS (SHINY-SPECIFIC)
-# These functions stay in your Shiny application
-# =============================================================================
-
-#' Generate Cytoscape JavaScript with Shiny event handling
-#' 
-#' This function wraps the package's generateCytoscapeConfig() function
-#' and adds Shiny-specific event handling for table highlighting
-#' 
-#' @param node_elements Node elements from package
-#' @param edge_elements Edge elements from package  
-#' @param display_label_type Column to display the label from the node table
-#' @param container_id Network Visualization Container ID (default: 'network-cy')
-#' @param module_id Module ID for Shiny Application (default: 'network')
-#' @importFrom MSstatsBioNet generateCytoscapeConfig
-#' @return JavaScript code string with Shiny event handlers
-generateCytoscapeJSForShiny <- function(node_elements, edge_elements, 
-                                        display_label_type = "id",
-                                        container_id = "network-cy", module_id = "network") {
-  
-  # Define Shiny-specific event handlers for both edges and nodes
-  shiny_event_handlers <- list(
-    edge_click = paste0("function(evt) {
-        var edge = evt.target;
-        const edgeId = edge.id();
-        Shiny.setInputValue('", module_id, "-edgeClicked', {
-            source: edge.data('source'),
-            target: edge.data('target'),
-            interaction: edge.data('interaction'),
-            edge_type: edge.data('edge_type'),
-            category: edge.data('category'),
-            evidenceLink: edge.data('evidenceLink')
-        });
-    }"),
-    node_click = paste0("function(evt) {
-        var node = evt.target;
-        const nodeId = node.id();
-        Shiny.setInputValue('", module_id, "-nodeClicked', { 
-            id: node.data('id'),
-            label: node.data('label'),
-            color: node.data('color')
-        });
-    }")
-  )
-  
-  # Use the package function to generate configuration
-  config <- generateCytoscapeConfig(
-    nodes = node_elements,
-    edges = edge_elements,
-    display_label_type = display_label_type,
-    container_id = container_id,
-    event_handlers = shiny_event_handlers
-  )
-  
-  # Return the JavaScript code
-  return(config$js_code)
-}
-
 renderDataTables <- function(output, nodes_table, edges_table) {
   output$nodesTable <- renderDT({
     datatable(nodes_table, 
@@ -131,22 +72,6 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
                 selection = list(mode = 'single', selected = 1))
     })
   }
-}
-
-# Open evidence link in new tab
-openEvidenceLink <- function(session, evidence_link) {
-  if (is.null(evidence_link) || is.na(evidence_link)) return(invisible(NULL))
-  link <- trimws(as.character(evidence_link)[1])
-  if (!nzchar(link)) return(invisible(NULL))
-  # Allow only http(s)
-    if (!grepl("^https?://", link, ignore.case = TRUE)) {
-        showNotification("Blocked non-http(s) evidence link.", type = "warning")
-        return(invisible(NULL))
-      }
-  session$sendCustomMessage(
-      type = 'openLinkInNewTab',
-      message = list(url = link)
-    )
 }
 
 # =============================================================================
@@ -541,18 +466,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   networkVisualization <- reactive({
     network_data <- renderNetwork()
     if (is.null(network_data)) return(NULL)
-    
-    # Generate JavaScript code with Shiny-specific event handling
-    js_code <- generateCytoscapeJSForShiny(
-      network_data$nodes_table, 
-      network_data$edges_table,
-      display_label_type = input$displayLabelType,
-      container_id = session$ns("cy"),
-      module_id = session$ns(NULL)
-    )
-    
     return(list(
-      js_code = js_code,
       edges_table = network_data$edges_table,
       nodes_table = network_data$nodes_table
     ))
@@ -626,8 +540,9 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     codes <- paste(codes, "write.csv(subnetwork$edges, \"network_edges.csv\", row.names = FALSE)\n", sep = "")
     codes <- paste(codes, "# Visualize network on web browser and export as an HTML file\n", sep = "")
     displayLabelTypeStr <- paste0("\"", paste(input$displayLabelType, collapse = "\", \""), "\"")
-    codes <- paste(codes, "previewNetworkInBrowser(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
-    codes <- paste(codes, "exportNetworkToHTML(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
+    codes <- paste(codes, "cytoscapeNetwork(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
+    codes <- paste(codes, "widget = cytoscapeNetwork(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
+    codes <- paste(codes, "htmlwidgets::saveWidget(widget,\n   file = \"network.html\",\n    selfcontained = TRUE\n)")
     
     return(codes)
   })
@@ -650,8 +565,14 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
       return()
     }
     
-    # Send JavaScript code to frontend
-    session$sendCustomMessage(type = 'runCytoscape', message = render_data$js_code)
+    output$network <- MSstatsBioNet::renderCytoscapeNetwork({
+      MSstatsBioNet::cytoscapeNetwork(
+        nodes        = render_data$nodes_table,
+        edges        = render_data$edges_table,
+        nodeFontSize = 12,
+        displayLabelType = input$displayLabelType
+      )
+    })
     
     # Render data tables
     renderDataTables(output, render_data$nodes_table, render_data$edges_table)
@@ -688,23 +609,20 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   )
   
   # Observe edge click events
-  observeEvent(input$edgeClicked, {
-    edge_data <- input$edgeClicked
+  observeEvent(input$network_edge_clicked, {
+    edge_data <- input$network_edge_clicked
     network_data <- renderNetwork()
     req(network_data)
     edges_table <- network_data$edges_table
-    
     highlightEdgeInTable(output, edge_data, edges_table)
-    openEvidenceLink(session, edge_data$evidenceLink)
   })
   
   # Observe node click events
-  observeEvent(input$nodeClicked, {
-    node_data <- input$nodeClicked
+  observeEvent(input$network_node_clicked, {
+    node_data <- input$network_node_clicked
     network_data <- renderNetwork()
     req(network_data)
     nodes_table <- network_data$nodes_table
-    
     highlightNodeInTable(output, node_data, nodes_table)
   })
   

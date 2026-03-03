@@ -1,40 +1,4 @@
 # =============================================================================
-# HELPER FUNCTIONS - External Dependencies
-# =============================================================================
-
-createCytoscapeScripts <- function() {
-  tags$head(
-    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.32.0/cytoscape.min.js"),
-    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/graphlib/2.1.8/graphlib.min.js"),
-    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/dagre/0.8.5/dagre.min.js"),
-    tags$script(src = "https://unpkg.com/cytoscape-dagre@2.3.0/cytoscape-dagre.js"),
-    tags$script("
-            Shiny.addCustomMessageHandler('runCytoscape', function(code) {
-              try {
-                new Function(code)();
-              } catch (err) {
-                console.error('Error running Cytoscape code:', err);
-              }
-            });
-        "),
-    tags$script("
-            Shiny.addCustomMessageHandler('openLinkInNewTab', function(message) {
-              try {
-                if (!message || typeof message.url !== 'string') return;
-                var url = message.url.trim();
-                if (!url) return;
-                if (!/^https?:\\/\\//i.test(url)) { console.warn('Blocked non-http(s) URL'); return; }
-                var win = window.open(url, '_blank', 'noopener,noreferrer');
-                if (win) { win.opener = null; }
-              } catch (err) {
-                console.error('Error opening link:', err);
-              }
-            });
-        ")
-  )
-}
-
-# =============================================================================
 # HELPER FUNCTIONS - UI Components
 # =============================================================================
 
@@ -341,117 +305,15 @@ createDataUploadBox <- function(ns) {
   )
 }
 
-createNetworkLegends <- function() {
-  div(
-    style = "position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; flex-direction: column; gap: 8px;",
-    
-    # LogFC Legend
-    div(
-      style = "background-color: rgba(255, 255, 255, 0.95); border: 2px solid #ddd; border-radius: 4px; 
-               padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); min-width: 180px; max-width: 200px;",
-      
-      # Legend title
-      div(
-        style = "font-weight: bold; font-size: 16px; margin-bottom: 8px; text-align: center; color: #333;",
-        "LogFC"
-      ),
-      
-      # Color gradient bar
-      div(
-        style = "height: 20px; width: 100%; background: linear-gradient(to right, #ADD8E6, #D3D3D3, #FFA590); 
-                 border: 1px solid #ccc; border-radius: 3px; margin-bottom: 6px;"
-      ),
-      
-      # Labels container
-      div(
-        style = "display: flex; justify-content: space-between; font-size: 14px; color: #333;",
-        tags$span("Down", style = "font-weight: bold;"),
-        tags$span("0", style = "font-weight: bold;"),
-        tags$span("Up", style = "font-weight: bold;")
-      )
-    ),
-    
-    # Edge Legend
-    div(
-      style = "background-color: rgba(255, 255, 255, 0.95); border: 2px solid #ddd; border-radius: 4px; 
-               padding: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); min-width: 180px; max-width: 200px;",
-      
-      # Legend title
-      div(
-        style = "font-weight: bold; font-size: 16px; margin-bottom: 8px; text-align: center; color: #333;",
-        "Edges"
-      ),
-      
-      # Edge type entries
-      div(
-        style = "font-size: 13px; line-height: 1.6;",
-        
-        # Two-column layout with proper row alignment
-        div(
-          div(
-            style = "display: flex; justify-content: space-between; margin: 3px 0;",
-            div(
-              style = "display: flex; align-items: center; flex: 1;",
-              tags$span("-", style = "color: #8B4513; font-weight: bold; margin-right: 5px; font-size: 14px;"),
-              tags$span("Complex", style = "color: #333; font-size: 13px;")
-            ),
-            div(
-              style = "display: flex; align-items: center; flex: 1; padding-left: 6px;",
-              tags$span("- -", style = "color: #9932CC; font-weight: bold; margin-right: 5px; font-size: 14px;"),
-              tags$span("Phospho", style = "color: #333; font-size: 13px;")
-            )
-          ),
-          div(
-            style = "display: flex; justify-content: space-between; margin: 3px 0;",
-            div(
-              style = "display: flex; align-items: center; flex: 1;",
-              tags$span("->", style = "color: #44AA44; font-weight: bold; margin-right: 5px; font-size: 14px;"),
-              tags$span("Activate", style = "color: #333; font-size: 13px;")
-            ),
-            div(
-              style = "display: flex; align-items: center; flex: 1; padding-left: 6px;",
-              tags$span("->", style = "color: #FF4444; font-weight: bold; margin-right: 5px; font-size: 14px;"),
-              tags$span("Inhibit", style = "color: #333; font-size: 13px;")
-            )
-          ),
-          
-          div(
-            style = "display: flex; justify-content: space-between; margin: 3px 0;",
-            div(
-              style = "display: flex; align-items: center; flex: 1;",
-              tags$span("->", style = "color: #4488FF; font-weight: bold; margin-right: 5px; font-size: 14px;"),
-              tags$span("Increase", style = "color: #333; font-size: 13px;")
-            ),
-            div(
-              style = "display: flex; align-items: center; flex: 1; padding-left: 6px;",
-              tags$span("->", style = "color: #FF8844; font-weight: bold; margin-right: 5px; font-size: 14px;"),
-              tags$span("Decrease", style = "color: #333; font-size: 13px;")
-            )
-          )
-        )
-      )
-    )
-  )
-}
-
 createNetworkVisualizationBox <- function(ns) {
   box(
     title = "Network Visualization",
     status = "success",
     solidHeader = TRUE,
     width = 12,
-    # Container with relative positioning for the legends
     div(
-      style = "position: relative; width: 100%; height: 500px;",
-      
-      # Main network container
-      tags$div(
-        id = ns("cy"),
-        style = "width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;"
-      ),
-      
-      # Combined legend overlay
-      createNetworkLegends()
+      style = "width: 100%; height: 600px;",
+      MSstatsBioNet::cytoscapeNetworkOutput(ns("network"), height = "600px")
     )
   )
 }
@@ -462,9 +324,7 @@ createEdgesTableBox <- function(ns) {
     status = "warning",
     solidHeader = TRUE,
     width = 12,
-    div(style = "overflow-x: auto;",
-        DTOutput(ns("edgesTable"))
-    )
+    DTOutput(ns("edgesTable"))
   )
 }
 
@@ -474,9 +334,7 @@ createNodesTableBox <- function(ns) {
     status = "info",
     solidHeader = TRUE,
     width = 12,
-    div(style = "overflow-x: auto;",
-        DTOutput(ns("nodesTable"))
-    )
+    DTOutput(ns("nodesTable"))
   )
 }
 
@@ -556,7 +414,6 @@ networkUI <- function(id) {
   
   tagList(
     shinyjs::useShinyjs(),
-    createCytoscapeScripts(),
     dashboardPage(
       createDashboardHeader(),
       dashboardSidebar(disable = TRUE),
