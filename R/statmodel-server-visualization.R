@@ -154,18 +154,21 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
           increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
         )
 
-        # Save plot to a temp PDF, then zip it
-        temp_dir <- tempdir()
-        pdf_path <- file.path(temp_dir, "Ex_ResponseCurvePlot.pdf")
+        # Save plot to a unique temp PDF, then zip it
+        pdf_path <- tempfile("Ex_ResponseCurvePlot-", fileext = ".pdf")
         ggplot2::ggsave(pdf_path,
           plot = response_plot, device = "pdf",
           width = 10, height = 8
         )
 
-        zip_path <- file.path(temp_dir, "Ex_ResponseCurvePlot.zip")
-        utils::zip(zip_path, files = pdf_path, flags = "-j")
-        file.copy(zip_path, file)
-        unlink(c(pdf_path, zip_path))
+        zip_path <- tempfile("Ex_ResponseCurvePlot-", fileext = ".zip")
+        on.exit(unlink(c(pdf_path, zip_path), force = TRUE), add = TRUE)
+        utils::zip(zipfile = zip_path, files = pdf_path, flags = "-j")
+        copied <- file.copy(zip_path, file, overwrite = TRUE)
+        if (!isTRUE(copied)) {
+          showNotification("Failed to copy response curve ZIP for download.", type = "error")
+          return(NULL)
+        }
       } else {
         # Existing behavior for other plot types (TODO: refactor in future issue)
         files <- list.files(getwd(), pattern = "^Ex_", full.names = TRUE)
@@ -175,7 +178,18 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
         }
         file_info <- file.info(files)
         latest_file <- files[which.max(file_info$mtime)]
-        file.copy(latest_file, file)
+        if (grepl("\\.zip$", latest_file, ignore.case = TRUE)) {
+          copied <- file.copy(latest_file, file, overwrite = TRUE)
+        } else {
+          summary_zip <- tempfile("SummaryPlot-", fileext = ".zip")
+          on.exit(unlink(summary_zip, force = TRUE), add = TRUE)
+          utils::zip(zipfile = summary_zip, files = latest_file, flags = "-j")
+          copied <- file.copy(summary_zip, file, overwrite = TRUE)
+        }
+        if (!isTRUE(copied)) {
+          showNotification("Failed to prepare summary plot download.", type = "error")
+          return(NULL)
+        }
       }
     }
   )
