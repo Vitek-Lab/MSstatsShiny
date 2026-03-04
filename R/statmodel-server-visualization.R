@@ -131,8 +131,9 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
       }
     },
     content = function(file) {
-      if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
-        CONSTANTS_STATMODEL$plot_type_response_curve) {
+      tryCatch({
+        if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
+          CONSTANTS_STATMODEL$plot_type_response_curve) {
         # Generate response curve plot
         matrix <- contrast$matrix
         if (is.null(matrix)) {
@@ -190,7 +191,11 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
           showNotification("Failed to prepare summary plot download.", type = "error")
           return(NULL)
         }
-      }
+        }
+      }, error = function(e) {
+        showNotification(conditionMessage(e), type = "error")
+        return(NULL)
+      })
     }
   )
 }
