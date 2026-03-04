@@ -118,6 +118,8 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
     showNotification(conditionMessage(e), type = "error", duration = 8)
   })
 }
+#' @importFrom ggplot2 ggsave
+#' @importFrom utils zip
 create_download_plot_handler <- function(output, input, contrast, preprocess_data) {
   output[[NAMESPACE_STATMODEL$visualization_download_plot_results]] <- downloadHandler(
     filename = function() {
