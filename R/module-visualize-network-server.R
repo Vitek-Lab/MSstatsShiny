@@ -226,6 +226,24 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes,
   })
 }
 
+export_network_html <- function(render_data, displayLabelType, file) {
+  if (is.null(render_data)) {
+    stop("No network to export. Please ensure network is displayed first.")
+  }
+  
+  tmp_file <- file.path(tempdir(), paste0("network-", Sys.Date(), ".html"))
+  
+  exportNetworkToHTML(
+    nodes            = render_data$nodes_table,
+    edges            = render_data$edges_table,
+    nodeFontSize     = 12,
+    displayLabelType = displayLabelType,
+    filename         = tmp_file
+  )
+  
+  file.copy(tmp_file, file)
+}
+
 # =============================================================================
 # MAIN SERVER FUNCTION - Updated to use decoupled architecture
 # =============================================================================
@@ -620,27 +638,9 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     content = function(file) {
       tryCatch({
         render_data <- networkVisualization()
-        if (is.null(render_data)) {
-          stop("No network to export. Please ensure network is displayed first.")
-        }
-        
-        tmp_file <- file.path(tempdir(), paste0("network-", Sys.Date(), ".html"))
-        
-        exportNetworkToHTML(
-          nodes            = render_data$nodes_table,
-          edges            = render_data$edges_table,
-          nodeFontSize     = 12,
-          displayLabelType = input$displayLabelType,
-          filename         = tmp_file
-        )
-        
-        file.copy(tmp_file, file)
-        
+        export_network_html(render_data, input$displayLabelType, file)
       }, error = function(e) {
-        showNotification(
-          paste("Error downloading HTML:", e$message),
-          type = "error"
-        )
+        showNotification(paste("Error downloading HTML:", e$message), type = "error")
       })
     }
   )
