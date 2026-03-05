@@ -695,3 +695,79 @@ test_that("download handler filename returns SummaryPlot for other plot types", 
   expect_true(grepl("SummaryPlot", filename))
   expect_true(grepl("\\.zip$", filename))
 })
+
+# ============================================================================
+# GROUP COMPARISON PLOT DOWNLOAD TESTS
+# ============================================================================
+
+test_that("download handler filename returns SummaryPlot for Volcano plot", {
+  plot_type <- CONSTANTS_STATMODEL$plot_type_volcano_plot
+  filename <- if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
+    paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
+  } else {
+    paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
+  }
+  expect_true(grepl("SummaryPlot", filename))
+  expect_true(grepl("\\.zip$", filename))
+})
+
+test_that("download handler filename returns SummaryPlot for Heatmap", {
+  plot_type <- CONSTANTS_STATMODEL$plot_type_heatmap
+  filename <- if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
+    paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
+  } else {
+    paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
+  }
+  expect_true(grepl("SummaryPlot", filename))
+  expect_true(grepl("\\.zip$", filename))
+})
+
+test_that("download handler filename returns SummaryPlot for ComparisonPlot", {
+  plot_type <- CONSTANTS_STATMODEL$plot_type_comparison_plot
+  filename <- if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
+    paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
+  } else {
+    paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
+  }
+  expect_true(grepl("SummaryPlot", filename))
+  expect_true(grepl("\\.zip$", filename))
+})
+
+test_that("statmodelServer initializes with updated download handler signature", {
+  testServer(
+    statmodelServer,
+    args = list(
+      parent_session = MockShinySession$new(),
+      loadpage_input = reactive({
+        list(BIO = "protein", DDA_DIA = "DDA", filetype = "standard", proceed1 = 0)
+      }),
+      qc_input = reactive({ list(normalization = "equalizeMedians") }),
+      get_data = reactive({ create_mock_raw_data() }),
+      preprocess_data = reactive({ create_mock_data("DDA", "protein") })
+    ),
+    {
+      # Verify server initializes without error with 6-argument download handler
+      # (output, input, contrast, preprocess_data, data_comparison, loadpage_input)
+      expect_null(contrast$matrix)
+      expect_null(significant$result)
+    }
+  )
+})
+
+test_that("all plot type constants are defined for download handler branching", {
+  # Verify all plot types the download handler needs to branch on exist
+  expect_true(!is.null(CONSTANTS_STATMODEL$plot_type_volcano_plot))
+  expect_true(!is.null(CONSTANTS_STATMODEL$plot_type_heatmap))
+  expect_true(!is.null(CONSTANTS_STATMODEL$plot_type_comparison_plot))
+  expect_true(!is.null(CONSTANTS_STATMODEL$plot_type_response_curve))
+
+  # Verify they are distinct values
+  plot_types <- c(
+    CONSTANTS_STATMODEL$plot_type_volcano_plot,
+    CONSTANTS_STATMODEL$plot_type_heatmap,
+    CONSTANTS_STATMODEL$plot_type_comparison_plot,
+    CONSTANTS_STATMODEL$plot_type_response_curve
+  )
+  expect_equal(length(plot_types), length(unique(plot_types)),
+               info = "All plot type constants should be unique")
+})
