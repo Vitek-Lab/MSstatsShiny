@@ -312,7 +312,7 @@ test_that("export_network_html writes HTML file correctly", {
 
 test_that("export_network_html errors when render_data is NULL", {
   expect_error(
-    export_network_html(NULL, "hgncName", tempfile()),
+    export_network_html(NULL, "hgncName", tempfile()), 
     "No network to export. Please ensure network is displayed first."
   )
 })
