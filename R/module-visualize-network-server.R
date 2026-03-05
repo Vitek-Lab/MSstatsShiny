@@ -586,6 +586,12 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
       downloadButton(ns("network_download_code"), "Download analysis code", icon("download"),
                      style="color: #000000; background-color: #75ba82; border-color: #000000")
     })
+    
+    output$network.html.button <- renderUI({
+      ns <- session$ns
+      downloadButton(ns("network_html_code"), "Download HTML", icon("download"),
+                     style="color: #000000; background-color: #75ba82; border-color: #000000")
+    })
   })
   
   output$network_download_code <- downloadHandler(
