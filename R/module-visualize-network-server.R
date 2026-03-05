@@ -1,4 +1,7 @@
 renderDataTables <- function(output, nodes_table, edges_table) {
+  nodes_table <- as.data.frame(lapply(nodes_table, function(x) {
+    if (is.numeric(x) && any(is.infinite(x))) as.character(x) else x
+  }))
   output$nodesTable <- renderDT({
     datatable(nodes_table, 
               options = list(pageLength = 10, 
@@ -394,7 +397,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   
   observeEvent(input$toggle_adv, {
     ns <- session$ns
-    toggle(id = ns("adv_panel"), anim = TRUE)
+    toggle(id = "adv_panel", anim = TRUE)
   })
   
   # Render search results
