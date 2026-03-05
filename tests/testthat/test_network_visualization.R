@@ -290,3 +290,29 @@ test_that("updateProteinChoices updates selectizeInput correctly", {
   # Verify the mock was called
   expect_called(mock_update, 1)
 })
+
+test_that("export_network_html writes HTML file correctly", {
+  mock_render_data <- list(
+    nodes_table = data.frame(id = c("A", "B")),
+    edges_table = data.frame(source = "A", target = "B")
+  )
+  
+  tmp_output <- tempfile(fileext = ".html")
+  
+  stub(export_network_html, "exportNetworkToHTML", function(..., filename) {
+    writeLines("<html><body>mock network</body></html>", filename)
+  })
+  
+  export_network_html(mock_render_data, "hgncName", tmp_output)
+  
+  expect_true(file.exists(tmp_output))
+  expect_gt(file.size(tmp_output), 0)
+  expect_true(any(grepl("<html>", readLines(tmp_output))))
+})
+
+test_that("export_network_html errors when render_data is NULL", {
+  expect_error(
+    export_network_html(NULL, "hgncName", tempfile()), 
+    "No network to export. Please ensure network is displayed first."
+  )
+})

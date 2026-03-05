@@ -357,7 +357,7 @@ createNetworkSettingsTab <- function(ns) {
                style = "margin: 0;"
              )
            ),
-           createCodeDownloadBox(ns),
+           createDownloadBoxes(ns),
            createNetworkVisualizationBox(ns),
            createEdgesTableBox(ns),
            createNodesTableBox(ns)
@@ -393,10 +393,12 @@ createDashboardBody <- function(ns) {
   )
 }
 
-createCodeDownloadBox <- function(ns) {
+createDownloadBoxes <- function(ns) {
   div(
-    style = "text-align: right; padding: 10px;",
+    style = "text-align: right; padding: 10px; display: flex; justify-content: flex-end; gap: 10px;",
+    uiOutput(ns("network.html.button")),
     uiOutput(ns("network.code.button"))
+    
   )
 }
 

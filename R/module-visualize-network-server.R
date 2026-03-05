@@ -226,6 +226,27 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes,
   })
 }
 
+export_network_html <- function(render_data, displayLabelType, file) {
+  if (is.null(render_data)) {
+    stop("No network to export. Please ensure network is displayed first.")
+  }
+  
+  tmp_file <- file.path(tempdir(), paste0("network-", Sys.Date(), ".html"))
+  
+  exportNetworkToHTML(
+    nodes            = render_data$nodes_table,
+    edges            = render_data$edges_table,
+    nodeFontSize     = 12,
+    displayLabelType = displayLabelType,
+    filename         = tmp_file
+  )
+  
+  copied <- file.copy(tmp_file, file, overwrite = TRUE)
+  if (!copied) {
+    stop("Failed to prepare HTML download file.")
+  }
+}
+
 # =============================================================================
 # MAIN SERVER FUNCTION - Updated to use decoupled architecture
 # =============================================================================
@@ -541,8 +562,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     codes <- paste(codes, "# Visualize network on web browser and export as an HTML file\n", sep = "")
     displayLabelTypeStr <- paste0("\"", paste(input$displayLabelType, collapse = "\", \""), "\"")
     codes <- paste(codes, "cytoscapeNetwork(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
-    codes <- paste(codes, "widget = cytoscapeNetwork(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
-    codes <- paste(codes, "htmlwidgets::saveWidget(widget,\n   file = \"network.html\",\n    selfcontained = TRUE\n)")
+    codes <- paste(codes, "exportNetworkToHTML(subnetwork$nodes, subnetwork$edges, displayLabelType=", displayLabelTypeStr, ")\n", sep = "")
     
     return(codes)
   })
@@ -586,6 +606,12 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
       downloadButton(ns("network_download_code"), "Download analysis code", icon("download"),
                      style="color: #000000; background-color: #75ba82; border-color: #000000")
     })
+    
+    output$network.html.button <- renderUI({
+      ns <- session$ns
+      downloadButton(ns("network_html_code"), "Download HTML", icon("download"),
+                     style="color: #000000; background-color: #75ba82; border-color: #000000")
+    })
   })
   
   output$network_download_code <- downloadHandler(
@@ -604,6 +630,20 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
           paste("Error downloading code:", e$message),
           type = "error"
         )
+      })
+    }
+  )
+  
+  output$network_html_code <- downloadHandler(
+    filename = function() {
+      paste("network-", Sys.Date(), ".html", sep = "")
+    },
+    content = function(file) {
+      tryCatch({
+        render_data <- networkVisualization()
+        export_network_html(render_data, input$displayLabelType, file)
+      }, error = function(e) {
+        showNotification(paste("Error downloading HTML:", e$message), type = "error")
       })
     }
   )
