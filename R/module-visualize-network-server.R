@@ -384,6 +384,10 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     })
   })
   
+  observeEvent(input$toggle_adv, {
+    toggle(id = "adv_panel", anim = TRUE)
+  })
+  
   # Render search results
   output$proteinSearchResults <- renderUI({
     results <- proteinSearchResults()

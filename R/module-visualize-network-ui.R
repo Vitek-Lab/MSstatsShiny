@@ -253,18 +253,68 @@ createFilterDropdowns <- function(ns) {
   )
 }
 
-createCurationFilterCheckbox <- function(ns) {
+createAdvancedOptionsCollapsible <- function(ns) {
   div(
-    tags$label(
-      "Filter Out Incorrect Statements:",
-      class = "icon-wrapper",
-      icon("question-circle", lib = "font-awesome"),
-      div("When checked, excludes protein regulatory relationships that have been manually curated as incorrect in the INDRA database.", 
-          class = "icon-tooltip")
-    ),
-    checkboxInput(ns("filterByCuration"),
-                  label = "Filter out statements curated as incorrect",
-                  value = FALSE)
+    style = "margin-bottom: 15px;", 
+    tagList(
+      useShinyjs(),
+      actionLink(
+        ns("toggle_adv"),
+        label = tagList(icon("sliders"), " Advanced Options"),
+        style = "font-size: 0.85rem; color: #888; text-decoration: none;"
+      ),
+      hidden(
+        div(
+          id = ns("adv_panel"),
+          style = "margin-top: 8px; padding: 12px; border: 1px solid #ddd;
+                   border-radius: 4px; background-color: #f9f9f9;",
+          checkboxInput(ns("filterByCuration"),
+                        label = tags$span(
+                          "Filter out statements curated as incorrect",
+                          class = "icon-wrapper",
+                          icon("question-circle", lib = "font-awesome"),
+                          div("When checked, excludes protein regulatory relationships that have been manually curated as incorrect in the INDRA database.", 
+                              class = "icon-tooltip")
+                        ), 
+                        value = FALSE),
+          checkboxInput(ns("filter_by_ptm_site"),
+                        label = tags$span(
+                          "Filter by PTM site",
+                          class = "icon-wrapper",
+                          icon("question-circle", lib = "font-awesome"),
+                          div("Filter relationships based on whether the PTM site information from INDRA matches with the PTM site in the input. Only applicable for differential PTM abundance results.", 
+                              class = "icon-tooltip")
+                        ), 
+                        value = FALSE),
+          checkboxInput(ns("include_infinite_fc"),
+                        label = tags$span(
+                          "Include infinite fold change",
+                          class = "icon-wrapper",
+                          icon("question-circle", lib = "font-awesome"),
+                          div("Enable to include proteins/PTMs with infinite log fold change (i.e. proteins that are only detected in one condition).", 
+                              class = "icon-tooltip")
+                        ), 
+                        value = FALSE),
+          selectInput(ns("direction"),
+                      label = tags$span(
+                        "Direction of regulation",
+                        class = "icon-wrapper",
+                        icon("question-circle", lib = "font-awesome"),
+                        div("Specify the direction of regulation of differentially abundant proteins/PTMs to include in the network. 
+                            'Upregulated only' only includes up-regulated proteins/PTMs (positive log fold change), 
+                            while 'Downregulated only' only includes down-regulated proteins/PTMs (negative log fold change).", 
+                            class = "icon-tooltip")
+                      ), 
+                      choices = c(
+                        "Both (up & down)"   = "both",
+                        "Upregulated only"   = "up",
+                        "Downregulated only" = "down"
+                      ),
+                      selected = "both",
+                      width = "100%")
+        )
+      )
+    )
   )
 }
 
@@ -300,7 +350,7 @@ createDataUploadBox <- function(ns) {
     createDisplayLabelRadioButtons(ns),
     createParameterSliders(ns),
     createFilterDropdowns(ns),
-    createCurationFilterCheckbox(ns),
+    createAdvancedOptionsCollapsible(ns),
     createDisplayNetworkButton(ns)
   )
 }
