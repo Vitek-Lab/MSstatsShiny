@@ -163,7 +163,8 @@ test_that("extractSubnetwork works with mocked MSstatsBioNet function", {
   # Create a mock function that returns the expected subnetwork
   mock_extract_func <- function(df, pvalueCutoff, evidence_count_cutoff, 
                                 statement_types, sources_filter, 
-                                logfc_cutoff, force_include_other, filter_by_curation) {
+                                logfc_cutoff, force_include_other, filter_by_curation,
+                                filter_by_ptm_site, include_infinite_fc, direction) {
     return(expected_subnetwork)
   }
   
@@ -178,7 +179,10 @@ test_that("extractSubnetwork works with mocked MSstatsBioNet function", {
     sources = NULL, 
     absLogFC = 0.5, 
     selectedProteins = NULL,
-    filterByCuration = FALSE
+    filterByCuration = FALSE,
+    filter_by_ptm_site = FALSE,
+    include_infinite_fc = FALSE,
+    direction = "both"
   )
   
   expect_type(result, "list")

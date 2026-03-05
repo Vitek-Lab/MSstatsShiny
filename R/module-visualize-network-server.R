@@ -393,7 +393,8 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   })
   
   observeEvent(input$toggle_adv, {
-    toggle(id = "adv_panel", anim = TRUE)
+    ns <- session$ns
+    toggle(id = ns("adv_panel"), anim = TRUE)
   })
   
   # Render search results
@@ -562,7 +563,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     codes <- paste(codes, ",\n  filter_by_curation = ", params$filterByCuration, "\n", sep = "")
     codes <- paste(codes, ",\n  filter_by_ptm_site = ", params$filter_by_ptm_site, "\n", sep = "")
     codes <- paste(codes, ",\n  include_infinite_fc = ", params$include_infinite_fc, "\n", sep = "")
-    codes <- paste(codes, ",\n  direction = ", params$direction, "\n", sep = "")
+    codes <- paste(codes, ",\n  direction = \"", params$direction, "\"\n", sep = "")
     
     codes <- paste(codes, ")\n\n", sep = "")
     
