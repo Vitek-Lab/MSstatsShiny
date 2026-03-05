@@ -241,7 +241,10 @@ export_network_html <- function(render_data, displayLabelType, file) {
     filename         = tmp_file
   )
   
-  file.copy(tmp_file, file)
+  copied <- file.copy(tmp_file, file, overwrite = TRUE)
+  if (!copied) {
+    stop("Failed to prepare HTML download file.")
+  }
 }
 
 # =============================================================================
