@@ -230,7 +230,7 @@ test_that("Functions handle errors gracefully", {
   # Test extractSubnetwork with error
   stub(extractSubnetwork, "getSubnetworkFromIndra", mock_error_func)
   stub(extractSubnetwork, "showNotification", mock_show_notification)
-  result2 <- extractSubnetwork(create_mock_annotated_data(), 0.05, 5, NULL, NULL, 0.5, NULL, FALSE)
+  result2 <- extractSubnetwork(create_mock_annotated_data(), 0.05, 5, NULL, NULL, 0.5, NULL, FALSE, FALSE, FALSE, "both")
   expect_null(result2)
 })
 
