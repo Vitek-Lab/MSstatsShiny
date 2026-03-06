@@ -639,101 +639,79 @@ test_that("Ratio scale checkbox input can be toggled", {
 # DOWNLOAD PLOT HANDLER TESTS
 # ============================================================================
 
-test_that("create_download_plot_handler registers a downloadHandler", {
-  mock_input <- list()
-  mock_input[[NAMESPACE_STATMODEL$visualization_plot_type]] <- CONSTANTS_STATMODEL$plot_type_response_curve
-
-  mock_contrast <- list(matrix = NULL)
-  mock_preprocess <- function() { NULL }
-
-  mock_download_handler <- mock("handler_result")
-
-  stub(create_download_plot_handler, "downloadHandler", mock_download_handler)
-
-  mock_output <- list()
-  stub(create_download_plot_handler, "output", mock_output)
-
-  # Use a real-looking output assignment by wrapping in testServer
-  testServer(
-    statmodelServer,
-    args = list(
-      parent_session = MockShinySession$new(),
-      loadpage_input = reactive({
-        list(BIO = "protein", DDA_DIA = "DDA", filetype = "standard", proceed1 = 0)
-      }),
-      qc_input = reactive({ list(normalization = "equalizeMedians") }),
-      get_data = reactive({ create_mock_raw_data() }),
-      preprocess_data = reactive({ create_mock_data("DDA", "protein") })
-    ),
-    {
-      # Server initialized: create_download_plot_handler was called internally
-      # Verify the server doesn't crash with the new 4-argument signature
-      expect_null(contrast$matrix)
-    }
-  )
-})
-
-test_that("download handler filename returns ResponseCurvePlot for response curves", {
-  # Test the filename logic directly
-  plot_type <- CONSTANTS_STATMODEL$plot_type_response_curve
-  filename <- if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
-    paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
-  } else {
-    paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
-  }
+test_that("get_download_plot_filename returns ResponseCurvePlot for response curves", {
+  filename <- MSstatsShiny:::get_download_plot_filename(CONSTANTS_STATMODEL$plot_type_response_curve)
   expect_true(grepl("ResponseCurvePlot", filename))
   expect_true(grepl("\\.zip$", filename))
 })
 
-test_that("download handler filename returns SummaryPlot for other plot types", {
-  plot_type <- CONSTANTS_STATMODEL$plot_type_volcano_plot
-  filename <- if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
-    paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
-  } else {
-    paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
+test_that("get_download_plot_filename returns SummaryPlot for non-response-curve types", {
+  for (plot_type in c(CONSTANTS_STATMODEL$plot_type_volcano_plot,
+                      CONSTANTS_STATMODEL$plot_type_heatmap,
+                      CONSTANTS_STATMODEL$plot_type_comparison_plot)) {
+    filename <- MSstatsShiny:::get_download_plot_filename(plot_type)
+    expect_true(grepl("SummaryPlot", filename),
+                info = paste("Expected SummaryPlot for", plot_type))
+    expect_true(grepl("\\.zip$", filename))
   }
-  expect_true(grepl("SummaryPlot", filename))
-  expect_true(grepl("\\.zip$", filename))
 })
 
-# ============================================================================
-# GROUP COMPARISON PLOT DOWNLOAD TESTS
-# ============================================================================
+test_that("zip_and_copy_plot creates a valid zip from PDF files", {
+  # Create a real temp PDF to zip
+  temp_pdf <- tempfile("test_plot_", fileext = ".pdf")
+  pdf(temp_pdf)
+  plot(1:10)
+  dev.off()
+  on.exit(unlink(temp_pdf), add = TRUE)
 
-test_that("download handler filename returns SummaryPlot for Volcano plot", {
-  plot_type <- CONSTANTS_STATMODEL$plot_type_volcano_plot
-  filename <- if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
-    paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
-  } else {
-    paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
-  }
-  expect_true(grepl("SummaryPlot", filename))
-  expect_true(grepl("\\.zip$", filename))
+  dest_file <- tempfile("download_", fileext = ".zip")
+  on.exit(unlink(dest_file), add = TRUE)
+
+  result <- MSstatsShiny:::zip_and_copy_plot(temp_pdf, dest_file)
+  expect_true(result)
+  expect_true(file.exists(dest_file))
+  expect_gt(file.size(dest_file), 0)
+
+  # Verify zip contains a PDF
+  contents <- utils::unzip(dest_file, list = TRUE)
+  expect_true(any(grepl("\\.pdf$", contents$Name)))
 })
 
-test_that("download handler filename returns SummaryPlot for Heatmap", {
-  plot_type <- CONSTANTS_STATMODEL$plot_type_heatmap
-  filename <- if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
-    paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
-  } else {
-    paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
-  }
-  expect_true(grepl("SummaryPlot", filename))
-  expect_true(grepl("\\.zip$", filename))
+test_that("zip_and_copy_plot returns FALSE for empty file list", {
+  dest_file <- tempfile("download_", fileext = ".zip")
+  fn <- MSstatsShiny:::zip_and_copy_plot
+  mockery::stub(fn, "showNotification", function(...) NULL)
+  result <- fn(character(0), dest_file)
+  expect_false(result)
 })
 
-test_that("download handler filename returns SummaryPlot for ComparisonPlot", {
-  plot_type <- CONSTANTS_STATMODEL$plot_type_comparison_plot
-  filename <- if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
-    paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
-  } else {
-    paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
-  }
-  expect_true(grepl("SummaryPlot", filename))
-  expect_true(grepl("\\.zip$", filename))
+test_that("zip_and_copy_plot handles multiple PDFs", {
+  temp_pdfs <- vapply(1:3, function(i) {
+    path <- tempfile(paste0("test_plot_", i, "_"), fileext = ".pdf")
+    pdf(path); plot(1:10); dev.off()
+    path
+  }, character(1))
+  on.exit(unlink(temp_pdfs), add = TRUE)
+
+  dest_file <- tempfile("download_", fileext = ".zip")
+  on.exit(unlink(dest_file), add = TRUE)
+
+  result <- MSstatsShiny:::zip_and_copy_plot(temp_pdfs, dest_file)
+  expect_true(result)
+
+  contents <- utils::unzip(dest_file, list = TRUE)
+  expect_equal(sum(grepl("\\.pdf$", contents$Name)), 3)
 })
 
-test_that("statmodelServer initializes with updated download handler signature", {
+test_that("create_download_plot_handler is invoked with all 6 arguments", {
+  handler_called <- FALSE
+  handler_args <- NULL
+
+  mockery::stub(statmodelServer, "create_download_plot_handler", function(...) {
+    handler_called <<- TRUE
+    handler_args <<- list(...)
+  })
+
   testServer(
     statmodelServer,
     args = list(
@@ -746,28 +724,10 @@ test_that("statmodelServer initializes with updated download handler signature",
       preprocess_data = reactive({ create_mock_data("DDA", "protein") })
     ),
     {
-      # Verify server initializes without error with 6-argument download handler
-      # (output, input, contrast, preprocess_data, data_comparison, loadpage_input)
-      expect_null(contrast$matrix)
-      expect_null(significant$result)
+      expect_true(handler_called,
+                  info = "create_download_plot_handler should be called during server init")
+      expect_equal(length(handler_args), 6,
+                   info = "create_download_plot_handler should receive 6 arguments")
     }
   )
-})
-
-test_that("all plot type constants are defined for download handler branching", {
-  # Verify all plot types the download handler needs to branch on exist
-  expect_true(!is.null(CONSTANTS_STATMODEL$plot_type_volcano_plot))
-  expect_true(!is.null(CONSTANTS_STATMODEL$plot_type_heatmap))
-  expect_true(!is.null(CONSTANTS_STATMODEL$plot_type_comparison_plot))
-  expect_true(!is.null(CONSTANTS_STATMODEL$plot_type_response_curve))
-
-  # Verify they are distinct values
-  plot_types <- c(
-    CONSTANTS_STATMODEL$plot_type_volcano_plot,
-    CONSTANTS_STATMODEL$plot_type_heatmap,
-    CONSTANTS_STATMODEL$plot_type_comparison_plot,
-    CONSTANTS_STATMODEL$plot_type_response_curve
-  )
-  expect_equal(length(plot_types), length(unique(plot_types)),
-               info = "All plot type constants should be unique")
 })

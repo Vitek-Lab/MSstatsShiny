@@ -118,17 +118,43 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
     showNotification(conditionMessage(e), type = "error", duration = 8)
   })
 }
+#' Get filename for plot download based on plot type
+#' @param plot_type the current plot type string
+#' @return filename string ending in .zip
+get_download_plot_filename <- function(plot_type) {
+  if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
+    paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
+  } else {
+    paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
+  }
+}
+
+#' Zip PDF files and copy to download destination
+#' @param pdf_files character vector of PDF file paths
+#' @param dest_file destination file path for the download
+#' @return TRUE if successful, FALSE otherwise
+zip_and_copy_plot <- function(pdf_files, dest_file) {
+  if (length(pdf_files) == 0) {
+    showNotification("No plot files were generated.", type = "error")
+    return(FALSE)
+  }
+  zip_path <- tempfile("PlotDownload-", fileext = ".zip")
+  on.exit(unlink(zip_path, force = TRUE), add = TRUE)
+  utils::zip(zipfile = zip_path, files = pdf_files, flags = "-j")
+  copied <- file.copy(zip_path, dest_file, overwrite = TRUE)
+  if (!isTRUE(copied)) {
+    showNotification("Failed to prepare plot download.", type = "error")
+    return(FALSE)
+  }
+  return(TRUE)
+}
+
 #' @importFrom ggplot2 ggsave
 #' @importFrom utils zip
 create_download_plot_handler <- function(output, input, contrast, preprocess_data, data_comparison, loadpage_input) {
   output[[NAMESPACE_STATMODEL$visualization_download_plot_results]] <- downloadHandler(
     filename = function() {
-      if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
-        CONSTANTS_STATMODEL$plot_type_response_curve) {
-        paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
-      } else {
-        paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
-      }
+      get_download_plot_filename(input[[NAMESPACE_STATMODEL$visualization_plot_type]])
     },
     content = function(file) {
       tryCatch(
@@ -156,27 +182,20 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
               increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
             )
 
-            # Save plot to a unique temp PDF, then zip it
-            pdf_path <- tempfile("Ex_ResponseCurvePlot-", fileext = ".pdf")
+            # Save plot to a temp PDF, then zip and copy
+            pdf_path <- tempfile("ResponseCurvePlot-", fileext = ".pdf")
+            on.exit(unlink(pdf_path, force = TRUE), add = TRUE)
             ggplot2::ggsave(pdf_path,
               plot = response_plot, device = "pdf",
               width = 10, height = 8
             )
-
-            zip_path <- tempfile("Ex_ResponseCurvePlot-", fileext = ".zip")
-            on.exit(unlink(c(pdf_path, zip_path), force = TRUE), add = TRUE)
-            utils::zip(zipfile = zip_path, files = pdf_path, flags = "-j")
-            copied <- file.copy(zip_path, file, overwrite = TRUE)
-            if (!isTRUE(copied)) {
-              showNotification("Failed to copy response curve ZIP for download.", type = "error")
-              return(NULL)
-            }
+            if (!zip_and_copy_plot(pdf_path, file)) return(NULL)
           } else {
             # Generate group comparison plot using a session-scoped temp directory
             plot_type <- input[[NAMESPACE_STATMODEL$visualization_plot_type]]
             fold_change_cutoff <- ifelse(
               !is.null(input[[NAMESPACE_STATMODEL$visualization_fold_change_input]]),
-              input[[NAMESPACE_STATMODEL$visualization_fold_change_input]], FALSE
+              input[[NAMESPACE_STATMODEL$visualization_fold_change_input]], 0
             )
 
             # Use a temp directory so the function saves the PDF natively
@@ -214,22 +233,9 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
               )
             }
 
-            # Find the PDF files the function saved to the temp directory
+            # Find the PDF files the function saved to the temp directory and zip them
             pdf_files <- list.files(temp_dir, pattern = "\\.pdf$", full.names = TRUE)
-            if (length(pdf_files) == 0) {
-              showNotification("No plot files were generated.", type = "error")
-              return(NULL)
-            }
-
-            # Zip all generated PDFs (some plot types may produce multiple files)
-            zip_path <- tempfile("SummaryPlot-", fileext = ".zip")
-            on.exit(unlink(zip_path, force = TRUE), add = TRUE)
-            utils::zip(zipfile = zip_path, files = pdf_files, flags = "-j")
-            copied <- file.copy(zip_path, file, overwrite = TRUE)
-            if (!isTRUE(copied)) {
-              showNotification("Failed to prepare plot download.", type = "error")
-              return(NULL)
-            }
+            if (!zip_and_copy_plot(pdf_files, file)) return(NULL)
           }
         },
         error = function(e) {
