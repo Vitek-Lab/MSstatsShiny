@@ -21,6 +21,9 @@ renderDataTables <- function(output, nodes_table, edges_table) {
 }
 
 highlightNodeInTable <- function(output, node_data, nodes_table) {
+  nodes_table <- as.data.frame(lapply(nodes_table, function(x) {
+    if (is.numeric(x) && any(is.infinite(x))) as.character(x) else x
+  }))
   node_id <- node_data$id
   
   # Find matching row based on node ID
