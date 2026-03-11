@@ -486,8 +486,7 @@ tmt_model = function(data, input, contrast.matrix, busy_indicator = TRUE){
 #' 
 #' @return list of PTM modeling results
 #' @examples
-#' model = MSstatsPTM::groupComparisonPTM(MSstatsPTM::summary.data, 
-#'                                        data.type = "LabelFree")
+#' model = MSstatsPTM::groupComparisonPTM(MSstatsPTM::summary.data)
 #' apply_adj(model$PTM.Model, model$PROTEIN.Model)
 #' 
 apply_adj = function(ptm_model, protein_model){

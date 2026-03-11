@@ -18,8 +18,7 @@ list of PTM modeling results
 Main PTM function to model MSstatsShiny data.
 }
 \examples{
-model = MSstatsPTM::groupComparisonPTM(MSstatsPTM::summary.data, 
-                                       data.type = "LabelFree")
+model = MSstatsPTM::groupComparisonPTM(MSstatsPTM::summary.data)
 apply_adj(model$PTM.Model, model$PROTEIN.Model)
 
 }
