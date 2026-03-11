@@ -1,4 +1,7 @@
 renderDataTables <- function(output, nodes_table, edges_table) {
+  nodes_table <- as.data.frame(lapply(nodes_table, function(x) {
+    if (is.numeric(x) && any(is.infinite(x))) as.character(x) else x
+  }))
   output$nodesTable <- renderDT({
     datatable(nodes_table, 
               options = list(pageLength = 10, 
@@ -18,6 +21,9 @@ renderDataTables <- function(output, nodes_table, edges_table) {
 }
 
 highlightNodeInTable <- function(output, node_data, nodes_table) {
+  nodes_table <- as.data.frame(lapply(nodes_table, function(x) {
+    if (is.numeric(x) && any(is.infinite(x))) as.character(x) else x
+  }))
   node_id <- node_data$id
   
   # Find matching row based on node ID
@@ -181,7 +187,10 @@ getInputParameters <- function(input, selectedProteins) {
     sources = sources,
     selectedLabel = req(input$selectedLabel),
     selectedProteins = selectedProteins,
-    filterByCuration = filterByCuration
+    filterByCuration = filterByCuration,
+    filter_by_ptm_site = input$filter_by_ptm_site,
+    include_infinite_fc = input$include_infinite_fc,
+    direction = input$direction
   )
 }
 
@@ -209,7 +218,8 @@ annotateProteinData <- function(df, proteinIdType) {
 }
 
 extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes, 
-                              sources, absLogFC, selectedProteins, filterByCuration) {
+                              sources, absLogFC, selectedProteins, filterByCuration,
+                              filter_by_ptm_site, include_infinite_fc, direction) {
   tryCatch({
     getSubnetworkFromIndra(annotated_df, 
                            pvalueCutoff = pValue, 
@@ -218,7 +228,11 @@ extractSubnetwork <- function(annotated_df, pValue, evidence, statementTypes,
                            sources_filter = sources,
                            logfc_cutoff = absLogFC,
                            force_include_other = selectedProteins,
-                           filter_by_curation = filterByCuration)
+                           filter_by_curation = filterByCuration,
+                           filter_by_ptm_site = filter_by_ptm_site,
+                           include_infinite_fc = include_infinite_fc,
+                           direction = direction
+                           )
   }, error = function(e) {
     showNotification(paste("Error in subnetwork extraction:", e$message), type = "error")
     print(e$message)
@@ -384,6 +398,11 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     })
   })
   
+  observeEvent(input$toggle_adv, {
+    ns <- session$ns
+    toggle(id = "adv_panel", anim = TRUE)
+  })
+  
   # Render search results
   output$proteinSearchResults <- renderUI({
     results <- proteinSearchResults()
@@ -475,7 +494,8 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     subnetwork <- extractSubnetwork(annotated_df, params$pValue, params$evidence, 
                                     params$statementTypes, params$sources,
                                     params$absLogFC, params$selectedProteins,
-                                    params$filterByCuration)
+                                    params$filterByCuration, params$filter_by_ptm_site, 
+                                    params$include_infinite_fc, params$direction)
     if (is.null(subnetwork)) return(NULL)
     
     return(list(
@@ -547,6 +567,9 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     }
     
     codes <- paste(codes, ",\n  filter_by_curation = ", params$filterByCuration, "\n", sep = "")
+    codes <- paste(codes, ",\n  filter_by_ptm_site = ", params$filter_by_ptm_site, "\n", sep = "")
+    codes <- paste(codes, ",\n  include_infinite_fc = ", params$include_infinite_fc, "\n", sep = "")
+    codes <- paste(codes, ",\n  direction = \"", params$direction, "\"\n", sep = "")
     
     codes <- paste(codes, ")\n\n", sep = "")
     

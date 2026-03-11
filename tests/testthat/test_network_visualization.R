@@ -160,14 +160,10 @@ test_that("extractSubnetwork works with mocked MSstatsBioNet function", {
   annotated_df <- create_mock_annotated_data()
   expected_subnetwork <- create_mock_subnetwork()
   
-  # Create a mock function that returns the expected subnetwork
-  mock_extract_func <- function(df, pvalueCutoff, evidence_count_cutoff, 
-                                statement_types, sources_filter, 
-                                logfc_cutoff, force_include_other, filter_by_curation) {
-    return(expected_subnetwork)
-  }
+  # Use mockery::mock() so we can inspect call args
+  mock_extract_func <- mock(expected_subnetwork)
   
-  # Use mockery to stub the function call
+  # Stub getSubnetworkFromIndra inside extractSubnetwork
   stub(extractSubnetwork, "getSubnetworkFromIndra", mock_extract_func)
   
   result <- extractSubnetwork(
@@ -178,7 +174,29 @@ test_that("extractSubnetwork works with mocked MSstatsBioNet function", {
     sources = NULL, 
     absLogFC = 0.5, 
     selectedProteins = NULL,
-    filterByCuration = FALSE
+    filterByCuration = FALSE,
+    filter_by_ptm_site = FALSE,
+    include_infinite_fc = FALSE,
+    direction = "both"
+  )
+  
+  # Verify getSubnetworkFromIndra was called exactly once
+  expect_called(mock_extract_func, 1)
+  
+  # Verify it was called with the exact parameters extractSubnetwork passes through
+  expect_args(
+    mock_extract_func, 1,
+    annotated_df,
+    pvalueCutoff = 0.05,
+    evidence_count_cutoff = 5,
+    statement_types = NULL,
+    sources_filter = NULL,
+    logfc_cutoff = 0.5,
+    force_include_other = NULL,
+    filter_by_curation = FALSE,
+    filter_by_ptm_site = FALSE,
+    include_infinite_fc = FALSE,
+    direction = "both"
   )
   
   expect_type(result, "list")
@@ -189,7 +207,6 @@ test_that("extractSubnetwork works with mocked MSstatsBioNet function", {
   expect_equal(nrow(result$nodes), 4)
   expect_equal(nrow(result$edges), 4)
 })
-
 # =============================================================================
 # TESTS FOR ERROR HANDLING
 # =============================================================================
@@ -213,7 +230,7 @@ test_that("Functions handle errors gracefully", {
   # Test extractSubnetwork with error
   stub(extractSubnetwork, "getSubnetworkFromIndra", mock_error_func)
   stub(extractSubnetwork, "showNotification", mock_show_notification)
-  result2 <- extractSubnetwork(create_mock_annotated_data(), 0.05, 5, NULL, NULL, 0.5, NULL, FALSE)
+  result2 <- extractSubnetwork(create_mock_annotated_data(), 0.05, 5, NULL, NULL, 0.5, NULL, FALSE, FALSE, FALSE, "both")
   expect_null(result2)
 })
 
