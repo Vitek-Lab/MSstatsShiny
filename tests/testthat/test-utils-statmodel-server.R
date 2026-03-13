@@ -454,3 +454,141 @@ test_that("update_matrix_from_edit updates a data.frame with mixed types", {
   expect_equal(result_char[2, 1], "Updated")
   expect_true(is.character(result_char$label))
 })
+
+# ============================================================================
+# Tests for generate_analysis_code
+# ============================================================================
+
+test_that("generate_analysis_code produces MSstatsResponse code for dose response curves", {
+  mockery::stub(generate_analysis_code, "preprocessDataCode", "# preprocess\n")
+
+  comp_mat = data.frame(
+    GROUP = c("Drug_1nM", "Drug_10nM", "DMSO"),
+    drug = c("Drug", "Drug", "DMSO"),
+    dose_value = c(1, 10, 0),
+    dose_unit = c("nM", "nM", "nM")
+  )
+
+  mock_input = list()
+  mock_input[[NAMESPACE_STATMODEL$comparison_mode]] = CONSTANTS_STATMODEL$comparison_mode_response_curve
+  mock_input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]] = FALSE
+  mock_input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]] = TRUE
+  mock_input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]] = TRUE
+
+  result = generate_analysis_code(list(), list(), comp_mat, mock_input)
+
+  expect_true(grepl("library\\(MSstatsResponse\\)", result))
+  expect_true(grepl("setup_metadata", result))
+  expect_true(grepl("prepare_dose_response_fit", result))
+  expect_true(grepl("doseResponseFit", result))
+  expect_true(grepl("visualizeResponseProtein", result))
+  # doseResponseFit always hardcodes ratio_response = FALSE regardless of checkbox
+  expect_true(grepl("doseResponseFit[^)]*ratio_response = FALSE", result))
+  # visualizeResponseProtein should use the checkbox value (TRUE here)
+  expect_true(grepl("visualizeResponseProtein[^)]*ratio_response = TRUE", result))
+  # Should NOT contain standard group comparison code
+  expect_false(grepl("groupComparison\\b", result))
+  expect_false(grepl("contrast.matrix", result, fixed = TRUE))
+})
+
+test_that("generate_analysis_code passes response curve parameters correctly", {
+  mockery::stub(generate_analysis_code, "preprocessDataCode", "# preprocess\n")
+
+  comp_mat = data.frame(
+    GROUP = c("A", "B"), drug = c("X", "X"),
+    dose_value = c(1, 2), dose_unit = c("nM", "nM")
+  )
+
+  mock_input = list()
+  mock_input[[NAMESPACE_STATMODEL$comparison_mode]] = CONSTANTS_STATMODEL$comparison_mode_response_curve
+  mock_input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]] = TRUE
+  mock_input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]] = FALSE
+  mock_input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]] = FALSE
+
+  result = generate_analysis_code(list(), list(), comp_mat, mock_input)
+
+  expect_true(grepl("increasing = TRUE", result))
+  expect_true(grepl("transform_dose = FALSE", result))
+  # doseResponseFit always hardcodes ratio_response = FALSE
+  expect_true(grepl("doseResponseFit[^)]*ratio_response = FALSE", result))
+  # visualizeResponseProtein uses the checkbox value (FALSE in this case)
+  expect_true(grepl("visualizeResponseProtein[^)]*ratio_response = FALSE", result))
+})
+
+test_that("generate_analysis_code serializes condition names from contrast matrix", {
+  mockery::stub(generate_analysis_code, "preprocessDataCode", "# preprocess\n")
+
+  comp_mat = data.frame(
+    GROUP = c("Dasatinib_001nM", "Dasatinib_010nM", "DMSO"),
+    drug = c("Dasatinib", "Dasatinib", "DMSO"),
+    dose_value = c(0.001, 0.01, 0), dose_unit = c("nM", "nM", "nM")
+  )
+
+  mock_input = list()
+  mock_input[[NAMESPACE_STATMODEL$comparison_mode]] = CONSTANTS_STATMODEL$comparison_mode_response_curve
+  mock_input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]] = FALSE
+  mock_input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]] = TRUE
+  mock_input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]] = TRUE
+
+  result = generate_analysis_code(list(), list(), comp_mat, mock_input)
+
+  expect_true(grepl("Dasatinib_001nM", result))
+  expect_true(grepl("Dasatinib_010nM", result))
+  expect_true(grepl("DMSO", result))
+})
+
+test_that("generate_analysis_code produces groupComparison for standard DDA", {
+  mockery::stub(generate_analysis_code, "preprocessDataCode", "# preprocess\n")
+
+  comp_mat = matrix(c(1, -1, 0), nrow = 1)
+  rownames(comp_mat) = "A vs B"
+  colnames(comp_mat) = c("A", "B", "C")
+
+  mock_input = list()
+  mock_input[[NAMESPACE_STATMODEL$comparison_mode]] = CONSTANTS_STATMODEL$comparison_mode_all_pairwise
+
+  result = generate_analysis_code(list(), list(DDA_DIA = "DDA", BIO = "Protein"), comp_mat, mock_input)
+
+  expect_true(grepl("MSstats::groupComparison", result))
+  expect_true(grepl("contrast.matrix", result, fixed = TRUE))
+  expect_true(grepl("groupComparisonPlots", result))
+  expect_false(grepl("doseResponseFit", result))
+})
+
+test_that("generate_analysis_code produces groupComparisonPTM for PTM", {
+  mockery::stub(generate_analysis_code, "preprocessDataCode", "# preprocess\n")
+
+  comp_mat = matrix(c(1, -1), nrow = 1)
+  rownames(comp_mat) = "A vs B"
+  colnames(comp_mat) = c("A", "B")
+
+  mock_input = list()
+  mock_input[[NAMESPACE_STATMODEL$comparison_mode]] = CONSTANTS_STATMODEL$comparison_mode_all_pairwise
+
+  result = generate_analysis_code(
+    list(), list(DDA_DIA = "DDA", BIO = "PTM", filetype = "maxq"), comp_mat, mock_input
+  )
+
+  expect_true(grepl("groupComparisonPTM", result))
+  expect_true(grepl("groupComparisonPlotsPTM", result))
+  expect_false(grepl("doseResponseFit", result))
+})
+
+test_that("generate_analysis_code produces groupComparisonTMT for TMT", {
+  mockery::stub(generate_analysis_code, "preprocessDataCode", "# preprocess\n")
+
+  comp_mat = matrix(c(1, -1), nrow = 1)
+  rownames(comp_mat) = "A vs B"
+  colnames(comp_mat) = c("A", "B")
+
+  mock_input = list()
+  mock_input[[NAMESPACE_STATMODEL$comparison_mode]] = CONSTANTS_STATMODEL$comparison_mode_all_pairwise
+  mock_input[[NAMESPACE_STATMODEL$modeling_tmt_moderation]] = TRUE
+
+  result = generate_analysis_code(
+    list(), list(DDA_DIA = "TMT", BIO = "Protein"), comp_mat, mock_input
+  )
+
+  expect_true(grepl("groupComparisonTMT", result))
+  expect_false(grepl("doseResponseFit", result))
+})
