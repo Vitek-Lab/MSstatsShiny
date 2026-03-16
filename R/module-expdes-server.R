@@ -18,7 +18,6 @@ CONC_MAP <- list(
 #' Run TPR simulation across a grid of concentration counts and replicate counts
 #'
 #' @param rep_range integer vector of length 2, c(min, max) for replicate sweep
-#' @param protein character, protein ID to use as strong interaction protein
 #' @param n_proteins integer, number of proteins to simulate
 #'
 #' @return data.frame with columns: Interaction, TPR, N_rep, NumConcs
