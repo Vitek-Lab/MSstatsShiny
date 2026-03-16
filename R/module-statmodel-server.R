@@ -278,7 +278,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       return(list(
         input = input,
-        dataComparison = data_comparison
+        dataComparison = data_comparison,
+        contrast = contrast
       ))
     }
   )

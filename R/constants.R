@@ -45,3 +45,12 @@ CONSTANTS_STATMODEL = list(
   plot_type_comparison_plot = "ComparisonPlot", # ComparisonPlot
   plot_type_response_curve = "ResponseCurve" # ResponseCurve
 )
+
+NAMESPACE_EXPDES = list(
+  sidebar_controls = "sidebar_controls",
+  protein_select = "protein_select",
+  rep_range = "rep_range",
+  run_simulation = "run_simulation",
+  result_plot = "result_plot",
+  download_future = "download_future"
+)

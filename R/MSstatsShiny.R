@@ -37,6 +37,7 @@
 #' @importFrom MSstatsConvert MSstatsLogsSettings
 #' @importFrom MSstatsPTM dataProcessPlotsPTM groupComparisonPlotsPTM MaxQtoMSstatsPTMFormat PDtoMSstatsPTMFormat FragPipetoMSstatsPTMFormat SkylinetoMSstatsPTMFormat MetamorpheusToMSstatsPTMFormat SpectronauttoMSstatsPTMFormat
 #' @importFrom MSstatsBioNet exportNetworkToHTML
+#' @importFrom MSstatsResponse futureExperimentSimulation
 #' @importFrom utils capture.output head packageVersion read.csv read.delim write.csv
 #' @importFrom stats aggregate
 #' @importFrom methods is
