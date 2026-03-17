@@ -291,8 +291,11 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
       output[[NAMESPACE_EXPDES$download_future]] <- downloadHandler(
         filename = paste0("tpr_power_curve-", Sys.Date(), ".pdf"),
         content = function(file) {
-          req(simulation_results())
           results <- simulation_results()
+          if (is.null(results)) {
+            showNotification("Please run the simulation first.", type = "error")
+            return(NULL)
+          }
 
           k_grid <- sort(unique(results$NumConcs))
           rep_levels <- sort(unique(results$N_rep))

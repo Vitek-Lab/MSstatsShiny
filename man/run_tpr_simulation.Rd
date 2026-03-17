@@ -10,8 +10,6 @@ run_tpr_simulation(rep_range, n_proteins = 1000)
 \item{rep_range}{integer vector of length 2, c(min, max) for replicate sweep}
 
 \item{n_proteins}{integer, number of proteins to simulate}
-
-\item{protein}{character, protein ID to use as strong interaction protein}
 }
 \value{
 data.frame with columns: Interaction, TPR, N_rep, NumConcs
