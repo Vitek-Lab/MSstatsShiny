@@ -52,7 +52,14 @@ run_tpr_simulation <- function(rep_range, n_proteins = 1000) {
 
   grid_df <- expand.grid(N_rep = rep_grid, k_conc = k_grid)
   results <- do.call(rbind, lapply(seq_len(nrow(grid_df)), function(i) {
-    run_one(n_rep = grid_df$N_rep[i], k_conc = grid_df$k_conc[i])
+    tryCatch(
+      run_one(n_rep = grid_df$N_rep[i], k_conc = grid_df$k_conc[i]),
+      error = function(e) {
+        cat(file = stderr(), paste("Simulation failed for N_rep=", grid_df$N_rep[i],
+            ", k_conc=", grid_df$k_conc[i], ":", conditionMessage(e), "\n"))
+        NULL
+      }
+    )
   }))
 
   return(results)
