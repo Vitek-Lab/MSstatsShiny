@@ -62,6 +62,9 @@ run_tpr_simulation <- function(rep_range, n_proteins = 1000) {
     )
   }))
 
+  if (is.null(results) || nrow(results) == 0) {
+    stop("All simulation runs failed. Please check your input parameters.")
+  }
   return(results)
 }
 
@@ -144,6 +147,7 @@ plot_tpr_power_curve <- function(simulation_results) {
 #' @param statmodel_input input object from Statmodel UI
 #' @param data_comparison function for group comparisons
 #' @param preprocess_data function returning preprocessed data
+#' @param statmodel_contrast reactiveValues object containing the contrast matrix from statmodel
 #'
 #' @return list object with user selected options and matrix build
 #'
@@ -180,7 +184,10 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
       protein_choices <- character(0)
       tryCatch({
         protein_choices <- unique(prepared_response_data()$protein)
-      }, error = function(e) {})
+      }, error = function(e) {
+        showNotification(paste("Could not load protein list:", conditionMessage(e)),
+                         type = "warning", duration = 6)
+      })
 
       tagList(
         h4("Dose response power analysis"),
