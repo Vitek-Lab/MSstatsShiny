@@ -12,13 +12,44 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
 
     codes = paste(codes, "\n# Set up dose response analysis\n", sep = "")
     codes = paste(codes, "library(MSstatsResponse)\n", sep = "")
-    codes = paste(codes, "condition_names = c(\"",
-                  paste(comp_mat$GROUP, collapse = "\",\""), "\")\n", sep = "")
-    codes = paste(codes, "contrast_matrix = setup_metadata(condition_names)\n", sep = "")
 
-    codes = paste(codes, "\n# Prepare data for dose response fitting\n", sep = "")
+    # Serialize the contrast matrix as a data frame
+    codes = paste(codes, "contrast_matrix = data.frame(\n", sep = "")
+    codes = paste(codes, "  GROUP = c(\"", paste(comp_mat$GROUP, collapse = "\",\""), "\"),\n", sep = "")
+    for (col_name in setdiff(colnames(comp_mat), "GROUP")) {
+      col_values = comp_mat[[col_name]]
+      if (is.numeric(col_values)) {
+        codes = paste(codes, "  ", col_name, " = c(", paste(col_values, collapse = ","), "),\n", sep = "")
+      } else {
+        codes = paste(codes, "  ", col_name, " = c(\"", paste(col_values, collapse = "\",\""), "\"),\n", sep = "")
+      }
+    }
+    codes = paste(codes, "  stringsAsFactors = FALSE\n)\n", sep = "")
+
+    # Merge and map columns explicitly (prepare_dose_response_fit is internal to MSstatsShiny)
+    codes = paste(codes, "\n# Merge metadata with protein-level data\n", sep = "")
     codes = paste(codes, "protein_level_data = merge(summarized$ProteinLevelData, contrast_matrix, by = \"GROUP\")\n", sep = "")
-    codes = paste(codes, "prepared_data = prepare_dose_response_fit(protein_level_data)\n", sep = "")
+
+    codes = paste(codes, "\n# Map columns to MSstatsResponse format\n", sep = "")
+    codes = paste(codes, "protein_level_data$protein = protein_level_data$Protein\n", sep = "")
+    codes = paste(codes, "protein_level_data$response = protein_level_data$LogIntensities\n", sep = "")
+
+    # Determine the intervention column based on what's in the contrast matrix
+    if ("drug" %in% colnames(comp_mat)) {
+      codes = paste(codes, "protein_level_data$drug = protein_level_data$drug\n", sep = "")
+      codes = paste(codes, "protein_level_data$dose = protein_level_data$dose_value\n", sep = "")
+    } else {
+      intervention_cols = grep("time|temperature|treatment", colnames(comp_mat),
+                               ignore.case = TRUE, value = TRUE)
+      if (length(intervention_cols) > 0) {
+        intervention_type = sub("_.*", "", intervention_cols[1])
+        value_col = paste0(intervention_type, "_value")
+        codes = paste(codes, "protein_level_data$drug = \"", intervention_type, "\"\n", sep = "")
+        codes = paste(codes, "protein_level_data$dose = protein_level_data$", value_col, "\n", sep = "")
+      }
+    }
+
+    codes = paste(codes, "prepared_data = protein_level_data[, c(\"protein\", \"drug\", \"dose\", \"response\")]\n", sep = "")
 
     codes = paste(codes, "\n# Fit dose response curves\n", sep = "")
     codes = paste(codes, "response_results = doseResponseFit(\n",

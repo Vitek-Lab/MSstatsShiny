@@ -478,8 +478,12 @@ test_that("generate_analysis_code produces MSstatsResponse code for dose respons
   result = generate_analysis_code(list(), list(), comp_mat, mock_input)
 
   expect_true(grepl("library\\(MSstatsResponse\\)", result))
-  expect_true(grepl("setup_metadata", result))
-  expect_true(grepl("prepare_dose_response_fit", result))
+  expect_true(grepl("data\\.frame", result))
+  expect_true(grepl("protein_level_data\\$protein", result))
+  expect_true(grepl("protein_level_data\\$response", result))
+  expect_true(grepl("protein_level_data\\$dose", result))
+  expect_false(grepl("setup_metadata", result))
+  expect_false(grepl("prepare_dose_response_fit", result))
   expect_true(grepl("doseResponseFit", result))
   expect_true(grepl("visualizeResponseProtein", result))
   # doseResponseFit always hardcodes ratio_response = FALSE regardless of checkbox
