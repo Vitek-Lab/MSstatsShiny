@@ -121,10 +121,10 @@ plot_tpr_power_curve <- function(simulation_results) {
     annotations = list(
       list(text = "<b>Strong interaction detection power</b>", x = 0.22, y = 1.08,
            xref = "paper", yref = "paper", showarrow = FALSE,
-           font = list(size = 15), xanchor = "center"),
+           font = list(size = 12), xanchor = "center"),
       list(text = "<b>Weak interaction detection power</b>", x = 0.78, y = 1.08,
            xref = "paper", yref = "paper", showarrow = FALSE,
-           font = list(size = 15), xanchor = "center")
+           font = list(size = 12), xanchor = "center")
     )
   )
 }
