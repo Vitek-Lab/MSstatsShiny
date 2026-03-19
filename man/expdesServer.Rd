@@ -35,6 +35,8 @@ expdesServer(
 \item{data_comparison}{function for group comparisons}
 
 \item{preprocess_data}{function returning preprocessed data}
+
+\item{statmodel_contrast}{reactiveValues object containing the contrast matrix from statmodel}
 }
 \value{
 list object with user selected options and matrix build
