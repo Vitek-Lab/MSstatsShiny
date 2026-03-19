@@ -300,8 +300,12 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
         content = function(file) {
           results <- simulation_results()
           if (is.null(results)) {
-            showNotification("Please run the simulation first.", type = "error")
-            return(NULL)
+            pdf(file, width = 8, height = 4)
+            plot.new()
+            text(0.5, 0.5, "No simulation results. Please run the simulation first.",
+                 cex = 1.2)
+            dev.off()
+            return()
           }
 
           k_grid <- sort(unique(results$NumConcs))
