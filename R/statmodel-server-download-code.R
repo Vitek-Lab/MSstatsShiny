@@ -14,7 +14,7 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
     codes = paste(codes, "library(MSstatsResponse)\n", sep = "")
 
     # Serialize the contrast matrix as a data frame
-    codes = paste(codes, "contrast_matrix = data.frame(\n", sep = "")
+    codes = paste(codes, "group_metadata = data.frame(\n", sep = "")
     codes = paste(codes, "  GROUP = c(\"", paste(comp_mat$GROUP, collapse = "\",\""), "\"),\n", sep = "")
     for (col_name in setdiff(colnames(comp_mat), "GROUP")) {
       col_values = comp_mat[[col_name]]
@@ -28,7 +28,7 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
 
     # Merge and map columns explicitly (prepare_dose_response_fit is internal to MSstatsShiny)
     codes = paste(codes, "\n# Merge metadata with protein-level data\n", sep = "")
-    codes = paste(codes, "protein_level_data = merge(summarized$ProteinLevelData, contrast_matrix, by = \"GROUP\")\n", sep = "")
+    codes = paste(codes, "protein_level_data = merge(summarized$ProteinLevelData, group_metadata, by = \"GROUP\")\n", sep = "")
 
     codes = paste(codes, "\n# Map columns to MSstatsResponse format\n", sep = "")
     codes = paste(codes, "protein_level_data$protein = protein_level_data$Protein\n", sep = "")
