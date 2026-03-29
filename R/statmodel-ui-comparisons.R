@@ -85,8 +85,6 @@ build_custom_nonpairwise_panel <- function(ns) {
 #' @noRd
 build_response_curve_panel <- function(ns) {
   tagList(
-    h5("Set up response curve configuration:"),
-    actionButton(ns(NAMESPACE_STATMODEL$comparisons_submit), "Setup Metadata"),
     actionButton(ns(NAMESPACE_STATMODEL$comparisons_clear), "Reset")
   )
 }

@@ -7,8 +7,18 @@
 #' @noRd
 create_modeling_section <- function(ns) {
   tagList(
-    h4("2. Group comparison"),
-    p("Please add a comparison matrix before modeling."),
+    conditionalPanel(
+      condition = paste0("input['", ns(NAMESPACE_STATMODEL$comparison_mode),
+        "'] == '", CONSTANTS_STATMODEL$comparison_mode_response_curve, "'"),
+      h4("2. Dose response analysis"),
+      p("Please configure the mapping between experimental groups and treatment concentrations.")
+    ),
+    conditionalPanel(
+      condition = paste0("input['", ns(NAMESPACE_STATMODEL$comparison_mode),
+        "'] != '", CONSTANTS_STATMODEL$comparison_mode_response_curve, "'"),
+      h4("2. Group comparison"),
+      p("Please add a comparison matrix before modeling.")
+    ),
     disabled(actionButton(ns(NAMESPACE_STATMODEL$modeling_start), "Start")),
     tags$hr(),
     uiOutput(ns(NAMESPACE_STATMODEL$modeling_response_curve_fitting_options)),
