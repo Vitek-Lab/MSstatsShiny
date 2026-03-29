@@ -58,7 +58,7 @@ test_that("build_response_curve_panel creates correct UI structure", {
   ns <- function(id) paste0("statmodel-", id)
   ui <- build_response_curve_panel(ns)
   html <- as.character(ui)
-  # Setup Metadata button removed — metadata auto-builds on radio selection
+  # Setup Metadata button removed. Metadata auto-builds on radio selection
   expect_false(grepl(NAMESPACE_STATMODEL$comparisons_submit, html, fixed = TRUE),
                info = "Setup Metadata button should not be present")
   expect_true(grepl(NAMESPACE_STATMODEL$comparisons_clear, html, fixed = TRUE))
@@ -82,4 +82,9 @@ test_that("modeling section shows conditional headings in UI", {
               info = "Dose response description should be present")
   expect_true(grepl("add a comparison matrix", ui_html),
               info = "Group comparison description should be present")
+  # Verify conditional panel wiring
+  expect_true(grepl(
+    paste0("data-display-if.*", CONSTANTS_STATMODEL$comparison_mode_response_curve),
+    ui_html),
+    info = "Conditional panel should reference response curve mode")
 })

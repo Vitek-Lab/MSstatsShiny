@@ -92,9 +92,15 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         if (isTRUE(input[[NAMESPACE_STATMODEL$comparison_mode]] == 
             CONSTANTS_STATMODEL$comparison_mode_response_curve)) {
           tryCatch({
-            contrast$matrix <- build_response_curve_matrix(condition_list())
+            rc_matrix <- build_response_curve_matrix(condition_list())
+            if (is.null(rc_matrix) || nrow(rc_matrix) == 0) {
+              stop("Unable to auto-build group metadata from the current conditions.")
+            }
+            contrast$matrix <- rc_matrix
             enable(NAMESPACE_STATMODEL$modeling_start)
           }, error = function(e) {
+            contrast$matrix <- NULL
+            disable(NAMESPACE_STATMODEL$modeling_start)
             showNotification(conditionMessage(e), type = "error", duration = 6)
           })
         }
