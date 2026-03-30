@@ -1,5 +1,3 @@
-
-
 # ============================================================================
 # Expdes Server Module
 # ============================================================================
@@ -60,13 +58,13 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
       tagList(
         h4("Dose response power analysis"),
         selectizeInput(ns(NAMESPACE_EXPDES$protein_select),
-                       label = h5("Select protein (strong interaction)"),
+                       label = h5("Select protein template"),
                        choices = protein_choices,
                        options = list(placeholder = "Search protein..."),
                        multiple = FALSE),
         sliderInput(ns(NAMESPACE_EXPDES$rep_range),
                     "Replicates per dose",
-                    min = 1, max = 5, value = c(1, 5), step = 1),
+                    min = 1, max = 10, value = c(1, 5), step = 1),
         actionButton(ns(NAMESPACE_EXPDES$run_simulation),
                      "Run simulation",
                      icon = icon("play"),
@@ -97,8 +95,32 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
     show_modal_spinner(text = "Running simulations... This may take a minute.")
 
     tryCatch({
+      # Get concentrations from the contrast matrix
+      # Try dose_value first, fall back to other intervention columns
+      mat <- statmodel_contrast$matrix
+      
+      if ("dose_value" %in% colnames(mat)) {
+        user_concs <- sort(unique(mat$dose_value))
+      } else {
+        value_cols <- grep("_value$", colnames(mat), value = TRUE)
+        if (length(value_cols) > 0) {
+          user_concs <- sort(unique(mat[[value_cols[1]]]))
+        } else {
+          user_concs <- NULL
+        }
+      }
+      if (is.null(user_concs) || length(user_concs) < 2) {
+        showNotification("Could not extract concentrations from contrast matrix.", type = "error")
+        remove_modal_spinner()
+        return()
+      }
+
       results <- run_tpr_simulation(
         rep_range = input[[NAMESPACE_EXPDES$rep_range]],
+        concentrations = user_concs,
+        dose_range = c(2, length(user_concs)),
+        data = prepared_response_data(),
+        protein = input[[NAMESPACE_EXPDES$protein_select]],
         n_proteins = 1000
       )
       simulation_results(results)
@@ -177,34 +199,29 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
           }
 
           k_grid <- sort(unique(results$NumConcs))
-          rep_levels <- sort(unique(results$N_rep))
-          ltypes <- c("dotted", "dotdash", "dashed", "longdash", "solid")
-          ltype_values <- setNames(ltypes[seq_along(rep_levels)], as.character(rep_levels))
 
-          make_panel <- function(data, title, color) {
-            ggplot2::ggplot(data,
-              ggplot2::aes(x = NumConcs, y = TPR, linetype = factor(N_rep))) +
-              ggplot2::geom_line(linewidth = 1.2, color = color) +
-              ggplot2::geom_point(size = 2, color = color) +
-              ggplot2::scale_x_continuous(breaks = k_grid) +
-              ggplot2::scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
-              ggplot2::scale_linetype_manual(values = ltype_values) +
-              ggplot2::labs(title = title, x = "Number of concentrations",
-                           y = "True Positive Rate (%)", linetype = "Replicates") +
-              ggplot2::theme_bw(base_size = 14) +
-              ggplot2::theme(plot.title = ggplot2::element_text(face = "bold", hjust = 0.5))
-          }
+          results_protein <- results[results$Interaction == "Strong", ]
+          rep_levels <- sort(unique(results_protein$N_rep))
+          n_levels <- length(rep_levels)
+          color_palette <- grDevices::colorRampPalette(c("#a6dba0", "#1b7837"))(n_levels)
+          names(color_palette) <- as.character(rep_levels)
 
-          p_strong <- make_panel(
-            results[results$Interaction == "Strong", ],
-            "Strong interaction detection power", "#1b9e77")
-          p_weak <- make_panel(
-            results[results$Interaction == "Weak", ],
-            "Weak interaction detection power", "#d95f02")
+          p <- ggplot2::ggplot(results_protein,
+            ggplot2::aes(x = NumConcs, y = TPR,
+                         color = factor(N_rep), group = factor(N_rep))) +
+            ggplot2::geom_line(linewidth = 1.2) +
+            ggplot2::geom_point(size = 2) +
+            ggplot2::scale_x_continuous(breaks = k_grid) +
+            ggplot2::scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
+            ggplot2::scale_color_manual(values = color_palette) +
+            ggplot2::labs(title = "Interaction detection power",
+                         x = "Number of concentrations",
+                         y = "True Positive Rate (%)", color = "Replicates") +
+            ggplot2::theme_bw(base_size = 14) +
+            ggplot2::theme(plot.title = ggplot2::element_text(face = "bold", hjust = 0.5))
 
-          pdf(file, width = 16, height = 6)
-          print(p_strong)
-          print(p_weak)
+          pdf(file, width = 10, height = 6)
+          print(p)
           dev.off()
         }
       )
