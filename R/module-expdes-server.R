@@ -93,6 +93,7 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
     req(input[[NAMESPACE_EXPDES$rep_range]])
 
     show_modal_spinner(text = "Running simulations... This may take a minute.")
+    simulation_results(NULL)
 
     tryCatch({
       # Get concentrations from the contrast matrix
