@@ -62,6 +62,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
       
       render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list,contrast)
+      output[[NAMESPACE_STATMODEL$modeling_section_header]] <- renderUI({
+        get_modeling_section_header(input[[NAMESPACE_STATMODEL$comparison_mode]])
+      })
       
       # Filter visualization dropdown based on comparison mode
       observeEvent(input[[NAMESPACE_STATMODEL$comparison_mode]], {

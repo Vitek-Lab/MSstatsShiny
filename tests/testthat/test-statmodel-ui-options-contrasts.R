@@ -60,7 +60,7 @@ test_that("build_response_curve_panel creates correct UI structure", {
   html <- as.character(ui)
   # Setup Metadata button removed. Metadata auto-builds on radio selection
   expect_false(grepl(NAMESPACE_STATMODEL$comparisons_submit, html, fixed = TRUE),
-               info = "Setup Metadata button should not be present")
+               info = "Submit contrast matrix button should not be present")
   expect_true(grepl(NAMESPACE_STATMODEL$comparisons_clear, html, fixed = TRUE))
   expect_s3_class(ui, "shiny.tag.list")
   expect_length(ui, 1)
@@ -70,21 +70,50 @@ test_that("build_response_curve_panel creates correct UI structure", {
 # DYNAMIC HEADING AND DROPDOWN TESTS
 # ============================================================================
 
-test_that("modeling section shows conditional headings in UI", {
+test_that("modeling section header placeholder exists in UI", {
   ui <- MSstatsShiny::statmodelUI("statmodel")
   ui_html <- htmltools::renderTags(ui)$html
 
-  expect_true(grepl("Dose response analysis", ui_html),
-              info = "Dose response heading should be in conditional panel")
-  expect_true(grepl("Group comparison", ui_html),
-              info = "Group comparison heading should be in conditional panel")
-  expect_true(grepl("configure the mapping", ui_html),
-              info = "Dose response description should be present")
-  expect_true(grepl("add a comparison matrix", ui_html),
-              info = "Group comparison description should be present")
-  # Verify conditional panel wiring
-  expect_true(grepl(
-    paste0("data-display-if.*", CONSTANTS_STATMODEL$comparison_mode_response_curve),
-    ui_html),
-    info = "Conditional panel should reference response curve mode")
+  expect_true(grepl(NAMESPACE_STATMODEL$modeling_section_header, ui_html),
+              info = "Modeling section header uiOutput placeholder should be present")
+})
+
+# ============================================================================
+# MODELING SECTION HEADER TESTS
+# ============================================================================
+
+test_that("get_modeling_section_header returns dose response heading for response curve mode", {
+  result <- MSstatsShiny:::get_modeling_section_header(
+    CONSTANTS_STATMODEL$comparison_mode_response_curve
+  )
+  html <- as.character(result)
+  expect_true(grepl("Dose response analysis", html),
+              info = "Should show dose response heading")
+  expect_true(grepl("configure the mapping", html),
+              info = "Should show dose response description")
+  expect_false(grepl("Group comparison", html),
+               info = "Should not show group comparison heading")
+})
+
+test_that("get_modeling_section_header returns group comparison heading for other modes", {
+  for (mode in c(
+    CONSTANTS_STATMODEL$comparison_mode_all_pairwise,
+    CONSTANTS_STATMODEL$comparison_mode_all_vs_one,
+    CONSTANTS_STATMODEL$comparison_mode_custom_pairwise,
+    CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise
+  )) {
+    result <- MSstatsShiny:::get_modeling_section_header(mode)
+    html <- as.character(result)
+    expect_true(grepl("Group comparison", html),
+                info = paste("Should show group comparison for mode:", mode))
+    expect_false(grepl("Dose response", html),
+                 info = paste("Should not show dose response for mode:", mode))
+  }
+})
+
+test_that("get_modeling_section_header handles NULL mode", {
+  result <- MSstatsShiny:::get_modeling_section_header(NULL)
+  html <- as.character(result)
+  expect_true(grepl("Group comparison", html),
+              info = "NULL mode should default to group comparison")
 })
