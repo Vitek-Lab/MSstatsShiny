@@ -7,8 +7,7 @@
 #' @noRd
 create_modeling_section <- function(ns) {
   tagList(
-    h4("2. Group comparison"),
-    p("Please add a comparison matrix before modeling."),
+    uiOutput(ns(NAMESPACE_STATMODEL$modeling_section_header)),
     disabled(actionButton(ns(NAMESPACE_STATMODEL$modeling_start), "Start")),
     tags$hr(),
     uiOutput(ns(NAMESPACE_STATMODEL$modeling_response_curve_fitting_options)),

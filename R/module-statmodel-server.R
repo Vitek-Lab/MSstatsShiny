@@ -62,12 +62,51 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
       
       render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list,contrast)
+      output[[NAMESPACE_STATMODEL$modeling_section_header]] <- renderUI({
+        get_modeling_section_header(input[[NAMESPACE_STATMODEL$comparison_mode]])
+      })
       
+      # Filter visualization dropdown based on comparison mode
+      observeEvent(input[[NAMESPACE_STATMODEL$comparison_mode]], {
+        req(input[[NAMESPACE_STATMODEL$comparison_mode]])
+        mode <- input[[NAMESPACE_STATMODEL$comparison_mode]]
+        if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+          updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
+            choices = c("Dose Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve)
+          )
+        } else {
+          updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
+            choices = c(
+              "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot,
+              "Heatmap" = CONSTANTS_STATMODEL$plot_type_heatmap,
+              "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
+            )
+          )
+        }
+      }, ignoreInit = TRUE)
+
       # Reset on configuration change
       observeEvent(c(input[[NAMESPACE_STATMODEL$comparison_mode]], loadpage_input()$proceed1), {
         contrast$matrix = NULL
         comp_list$dList = NULL
         significant$result = NULL
+
+        # Auto-build response curve metadata when dose response mode is selected
+        if (isTRUE(input[[NAMESPACE_STATMODEL$comparison_mode]] == 
+            CONSTANTS_STATMODEL$comparison_mode_response_curve)) {
+          tryCatch({
+            rc_matrix <- build_response_curve_matrix(condition_list())
+            if (is.null(rc_matrix) || nrow(rc_matrix) == 0) {
+              stop("Unable to auto-build group metadata from the current conditions.")
+            }
+            contrast$matrix <- rc_matrix
+            enable(NAMESPACE_STATMODEL$modeling_start)
+          }, error = function(e) {
+            contrast$matrix <- NULL
+            disable(NAMESPACE_STATMODEL$modeling_start)
+            showNotification(conditionMessage(e), type = "error", duration = 6)
+          })
+        }
       })
       
       # Validate contrast inputs
@@ -176,13 +215,17 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       output$matrix = renderUI({
         ns = session$ns
+        mode = input[[NAMESPACE_STATMODEL$comparison_mode]]
+        matrix_title = if (isTRUE(mode == CONSTANTS_STATMODEL$comparison_mode_response_curve)) {
+          "Group Metadata"
+        } else {
+          "Comparison matrix"
+        }
         tagList(
-          # CSS rule to ensure text in editable cells is always black.
-          # This overrides conflicting styles that may turn the text white during editing.
           tags$head(tags$style(HTML(
             "table.dataTable td input { color: black !important; }"
           ))),
-          h2("Comparison matrix"),
+          h2(matrix_title),
           p(tags$i("This table is interactive. Click values to edit.")),
           if (!is.null(input[[NAMESPACE_STATMODEL$comparison_mode]]) &&
               input[[NAMESPACE_STATMODEL$comparison_mode]] %in% c(
