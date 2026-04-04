@@ -204,8 +204,20 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
           results_protein <- results[results$Interaction == "Strong", ]
           rep_levels <- sort(unique(results_protein$N_rep))
           n_levels <- length(rep_levels)
-          color_palette <- grDevices::colorRampPalette(c("#a6dba0", "#1b7837"))(n_levels)
-          names(color_palette) <- as.character(rep_levels)
+          all_colors <- c(
+            "#1f78b4",  # strong blue
+            "#ff964f",  # orange
+            "#17becf",  # cyan
+            "#1b9e77",  # teal
+            "#f0b6d5",  # pink
+            "#DC143C",  # crimson
+            "#6a3d9a",  # purple
+            "#9e9ac8",  # lavender
+            "#525252",  # cool dark gray
+            "#08306b"   # deep navy
+          )
+
+          color_palette <- setNames(all_colors[seq_len(n_levels)], as.character(rep_levels))
 
           p <- ggplot2::ggplot(results_protein,
             ggplot2::aes(x = NumConcs, y = TPR,
