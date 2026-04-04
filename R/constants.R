@@ -16,6 +16,7 @@ NAMESPACE_STATMODEL = list(
   modeling_response_curve_increasing_trend = "modeling_response_curve_increasing_trend",
   modeling_response_curve_log_xaxis = "modeling_response_curve_log_xaxis", 
   visualization_plot_options_conditional_panel = "plot_options_conditional_panel",
+  modeling_section_header = "modeling_section_header",
   visualization_plot_type = "visualization_plot_type", 
   visualization_logp_base = "visualization_logp_base", 
   visualization_which_protein = "visualization_which_protein", 

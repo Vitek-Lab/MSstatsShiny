@@ -11,16 +11,14 @@ test_that("UI components appear in correct order", {
   ui <- create_test_ui()
   ui_html <- htmltools::renderTags(ui)$html
   
-  # Extract positions of key elements
   pos_contrast <- regexpr("1\\. Define comparisons", ui_html)
-  pos_group_comp <- regexpr("2\\. Group comparison", ui_html)
+  pos_modeling <- regexpr(NAMESPACE_STATMODEL$modeling_section_header, ui_html)
   pos_viz <- regexpr("3\\. Visualization", ui_html)
   
-  # Verify order
-  expect_true(pos_contrast < pos_group_comp,
-              info = "Contrast matrix section should appear before group comparison")
-  expect_true(pos_group_comp < pos_viz,
-              info = "Group comparison should appear before visualization")
+  expect_true(pos_contrast < pos_modeling,
+              info = "Contrast matrix section should appear before modeling section")
+  expect_true(pos_modeling < pos_viz,
+              info = "Modeling section should appear before visualization")
 })
 
 test_that("Side panel contains all three main sections", {
@@ -28,7 +26,8 @@ test_that("Side panel contains all three main sections", {
   ui_html <- htmltools::renderTags(ui)$html
   
   expect_true(grepl("1\\. Define comparisons", ui_html))
-  expect_true(grepl("2\\. Group comparison", ui_html))
+  expect_true(grepl(NAMESPACE_STATMODEL$modeling_section_header, ui_html),
+              info = "Modeling section header placeholder should be present")
   expect_true(grepl("3\\. Visualization", ui_html))
 })
 
@@ -209,8 +208,8 @@ test_that("Informative messages are present", {
   ui <- create_test_ui()
   ui_html <- htmltools::renderTags(ui)$html
   
-  expect_true(grepl("Please add a comparison matrix before modeling", ui_html),
-              info = "Matrix requirement message should be present")
+  expect_true(grepl(NAMESPACE_STATMODEL$modeling_section_header, ui_html),
+              info = "Modeling section header output should be present")
 })
 
 # ============================================================================

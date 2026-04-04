@@ -58,9 +58,22 @@ test_that("build_response_curve_panel creates correct UI structure", {
   ns <- function(id) paste0("statmodel-", id)
   ui <- build_response_curve_panel(ns)
   html <- as.character(ui)
-  expect_true(grepl("<h5>Set up response curve configuration:</h5>", html, fixed = TRUE))
-  expect_true(grepl(NAMESPACE_STATMODEL$comparisons_submit, html, fixed = TRUE))
+  # Setup Metadata button removed. Metadata auto-builds on radio selection
+  expect_false(grepl(NAMESPACE_STATMODEL$comparisons_submit, html, fixed = TRUE),
+               info = "Submit contrast matrix button should not be present")
   expect_true(grepl(NAMESPACE_STATMODEL$comparisons_clear, html, fixed = TRUE))
   expect_s3_class(ui, "shiny.tag.list")
-  expect_length(ui, 3)
+  expect_length(ui, 1)
+})
+
+# ============================================================================
+# DYNAMIC HEADING AND DROPDOWN TESTS
+# ============================================================================
+
+test_that("modeling section header placeholder exists in UI", {
+  ui <- MSstatsShiny::statmodelUI("statmodel")
+  ui_html <- htmltools::renderTags(ui)$html
+
+  expect_true(grepl(NAMESPACE_STATMODEL$modeling_section_header, ui_html),
+              info = "Modeling section header uiOutput placeholder should be present")
 })
