@@ -540,7 +540,8 @@ test_that("ptm metamorpheus", {
     mock_input$BIO <- "PTM"
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype <- "meta"
-    mock_input$mod_id_meta <- "\\[Common Fixed:Carbamidomethyl on C\\]"
+    mock_input$mod_id_meta_select <- "[Common Fixed:Carbamidomethyl on C]"
+    mock_input$mod_id_meta_custom <- NULL
     mock_input$ptm_input$datapath <- system.file(
       "tinytest/raw_data/Metamorpheus/AllQuantifiedPeaks.tsv",
       package = "MSstatsPTM")
@@ -1628,4 +1629,17 @@ test_that("resolve_mod_id returns default when both inputs are NULL", {
 test_that("resolve_mod_id returns default when custom is empty string", {
   result <- MSstatsShiny:::.resolve_mod_id("__other__", "")
   expect_equal(result, "\\[Common Biological:Phosphorylation on S\\]")
+})
+
+test_that("extract_mod_ids_from_preview handles consecutive modifications", {
+  preview <- data.frame(
+    `Full Sequence` = c(
+      "A[Mod1][Mod2]B[Mod3]C"
+    ),
+    check.names = FALSE
+  )
+
+  result <- MSstatsShiny:::.extract_mod_ids_from_preview(preview)
+  expect_equal(length(result), 3)
+  expect_true(all(c("[Mod1]", "[Mod2]", "[Mod3]") %in% result))
 })

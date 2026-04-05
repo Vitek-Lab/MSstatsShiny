@@ -73,19 +73,23 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
       }
     })
 
-    # Read first 100 rows when main data file changes
+    # Read first 100 rows only for Metamorpheus PTM (the only flow that uses preview_data)
     observe({
-      file_info <- main_data_file()
-      if (!is.null(file_info)) {
-        preview <- tryCatch(
-          data.table::fread(file_info$datapath, nrows = 100, header = TRUE),
-          error = function(e) {
-            showNotification(paste("Could not preview file:", conditionMessage(e)),
-                             type = "warning", duration = 5)
-            NULL
-          }
-        )
-        preview_data(preview)
+      if (isTRUE(input$filetype == "meta") && isTRUE(input$BIO == "PTM")) {
+        file_info <- main_data_file()
+        if (!is.null(file_info)) {
+          preview <- tryCatch(
+            data.table::fread(file_info$datapath, nrows = 100, header = TRUE),
+            error = function(e) {
+              showNotification(paste("Could not preview file:", conditionMessage(e)),
+                               type = "warning", duration = 5)
+              NULL
+            }
+          )
+          preview_data(preview)
+        } else {
+          preview_data(NULL)
+        }
       } else {
         preview_data(NULL)
       }

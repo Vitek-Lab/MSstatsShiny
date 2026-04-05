@@ -12,7 +12,7 @@
   if (length(col_name) == 0) return(character(0))
 
   sequences <- as.character(preview_df[[col_name[1]]])
-  all_mods <- regmatches(sequences, gregexpr("\\[.*?\\]", sequences))
+  all_mods <- regmatches(sequences, gregexpr("\\[[^\\]]+\\]", sequences, perl = TRUE))
   unique_mods <- sort(unique(unlist(all_mods)))
   return(unique_mods)
 }
