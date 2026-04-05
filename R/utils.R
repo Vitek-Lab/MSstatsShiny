@@ -1,3 +1,43 @@
+#' Extract unique modification IDs from preview data
+#'
+#' Parses the Full Sequence column to find bracket-enclosed modification IDs.
+#' @param preview_df Data frame with first 100 rows of uploaded file.
+#' @return Character vector of unique modification IDs (clean, no escaping).
+#' @noRd
+.extract_mod_ids_from_preview <- function(preview_df) {
+  if (is.null(preview_df) || nrow(preview_df) == 0) return(character(0))
+
+  col_name <- grep("Full.Sequence|FullSequence|Full Sequence",
+                   names(preview_df), value = TRUE, ignore.case = TRUE)
+  if (length(col_name) == 0) return(character(0))
+
+  sequences <- as.character(preview_df[[col_name[1]]])
+  all_mods <- regmatches(sequences, gregexpr("\\[.*?\\]", sequences))
+  unique_mods <- sort(unique(unlist(all_mods)))
+  return(unique_mods)
+}
+
+#' Resolve the modification ID from dropdown or manual entry
+#'
+#' Returns an escaped modification ID string ready for regex matching.
+#' @param selected The value from the dropdown (mod_id_meta_select).
+#' @param custom The value from the manual text input (mod_id_meta_custom).
+#' @return Character string with escaped brackets for regex.
+#' @noRd
+.resolve_mod_id <- function(selected = NULL, custom = NULL) {
+  if (!is.null(selected) && selected != "__other__") {
+    return(gsub("(\\[|\\])", "\\\\\\1", selected))
+  }
+  if (!is.null(custom) && nchar(custom) > 0) {
+    val <- custom
+    if (!grepl("\\\\\\[", val)) {
+      val <- gsub("(\\[|\\])", "\\\\\\1", val)
+    }
+    return(val)
+  }
+  return("\\[Common Biological:Phosphorylation on S\\]")
+}
+
 # loadpage server functions
 getEvidence <- function(input) {
   evidence = input$evidence
@@ -399,6 +439,9 @@ getData <- function(input) {
         }
       }
       
+      # Resolve mod ID from dropdown or manual entry, escaping brackets for regex
+      mod_id_value <- .resolve_mod_id(input$mod_id_meta_select, input$mod_id_meta_custom)
+
       mydata = MetamorpheusToMSstatsPTMFormat(
         data.table::copy(ptm_data),
         ptm_annotation,
@@ -406,7 +449,7 @@ getData <- function(input) {
         input_protein = if (!is.null(protein_data)) data.table::copy(protein_data) else NULL,
         annotation_protein = protein_annotation,
         use_unmod_peptides = use_unmod_peptides,
-        mod_ids = c(input$mod_id_meta)
+        mod_ids = c(mod_id_value)
       )
     } else {
       data = read.csv(input$msstatsptmdata$datapath, header = TRUE,sep = input$sep_msstatsptmdata, 
@@ -921,13 +964,15 @@ library(MSstatsPTM)\n", sep = "")
         codes = paste(codes, "fasta_path = \"insert your FASTA filepath\"\n", sep = "")
         codes = paste(codes, "# Optional: set protein_data = NULL if no GlobalProteome data\nprotein_data = tryCatch(data.table::fread(\"insert your GlobalProteome AllQuantifiedPeaks.tsv filepath\"), error = function(e) NULL)\n", sep = "")
         codes = paste(codes, "annot_protein = if (!is.null(protein_data)) read.csv(\"insert your GlobalProteome annotation filepath\") else NULL\n", sep = "")
+        # Resolve mod ID for generated code
+        code_mod_id <- .resolve_mod_id(input$mod_id_meta_select, input$mod_id_meta_custom)
         codes = paste(codes, "use_unmod_peptides = FALSE\ndata = MetamorpheusToMSstatsPTMFormat(data.table::copy(ptm_data),
                                        annot,
                                        fasta_path = fasta_path,
                                        input_protein = protein_data,
                                        annotation_protein = annot_protein,
                                        use_unmod_peptides = use_unmod_peptides,
-                                       mod_ids = c(\"", gsub('"', '\\\\"', gsub("\\\\", "\\\\\\\\", input$mod_id_meta)), "\"))\n", sep = "")
+                                       mod_ids = c(\"", gsub('"', '\\\\"', gsub("\\\\", "\\\\\\\\", code_mod_id)), "\"))\n", sep = "")
       } else {
         codes = paste(codes, "data = data.table::fread(\"insert your QuantifiedPeaks.tsv filepath\")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
                       , sep = "")

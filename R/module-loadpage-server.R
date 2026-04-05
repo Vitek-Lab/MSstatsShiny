@@ -46,6 +46,89 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
     else {
       local_big_file_path <- reactive({ NULL })
     }
+
+    # ============ PREVIEW DATA: Read first 100 rows on file upload ============
+    preview_data <- reactiveVal(NULL)
+
+    # Determine the main data file based on current selections
+    main_data_file <- reactive({
+      req(input$filetype)
+      if (input$BIO == "PTM") {
+        switch(input$filetype,
+          "maxq" =, "PD" =, "spec" =, "sky" =, "meta" = input$ptm_input,
+          "phil" = input$ptmdata,
+          "msstats" = input$msstatsptmdata,
+          NULL
+        )
+      } else {
+        switch(input$filetype,
+          "prog" =, "PD" =, "open" =, "openms" =, "spmin" =, "phil" =, "meta" = input$data,
+          "msstats" = input$msstatsdata,
+          "sky" = input$skylinedata,
+          "spec" = input$specdata,
+          "diann" = input$dianndata,
+          "maxq" = input$evidence,
+          NULL
+        )
+      }
+    })
+
+    # Read first 100 rows when main data file changes
+    observe({
+      file_info <- main_data_file()
+      if (!is.null(file_info)) {
+        preview <- tryCatch(
+          data.table::fread(file_info$datapath, nrows = 100, header = TRUE),
+          error = function(e) {
+            showNotification(paste("Could not preview file:", conditionMessage(e)),
+                             type = "warning", duration = 5)
+            NULL
+          }
+        )
+        preview_data(preview)
+      } else {
+        preview_data(NULL)
+      }
+    })
+
+    # ========= METAMORPHEUS PTM: Dynamic modification ID dropdown =========
+    output$mod_id_meta_ui <- renderUI({
+      ns <- session$ns
+      req(input$filetype == "meta", input$BIO == "PTM")
+
+      mods <- .extract_mod_ids_from_preview(preview_data())
+
+      if (length(mods) > 0) {
+        choices <- c(mods, "Other" = "__other__")
+        tagList(
+          h4("Modification IDs", class = "icon-wrapper",
+             icon("question-circle", lib = "font-awesome"),
+             div("Select the modification ID to filter for PTMs. Select Other to manually enter a custom ID pattern (e.g. [Common Biological:Phosphorylation on S]).",
+                 class = "icon-tooltip")),
+          selectizeInput(ns("mod_id_meta_select"),
+                         label = NULL,
+                         choices = choices,
+                         selected = choices[1],
+                         multiple = FALSE),
+          conditionalPanel(
+            condition = paste0("input['", ns("mod_id_meta_select"), "'] == '__other__'"),
+            textInput(ns("mod_id_meta_custom"),
+                      label = h5("Enter modification ID (e.g. [Common Biological:Phosphorylation on S])"),
+                      value = "")
+          )
+        )
+      } else {
+        # Fallback: no preview data or no mods found. Manual entry
+        tagList(
+          h4("Modification IDs", class = "icon-wrapper",
+             icon("question-circle", lib = "font-awesome"),
+             div("Enter the modification ID pattern to filter for PTMs (e.g. phosphorylation pattern from Metamorpheus output).",
+                 class = "icon-tooltip")),
+          textInput(ns("mod_id_meta_custom"), label = NULL,
+                    value = "[Common Biological:Phosphorylation on S]")
+        )
+      }
+    })
     
     output$spectronaut_header_ui <- renderUI({
       req(input$filetype == 'spec', input$BIO != 'PTM')

@@ -443,10 +443,7 @@ create_ptm_uploads <- function(ns) {
         accept = c(".csv", ".tsv")
       ),
 
-      h4("Modification IDs", class = "icon-wrapper",
-         icon("question-circle", lib = "font-awesome"),
-         div("Enter the modification ID pattern to filter for PTMs (e.g. phosphorylation pattern from Metamorpheus output).", class = "icon-tooltip")),
-      textInput(ns("mod_id_meta"), "", value="\\[Common Biological:Phosphorylation on S\\]")
+      uiOutput(ns("mod_id_meta_ui"))
     ),
     
     # PTM modification labels

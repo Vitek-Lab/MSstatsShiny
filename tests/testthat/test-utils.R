@@ -1591,3 +1591,41 @@ describe("getData for Big Spectronaut", {
     expect_null(res)
   })
 })
+
+# ============================================================================
+# MOD ID RESOLUTION TESTS
+# ============================================================================
+
+test_that("resolve_mod_id uses dropdown selection and escapes brackets", {
+  result <- MSstatsShiny:::.resolve_mod_id(
+    selected = "[Common Fixed:Carbamidomethyl on C]",
+    custom = NULL
+  )
+  expect_equal(result, "\\[Common Fixed:Carbamidomethyl on C\\]")
+})
+
+test_that("resolve_mod_id uses custom input when Other is selected", {
+  result <- MSstatsShiny:::.resolve_mod_id(
+    selected = "__other__",
+    custom = "[My Custom Mod]"
+  )
+  expect_equal(result, "\\[My Custom Mod\\]")
+})
+
+test_that("resolve_mod_id preserves already-escaped custom input", {
+  result <- MSstatsShiny:::.resolve_mod_id(
+    selected = "__other__",
+    custom = "\\[Already Escaped\\]"
+  )
+  expect_equal(result, "\\[Already Escaped\\]")
+})
+
+test_that("resolve_mod_id returns default when both inputs are NULL", {
+  result <- MSstatsShiny:::.resolve_mod_id(NULL, NULL)
+  expect_equal(result, "\\[Common Biological:Phosphorylation on S\\]")
+})
+
+test_that("resolve_mod_id returns default when custom is empty string", {
+  result <- MSstatsShiny:::.resolve_mod_id("__other__", "")
+  expect_equal(result, "\\[Common Biological:Phosphorylation on S\\]")
+})
