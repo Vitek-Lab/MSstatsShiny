@@ -39,47 +39,43 @@ test_that("get_concentrations_from_matrix returns sorted unique values", {
   expect_equal(result, c(0, 10, 100))
 })
 
-test_that("is_response_curve correctly identifies dose response mode", {
-  # Simulate statmodel input for dose response
-  mock_statmodel_input <- list()
-  mock_statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]] <-
+# ============================================================================
+# EXPDES MODE BRANCHING TESTS
+# ============================================================================
+
+test_that("is_response_curve_mode returns TRUE for dose response mode", {
+  mock_input <- list()
+  mock_input[[NAMESPACE_STATMODEL$comparison_mode]] <-
     CONSTANTS_STATMODEL$comparison_mode_response_curve
 
-  is_rc <- !is.null(mock_statmodel_input) &&
-    !is.null(mock_statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]]) &&
-    mock_statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]] ==
-      CONSTANTS_STATMODEL$comparison_mode_response_curve
-
-  expect_true(is_rc)
+  expect_true(MSstatsShiny:::.is_response_curve_mode(mock_input))
 })
 
-test_that("is_response_curve returns FALSE for standard comparison modes", {
+test_that("is_response_curve_mode returns FALSE for all standard comparison modes", {
   standard_modes <- c(
     CONSTANTS_STATMODEL$comparison_mode_all_pairwise,
     CONSTANTS_STATMODEL$comparison_mode_all_vs_one,
-    CONSTANTS_STATMODEL$comparison_mode_custom_pairwise
+    CONSTANTS_STATMODEL$comparison_mode_custom_pairwise,
+    CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise
   )
 
   for (mode in standard_modes) {
-    mock_statmodel_input <- list()
-    mock_statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]] <- mode
-
-    is_rc <- !is.null(mock_statmodel_input) &&
-      !is.null(mock_statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]]) &&
-      mock_statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]] ==
-        CONSTANTS_STATMODEL$comparison_mode_response_curve
-
-    expect_false(is_rc, info = paste("Should not be response curve for mode:", mode))
+    mock_input <- list()
+    mock_input[[NAMESPACE_STATMODEL$comparison_mode]] <- mode
+    expect_false(MSstatsShiny:::.is_response_curve_mode(mock_input),
+                 info = paste("Should be FALSE for mode:", mode))
   }
 })
 
-test_that("is_response_curve returns FALSE for NULL input", {
-  mock_statmodel_input <- NULL
+test_that("is_response_curve_mode returns FALSE for NULL input", {
+  expect_false(MSstatsShiny:::.is_response_curve_mode(NULL))
+})
 
-  is_rc <- !is.null(mock_statmodel_input) &&
-    !is.null(mock_statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]]) &&
-    mock_statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]] ==
-      CONSTANTS_STATMODEL$comparison_mode_response_curve
+test_that("is_response_curve_mode returns FALSE when comparison_mode is missing", {
+  mock_input <- list(some_other_field = "value")
+  expect_false(MSstatsShiny:::.is_response_curve_mode(mock_input))
+})
 
-  expect_false(is_rc)
+test_that("is_response_curve_mode returns FALSE for empty list", {
+  expect_false(MSstatsShiny:::.is_response_curve_mode(list()))
 })

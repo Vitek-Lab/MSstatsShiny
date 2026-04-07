@@ -14,6 +14,18 @@
   return(NULL)
 }
 
+#' Check if the current analysis mode is dose response curve
+#'
+#' @param statmodel_input List. The input values from the statmodel module.
+#' @return Logical. TRUE if dose response curve mode is selected.
+#' @noRd
+.is_response_curve_mode <- function(statmodel_input) {
+  !is.null(statmodel_input) &&
+    !is.null(statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]]) &&
+    statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]] ==
+      CONSTANTS_STATMODEL$comparison_mode_response_curve
+}
+
 # ============================================================================
 # Expdes Server Module
 # ============================================================================
@@ -53,10 +65,7 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
   })
 
   is_response_curve <- reactive({
-    !is.null(statmodel_input()) &&
-      !is.null(statmodel_input()[[NAMESPACE_STATMODEL$comparison_mode]]) &&
-      statmodel_input()[[NAMESPACE_STATMODEL$comparison_mode]] ==
-        CONSTANTS_STATMODEL$comparison_mode_response_curve
+    .is_response_curve_mode(statmodel_input())
   })
 
   # Render sidebar controls based on analysis mode
