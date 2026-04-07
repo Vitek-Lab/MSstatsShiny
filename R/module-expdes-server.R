@@ -1,3 +1,19 @@
+#' Get user concentrations from the contrast matrix
+#'
+#' @param mat Data frame. The contrast matrix from statmodel.
+#' @return Sorted numeric vector of unique concentrations, or NULL.
+#' @noRd
+.get_concentrations_from_matrix <- function(mat) {
+  if ("dose_value" %in% colnames(mat)) {
+    return(sort(unique(mat$dose_value)))
+  }
+  value_cols <- grep("_value$", colnames(mat), value = TRUE)
+  if (length(value_cols) > 0) {
+    return(sort(unique(mat[[value_cols[1]]])))
+  }
+  return(NULL)
+}
+
 # ============================================================================
 # Expdes Server Module
 # ============================================================================
@@ -96,20 +112,7 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
     simulation_results(NULL)
 
     tryCatch({
-      # Get concentrations from the contrast matrix
-      # Try dose_value first, fall back to other intervention columns
-      mat <- statmodel_contrast$matrix
-      
-      if ("dose_value" %in% colnames(mat)) {
-        user_concs <- sort(unique(mat$dose_value))
-      } else {
-        value_cols <- grep("_value$", colnames(mat), value = TRUE)
-        if (length(value_cols) > 0) {
-          user_concs <- sort(unique(mat[[value_cols[1]]]))
-        } else {
-          user_concs <- NULL
-        }
-      }
+      user_concs <- .get_concentrations_from_matrix(statmodel_contrast$matrix)
       if (is.null(user_concs) || length(user_concs) < 2) {
         showNotification("Could not extract concentrations from contrast matrix.", type = "error")
         remove_modal_spinner()
@@ -199,39 +202,7 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
             return()
           }
 
-          k_grid <- sort(unique(results$NumConcs))
-
-          results_protein <- results[results$Interaction == "Strong", ]
-          rep_levels <- sort(unique(results_protein$N_rep))
-          n_levels <- length(rep_levels)
-          all_colors <- c(
-            "#1f78b4",  # strong blue
-            "#ff964f",  # orange
-            "#17becf",  # cyan
-            "#1b9e77",  # teal
-            "#f0b6d5",  # pink
-            "#DC143C",  # crimson
-            "#6a3d9a",  # purple
-            "#9e9ac8",  # lavender
-            "#525252",  # cool dark gray
-            "#08306b"   # deep navy
-          )
-
-          color_palette <- setNames(all_colors[seq_len(n_levels)], as.character(rep_levels))
-
-          p <- ggplot2::ggplot(results_protein,
-            ggplot2::aes(x = NumConcs, y = TPR,
-                         color = factor(N_rep), group = factor(N_rep))) +
-            ggplot2::geom_line(linewidth = 1.2) +
-            ggplot2::geom_point(size = 2) +
-            ggplot2::scale_x_continuous(breaks = k_grid) +
-            ggplot2::scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
-            ggplot2::scale_color_manual(values = color_palette) +
-            ggplot2::labs(title = "Interaction detection power",
-                         x = "Number of concentrations",
-                         y = "True Positive Rate (%)", color = "Replicates") +
-            ggplot2::theme_bw(base_size = 14) +
-            ggplot2::theme(plot.title = ggplot2::element_text(face = "bold", hjust = 0.5))
+          p <- plot_tpr_power_curve(results, static = TRUE)
 
           pdf(file, width = 10, height = 6)
           print(p)
