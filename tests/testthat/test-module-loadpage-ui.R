@@ -470,3 +470,25 @@ test_that("Metamorpheus PTM upload fields exist in UI", {
   expect_true(grepl("ptm_protein_annot", html_output),
               info = "Metamorpheus PTM protein annotation upload not found in UI")
 })
+
+test_that("create_meta_mod_id_selector shows dropdown when mods are available", {
+  ui <- MSstatsShiny:::create_meta_mod_id_selector(
+    shiny::NS("test"),
+    c("[Mod A]", "[Mod B]")
+  )
+  html <- as.character(ui)
+  expect_true(grepl("mod_id_meta_select", html))
+  expect_true(grepl("Mod A", html))
+  expect_true(grepl("Mod B", html))
+  expect_true(grepl("__other__", html))
+})
+
+test_that("create_meta_mod_id_selector shows text input when no mods available", {
+  ui <- MSstatsShiny:::create_meta_mod_id_selector(
+    shiny::NS("test"),
+    character(0)
+  )
+  html <- as.character(ui)
+  expect_true(grepl("mod_id_meta_custom", html))
+  expect_false(grepl("mod_id_meta_select", html))
+})

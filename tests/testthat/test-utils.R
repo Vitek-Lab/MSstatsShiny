@@ -1621,14 +1621,14 @@ test_that("resolve_mod_id preserves already-escaped custom input", {
   expect_equal(result, "\\[Already Escaped\\]")
 })
 
-test_that("resolve_mod_id returns default when both inputs are NULL", {
-  result <- MSstatsShiny:::.resolve_mod_id(NULL, NULL)
-  expect_equal(result, "\\[Common Biological:Phosphorylation on S\\]")
+test_that("resolve_mod_id errors when both inputs are NULL", {
+  expect_error(MSstatsShiny:::.resolve_mod_id(NULL, NULL),
+               "No modification ID selected")
 })
 
-test_that("resolve_mod_id returns default when custom is empty string", {
-  result <- MSstatsShiny:::.resolve_mod_id("__other__", "")
-  expect_equal(result, "\\[Common Biological:Phosphorylation on S\\]")
+test_that("resolve_mod_id errors when custom is empty string", {
+  expect_error(MSstatsShiny:::.resolve_mod_id("__other__", ""),
+               "No modification ID selected")
 })
 
 test_that("extract_mod_ids_from_preview handles consecutive modifications", {

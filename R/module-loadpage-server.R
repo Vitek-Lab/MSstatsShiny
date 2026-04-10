@@ -51,17 +51,24 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
     preview_data <- reactiveVal(NULL)
 
     # Determine the main data file based on current selections
+    # TODO: Add preview mappings for remaining PTM file types (PD, spec, sky, maxq)
+    # once preview-based UI features are extended beyond Metamorpheus.
     main_data_file <- reactive({
       req(input$filetype)
       if (input$BIO == "PTM") {
         switch(input$filetype,
-          "maxq" =, "PD" =, "spec" =, "sky" =, "meta" = input$ptm_input,
-          "phil" = input$ptmdata,
-          "msstats" = input$msstatsptmdata,
+          "meta" = input$ptm_input,
+          # TODO: "maxq" = input$ptm_input,
+          # TODO: "PD" = input$ptm_input,
+          # TODO: "spec" = input$ptm_input,
+          # TODO: "sky" = input$ptm_input,
+          # TODO: "phil" = input$ptmdata,
+          # TODO: "msstats" = input$msstatsptmdata,
           NULL
         )
       } else {
         switch(input$filetype,
+          # TODO: Map remaining non-PTM file types when preview features are needed
           "prog" =, "PD" =, "open" =, "openms" =, "spmin" =, "phil" =, "meta" = input$data,
           "msstats" = input$msstatsdata,
           "sky" = input$skylinedata,
@@ -73,7 +80,9 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
       }
     })
 
-    # Read first 100 rows only for Metamorpheus PTM (the only flow that uses preview_data)
+    # Read first 100 rows for Metamorpheus PTM preview.
+    # TODO: Extend preview reading to other input formats (e.g., Spectronaut, MaxQuant)
+    # for dynamic UI updates. Currently limited to Metamorpheus.
     observe({
       if (isTRUE(input$filetype == "meta") && isTRUE(input$BIO == "PTM")) {
         file_info <- main_data_file()
@@ -99,39 +108,16 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
     output$mod_id_meta_ui <- renderUI({
       ns <- session$ns
       req(input$filetype == "meta", input$BIO == "PTM")
-
       mods <- .extract_mod_ids_from_preview(preview_data())
+      create_meta_mod_id_selector(ns, mods)
+    })
 
-      if (length(mods) > 0) {
-        choices <- c(mods, "Other" = "__other__")
-        tagList(
-          h4("Modification IDs", class = "icon-wrapper",
-             icon("question-circle", lib = "font-awesome"),
-             div("Select the modification ID to filter for PTMs. Select Other to manually enter a custom ID pattern (e.g. [Common Biological:Phosphorylation on S]).",
-                 class = "icon-tooltip")),
-          selectizeInput(ns("mod_id_meta_select"),
-                         label = NULL,
-                         choices = choices,
-                         selected = choices[1],
-                         multiple = FALSE),
-          conditionalPanel(
-            condition = paste0("input['", ns("mod_id_meta_select"), "'] == '__other__'"),
-            textInput(ns("mod_id_meta_custom"),
-                      label = h5("Enter modification ID (e.g. [Common Biological:Phosphorylation on S])"),
-                      value = "")
-          )
-        )
-      } else {
-        # Fallback: no preview data or no mods found. Manual entry
-        tagList(
-          h4("Modification IDs", class = "icon-wrapper",
-             icon("question-circle", lib = "font-awesome"),
-             div("Enter the modification ID pattern to filter for PTMs (e.g. phosphorylation pattern from Metamorpheus output).",
-                 class = "icon-tooltip")),
-          textInput(ns("mod_id_meta_custom"), label = NULL,
-                    value = "[Common Biological:Phosphorylation on S]")
-        )
-      }
+    # Show manual text input when "Other" is selected (replaces conditionalPanel)
+    output$mod_id_meta_other_input <- renderUI({
+      req(input$mod_id_meta_select == "__other__")
+      textInput(session$ns("mod_id_meta_custom"),
+                label = h5("Enter modification ID (e.g. [Common Biological:Phosphorylation on S])"),
+                value = "")
     })
     
     output$spectronaut_header_ui <- renderUI({

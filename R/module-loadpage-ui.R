@@ -402,6 +402,39 @@ create_maxquant_uploads <- function(ns) {
   )
 }
 
+#' Create modification ID selector UI for Metamorpheus PTM
+#'
+#' @param ns Namespace function.
+#' @param mod_choices Character vector of modification IDs extracted from preview,
+#'   or empty character(0) if no preview data is available.
+#' @return A tagList with either a dropdown + optional text input, or a fallback text input.
+#' @noRd
+create_meta_mod_id_selector <- function(ns, mod_choices = character(0)) {
+  if (length(mod_choices) > 0) {
+    choices <- c(mod_choices, "Other" = "__other__")
+    tagList(
+      h4("Modification IDs", class = "icon-wrapper",
+         icon("question-circle", lib = "font-awesome"),
+         div("Select the modification ID to filter for PTMs. Select Other to manually enter a custom ID pattern.",
+             class = "icon-tooltip")),
+      selectizeInput(ns("mod_id_meta_select"),
+                     label = NULL,
+                     choices = choices,
+                     selected = choices[1],
+                     multiple = FALSE),
+      uiOutput(ns("mod_id_meta_other_input"))
+    )
+  } else {
+    tagList(
+      h4("Modification IDs", class = "icon-wrapper",
+         icon("question-circle", lib = "font-awesome"),
+         div("Enter the modification ID pattern to filter for PTMs (e.g. phosphorylation pattern from Metamorpheus output).",
+             class = "icon-tooltip")),
+      textInput(ns("mod_id_meta_custom"), label = NULL, value = "")
+    )
+  }
+}
+
 #' Create PTM file uploads (for MaxQuant, PD, Spectronaut, Skyline)
 #' @noRd
 create_ptm_uploads <- function(ns) {

@@ -35,7 +35,7 @@
     }
     return(val)
   }
-  return("\\[Common Biological:Phosphorylation on S\\]")
+  stop("No modification ID selected. Please select a modification from the dropdown or enter one manually.")
 }
 
 # loadpage server functions
@@ -440,17 +440,35 @@ getData <- function(input) {
       }
       
       # Resolve mod ID from dropdown or manual entry, escaping brackets for regex
-      mod_id_value <- .resolve_mod_id(input$mod_id_meta_select, input$mod_id_meta_custom)
-
-      mydata = MetamorpheusToMSstatsPTMFormat(
-        data.table::copy(ptm_data),
-        ptm_annotation,
-        fasta_path = input$fasta$datapath,
-        input_protein = if (!is.null(protein_data)) data.table::copy(protein_data) else NULL,
-        annotation_protein = protein_annotation,
-        use_unmod_peptides = use_unmod_peptides,
-        mod_ids = c(mod_id_value)
+      mod_id_value <- tryCatch(
+        .resolve_mod_id(input$mod_id_meta_select, input$mod_id_meta_custom),
+        error = function(e) {
+          remove_modal_spinner()
+          showNotification(conditionMessage(e), type = "error", duration = 8)
+          return(NULL)
+        }
       )
+      if (is.null(mod_id_value)) return(NULL)
+
+      mydata = tryCatch(
+        MetamorpheusToMSstatsPTMFormat(
+          data.table::copy(ptm_data),
+          ptm_annotation,
+          fasta_path = input$fasta$datapath,
+          input_protein = if (!is.null(protein_data)) data.table::copy(protein_data) else NULL,
+          annotation_protein = protein_annotation,
+          use_unmod_peptides = use_unmod_peptides,
+          mod_ids = c(mod_id_value)
+        ),
+        error = function(e) {
+          remove_modal_spinner()
+          showNotification(
+            paste("Failed to process Metamorpheus PTM data. Please check your modification ID and input files:", conditionMessage(e)),
+            type = "error", duration = 10)
+          return(NULL)
+        }
+      )
+      if (is.null(mydata)) return(NULL)
     } else {
       data = read.csv(input$msstatsptmdata$datapath, header = TRUE,sep = input$sep_msstatsptmdata, 
                       stringsAsFactors=FALSE)
