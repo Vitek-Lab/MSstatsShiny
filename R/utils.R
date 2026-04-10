@@ -30,9 +30,10 @@
   }
   if (!is.null(custom) && nchar(custom) > 0) {
     val <- custom
-    if (!grepl("\\\\\\[", val)) {
-      val <- gsub("(\\[|\\])", "\\\\\\1", val)
-    }
+    # Normalize: strip any existing escapes, then re-escape both brackets
+    val <- gsub("\\\\\\[", "[", val)
+    val <- gsub("\\\\\\]", "]", val)
+    val <- gsub("(\\[|\\])", "\\\\\\1", val)
     return(val)
   }
   stop("No modification ID selected. Please select a modification from the dropdown or enter one manually.")
@@ -983,7 +984,13 @@ library(MSstatsPTM)\n", sep = "")
         codes = paste(codes, "# Optional: set protein_data = NULL if no GlobalProteome data\nprotein_data = tryCatch(data.table::fread(\"insert your GlobalProteome AllQuantifiedPeaks.tsv filepath\"), error = function(e) NULL)\n", sep = "")
         codes = paste(codes, "annot_protein = if (!is.null(protein_data)) read.csv(\"insert your GlobalProteome annotation filepath\") else NULL\n", sep = "")
         # Resolve mod ID for generated code
-        code_mod_id <- .resolve_mod_id(input$mod_id_meta_select, input$mod_id_meta_custom)
+        code_mod_id <- tryCatch(
+          .resolve_mod_id(input$mod_id_meta_select, input$mod_id_meta_custom),
+          error = function(e) {
+            showNotification(conditionMessage(e), type = "error", duration = 8)
+            return("\\[UNSET_MODIFICATION_ID\\]")
+          }
+        )
         codes = paste(codes, "use_unmod_peptides = FALSE\ndata = MetamorpheusToMSstatsPTMFormat(data.table::copy(ptm_data),
                                        annot,
                                        fasta_path = fasta_path,

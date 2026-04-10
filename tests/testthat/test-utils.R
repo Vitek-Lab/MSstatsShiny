@@ -1621,6 +1621,14 @@ test_that("resolve_mod_id preserves already-escaped custom input", {
   expect_equal(result, "\\[Already Escaped\\]")
 })
 
+test_that("resolve_mod_id fixes partially escaped custom input", {
+  result <- MSstatsShiny:::.resolve_mod_id(
+    selected = "__other__",
+    custom = "\\[Phospho]"
+  )
+  expect_equal(result, "\\[Phospho\\]")
+})
+
 test_that("resolve_mod_id errors when both inputs are NULL", {
   expect_error(MSstatsShiny:::.resolve_mod_id(NULL, NULL),
                "No modification ID selected")

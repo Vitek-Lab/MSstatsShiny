@@ -420,8 +420,9 @@ create_meta_mod_id_selector <- function(ns, mod_choices = character(0)) {
       selectizeInput(ns("mod_id_meta_select"),
                      label = NULL,
                      choices = choices,
-                     selected = choices[1],
-                     multiple = FALSE),
+                     selected = NULL,
+                     multiple = FALSE,
+                     options = list(placeholder = "Select a modification...")),
       uiOutput(ns("mod_id_meta_other_input"))
     )
   } else {
