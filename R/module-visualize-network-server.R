@@ -289,9 +289,12 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   
   # Reactive value to store selected proteins
   selectedProteinsReactive <- reactiveVal(character(0))
-  
+
   # Reactive value to store search results
   proteinSearchResults <- reactiveVal(NULL)
+
+  # Reactive value to accumulate edges deleted interactively in the visualization
+  deletedEdges <- reactiveVal(list())
   
   # Render selected proteins as tags
   output$selectedProteinsTags <- renderUI({
@@ -593,7 +596,10 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   # Event observers
   observeEvent(input$showNetwork, {
     req(df(), getInputParameters(input, selectedProteinsReactive()))
-    
+
+    # Reset deleted edges whenever a fresh network is rendered
+    deletedEdges(list())
+
     # Show loading indicator
     shinyjs::show("loadingIndicator")
     
@@ -647,6 +653,28 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
         if (is.null(code_content) || length(code_content) == 0) {
           stop("No code generated. Please ensure network is displayed first.")
         }
+
+        deleted <- deletedEdges()
+        if (length(deleted) > 0) {
+          deletion_lines <- vapply(deleted, function(e) {
+            sprintf(
+              'subnetwork$edges <- MSstatsBioNet::deleteEdgeFromNetwork(subnetwork$edges, "%s", "%s", "%s")',
+              e$source, e$target, e$interaction
+            )
+          }, character(1))
+          edge_deletion_section <- paste0(
+            "\n# Delete edges removed interactively\n",
+            paste(deletion_lines, collapse = "\n"),
+            "\n"
+          )
+          code_content <- sub(
+            "# Visualize network",
+            paste0(edge_deletion_section, "# Visualize network"),
+            code_content,
+            fixed = TRUE
+          )
+        }
+
         writeLines(code_content, file)
       }, error = function(e) {
         showNotification(
@@ -671,6 +699,12 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     }
   )
   
+  # Observe edge deletion events from the visualization
+  observeEvent(input$network_edge_deleted, {
+    edge_data <- input$network_edge_deleted
+    deletedEdges(c(deletedEdges(), list(edge_data)))
+  })
+
   # Observe edge click events
   observeEvent(input$network_edge_clicked, {
     edge_data <- input$network_edge_clicked
