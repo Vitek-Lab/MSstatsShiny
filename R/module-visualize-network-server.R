@@ -295,6 +295,9 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
 
   # Reactive value to accumulate edges deleted interactively in the visualization
   deletedEdges <- reactiveVal(list())
+
+  # Reactive value tracking the live edges table (updated as edges are deleted)
+  currentEdgesTable <- reactiveVal(NULL)
   
   # Render selected proteins as tags
   output$selectedProteinsTags <- renderUI({
@@ -623,8 +626,9 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
       )
     })
     
-    # Render data tables
+    # Render data tables and seed the live edges state
     renderDataTables(output, render_data$nodes_table, render_data$edges_table)
+    currentEdgesTable(render_data$edges_table)
     
     # Hide loading indicator and re-enable button when done
     shinyjs::hide("loadingIndicator")
@@ -703,14 +707,30 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   observeEvent(input$network_edge_deleted, {
     edge_data <- input$network_edge_deleted
     deletedEdges(c(deletedEdges(), list(edge_data)))
+
+    updated_edges <- MSstatsBioNet::deleteEdgeFromNetwork(
+      currentEdgesTable(),
+      edge_data$source,
+      edge_data$target,
+      edge_data$interaction
+    )
+    currentEdgesTable(updated_edges)
+
+    output$edgesTable <- DT::renderDT({
+      DT::datatable(
+        updated_edges,
+        options = list(pageLength = 10, searchable = TRUE,
+                       scrollX = TRUE, autoWidth = TRUE),
+        selection = "single"
+      )
+    })
   })
 
   # Observe edge click events
   observeEvent(input$network_edge_clicked, {
     edge_data <- input$network_edge_clicked
-    network_data <- renderNetwork()
-    req(network_data)
-    edges_table <- network_data$edges_table
+    edges_table <- currentEdgesTable()
+    req(edges_table)
     highlightEdgeInTable(output, edge_data, edges_table)
   })
   
