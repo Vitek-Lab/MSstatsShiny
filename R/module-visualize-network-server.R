@@ -48,13 +48,13 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
   req(edge_data$source, edge_data$target, edge_data$interaction)
   source <- edge_data$source
   target <- edge_data$target
-  interaction <- gsub(" \\(bidirectional\\)", "", edge_data$interaction)
+  interaction <- edge_data$interaction
   edge_type <- edge_data$edge_type
   
   # Find matching rows
-  if (edge_type %in% c("undirected", "bidirectional")) {
+  if (edge_type == "undirected") {
     
-    # For undirected or bidirectional edges, match source and target regardless of order
+    # For undirected edges, match source and target regardless of order
     row_indices <- which(((edges_table$source == source & edges_table$target == target) |
                             (edges_table$source == target & edges_table$target == source)) &
                            (edges_table$interaction == interaction))
