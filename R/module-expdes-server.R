@@ -14,6 +14,25 @@
   return(NULL)
 }
 
+#' Check the number of replicates per dose for a given protein
+#'
+#' @param data Prepared dose-response data frame with columns: protein, drug, dose, response.
+#' @param protein Character. The protein ID to check.
+#' @return A list with min_reps, max_reps, and median_reps across non-control doses.
+#' @noRd
+.check_replicates_per_dose <- function(data, protein) {
+  protein_data <- data[data$protein == protein & data$drug != "DMSO", ]
+  if (nrow(protein_data) == 0) {
+    return(list(min_reps = 0, max_reps = 0, median_reps = 0))
+  }
+  reps <- table(protein_data$dose)
+  list(
+    min_reps = as.integer(min(reps)),
+    max_reps = as.integer(max(reps)),
+    median_reps = as.integer(median(reps))
+  )
+}
+
 #' Check if the current analysis mode is dose response curve
 #'
 #' @param statmodel_input List. The input values from the statmodel module.
@@ -128,12 +147,29 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
         return()
       }
 
+      # Check replicates per dose in user's data
+      sim_data <- prepared_response_data()
+      selected_protein <- input[[NAMESPACE_EXPDES$protein_select]]
+      reps_per_dose <- .check_replicates_per_dose(sim_data, selected_protein)
+
+      if (reps_per_dose$max_reps < 2) {
+        remove_modal_spinner()
+        showNotification(
+          paste0("The selected protein (", selected_protein,
+                 ") has only ", reps_per_dose$max_reps,
+                 " replicate(s) per dose. At least 2 replicates per dose are required ",
+                 "for the dose-response fitting to compute statistical significance. ",
+                 "The simulation cannot produce meaningful results with this dataset."),
+          type = "error", duration = 12)
+        return()
+      }
+
       results <- run_tpr_simulation(
         rep_range = input[[NAMESPACE_EXPDES$rep_range]],
         concentrations = user_concs,
         dose_range = c(2, length(user_concs)),
-        data = prepared_response_data(),
-        protein = input[[NAMESPACE_EXPDES$protein_select]],
+        data = sim_data,
+        protein = selected_protein,
         n_proteins = 1000
       )
       simulation_results(results)

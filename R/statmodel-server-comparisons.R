@@ -288,6 +288,17 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
   return(contrast$matrix)
 }
 
+#' Filter excluded conditions from a response curve matrix
+#'
+#' @param matrix Data frame. The response curve metadata matrix.
+#' @param excluded Character vector. Condition names to exclude.
+#' @return Filtered data frame with excluded conditions removed.
+#' @noRd
+.filter_excluded_conditions <- function(matrix, excluded = NULL) {
+  if (is.null(excluded) || length(excluded) == 0) return(matrix)
+  matrix[!(matrix$GROUP %in% excluded), , drop = FALSE]
+}
+
 #' Build response curve matrix from condition list
 #'
 #' Parses condition names to extract dose, time, temperature, or treatment
@@ -345,6 +356,8 @@ build_response_curve_matrix = function(condition_list) {
           str_extract(GROUP, "^[^_0-9]+") %>% str_trim()
         )
       )
+    # Auto-fill empty drug names with "Treatment" for datasets without drug prefix
+    matrix$drug[is.na(matrix$drug) | matrix$drug == ""] <- "Treatment"
   }
   matrix = matrix %>% select(-is_control)
   

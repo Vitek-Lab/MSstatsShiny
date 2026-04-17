@@ -32,7 +32,8 @@ NAMESPACE_STATMODEL = list(
   visualization_view_results = "visualization_view_results", 
   visualization_download_plot_results = "visualization_download_plot_results",
   visualization_plot_output = "visualization_plot_output",
-  visualization_plot_height_slider = "visualization_plot_height_slider"
+  visualization_plot_height_slider = "visualization_plot_height_slider",
+  comparisons_exclude_conditions = "comparisons_exclude_conditions"
 )
 
 CONSTANTS_STATMODEL = list(
