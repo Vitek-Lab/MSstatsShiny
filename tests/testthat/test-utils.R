@@ -540,7 +540,8 @@ test_that("ptm metamorpheus", {
     mock_input$BIO <- "PTM"
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype <- "meta"
-    mock_input$mod_id_meta <- "\\[Common Fixed:Carbamidomethyl on C\\]"
+    mock_input$mod_id_meta_select <- "[Common Fixed:Carbamidomethyl on C]"
+    mock_input$mod_id_meta_custom <- NULL
     mock_input$ptm_input$datapath <- system.file(
       "tinytest/raw_data/Metamorpheus/AllQuantifiedPeaks.tsv",
       package = "MSstatsPTM")
@@ -1590,4 +1591,63 @@ describe("getData for Big Spectronaut", {
     res <- getData(mock_input_big)
     expect_null(res)
   })
+})
+
+# ============================================================================
+# MOD ID RESOLUTION TESTS
+# ============================================================================
+
+test_that("resolve_mod_id uses dropdown selection and escapes brackets", {
+  result <- MSstatsShiny:::.resolve_mod_id(
+    selected = "[Common Fixed:Carbamidomethyl on C]",
+    custom = NULL
+  )
+  expect_equal(result, "\\[Common Fixed:Carbamidomethyl on C\\]")
+})
+
+test_that("resolve_mod_id uses custom input when Other is selected", {
+  result <- MSstatsShiny:::.resolve_mod_id(
+    selected = "__other__",
+    custom = "[My Custom Mod]"
+  )
+  expect_equal(result, "\\[My Custom Mod\\]")
+})
+
+test_that("resolve_mod_id preserves already-escaped custom input", {
+  result <- MSstatsShiny:::.resolve_mod_id(
+    selected = "__other__",
+    custom = "\\[Already Escaped\\]"
+  )
+  expect_equal(result, "\\[Already Escaped\\]")
+})
+
+test_that("resolve_mod_id fixes partially escaped custom input", {
+  result <- MSstatsShiny:::.resolve_mod_id(
+    selected = "__other__",
+    custom = "\\[Phospho]"
+  )
+  expect_equal(result, "\\[Phospho\\]")
+})
+
+test_that("resolve_mod_id errors when both inputs are NULL", {
+  expect_error(MSstatsShiny:::.resolve_mod_id(NULL, NULL),
+               "No modification ID selected")
+})
+
+test_that("resolve_mod_id errors when custom is empty string", {
+  expect_error(MSstatsShiny:::.resolve_mod_id("__other__", ""),
+               "No modification ID selected")
+})
+
+test_that("extract_mod_ids_from_preview handles consecutive modifications", {
+  preview <- data.frame(
+    `Full Sequence` = c(
+      "A[Mod1][Mod2]B[Mod3]C"
+    ),
+    check.names = FALSE
+  )
+
+  result <- MSstatsShiny:::.extract_mod_ids_from_preview(preview)
+  expect_equal(length(result), 3)
+  expect_true(all(c("[Mod1]", "[Mod2]", "[Mod3]") %in% result))
 })

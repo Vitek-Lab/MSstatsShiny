@@ -36,7 +36,7 @@
 #' @importFrom tidyr unite pivot_wider
 #' @importFrom MSstatsConvert MSstatsLogsSettings
 #' @importFrom MSstatsPTM dataProcessPlotsPTM groupComparisonPlotsPTM MaxQtoMSstatsPTMFormat PDtoMSstatsPTMFormat FragPipetoMSstatsPTMFormat SkylinetoMSstatsPTMFormat MetamorpheusToMSstatsPTMFormat SpectronauttoMSstatsPTMFormat
-#' @importFrom MSstatsBioNet exportNetworkToHTML
+#' @importFrom MSstatsBioNet exportNetworkToHTML deleteEdgeFromNetwork
 #' @importFrom MSstatsResponse futureExperimentSimulation run_tpr_simulation plot_tpr_power_curve
 #' @importFrom utils capture.output head packageVersion read.csv read.delim write.csv
 #' @importFrom stats aggregate

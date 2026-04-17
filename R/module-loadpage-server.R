@@ -46,6 +46,79 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
     else {
       local_big_file_path <- reactive({ NULL })
     }
+
+    # ============ PREVIEW DATA: Read first 100 rows on file upload ============
+    preview_data <- reactiveVal(NULL)
+
+    # Determine the main data file based on current selections
+    # TODO: Add preview mappings for remaining PTM file types (PD, spec, sky, maxq)
+    # once preview-based UI features are extended beyond Metamorpheus.
+    main_data_file <- reactive({
+      req(input$filetype)
+      if (input$BIO == "PTM") {
+        switch(input$filetype,
+          "meta" = input$ptm_input,
+          # TODO: "maxq" = input$ptm_input,
+          # TODO: "PD" = input$ptm_input,
+          # TODO: "spec" = input$ptm_input,
+          # TODO: "sky" = input$ptm_input,
+          # TODO: "phil" = input$ptmdata,
+          # TODO: "msstats" = input$msstatsptmdata,
+          NULL
+        )
+      } else {
+        switch(input$filetype,
+          # TODO: Map remaining non-PTM file types when preview features are needed
+          "prog" =, "PD" =, "open" =, "openms" =, "spmin" =, "phil" =, "meta" = input$data,
+          "msstats" = input$msstatsdata,
+          "sky" = input$skylinedata,
+          "spec" = input$specdata,
+          "diann" = input$dianndata,
+          "maxq" = input$evidence,
+          NULL
+        )
+      }
+    })
+
+    # Read first 100 rows for Metamorpheus PTM preview.
+    # TODO: Extend preview reading to other input formats (e.g., Spectronaut, MaxQuant)
+    # for dynamic UI updates. Currently limited to Metamorpheus.
+    observe({
+      if (isTRUE(input$filetype == "meta") && isTRUE(input$BIO == "PTM")) {
+        file_info <- main_data_file()
+        if (!is.null(file_info)) {
+          preview <- tryCatch(
+            data.table::fread(file_info$datapath, nrows = 100, header = TRUE),
+            error = function(e) {
+              showNotification(paste("Could not preview file:", conditionMessage(e)),
+                               type = "warning", duration = 5)
+              NULL
+            }
+          )
+          preview_data(preview)
+        } else {
+          preview_data(NULL)
+        }
+      } else {
+        preview_data(NULL)
+      }
+    })
+
+    # ========= METAMORPHEUS PTM: Dynamic modification ID dropdown =========
+    output$mod_id_meta_ui <- renderUI({
+      ns <- session$ns
+      req(input$filetype == "meta", input$BIO == "PTM")
+      mods <- .extract_mod_ids_from_preview(preview_data())
+      create_meta_mod_id_selector(ns, mods)
+    })
+
+    # Show manual text input when "Other" is selected (replaces conditionalPanel)
+    output$mod_id_meta_other_input <- renderUI({
+      req(input$mod_id_meta_select == "__other__")
+      textInput(session$ns("mod_id_meta_custom"),
+                label = h5("Enter modification ID (e.g. [Common Biological:Phosphorylation on S])"),
+                value = "")
+    })
     
     output$spectronaut_header_ui <- renderUI({
       req(input$filetype == 'spec', input$BIO != 'PTM')
