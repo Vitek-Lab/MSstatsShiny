@@ -27,7 +27,7 @@ Depends: R (>= 4.2)
 Imports: shiny (>= 1.5.0), shinyBS, shinyjs, shinybusy, dplyr, ggplot2, plotly, data.table, Hmisc, shinyFiles,
   MSstats,MSstatsBig, MSstatsTMT, MSstatsPTM, MSstatsConvert, gplots, marray, DT, readxl,
   ggrepel, uuid, utils, stats, htmltools, methods, tidyr, grDevices, graphics, mockery, MSstatsBioNet,
-  shinydashboard, arrow, tools, MSstatsResponse, stringr
+  shinydashboard, arrow, tools, MSstatsResponse, stringr, httr
 Suggests: 
     rmarkdown,
     tinytest,

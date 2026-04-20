@@ -233,7 +233,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                 CONSTANTS_STATMODEL$comparison_mode_all_vs_one,
                 CONSTANTS_STATMODEL$comparison_mode_custom_pairwise
               )) {
-            p(tags$i("A value of −1 represents the control group, and a value of 1 represents the treatment group"))
+            p(tags$i("A value of -1 represents the control group, and a value of 1 represents the treatment group"))
           },
           br(),
           textOutput(ns("message")),
