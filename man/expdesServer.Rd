@@ -12,9 +12,7 @@ expdesServer(
   loadpage_input,
   qc_input,
   statmodel_input,
-  data_comparison,
-  preprocess_data = NULL,
-  statmodel_contrast = NULL
+  data_comparison
 )
 }
 \arguments{
@@ -33,16 +31,13 @@ expdesServer(
 \item{statmodel_input}{input object from Statmodel UI}
 
 \item{data_comparison}{function for group comparisons}
-
-\item{preprocess_data}{function returning preprocessed data}
-
-\item{statmodel_contrast}{reactiveValues object containing the contrast matrix from statmodel}
 }
 \value{
 list object with user selected options and matrix build
 }
 \description{
-Expdes Server module for future experiments
+This function sets up the Expdes server to process data based on user
+selected inputs
 }
 \examples{
 NA

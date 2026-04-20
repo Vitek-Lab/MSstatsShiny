@@ -51,12 +51,10 @@ server = function(input, output, session) {
   )
   statmodel_input = statmodel_values$input
   data_comparison = statmodel_values$dataComparison
-  statmodel_contrast = statmodel_values$contrast
   
   # expdesServer - keep callModule if not yet refactored
   callModule(expdesServer, "expdes", session, reactive(loadpage_input),
-             reactive(qc_input), reactive(statmodel_input), data_comparison,
-             preprocess_data, statmodel_contrast)
+             reactive(qc_input), reactive(statmodel_input), data_comparison)
   
   observeEvent(input$proceed, {
     updateTabsetPanel(session = session, inputId = "tablist", 

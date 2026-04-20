@@ -58,13 +58,12 @@ test_that("build_response_curve_panel creates correct UI structure", {
   ns <- function(id) paste0("statmodel-", id)
   ui <- build_response_curve_panel(ns)
   html <- as.character(ui)
+  # Setup Metadata button removed. Metadata auto-builds on radio selection
   expect_false(grepl(NAMESPACE_STATMODEL$comparisons_submit, html, fixed = TRUE),
                info = "Submit contrast matrix button should not be present")
   expect_true(grepl(NAMESPACE_STATMODEL$comparisons_clear, html, fixed = TRUE))
-  expect_true(grepl(NAMESPACE_STATMODEL$comparisons_exclude_conditions, html, fixed = TRUE),
-              info = "Exclude conditions uiOutput placeholder should be present")
   expect_s3_class(ui, "shiny.tag.list")
-  expect_length(ui, 2)
+  expect_length(ui, 1)
 })
 
 # ============================================================================

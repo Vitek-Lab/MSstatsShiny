@@ -32,8 +32,7 @@ NAMESPACE_STATMODEL = list(
   visualization_view_results = "visualization_view_results", 
   visualization_download_plot_results = "visualization_download_plot_results",
   visualization_plot_output = "visualization_plot_output",
-  visualization_plot_height_slider = "visualization_plot_height_slider",
-  comparisons_exclude_conditions = "comparisons_exclude_conditions"
+  visualization_plot_height_slider = "visualization_plot_height_slider"
 )
 
 CONSTANTS_STATMODEL = list(
@@ -46,13 +45,4 @@ CONSTANTS_STATMODEL = list(
   plot_type_heatmap = "Heatmap", # Heatmap
   plot_type_comparison_plot = "ComparisonPlot", # ComparisonPlot
   plot_type_response_curve = "ResponseCurve" # ResponseCurve
-)
-
-NAMESPACE_EXPDES = list(
-  sidebar_controls = "sidebar_controls",
-  protein_select = "protein_select",
-  rep_range = "rep_range",
-  run_simulation = "run_simulation",
-  result_plot = "result_plot",
-  download_future = "download_future"
 )

@@ -62,24 +62,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
       
       render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list,contrast)
-
-      output[[NAMESPACE_STATMODEL$comparisons_exclude_conditions]] <- renderUI({
-        req(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
-              CONSTANTS_STATMODEL$comparison_mode_response_curve)
-        conditions <- condition_list()
-        selectizeInput(
-          session$ns(NAMESPACE_STATMODEL$comparisons_exclude_conditions),
-          label = h5("Exclude conditions from analysis", class = "icon-wrapper",
-                     icon("question-circle", lib = "font-awesome"),
-                     div("Select conditions to exclude from dose-response modeling (e.g., quality control conditions like PDPD).",
-                         class = "icon-tooltip")),
-          choices = conditions,
-          selected = NULL,
-          multiple = TRUE,
-          options = list(placeholder = "None excluded")
-        )
-      })
-
       output[[NAMESPACE_STATMODEL$modeling_section_header]] <- renderUI({
         get_modeling_section_header(input[[NAMESPACE_STATMODEL$comparison_mode]])
       })
@@ -126,30 +108,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           })
         }
       })
-
-      # Re-filter matrix when excluded conditions change
-      observeEvent(input[[NAMESPACE_STATMODEL$comparisons_exclude_conditions]], {
-        req(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
-              CONSTANTS_STATMODEL$comparison_mode_response_curve)
-        tryCatch({
-          all_conditions <- condition_list()
-          excluded <- input[[NAMESPACE_STATMODEL$comparisons_exclude_conditions]]
-          filtered_conditions <- setdiff(all_conditions, excluded)
-          if (length(filtered_conditions) < 2) {
-            showNotification("At least 2 conditions are required after exclusion.", type = "error")
-            return()
-          }
-          rc_matrix <- build_response_curve_matrix(filtered_conditions)
-          if (is.null(rc_matrix) || nrow(rc_matrix) == 0) {
-            stop("Unable to build group metadata from the included conditions.")
-          }
-          contrast$matrix <- rc_matrix
-          enable(NAMESPACE_STATMODEL$modeling_start)
-        }, error = function(e) {
-          showNotification(conditionMessage(e), type = "error", duration = 6)
-        })
-      }, ignoreInit = TRUE, ignoreNULL = FALSE)
-
+      
       # Validate contrast inputs
       check_cond = eventReactive(
         input[[NAMESPACE_STATMODEL$comparisons_submit]], {
@@ -226,18 +185,26 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Handle edits to the contrast matrix from the UI
       observeEvent(input$table_cell_edit, {
+        # Use isolate() to get a snapshot of the matrix. This is crucial to prevent
+        # a reactive loop where updating the matrix would re-trigger this observer.
         current_matrix = isolate(contrast$matrix)
+        
         updated_matrix = update_matrix_from_edit(current_matrix, input$table_cell_edit)
+        
+        # Update the reactive value. This will trigger re-rendering of the table.
         contrast$matrix = updated_matrix
       })
       
       # Matrix output
       output$message = renderText({ check_cond() })
       output$table = renderDataTable({
+        # This table now directly depends on contrast$matrix, so it updates on build or edit.
         req(contrast$matrix)
         mat = contrast$matrix
         
+        # Define editable options, disabling the 'GROUP' column for response curves
         editable_options = list(target = 'cell')
+        # Perform a case-insensitive check for the 'GROUP' column for robustness.
         if (any(toupper(colnames(mat)) == "GROUP")) {
           group_col_idx = which(toupper(colnames(mat)) == "GROUP")
           editable_options$disable = list(columns = group_col_idx)
@@ -354,8 +321,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       return(list(
         input = input,
-        dataComparison = data_comparison,
-        contrast = contrast
+        dataComparison = data_comparison
       ))
     }
   )
