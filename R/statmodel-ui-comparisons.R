@@ -85,6 +85,7 @@ build_custom_nonpairwise_panel <- function(ns) {
 #' @noRd
 build_response_curve_panel <- function(ns) {
   tagList(
+    uiOutput(ns(NAMESPACE_STATMODEL$comparisons_exclude_conditions)),
     actionButton(ns(NAMESPACE_STATMODEL$comparisons_clear), "Reset")
   )
 }
