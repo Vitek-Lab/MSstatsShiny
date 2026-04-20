@@ -276,6 +276,7 @@ export_network_html <- function(render_data, displayLabelType, file) {
 #' @importFrom MSstatsBioNet annotateProteinInfoFromIndra getSubnetworkFromIndra
 #' @importFrom DT renderDT datatable
 #' @importFrom shiny moduleServer updateSelectizeInput showNotification outputOptions
+#' @importFrom httr POST content_type_json accept_json content status_code
 visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   moduleServer(id, function(input, output, session) {
   
