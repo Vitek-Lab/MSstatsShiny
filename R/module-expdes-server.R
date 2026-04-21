@@ -159,7 +159,7 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
         dose_range = c(2, length(user_concs)),
         data = sim_data,
         protein = selected_protein,
-        n_proteins = 1000
+        n_proteins = 300
       )
       simulation_results(results)
       remove_modal_spinner()
