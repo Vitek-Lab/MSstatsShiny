@@ -1448,13 +1448,13 @@ dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix,input_
 }
 
 #' @importFrom MSstatsResponse doseResponseFit
-fitResponseCurves <- function(statmodel_input, matrix, input_data) {
+fitResponseCurves <- function(statmodel_input, matrix, input_data, transform_dose = TRUE) {
   protein_level_data <- merge(input_data$ProteinLevelData, matrix, by = "GROUP")
   dia_prepared <- prepare_dose_response_fit(protein_level_data)
   response_results <- doseResponseFit(
     data = dia_prepared,
     increasing = statmodel_input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]],
-    transform_dose = statmodel_input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]],
+    transform_dose = transform_dose,
     ratio_response = FALSE
   )
   return(list(ComparisonResult = response_results))

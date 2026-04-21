@@ -2,6 +2,51 @@
 # Contrast Matrix Building Functions
 # ============================================================================
 
+#' Convert dose values from their measured unit to molar (M)
+#' @noRd
+convert_dose_to_molar <- function(dose_val, dose_unit) {
+  multipliers <- c(nM=1e-9, nm=1e-9, uM=1e-6, um=1e-6, mM=1e-3, mm=1e-3, M=1, m=1)
+  if (length(dose_unit) == 1) dose_unit <- rep(dose_unit, length(dose_val))
+  mult <- unname(multipliers[dose_unit])
+  mult[is.na(mult)] <- 1
+  dose_val * mult
+}
+
+#' Parse dose unit from condition names (vectorized, per condition)
+#' @noRd
+parse_dose_unit_from_conditions <- function(conditions) {
+  is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(trimws(conditions)))
+  measurement <- str_extract(conditions, "[0-9.]+[a-zA-Z]+")
+  unit <- str_extract(measurement, "[a-zA-Z]+")
+  unit[is_ctrl] <- ""
+  unit[!is_ctrl & (is.na(unit) | nchar(unit) == 0)] <- "?"
+  unit
+}
+
+#' Parse drug name from condition names (returns "Treatment" if unparseable)
+#' @noRd
+parse_drug_name_from_conditions <- function(conditions) {
+  is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(trimws(conditions)))
+  non_ctrl <- conditions[!is_ctrl]
+  if (length(non_ctrl) == 0) return("Treatment")
+  prefixes <- gsub("[_ .-]?[0-9.]+[a-zA-Z]+.*$", "", non_ctrl)
+  prefixes <- trimws(prefixes, whitespace = "[ _\t.-]")
+  prefixes <- prefixes[nchar(prefixes) > 0]
+  if (length(prefixes) == 0) return("Treatment")
+  drug_name <- names(sort(table(prefixes), decreasing = TRUE))[1]
+  if (is.null(drug_name) || nchar(drug_name) == 0) "Treatment" else drug_name
+}
+
+#' Auto-fill numeric dose/time value from condition name
+#' @noRd
+autofill_condition_value <- function(conditions) {
+  is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(trimws(conditions)))
+  measurement <- str_extract(conditions, "[0-9.]+[a-zA-Z]+")
+  value <- suppressWarnings(as.numeric(str_extract(measurement, "[0-9.]+")))
+  value[is_ctrl] <- 0
+  value
+}
+
 #' Get experimental conditions from preprocessed data
 #'
 #' @param loadpage_input List containing BIO, DDA_DIA, and filetype parameters
@@ -312,7 +357,7 @@ build_response_curve_matrix = function(condition_list) {
   matrix = data.frame(GROUP = as.character(condition_list))
   matrix = matrix %>% mutate(
     is_control = str_detect(toupper(GROUP), "^(DMSO|CONTROL|VEHICLE)$"),
-    measurements = str_extract_all(GROUP, "[0-9.]+[a-zA-Z]+")
+    measurements = str_extract(GROUP, "[0-9.]+[a-zA-Z]+")
   )
   controls = matrix %>% filter(is_control) %>% select(GROUP, is_control)
   treatments = matrix %>% filter(!is_control) %>%

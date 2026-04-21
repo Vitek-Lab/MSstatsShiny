@@ -1,3 +1,12 @@
+TEMPLATES = list(
+  default = "default",
+  chemoproteomics = "chemoproteomics"
+)
+
+TEMPLATE_LABELS = list(
+  default = "Protein Differential Abundance Analysis",
+  chemoproteomics = "Chemoproteomics"
+)
 
 NAMESPACE_STATMODEL = list(
   comparisons_conditional_panel = "comparisons_conditional_panel",

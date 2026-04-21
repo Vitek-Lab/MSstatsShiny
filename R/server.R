@@ -32,12 +32,15 @@ server = function(input, output, session) {
                       selected = "Uploaddata")
   })
   
-  loadpage_values = loadpageServer("loadpage", parent_session = session, is_web_server = isWebServer)
+  app_template = reactive(input$app_template)
+
+  loadpage_values = loadpageServer("loadpage", parent_session = session, is_web_server = isWebServer, app_template = app_template)
   loadpage_input = loadpage_values$input
   get_data = loadpage_values$getData
-  
+  get_condition_metadata = loadpage_values$getConditionMetadata
+
   # qcServer - update to direct call if refactored, otherwise keep callModule for now
-  qc_values = callModule(qcServer, "qc", session, reactive(loadpage_input), get_data)
+  qc_values = callModule(qcServer, "qc", session, reactive(loadpage_input), get_data, app_template, get_condition_metadata)
   qc_input = qc_values$input
   preprocess_data = qc_values$preprocessData
 
@@ -47,15 +50,17 @@ server = function(input, output, session) {
     loadpage_input = reactive(loadpage_input),
     qc_input = reactive(qc_input),
     get_data = get_data,
-    preprocess_data = preprocess_data
+    preprocess_data = preprocess_data,
+    app_template = app_template,
+    condition_metadata = get_condition_metadata
   )
   statmodel_input = statmodel_values$input
   data_comparison = statmodel_values$dataComparison
   statmodel_contrast = statmodel_values$contrast
-  
+
   # expdesServer - keep callModule if not yet refactored
   callModule(expdesServer, "expdes", session, reactive(loadpage_input),
-             reactive(qc_input), reactive(statmodel_input), data_comparison,
+             reactive(qc_input), app_template, data_comparison,
              preprocess_data, statmodel_contrast)
   
   observeEvent(input$proceed, {

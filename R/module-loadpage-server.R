@@ -13,9 +13,12 @@
 #' @examples
 #' NA
 #' 
-loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
+loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_template = NULL) {
   moduleServer(id, function(input, output, session) {
-    
+
+    # Condition metadata for chemoproteomics: Condition -> DoseVal/DrugName/DoseUnit mapping
+    condition_metadata <- reactiveVal(NULL)
+
     # == shinyFiles LOGIC FOR LOCAL FILE BROWSER =================================
     # Define volumes for the file selection.
     if (!is_web_server) {
@@ -396,10 +399,63 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
       getSummary2(input,get_data())
     })
 
+    # Handle edits to the condition metadata DT table
+    observeEvent(input$condition_metadata_table_cell_edit, {
+      info <- input$condition_metadata_table_cell_edit
+      current <- condition_metadata()
+      if (is.null(current)) return()
+      if (info$col == 1) {
+        value_col <- if ("TimeVal" %in% colnames(current)) "TimeVal" else "DoseVal"
+        current[[value_col]][info$row] <- info$value
+        condition_metadata(current)
+      } else if (info$col == 2 && "DrugName" %in% colnames(current)) {
+        current[["DrugName"]][info$row] <- as.character(info$value)
+        condition_metadata(current)
+      } else if (info$col == 3 && "DoseUnit" %in% colnames(current)) {
+        current[["DoseUnit"]][info$row] <- as.character(info$value)
+        condition_metadata(current)
+      }
+    })
+
+    # Render the editable condition metadata table
+    output$condition_metadata_table <- DT::renderDT({
+      req(!is.null(condition_metadata()))
+      meta <- condition_metadata()
+      caption_text <- "Click any cell to edit. Cells showing '?' could not be parsed and must be filled in before running analysis."
+      DT::datatable(
+        meta,
+        editable = list(target = "cell", disable = list(columns = c(0))),
+        rownames = FALSE,
+        selection = "none",
+        options = list(dom = 't', paging = FALSE),
+        caption = caption_text
+      )
+    })
+
     onclick("proceed1", {
       get_data()
       get_annot()
       shinyjs::show("summary_tables")
+
+      # Initialize condition metadata for chemoproteomics template
+      if (!is.null(app_template) && app_template() == TEMPLATES$chemoproteomics) {
+        tryCatch({
+          data <- get_data()
+          if (!is.null(data) && "Condition" %in% colnames(data)) {
+            conditions <- unique(as.character(data$Condition))
+            is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(trimws(conditions)))
+            parsed_drug <- parse_drug_name_from_conditions(conditions)
+            dose_vals <- as.character(autofill_condition_value(conditions))
+            dose_vals[is.na(dose_vals) | dose_vals == "NA"] <- "?"
+            meta_df <- data.frame(Condition = conditions,
+                                  DoseVal = dose_vals,
+                                  DrugName = ifelse(is_ctrl, conditions, parsed_drug),
+                                  DoseUnit = parse_dose_unit_from_conditions(conditions),
+                                  stringsAsFactors = FALSE)
+            condition_metadata(meta_df)
+          }
+        }, error = function(e) {})
+      }
 
       ### outputs ###
       get_summary = reactive({
@@ -469,11 +525,19 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
       })
       output$summary_tables = renderUI({
         ns <- session$ns
+        is_chemo <- !is.null(app_template) && app_template() == TEMPLATES$chemoproteomics
         tagList(
           tags$head(
             tags$style(HTML('#loadpage-proceed2{background-color:orange}'))
           ),
           actionButton(inputId = ns("proceed2"), label = "Next step"),
+          if (is_chemo) tagList(
+            tags$hr(),
+            h4("Condition doses"),
+            p("Dose values are auto-filled from condition names. Correct any values as needed before running the analysis."),
+            DT::dataTableOutput(ns("condition_metadata_table")),
+            tags$br()
+          ),
           h4("Summary of experimental design"),
           tableOutput(ns('summary1')),
           tags$br(),
@@ -498,7 +562,8 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
     return(
       list(
         input = input,
-        getData = get_data
+        getData = get_data,
+        getConditionMetadata = condition_metadata
       )
     )
   })

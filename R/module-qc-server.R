@@ -16,7 +16,7 @@
 #' @examples
 #' NA
 #' 
-qcServer <- function(input, output, session,parent_session, loadpage_input,get_data) {
+qcServer <- function(input, output, session,parent_session, loadpage_input,get_data, app_template = NULL, get_condition_metadata = NULL) {
 
   # output$showplot = renderUI({
   #   print("****")
