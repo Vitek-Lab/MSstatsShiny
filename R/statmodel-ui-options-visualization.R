@@ -105,7 +105,7 @@ create_response_curve_options <- function(ns, is_protein_turnover = FALSE) {
   tagList(
     uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_protein)),
     uiOutput(ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug)),
-    if (!is_protein_turnover) {
+    if (!isTRUE(is_protein_turnover)) {
       checkboxInput(
         ns(NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale),
         label = span(
