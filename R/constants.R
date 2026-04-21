@@ -1,10 +1,12 @@
 TEMPLATES = list(
   default = "default",
+  protein_turnover = "protein_turnover",
   chemoproteomics = "chemoproteomics"
 )
 
 TEMPLATE_LABELS = list(
   default = "Protein Differential Abundance Analysis",
+  protein_turnover = "Protein Turnover",
   chemoproteomics = "Chemoproteomics"
 )
 

@@ -31,11 +31,13 @@ qcUI <- function(id) {
                             div("Global median normalization on peptide level data, equalizes medians across all the channels and runs", class = "icon-tooltip")),
                          checkboxInput(ns("global_norm"), "Yes", value = TRUE)),
         
-        conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'LType' || (input['loadpage-BIO'] == 'PTM' && (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] != 'TMT'))",
-                         radioButtons(ns("log"), 
-                                      label = h4("Log transformation",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                                                 div("Logarithmic transformation applied to the Intensity column", class = "icon-tooltip")),
-                                      c(log2 = "2", log10 = "10"))),
+        div(id = ns("log_section"),
+          conditionalPanel(condition = "input['loadpage-DDA_DIA'] == 'LType' || (input['loadpage-BIO'] == 'PTM' && (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] != 'TMT'))",
+                           radioButtons(ns("log"),
+                                        label = h4("Log transformation",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                                   div("Logarithmic transformation applied to the Intensity column", class = "icon-tooltip")),
+                                        c(log2 = "2", log10 = "10")))
+        ),
         
         
         tags$hr(),
@@ -71,8 +73,10 @@ qcUI <- function(id) {
                                        "quantile" = "quantile"), 
                                      selected = "equalizeMedians")),
         conditionalPanel(condition = "input['qc-norm'] == 'globalStandards' &&  (input['loadpage-BIO'] !== 'PTM' && input['loadpage-DDA_DIA'] !== 'TMT')",
-                         radioButtons(ns("standards"), "Choose type of standards", 
-                                      c("Proteins", "Peptides")),
+                         div(id = ns("standards_type_section"),
+                             radioButtons(ns("standards"), "Choose type of standards",
+                                          c("Proteins", "Peptides"))
+                         ),
                          uiOutput(ns("Names"))),
         tags$hr(),
         
@@ -109,48 +113,32 @@ qcUI <- function(id) {
           tags$hr(),
           
           ### censoring
-          h4("4. Missing values (not random missing or censored)"),
-          
-          # radioButtons(ns('censInt'),
-          #              h5("Assumptions for missing values",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-          #                 div("Processing software report missing values differently; please choose the appropriate options to distinguish missing values and if censored/at random", class = "icon-tooltip")),
-          #              c("assume all NA as censored" = "NA", "assume all between 0 \
-          #          and 1 as censored" = "0",
-          #                "all missing values are random" = "null"),
-          #              selected = "NA"),
-          # MSstatsShiny:::radioTooltip(id = ns("censInt"), choice = "NA", title = "It assumes that all \
-          #        NAs in Intensity column are censored.", placement = "right",
-          #                            trigger = "hover"),
-          # MSstatsShiny:::radioTooltip(id = ns("censInt"), choice = "0", title = "It assumes that all \
-          #        values between 0 and 1 in Intensity column are censored.  NAs \
-          #        will be considered as random missing.", placement = "right",
-          #                            trigger = "hover"),
-          # MSstatsShiny:::radioTooltip(id = ns("censInt"), choice = "null", title = "It assumes that all \
-          #        missing values are randomly missing.", placement = "right",
-          #                            trigger = "hover"),
-          
-          radioButtons(ns('censInt'),
-                       h5("Assumptions for missing values",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                          div("Processing software report missing values differently; please choose the appropriate options to distinguish missing values and if censored/at random", class = "icon-tooltip")),
-                   choiceNames = list(
-                     div("assume all NA as censored",class = "icon-wrapper",
-                         div("It assumes that all NAs in Intensity column are censored.", class = "icon-tooltip")),
-                     div("assume all between 0 and 1 as censored",class = "icon-wrapper",
-                         div("It assumes that all values between 0 and 1 in Intensity column are censored.  NAs will be considered as random missing.", class = "icon-tooltip"))
-                   ),
-                   choiceValues = list(
-                     "NA", "0"
-                   ),
-                       selected = "NA"),
-          
-          # max quantile for censored
-          h5("Max quantile for censored",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-             div("Max quantile for censored", class = "icon-tooltip")),
-          checkboxInput(ns("null1"), label = "Do not apply cutoff to censor missing values"),
-          numericInput(ns("maxQC1"), NULL, 0.999, 0.000, 1.000, 0.001),
-          
+          div(id = ns("censoring_section"),
+            h4("Missing values (not random missing or censored)"),
+
+            radioButtons(ns('censInt'),
+                         h5("Assumptions for missing values",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                            div("Processing software report missing values differently; please choose the appropriate options to distinguish missing values and if censored/at random", class = "icon-tooltip")),
+                     choiceNames = list(
+                       div("assume all NA as censored",class = "icon-wrapper",
+                           div("It assumes that all NAs in Intensity column are censored.", class = "icon-tooltip")),
+                       div("assume all between 0 and 1 as censored",class = "icon-wrapper",
+                           div("It assumes that all values between 0 and 1 in Intensity column are censored.  NAs will be considered as random missing.", class = "icon-tooltip"))
+                     ),
+                     choiceValues = list(
+                       "NA", "0"
+                     ),
+                         selected = "NA"),
+
+            # max quantile for censored
+            h5("Max quantile for censored",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+               div("Max quantile for censored", class = "icon-tooltip")),
+            checkboxInput(ns("null1"), label = "Do not apply cutoff to censor missing values"),
+            numericInput(ns("maxQC1"), NULL, 0.999, 0.000, 1.000, 0.001)
+          ),
+
           # MBi
-          h4("5. Imputation"),
+          h4("Imputation"),
           conditionalPanel(condition = "input['qc-censInt'] == 'NA' || input['qc-censInt'] == '0'",
                            checkboxInput(ns("MBi"), label=tags$div("Model based imputation",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                                     div("If unchecked the values set as cutoff for censored will be used", class = "icon-tooltip")),value = TRUE
@@ -176,8 +164,9 @@ qcUI <- function(id) {
         ),
         
         tags$hr(),
+        uiOutput(ns("turnover_ratios_sidebar")),
         actionButton(ns("run"), "Run protein summarization"),
-        # run 
+        # run
         width = 3
       ),
       column(width = 8,
@@ -186,8 +175,8 @@ qcUI <- function(id) {
                h3("Please run protein summarization in the side panel."),
                h3(textOutput(ns("caption"), container = span)),
                
-               tabsetPanel(
-                 tabPanel("Summarized Results", 
+               tabsetPanel(id = ns("qc_tabs"),
+                 tabPanel("Summarized Results",
                           wellPanel(
                             fluidRow(
                               h4("Download summary of protein abundance",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
@@ -235,7 +224,10 @@ qcUI <- function(id) {
                           uiOutput(ns("showplot")),
                           # disabled(downloadButton(ns("saveplot"), "Save this plot"))
                  ),
-                 tabPanel("Download Data", 
+                 tabPanel("Turnover Ratios",
+                          uiOutput(ns("turnover_ratios_panel"))
+                 ),
+                 tabPanel("Download Data",
                           #verbatimTextOutput('effect'),
                           # conditionalPanel(condition="$('html').hasClass('shiny-busy')",
                           #                  tags$br(),

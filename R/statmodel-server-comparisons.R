@@ -357,6 +357,35 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
   matrix[!(matrix$GROUP %in% excluded), , drop = FALSE]
 }
 
+#' Format turnover ratios for dose-response fitting
+#'
+#' Applies the column renaming and NA-imputation required by doseResponseFit /
+#' visualizeResponseProtein, using TimeVal from the (user-edited) metadata
+#' matrix stored in contrast$matrix as the dose axis.
+#'
+#' @param ratios Data frame from calculateTurnoverRatios (Protein, GROUP,
+#'   H_frac columns required)
+#' @param metadata_matrix contrast$matrix after user edits – must have GROUP
+#'   and TimeVal columns
+#' @return Data frame with columns: protein, drug, dose, response
+#' @noRd
+prepare_turnover_for_dose_response <- function(ratios) {
+  result <- ratios
+  result$H_frac   <- ifelse(is.na(result$H_frac), 0, result$H_frac)
+  result$protein  <- as.character(result$Protein)
+  result$drug     <- "time"
+  result$dose     <- as.numeric(result$TimeVal)
+  result$response <- result$H_frac
+  keep_cols <- c("protein", "drug", "dose", "response")
+  if ("BaseSequence" %in% colnames(result)) {
+    keep_cols <- c(keep_cols, "BaseSequence")
+  }
+  result[, keep_cols]
+}
+
+
+
+
 #' Prepare data for dose-response fitting
 #'
 #' Transforms data into MSstatsResponse-compatible format by selecting and
