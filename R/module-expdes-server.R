@@ -135,9 +135,11 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
         remove_modal_spinner()
         return()
       }
+      user_concs <- user_concs * 1e9 # simulations for chemoproteomics assume nM.
 
       # Check replicates per dose in user's data
       sim_data <- prepared_response_data()
+      sim_data$dose <- sim_data$dose * 1e9 # simulations for chemoproteomics assume nM.
       selected_protein <- input[[NAMESPACE_EXPDES$protein_select]]
       reps_per_dose <- .check_replicates_per_dose(sim_data, selected_protein)
 
