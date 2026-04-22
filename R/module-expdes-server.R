@@ -73,7 +73,7 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
   })
 
   is_response_curve <- reactive({
-    app_template() %in% c(TEMPLATES$protein_turnover, TEMPLATES$chemoproteomics)
+    app_template() %in% c(TEMPLATES$chemoproteomics)
   })
 
   # Render sidebar controls based on analysis mode

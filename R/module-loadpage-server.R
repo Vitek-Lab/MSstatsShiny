@@ -438,7 +438,8 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       shinyjs::show("summary_tables")
 
       # Initialize condition metadata for chemoproteomics template
-      if (!is.null(app_template) && app_template() == TEMPLATES$chemoproteomics) {
+      condition_metadata(NULL)
+      if (!is.null(app_template) && isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
         tryCatch({
           data <- get_data()
           if (!is.null(data) && "Condition" %in% colnames(data)) {
@@ -454,7 +455,14 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
                                   stringsAsFactors = FALSE)
             condition_metadata(meta_df)
           }
-        }, error = function(e) {})
+        }, error = function(e) {
+            condition_metadata(NULL)
+            showNotification(
+                paste("Could not initialize condition metadata:", conditionMessage(e)),
+                type = "warning",
+                duration = 6
+            )
+        })
       }
 
       ### outputs ###
