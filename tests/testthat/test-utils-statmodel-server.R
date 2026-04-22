@@ -558,15 +558,15 @@ test_that("generate_analysis_code produces groupComparisonTMT for TMT", {
 # MODELING SECTION HEADER TESTS
 # ============================================================================
 
-test_that("get_modeling_section_header returns dose response heading for response curve mode", {
+test_that("get_modeling_section_header returns dose-response heading for response curve mode", {
   result <- MSstatsShiny:::get_modeling_section_header(
     CONSTANTS_STATMODEL$comparison_mode_response_curve
   )
   html <- as.character(result)
-  expect_true(grepl("Dose response analysis", html),
-              info = "Should show dose response heading")
+  expect_true(grepl("Dose-response analysis", html),
+              info = "Should show dose-response heading")
   expect_true(grepl("configure the mapping", html),
-              info = "Should show dose response description")
+              info = "Should show dose-response description")
   expect_false(grepl("Group comparison", html),
                info = "Should not show group comparison heading")
 })
