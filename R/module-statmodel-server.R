@@ -68,7 +68,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                             ))
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = FALSE)
         }
-      }, ignoreInit = TRUE)
+      }, ignoreInit = FALSE)
 
       # UI visibility
       observe({
