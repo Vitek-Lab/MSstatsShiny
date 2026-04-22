@@ -45,6 +45,18 @@ autofill_condition_value <- function(conditions) {
   measurement <- str_extract(conditions, "[0-9.]+[a-zA-Z]+")
   value <- suppressWarnings(as.numeric(str_extract(measurement, "[0-9.]+")))
   value[is_ctrl] <- 0
+  failed <- conditions[!is_ctrl & is.na(value)]
+  if (length(failed) > 0) {
+    showNotification(
+      paste0(
+        "Could not parse a dose value from: ",
+        paste(failed, collapse = ", "),
+        ". Edit the metadata table to enter values manually."
+      ),
+      type = "warning",
+      duration = 10
+    )
+  }
   value
 }
 
