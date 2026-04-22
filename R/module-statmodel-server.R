@@ -200,11 +200,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         }
       }, ignoreNULL = TRUE)
 
-      # Re-filter matrix when excluded conditions change (default template only)
       observeEvent(input[[NAMESPACE_STATMODEL$comparisons_exclude_conditions]], {
         req(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
               CONSTANTS_STATMODEL$comparison_mode_response_curve)
-        req(!isTRUE(app_template() %in% c(TEMPLATES$protein_turnover, TEMPLATES$chemoproteomics)))
         tryCatch({
           all_conditions <- condition_list()
           excluded <- input[[NAMESPACE_STATMODEL$comparisons_exclude_conditions]]

@@ -32,7 +32,14 @@ server = function(input, output, session) {
                       selected = "Uploaddata")
   })
   
-  app_template = reactive(input$app_template)
+  app_template = reactive({
+    template <- input$app_template
+    if (is.null(template) || !nzchar(template)) {
+      TEMPLATES$default
+    } else {
+      template
+    }
+  })
 
   loadpage_values = loadpageServer("loadpage", parent_session = session, is_web_server = isWebServer, app_template = app_template)
   loadpage_input = loadpage_values$input
@@ -40,7 +47,7 @@ server = function(input, output, session) {
   get_condition_metadata = loadpage_values$getConditionMetadata
 
   # qcServer - update to direct call if refactored, otherwise keep callModule for now
-  qc_values = callModule(qcServer, "qc", session, reactive(loadpage_input), get_data, app_template, get_condition_metadata)
+  qc_values = callModule(qcServer, "qc", session, reactive(loadpage_input), get_data)
   qc_input = qc_values$input
   preprocess_data = qc_values$preprocessData
 
