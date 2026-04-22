@@ -367,7 +367,7 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
 #'   H_frac columns required)
 #' @return Data frame with columns: protein, drug, dose, response
 #' @noRd
-prepare_turnover_for_dose_response <- function(ratios) {
+prepare_turnover_for_dose_response <- function(ratios, add_zero_timepoint = FALSE) {
   result <- ratios[!is.na(ratios$H_frac), ]
   result$protein  <- as.character(result$Protein)
   result$drug     <- "time"
@@ -377,7 +377,29 @@ prepare_turnover_for_dose_response <- function(ratios) {
   if ("BaseSequence" %in% colnames(result)) {
     keep_cols <- c(keep_cols, "BaseSequence")
   }
-  result[, keep_cols]
+  result <- result[, keep_cols]
+
+  if (add_zero_timepoint) {
+    group_cols  <- intersect(c("protein", "BaseSequence"), keep_cols)
+    all_groups  <- unique(result[, group_cols, drop = FALSE])
+    zero_groups <- unique(result[result$dose == 0, group_cols, drop = FALSE])
+    if (nrow(zero_groups) == 0) {
+      needs_zero <- all_groups
+    } else {
+      in_zero    <- do.call(paste, all_groups[, group_cols, drop = FALSE]) %in%
+                    do.call(paste, zero_groups[, group_cols, drop = FALSE])
+      needs_zero <- all_groups[!in_zero, , drop = FALSE]
+    }
+    if (nrow(needs_zero) > 0) {
+      zero_rows          <- needs_zero
+      zero_rows$drug     <- "time"
+      zero_rows$dose     <- 0
+      zero_rows$response <- 0
+      result <- rbind(zero_rows[, keep_cols], result)
+    }
+  }
+
+  result
 }
 
 

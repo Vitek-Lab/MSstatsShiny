@@ -456,7 +456,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
           if (app_template() == TEMPLATES$protein_turnover) {
             req(turnover_ratios())
-            dia_prepared <- prepare_turnover_for_dose_response(turnover_ratios())
+            dia_prepared <- prepare_turnover_for_dose_response(turnover_ratios(), add_zero_timepoint = TRUE)
           } else {
             meta <- condition_metadata()
             req(!is.null(meta) && "DoseVal" %in% colnames(meta))
