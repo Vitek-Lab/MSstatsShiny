@@ -27,14 +27,15 @@ parse_dose_unit_from_conditions <- function(conditions) {
 #' @noRd
 parse_drug_name_from_conditions <- function(conditions) {
   is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(trimws(conditions)))
-  non_ctrl <- conditions[!is_ctrl]
-  if (length(non_ctrl) == 0) return("Treatment")
-  prefixes <- gsub("[_ .-]?[0-9.]+[a-zA-Z]+.*$", "", non_ctrl)
+  result <- character(length(conditions))
+  result[is_ctrl] <- conditions[is_ctrl]
+  non_ctrl_idx <- which(!is_ctrl)
+  if (length(non_ctrl_idx) == 0) return(result)
+  prefixes <- gsub("[_ .-]?[0-9.]+[a-zA-Z]+.*$", "", conditions[non_ctrl_idx])
   prefixes <- trimws(prefixes, whitespace = "[ _\t.-]")
-  prefixes <- prefixes[nchar(prefixes) > 0]
-  if (length(prefixes) == 0) return("Treatment")
-  drug_name <- names(sort(table(prefixes), decreasing = TRUE))[1]
-  if (is.null(drug_name) || nchar(drug_name) == 0) "Treatment" else drug_name
+  prefixes[nchar(prefixes) == 0] <- "Treatment"
+  result[non_ctrl_idx] <- prefixes
+  result
 }
 
 #' Auto-fill numeric dose/time value from condition name
