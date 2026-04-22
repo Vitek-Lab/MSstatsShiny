@@ -19,8 +19,6 @@
 qcServer <- function(input, output, session, parent_session, loadpage_input, get_data,
                      app_template = NULL, get_condition_metadata = NULL) {
 
-  hideTab(inputId = "qc_tabs", target = "Turnover Ratios", session = session)
-
   output$Names = renderUI({
     ns <- session$ns
 
@@ -205,6 +203,9 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
         final_levels <- c(ordered_conditions, remaining)
         final_levels <- final_levels[final_levels %in% all_groups]
         data$FeatureLevelData$GROUP <- factor(data$FeatureLevelData$GROUP, levels = final_levels)
+        if (!is.null(data$ProteinLevelData)) {
+          data$ProteinLevelData$GROUP <- factor(data$ProteinLevelData$GROUP, levels = final_levels)
+        }
       }
     }
     data
@@ -578,8 +579,9 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
           app_template() == TEMPLATES$protein_turnover)
     req(get_data())
 
+    req(!is.null(get_condition_metadata) && !is.null(get_condition_metadata()))
     ns <- session$ns
-    conditions <- as.character(unique(get_data()$Condition))
+    conditions <- as.character(get_condition_metadata()$Condition)
 
     tracer_inputs <- lapply(conditions, function(cond) {
       input_id <- ns(paste0("tracer_", make.names(cond)))
@@ -602,7 +604,8 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
           app_template() == TEMPLATES$protein_turnover)
     req(preprocess_data())
 
-    conditions <- as.character(unique(preprocess_data()$ProteinLevelData$GROUP))
+    req(!is.null(get_condition_metadata) && !is.null(get_condition_metadata()))
+    conditions <- as.character(get_condition_metadata()$Condition)
     tracer_consts <- sapply(conditions, function(cond) {
       val <- input[[paste0("tracer_", make.names(cond))]]
       if (is.null(val)) 1.0 else as.numeric(val)
