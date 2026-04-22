@@ -53,7 +53,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                             choices = c("Turnover Curve" = CONSTANTS_STATMODEL$plot_type_response_curve),
                             selected = CONSTANTS_STATMODEL$plot_type_response_curve)
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = TRUE)
-          updateCheckboxInput(session, NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale, value = FALSE)
         } else if (template == TEMPLATES$chemoproteomics) {
           updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
                              choices = c("Create dose-response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
@@ -132,26 +131,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         get_modeling_section_header(input[[NAMESPACE_STATMODEL$comparison_mode]], app_template())
       })
       
-      # Filter visualization dropdown based on comparison mode
-      observeEvent(input[[NAMESPACE_STATMODEL$comparison_mode]], {
-        req(input[[NAMESPACE_STATMODEL$comparison_mode]])
-        mode <- input[[NAMESPACE_STATMODEL$comparison_mode]]
-        if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
-          curve_label <- if (isTRUE(app_template() == TEMPLATES$protein_turnover)) "Turnover Curve" else "Dose-Response Curve"
-          updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-            choices = c(setNames(CONSTANTS_STATMODEL$plot_type_response_curve, curve_label))
-          )
-        } else {
-          updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-            choices = c(
-              "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot,
-              "Heatmap" = CONSTANTS_STATMODEL$plot_type_heatmap,
-              "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
-            )
-          )
-        }
-      }, ignoreInit = TRUE)
-
       # Reset on configuration change
       observeEvent(c(input[[NAMESPACE_STATMODEL$comparison_mode]], loadpage_input()$proceed1), {
         contrast$matrix = NULL
@@ -477,19 +456,15 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           if (app_template() == TEMPLATES$protein_turnover) {
             dia_prepared <- prepare_turnover_for_dose_response(turnover_ratios())
           } else {
-            if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
-              meta <- condition_metadata()
-              req(!is.null(meta) && "DoseVal" %in% colnames(meta))
-              is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
-              matrix <- data.frame(
-                GROUP      = meta$Condition,
-                dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
-                drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
-                stringsAsFactors = FALSE
-              )
-            } else {
-              matrix = contrast$matrix
-            }
+            meta <- condition_metadata()
+            req(!is.null(meta) && "DoseVal" %in% colnames(meta))
+            is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+            matrix <- data.frame(
+              GROUP      = meta$Condition,
+              dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+              drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+              stringsAsFactors = FALSE
+            )
             protein_level_data = merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
             dia_prepared = prepare_dose_response_fit(data = protein_level_data)
           }
