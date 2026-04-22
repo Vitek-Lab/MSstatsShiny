@@ -31,14 +31,7 @@ create_moderation_radio_buttons <- function(ns) {
   )
 }
 
-create_response_curve_increasing_trend_checkbox <- function(ns, value = FALSE, template = TEMPLATES$default) {
-  is_turnover <- isTRUE(template == TEMPLATES$protein_turnover)
-  label_text <- if (is_turnover) "Increasing heavy-isotope incorporation over time" else "Increasing trend for dose-response curves"
-  tooltip_text <- if (is_turnover) {
-    "Check this box if you expect the heavy-isotope fraction to increase over time (typical for pulse-chase turnover experiments)."
-  } else {
-    "Check this box if you expect an increasing trend in your dose-response curve, e.g. higher doses lead to higher protein abundance. Uncheck if you expect a decreasing trend, e.g. higher doses lead to lower protein abundance."
-  }
+create_response_curve_increasing_trend_checkbox <- function(ns, value = FALSE, label_text, tooltip_text) {
   checkboxInput(
     ns(NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend),
     label = tags$div(label_text,
