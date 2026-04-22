@@ -56,15 +56,11 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
             drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
             stringsAsFactors = FALSE
           )
-        } else {
-          rc_mat <- contrast$matrix
         }
-      } else {
-        rc_mat <- contrast$matrix
       }
       response_curve_setup_matrix = prepare_dose_response_fit(rc_mat)
       unique_drugs = unique(response_curve_setup_matrix$drug)
-      unique_drugs_without_control = unique_drugs[unique_drugs != "DMSO"]
+      unique_drugs_without_control = unique_drugs[!grepl("^(dmso|control|vehicle)$", tolower(unique_drugs))]
       selectInput(session$ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug),
                   label = h5("Select Treatment"),
                   unique_drugs_without_control, selected = unique_drugs_without_control[[1]])
