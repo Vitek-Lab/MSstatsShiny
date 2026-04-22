@@ -188,7 +188,7 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 showNotification("Turnover ratios not yet calculated.", type = "error")
                 return(NULL)
               }
-              dia_prepared <- prepare_turnover_for_dose_response(ratios)
+              dia_prepared <- prepare_turnover_for_dose_response(ratios, add_zero_timepoint = TRUE)
             } else {
               if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
                 meta <- tryCatch(condition_metadata(), error = function(e) NULL)
