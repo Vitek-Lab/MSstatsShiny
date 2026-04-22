@@ -214,7 +214,7 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
                 drug_name = "time",
                 ratio_response = FALSE,
-                show_ic50 = TRUE,
+                show_ic50 = FALSE,
                 add_ci = TRUE,
                 transform_dose = FALSE,
                 n_samples = 1000,
