@@ -464,13 +464,12 @@ test_that("generate_analysis_code passes response curve parameters correctly", {
   mock_input = list()
   mock_input[[NAMESPACE_STATMODEL$comparison_mode]] = CONSTANTS_STATMODEL$comparison_mode_response_curve
   mock_input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]] = TRUE
-  mock_input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]] = FALSE
   mock_input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]] = FALSE
 
   result = generate_analysis_code(list(), list(), comp_mat, mock_input)
 
   expect_true(grepl("increasing = TRUE", result))
-  expect_true(grepl("transform_dose = FALSE", result))
+  expect_true(grepl("transform_dose = TRUE", result))
   # doseResponseFit always hardcodes ratio_response = FALSE
   expect_true(grepl("doseResponseFit[^)]*ratio_response = FALSE", result))
   # visualizeResponseProtein uses the checkbox value (FALSE in this case)

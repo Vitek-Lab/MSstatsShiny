@@ -4,7 +4,7 @@
 \alias{loadpageServer}
 \title{Loadpage Server module for data selection and upload server.}
 \usage{
-loadpageServer(id, parent_session, is_web_server = FALSE)
+loadpageServer(id, parent_session, is_web_server = FALSE, app_template = NULL)
 }
 \arguments{
 \item{id}{namespace prefix for the module}

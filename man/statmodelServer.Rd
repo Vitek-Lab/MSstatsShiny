@@ -10,7 +10,10 @@ statmodelServer(
   loadpage_input,
   qc_input,
   get_data,
-  preprocess_data
+  preprocess_data,
+  app_template = reactive(TEMPLATES$default),
+  turnover_ratios = reactive(NULL),
+  condition_metadata = reactive(NULL)
 )
 }
 \arguments{

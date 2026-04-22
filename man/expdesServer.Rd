@@ -11,7 +11,7 @@ expdesServer(
   parent_session,
   loadpage_input,
   qc_input,
-  statmodel_input,
+  app_template = reactive(TEMPLATES$default),
   data_comparison,
   preprocess_data = NULL,
   statmodel_contrast = NULL
@@ -30,7 +30,7 @@ expdesServer(
 
 \item{qc_input}{input object from QC UI}
 
-\item{statmodel_input}{input object from Statmodel UI}
+\item{app_template}{reactive returning the selected template name}
 
 \item{data_comparison}{function for group comparisons}
 
