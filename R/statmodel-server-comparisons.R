@@ -344,77 +344,12 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
   matrix[!(matrix$GROUP %in% excluded), , drop = FALSE]
 }
 
-#' Build response curve matrix from condition list
-#'
-#' Parses condition names to extract dose, time, temperature, or treatment
-#' information and creates a structured matrix for dose-response analysis.
-#'
-#' @param condition_list Character vector of condition names
-#'
-#' @return Data frame with parsed condition information
-#' @noRd
-build_response_curve_matrix = function(condition_list) {
-  matrix = data.frame(GROUP = as.character(condition_list))
-  matrix = matrix %>% mutate(
-    is_control = str_detect(toupper(GROUP), "^(DMSO|CONTROL|VEHICLE)$"),
-    measurements = str_extract(GROUP, "[0-9.]+[a-zA-Z]+")
-  )
-  controls = matrix %>% filter(is_control) %>% select(GROUP, is_control)
-  treatments = matrix %>% filter(!is_control) %>%
-    mutate(
-      value = as.numeric(str_extract(measurements, "[0-9.]+")),
-      unit = str_extract(measurements, "[a-zA-Z]+"),
-      measurement_type = case_when(
-        unit %in% c("nM", "uM", "mM", "M", "mg", "ug") ~ "dose",
-        unit %in% c("h", "hr", "hrs", "min", "d", "day") ~ "time",
-        unit %in% c("C", "F", "K") ~ "temperature",
-        TRUE ~ "treatment"
-      )
-    ) 
-  if (length(unique(treatments$unit)) > 1) {
-    showNotification(
-      paste("Multiple units of measurement detected in group names: ",
-            paste(unique(treatments$unit), collapse = ", "),
-            " Edit the metadata table to ensure consistent units."),
-      type = "warning",
-      duration = 10
-    )
-  }
-  treatments = treatments %>%
-    pivot_wider(
-      id_cols = c(GROUP, is_control),
-      names_from = measurement_type,
-      values_from = c(value, unit),
-      names_glue = "{measurement_type}_{.value}"
-    )
-  matrix = bind_rows(controls, treatments)
-  value_cols = grep("_value$", colnames(matrix), value = TRUE)
-  for (col in value_cols) {
-    matrix[[col]][matrix$is_control] = 0
-  }
-  if ("dose_value" %in% colnames(matrix)) {
-    matrix = matrix %>% 
-      mutate(
-        drug = ifelse(
-          is_control,
-          GROUP,
-          str_extract(GROUP, "^[^_0-9]+") %>% str_trim()
-        )
-      )
-    # Auto-fill empty drug names with "Treatment" for datasets without drug prefix
-    matrix$drug[is.na(matrix$drug) | matrix$drug == ""] <- "Treatment"
-  }
-  matrix = matrix %>% select(-is_control)
-  
-  return(matrix)
-}
-
 #' Prepare data for dose-response fitting
 #'
 #' Transforms data into MSstatsResponse-compatible format by selecting and
 #' renaming appropriate columns for dose-response analysis.
 #'
-#' @param data Data frame from build_response_curve_matrix
+#' @param data Data frame with GROUP, dose_value, and drug columns
 #'
 #' @return Data frame with columns: protein, drug, dose, response
 #' @noRd

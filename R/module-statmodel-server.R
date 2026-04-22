@@ -164,8 +164,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                 disable(NAMESPACE_STATMODEL$modeling_start)
                 return()
               }
-            } else {
-              rc_matrix <- build_response_curve_matrix(condition_list())
             }
             if (is.null(rc_matrix) || nrow(rc_matrix) == 0) {
               stop("Unable to auto-build group metadata from the current conditions.")
@@ -211,7 +209,21 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             showNotification("At least 2 conditions are required after exclusion.", type = "error")
             return()
           }
-          rc_matrix <- build_response_curve_matrix(filtered_conditions)
+          meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+          if (is.null(meta) || nrow(meta) == 0 || !("DoseVal" %in% colnames(meta))) {
+            stop("Unable to build group metadata from the included conditions.")
+          }
+          meta <- meta[meta$Condition %in% filtered_conditions, , drop = FALSE]
+          if (nrow(meta) == 0) {
+            stop("Unable to build group metadata from the included conditions.")
+          }
+          is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+          rc_matrix <- data.frame(
+            GROUP      = meta$Condition,
+            dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+            drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+            stringsAsFactors = FALSE
+          )
           if (is.null(rc_matrix) || nrow(rc_matrix) == 0) {
             stop("Unable to build group metadata from the included conditions.")
           }
@@ -260,8 +272,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                   stringsAsFactors = FALSE
                 )
               }
-            } else {
-              contrast$matrix = build_response_curve_matrix(condition_list())
             }
           }
           

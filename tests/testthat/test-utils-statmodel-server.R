@@ -377,48 +377,6 @@ test_that("get_contrast_panel_ui returns correct UI for each mode", {
 })
 
 
-test_that("build_response_curve_matrix returns correct columns", {
-  condition_list = c("Dasatinib_001nM", "Dasatinib_001uM", "DMSO")
-  mock_warning_different_units = mock()
-  stub(build_response_curve_matrix, "showNotification", mock_warning_different_units)
-  result = build_response_curve_matrix(condition_list)
-  
-  # This test requires the MSstatsResponse package to be installed
-  expect_equal(nrow(result), 3)
-  expect_equal(ncol(result), 4)
-  expect_true("GROUP" %in% colnames(result))
-  expect_true("drug" %in% colnames(result))
-  expect_true("dose_value" %in% colnames(result))
-  expect_true("dose_unit" %in% colnames(result))
-  expect_called(mock_warning_different_units, 1) 
-})
-
-test_that("build_response_curve_matrix returns correct columns for time", {
-  condition_list = c("time_1h", "time_5hrs", "time_3h")
-  stub(build_response_curve_matrix, "showNotification", function(...) {})
-  result <- build_response_curve_matrix(condition_list)
-  
-  # This test requires the MSstatsResponse package to be installed
-  expect_equal(nrow(result), 3)
-  expect_equal(ncol(result), 3)
-  expect_true("GROUP" %in% colnames(result))
-  expect_true("time_value" %in% colnames(result))
-  expect_true("time_unit" %in% colnames(result))
-})
-
-test_that("build_response_curve_matrix returns correct columns for temperature", {
-  condition_list = c("exp_5F", "time_3F")
-  stub(build_response_curve_matrix, "showNotification", function(...) {})
-  result <- build_response_curve_matrix(condition_list)
-  
-  # This test requires the MSstatsResponse package to be installed
-  expect_equal(nrow(result), 2)
-  expect_equal(ncol(result), 3)
-  expect_true("GROUP" %in% colnames(result))
-  expect_true("temperature_value" %in% colnames(result))
-  expect_true("temperature_unit" %in% colnames(result))
-})
-
 # ============================================================================
 # Tests for update_matrix_from_edit
 # ============================================================================
