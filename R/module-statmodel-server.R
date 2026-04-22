@@ -133,7 +133,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         )
       })
 
-      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list, contrast, app_template, turnover_ratios, condition_metadata)
+      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list, contrast, app_template, condition_metadata)
       
       output[[NAMESPACE_STATMODEL$modeling_section_header]] <- renderUI({
         get_modeling_section_header(input[[NAMESPACE_STATMODEL$comparison_mode]])
@@ -395,7 +395,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       data_comparison_code = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         req(contrast$matrix)
         comp_mat = contrast$matrix
-        generate_analysis_code(qc_input(), loadpage_input(), comp_mat, input, app_template())
+        generate_analysis_code(qc_input(), loadpage_input(), comp_mat, input)
       })
       
       SignificantProteins = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
