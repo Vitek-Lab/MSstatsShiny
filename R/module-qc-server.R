@@ -441,29 +441,17 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
   output$showplot = renderUI({
     ns<- session$ns
 
-    # Compute dynamic plot width when there are many runs (e.g. turnover with labels)
-    plot_width <- "100%"
-    tryCatch({
-      pdata <- preprocess_data()
-      if (!is.null(pdata) && !is.null(pdata$FeatureLevelData)) {
-        n_runs <- length(unique(pdata$FeatureLevelData$RUN))
-        if (n_runs > 20) {
-          plot_width <- paste0(max(800, n_runs * 35), "px")
-        }
-      }
-    }, error = function(e) {})
-
     # PTM plotly plots are still under development
     if (loadpage_input()$BIO == "PTM") {
       output$theplot = renderPlot(theplot())
-      op <- plotOutput(ns("theplot"), width = plot_width)
+      op <- plotOutput(ns("theplot"))
     } else {
       output$theplot = renderPlotly(theplot())
-      op <- plotlyOutput(ns("theplot"), width = plot_width)
+      op <- plotlyOutput(ns("theplot"))
     }
 
     tagList(
-      div(style = "overflow-x: auto;", op),
+      op,
       conditionalPanel(condition = "input['qc-type'] == 'ConditionPlot' && input['qc-which'] != ''",
                        tableOutput(ns("stats"))),
       tags$br(),
