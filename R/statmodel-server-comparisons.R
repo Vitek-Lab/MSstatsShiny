@@ -365,8 +365,6 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
 #'
 #' @param ratios Data frame from calculateTurnoverRatios (Protein, GROUP,
 #'   H_frac columns required)
-#' @param metadata_matrix contrast$matrix after user edits – must have GROUP
-#'   and TimeVal columns
 #' @return Data frame with columns: protein, drug, dose, response
 #' @noRd
 prepare_turnover_for_dose_response <- function(ratios) {
