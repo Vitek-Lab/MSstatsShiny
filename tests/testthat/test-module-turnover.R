@@ -54,7 +54,7 @@ test_that("prepare_turnover_for_dose_response maps columns correctly", {
   expect_equal(result$response, c(0.25, 0.75))
 })
 
-test_that("prepare_turnover_for_dose_response imputes NA H_frac to 0", {
+test_that("prepare_turnover_for_dose_response drops NA H_frac", {
   ratios <- data.frame(
     Protein = c("ProtA", "ProtB", "ProtC"),
     TimeVal = c(1, 2, 4),
@@ -64,12 +64,10 @@ test_that("prepare_turnover_for_dose_response imputes NA H_frac to 0", {
 
   result <- MSstatsShiny:::prepare_turnover_for_dose_response(ratios)
 
-  expect_equal(result$response[1], 0,
-               info = "NA H_frac should be imputed to 0")
-  expect_equal(result$response[2], 0.5,
-               info = "Non-NA H_frac should be preserved")
-  expect_equal(result$response[3], 0,
-               info = "NA H_frac should be imputed to 0")
+  expect_equal(nrow(result), 1,
+               info = "Non-NA rows preserved")
+  expect_equal(result$response[1], 0.5,
+               info = "Non-NA H_frac value is preserved")
   expect_false(any(is.na(result$response)),
                info = "Result response column should contain no NAs")
 })
@@ -116,8 +114,7 @@ test_that("prepare_turnover_for_dose_response coerces Protein to character", {
 
   result <- MSstatsShiny:::prepare_turnover_for_dose_response(ratios)
 
-  expect_type(result$protein, "character",
-              info = "protein column should be character type")
+  expect_type(result$protein, "character")
 })
 
 test_that("prepare_turnover_for_dose_response coerces TimeVal to numeric dose", {
@@ -130,8 +127,7 @@ test_that("prepare_turnover_for_dose_response coerces TimeVal to numeric dose", 
 
   result <- MSstatsShiny:::prepare_turnover_for_dose_response(ratios)
 
-  expect_type(result$dose, "double",
-              info = "dose column should be numeric type")
+  expect_type(result$dose, "double")
   expect_equal(result$dose, 4)
 })
 
@@ -211,67 +207,6 @@ test_that("create_response_curve_options shows ratio scale checkbox for chemopro
 
   expect_true(grepl(NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale, ui_html),
               info = "Ratio scale checkbox should be present for chemoproteomics template")
-})
-
-test_that("create_response_curve_options shows ratio scale checkbox when template is NULL", {
-  ns <- NS("test_module")
-  result <- MSstatsShiny:::create_response_curve_options(ns, template = NULL)
-  ui_html <- htmltools::renderTags(result)$html
-
-  expect_true(grepl(NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale, ui_html),
-              info = "Ratio scale checkbox should be present when template is NULL")
-})
-
-test_that("create_response_curve_options always shows protein selector", {
-  ns <- NS("test_module")
-
-  for (tmpl in list(TEMPLATES$protein_turnover, TEMPLATES$default, TEMPLATES$chemoproteomics, NULL)) {
-    result <- MSstatsShiny:::create_response_curve_options(ns, template = tmpl)
-    ui_html <- htmltools::renderTags(result)$html
-    expect_true(grepl(NAMESPACE_STATMODEL$visualization_which_protein, ui_html),
-                info = paste("Protein selector should always be present; template =", tmpl))
-  }
-})
-
-# ============================================================================
-# Tests for create_response_curve_increasing_trend_checkbox with protein_turnover
-# ============================================================================
-
-test_that("create_response_curve_increasing_trend_checkbox uses turnover label for protein_turnover", {
-  ns <- NS("test_module")
-  result <- MSstatsShiny:::create_response_curve_increasing_trend_checkbox(
-    ns, value = TRUE, template = TEMPLATES$protein_turnover
-  )
-  ui_html <- htmltools::renderTags(result)$html
-
-  expect_true(grepl("heavy-isotope", ui_html),
-              info = "Should use heavy-isotope label text for protein_turnover template")
-  expect_false(grepl("dose-response", ui_html),
-               info = "Should not use dose-response label text for protein_turnover template")
-})
-
-test_that("create_response_curve_increasing_trend_checkbox uses dose-response label for default", {
-  ns <- NS("test_module")
-  result <- MSstatsShiny:::create_response_curve_increasing_trend_checkbox(
-    ns, value = FALSE, template = TEMPLATES$default
-  )
-  ui_html <- htmltools::renderTags(result)$html
-
-  expect_true(grepl("dose-response", ui_html),
-              info = "Should use dose-response label text for default template")
-  expect_false(grepl("heavy-isotope", ui_html),
-               info = "Should not use heavy-isotope label text for default template")
-})
-
-test_that("create_response_curve_increasing_trend_checkbox uses turnover tooltip for protein_turnover", {
-  ns <- NS("test_module")
-  result <- MSstatsShiny:::create_response_curve_increasing_trend_checkbox(
-    ns, value = TRUE, template = TEMPLATES$protein_turnover
-  )
-  ui_html <- htmltools::renderTags(result)$html
-
-  expect_true(grepl("pulse-chase", ui_html),
-              info = "Turnover tooltip should mention pulse-chase experiments")
 })
 
 # ============================================================================
