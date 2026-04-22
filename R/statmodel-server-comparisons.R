@@ -368,8 +368,7 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
 #' @return Data frame with columns: protein, drug, dose, response
 #' @noRd
 prepare_turnover_for_dose_response <- function(ratios) {
-  result <- ratios
-  result$H_frac   <- ifelse(is.na(result$H_frac), 0, result$H_frac)
+  result <- ratios[!is.na(ratios$H_frac), ]
   result$protein  <- as.character(result$Protein)
   result$drug     <- "time"
   result$dose     <- as.numeric(result$TimeVal)
