@@ -1,11 +1,15 @@
 TEMPLATES = list(
   default = "default",
-  chemoproteomics = "chemoproteomics"
+  chemoproteomics = "chemoproteomics",
+  protein_turnover = "protein_turnover"
+  
 )
 
 TEMPLATE_LABELS = list(
   default = "Protein Differential Abundance Analysis",
-  chemoproteomics = "Chemoproteomics"
+  chemoproteomics = "Chemoproteomics",
+  protein_turnover = "Protein Turnover"
+  
 )
 
 NAMESPACE_STATMODEL = list(

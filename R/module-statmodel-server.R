@@ -13,9 +13,10 @@
 #' @param qc_input input object from QC UI
 #' @param get_data stored function that returns the data from loadpage
 #' @param preprocess_data stored function that returns preprocessed data
-#' 
+#' @param app_template reactive returning the selected template name (e.g. TEMPLATES$default)
+#'
 #' @importFrom MSstatsResponse visualizeResponseProtein
-#' 
+#'
 #' @return list object with user selected options and matrix build
 #'
 #' @export
@@ -30,7 +31,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
   moduleServer(
     id,
     function(input, output, session) {
-
+      
       # Initialize reactive values
       condition_list = reactive({
         get_experimental_conditions(loadpage_input(), preprocess_data())
@@ -41,14 +42,23 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       significant = reactiveValues(result = NULL)
 
       # Apply template-specific defaults when the template selection changes.
+      # Each template can override UI control defaults here.
       observeEvent(app_template(), {
         template = app_template()
-        if (template == TEMPLATES$chemoproteomics) {
+        if (template == TEMPLATES$protein_turnover) {
           updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
-                             choices = c("Create dose response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
+                             choices = c("Create turnover time-course curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
                              selected = CONSTANTS_STATMODEL$comparison_mode_response_curve)
           updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-                            choices = c("Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve),
+                            choices = c("Turnover Curve" = CONSTANTS_STATMODEL$plot_type_response_curve),
+                            selected = CONSTANTS_STATMODEL$plot_type_response_curve)
+          updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = TRUE)
+        } else if (template == TEMPLATES$chemoproteomics) {
+          updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
+                             choices = c("Create dose-response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
+                             selected = CONSTANTS_STATMODEL$comparison_mode_response_curve)
+          updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
+                            choices = c("Dose-Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve),
                             selected = CONSTANTS_STATMODEL$plot_type_response_curve)
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = FALSE)
         } else {
@@ -100,12 +110,16 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         req(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
               CONSTANTS_STATMODEL$comparison_mode_response_curve)
         conditions <- condition_list()
+        tooltip_text <- if (isTRUE(app_template() == TEMPLATES$protein_turnover)) {
+          "Select time points to exclude from turnover curve fitting (e.g., outlier time points)."
+        } else {
+          "Select conditions to exclude from dose-response modeling (e.g., quality control conditions like PDPD)."
+        }
         selectizeInput(
           session$ns(NAMESPACE_STATMODEL$comparisons_exclude_conditions),
           label = h5("Exclude conditions from analysis", class = "icon-wrapper",
                      icon("question-circle", lib = "font-awesome"),
-                     div("Select conditions to exclude from dose-response modeling (e.g., quality control conditions like PDPD).",
-                         class = "icon-tooltip")),
+                     div(tooltip_text, class = "icon-tooltip")),
           choices = conditions,
           selected = NULL,
           multiple = TRUE,
@@ -114,28 +128,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
 
       output[[NAMESPACE_STATMODEL$modeling_section_header]] <- renderUI({
-        get_modeling_section_header(input[[NAMESPACE_STATMODEL$comparison_mode]])
+        get_modeling_section_header(input[[NAMESPACE_STATMODEL$comparison_mode]], app_template())
       })
       
-      # Filter visualization dropdown based on comparison mode
-      observeEvent(input[[NAMESPACE_STATMODEL$comparison_mode]], {
-        req(input[[NAMESPACE_STATMODEL$comparison_mode]])
-        mode <- input[[NAMESPACE_STATMODEL$comparison_mode]]
-        if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
-          updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-            choices = c("Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve)
-          )
-        } else {
-          updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-            choices = c(
-              "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot,
-              "Heatmap" = CONSTANTS_STATMODEL$plot_type_heatmap,
-              "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
-            )
-          )
-        }
-      }, ignoreInit = TRUE)
-
       # Reset on configuration change
       observeEvent(c(input[[NAMESPACE_STATMODEL$comparison_mode]], loadpage_input()$proceed1), {
         contrast$matrix = NULL
@@ -146,7 +141,20 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         if (isTRUE(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
             CONSTANTS_STATMODEL$comparison_mode_response_curve)) {
           tryCatch({
-            if (app_template() == TEMPLATES$chemoproteomics) {
+            if (app_template() == TEMPLATES$protein_turnover) {
+              meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+              if (!is.null(meta) && nrow(meta) > 0) {
+                rc_matrix <- data.frame(GROUP = meta$Condition, TimeVal = meta$TimeVal,
+                                        stringsAsFactors = FALSE)
+              } else {
+                showNotification(
+                  "Please enter time values for each condition on the data upload page.",
+                  type = "warning", duration = 8
+                )
+                disable(NAMESPACE_STATMODEL$modeling_start)
+                return()
+              }
+            } else if (app_template() == TEMPLATES$chemoproteomics) {
               meta <- tryCatch(condition_metadata(), error = function(e) NULL)
               if (!is.null(meta) && nrow(meta) > 0 && "DoseVal" %in% colnames(meta)) {
                 is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
@@ -178,14 +186,19 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         }
       })
 
-      # Propagate loadpage metadata edits to contrast$matrix for chemoproteomics.
+      # Propagate loadpage metadata edits to contrast$matrix for response-curve templates.
+      # Fires whenever condition_metadata() changes (e.g. user corrects a cell in loadpage).
       observeEvent(tryCatch(condition_metadata(), error = function(e) NULL), {
         req(isTRUE(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
                      CONSTANTS_STATMODEL$comparison_mode_response_curve))
         meta <- tryCatch(condition_metadata(), error = function(e) NULL)
         req(!is.null(meta) && nrow(meta) > 0)
 
-        if (isTRUE(app_template() == TEMPLATES$chemoproteomics) &&
+        if (isTRUE(app_template() == TEMPLATES$protein_turnover)) {
+          contrast$matrix <- data.frame(GROUP = meta$Condition, TimeVal = meta$TimeVal,
+                                        stringsAsFactors = FALSE)
+          enable(NAMESPACE_STATMODEL$modeling_start)
+        } else if (isTRUE(app_template() == TEMPLATES$chemoproteomics) &&
                    "DoseVal" %in% colnames(meta)) {
           is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
           contrast$matrix <- data.frame(
@@ -198,9 +211,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         }
       }, ignoreNULL = TRUE)
 
+      # Re-filter matrix when excluded conditions change (default template only;
+      # protein_turnover and chemoproteomics metadata comes from loadpage, not condition names)
       observeEvent(input[[NAMESPACE_STATMODEL$comparisons_exclude_conditions]], {
         req(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
               CONSTANTS_STATMODEL$comparison_mode_response_curve)
+        req(isTRUE(app_template() == TEMPLATES$chemoproteomics))
         tryCatch({
           all_conditions <- condition_list()
           excluded <- input[[NAMESPACE_STATMODEL$comparisons_exclude_conditions]]
@@ -261,7 +277,13 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             contrast$matrix = build_all_pair_contrast(
               input, condition_list(), contrast, comp_list, row(), loadpage_input())
           } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
-            if (app_template() == TEMPLATES$chemoproteomics) {
+            if (app_template() == TEMPLATES$protein_turnover) {
+              meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+              if (!is.null(meta) && nrow(meta) > 0) {
+                contrast$matrix = data.frame(GROUP = meta$Condition, TimeVal = meta$TimeVal,
+                                             stringsAsFactors = FALSE)
+              }
+            } else if (app_template() == TEMPLATES$chemoproteomics) {
               meta <- tryCatch(condition_metadata(), error = function(e) NULL)
               if (!is.null(meta) && nrow(meta) > 0 && "DoseVal" %in% colnames(meta)) {
                 is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
@@ -301,10 +323,10 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         matrix = contrast$matrix
         if (input[[NAMESPACE_STATMODEL$comparison_mode]] ==
             CONSTANTS_STATMODEL$comparison_mode_response_curve) {
-          if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
+          if (isTRUE(app_template() %in% c(TEMPLATES$protein_turnover, TEMPLATES$chemoproteomics))) {
             meta <- tryCatch(condition_metadata(), error = function(e) NULL)
             if (!is.null(meta)) {
-              check_cols <- intersect(c("DoseVal", "DoseUnit"), colnames(meta))
+              check_cols <- intersect(c("DoseVal", "TimeVal", "DoseUnit"), colnames(meta))
               if (any(sapply(check_cols, function(col) "?" %in% meta[[col]]))) {
                 showNotification(
                   "Please fill in all '?' values in the condition metadata table on the data upload page before running the analysis.",
@@ -313,6 +335,19 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                 req(FALSE)
               }
             }
+          }
+          if (app_template() == TEMPLATES$protein_turnover) {
+            ratios <- turnover_ratios()
+            dia_prepared <- prepare_turnover_for_dose_response(ratios)
+            response_results <- doseResponseFit(
+              data      = dia_prepared,
+              increasing    = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]],
+              transform_dose = FALSE,
+              ratio_response = FALSE,
+              precalculated_ratios = TRUE
+            )
+            list(ComparisonResult = response_results)
+          } else if (app_template() == TEMPLATES$chemoproteomics) {
             meta <- condition_metadata()
             req(!is.null(meta) && "DoseVal" %in% colnames(meta))
             is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
@@ -366,7 +401,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       output$matrix = renderUI({
         if (!is.null(app_template) && !is.null(app_template()) &&
-            app_template() %in% c(TEMPLATES$chemoproteomics)) {
+            app_template() %in% c(TEMPLATES$protein_turnover, TEMPLATES$chemoproteomics)) {
           return(NULL)
         }
         ns = session$ns
@@ -419,7 +454,10 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           
         } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
-          if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
+          if (app_template() == TEMPLATES$protein_turnover) {
+            req(turnover_ratios())
+            dia_prepared <- prepare_turnover_for_dose_response(turnover_ratios())
+          } else {
             meta <- condition_metadata()
             req(!is.null(meta) && "DoseVal" %in% colnames(meta))
             is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
@@ -429,24 +467,41 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
               stringsAsFactors = FALSE
             )
-          } else {
-            matrix = contrast$matrix
+            protein_level_data = merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
+            dia_prepared = prepare_dose_response_fit(data = protein_level_data)
           }
-          protein_level_data = merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
-          dia_prepared = prepare_dose_response_fit(data = protein_level_data)
 
           output_plot = renderPlot({
-            visualizeResponseProtein(
-              data = dia_prepared,
-              protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
-              drug_name = input[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]],
-              ratio_response = isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
-              show_ic50 = TRUE,
-              add_ci = TRUE,
-              transform_dose = TRUE,
-              n_samples = 1000,
-              increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
-            )
+            if (app_template() == TEMPLATES$protein_turnover) {
+              visualizeResponseProtein(
+                data = dia_prepared,
+                protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
+                drug_name = "time",
+                ratio_response = FALSE,
+                show_ic50 = TRUE,
+                add_ci = FALSE,
+                transform_dose = FALSE,
+                n_samples = 1000,
+                increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]],
+                precalculated_ratios = TRUE,
+                color_by = "BaseSequence",
+                target_response = 0.5,
+                y_lab = "relative abundance",
+                x_lab = "time (hrs)"
+              )
+            } else {
+              visualizeResponseProtein(
+                data = dia_prepared,
+                protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
+                drug_name = input[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]],
+                ratio_response = isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
+                show_ic50 = TRUE,
+                add_ci = TRUE,
+                transform_dose = TRUE,
+                n_samples = 1000,
+                increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
+              )
+            }
           })
           
         } else {

@@ -16,7 +16,6 @@
 loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_template = NULL) {
   moduleServer(id, function(input, output, session) {
 
-    # Condition metadata for chemoproteomics: Condition -> DoseVal/DrugName/DoseUnit mapping
     condition_metadata <- reactiveVal(NULL)
 
     # == shinyFiles LOGIC FOR LOCAL FILE BROWSER =================================
@@ -148,6 +147,26 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       tagList(ui_elements, create_separator_buttons(session$ns, "sep_specdata"))
     })
     
+    output$spectronaut_turnover_ui <- renderUI({
+      req(input$filetype == 'spec', input$BIO != 'PTM')
+      req(!is.null(app_template) && app_template() == TEMPLATES$protein_turnover)
+
+      ns <- session$ns
+      tagList(
+        tags$hr(),
+        h4("Protein Turnover Options"),
+        textInput(ns("spec_intensity_col"),
+                  "Intensity column",
+                  value = "FG.MS1Quantity"),
+        textInput(ns("spec_peptide_seq_col"),
+                  "Peptide sequence column",
+                  value = "FG.LabeledSequence"),
+        textInput(ns("spec_heavy_labels"),
+                  "Heavy labels (comma-separated)",
+                  value = "L[Leu6]")
+      )
+    })
+
     output$spectronaut_options_ui <- renderUI({
       req(input$filetype == 'spec', input$BIO != 'PTM')
       
@@ -421,7 +440,8 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
     output$condition_metadata_table <- DT::renderDT({
       req(!is.null(condition_metadata()))
       meta <- condition_metadata()
-      caption_text <- "Click any cell to edit. Cells showing '?' could not be parsed and must be filled in before running analysis."
+      caption_text <- "Click any cell to edit. Cells showing '?' could not be 
+      parsed and must be filled in before running analysis."
       DT::datatable(
         meta,
         editable = list(target = "cell", disable = list(columns = c(0))),
@@ -437,9 +457,22 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       get_annot()
       shinyjs::show("summary_tables")
 
-      # Initialize condition metadata for chemoproteomics template
       condition_metadata(NULL)
-      if (!is.null(app_template) && isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
+      # Initialize condition metadata for protein turnover and chemoproteomics templates
+      if (!is.null(app_template) && app_template() == TEMPLATES$protein_turnover) {
+        tryCatch({
+          data <- get_data()
+          if (!is.null(data) && "Condition" %in% colnames(data)) {
+            conditions <- unique(as.character(data$Condition))
+            time_vals <- as.character(autofill_condition_value(conditions))
+            time_vals[is.na(time_vals) | time_vals == "NA"] <- "?"
+            meta_df <- data.frame(Condition = conditions,
+                                  TimeVal = time_vals,
+                                  stringsAsFactors = FALSE)
+            condition_metadata(meta_df)
+          }
+        }, error = function(e) {})
+      } else if (!is.null(app_template) && app_template() == TEMPLATES$chemoproteomics) {
         tryCatch({
           data <- get_data()
           if (!is.null(data) && "Condition" %in% colnames(data)) {
@@ -533,13 +566,20 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       })
       output$summary_tables = renderUI({
         ns <- session$ns
-        is_chemo <- !is.null(app_template) && app_template() == TEMPLATES$chemoproteomics
+        is_turnover <- !is.null(app_template) && app_template() == TEMPLATES$protein_turnover
+        is_chemo   <- !is.null(app_template) && app_template() == TEMPLATES$chemoproteomics
         tagList(
           tags$head(
             tags$style(HTML('#loadpage-proceed2{background-color:orange}'))
           ),
           actionButton(inputId = ns("proceed2"), label = "Next step"),
-          if (is_chemo) tagList(
+          if (is_turnover) tagList(
+            tags$hr(),
+            h4("Condition time points"),
+            p("Time values are auto-filled from condition names. Correct any values as needed before running the analysis."),
+            DT::dataTableOutput(ns("condition_metadata_table")),
+            tags$br()
+          ) else if (is_chemo) tagList(
             tags$hr(),
             h4("Condition doses"),
             p("Dose values are auto-filled from condition names. Correct any values as needed before running the analysis."),

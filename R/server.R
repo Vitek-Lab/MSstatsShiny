@@ -47,9 +47,11 @@ server = function(input, output, session) {
   get_condition_metadata = loadpage_values$getConditionMetadata
 
   # qcServer - update to direct call if refactored, otherwise keep callModule for now
-  qc_values = callModule(qcServer, "qc", session, reactive(loadpage_input), get_data)
+  qc_values = callModule(qcServer, "qc", session, reactive(loadpage_input), get_data,
+                         app_template, get_condition_metadata)
   qc_input = qc_values$input
   preprocess_data = qc_values$preprocessData
+  get_turnover_ratios = qc_values$turnoverRatios
 
   statmodel_values = statmodelServer(
     id = "statmodel",
@@ -59,12 +61,13 @@ server = function(input, output, session) {
     get_data = get_data,
     preprocess_data = preprocess_data,
     app_template = app_template,
+    turnover_ratios = get_turnover_ratios,
     condition_metadata = get_condition_metadata
   )
   statmodel_input = statmodel_values$input
   data_comparison = statmodel_values$dataComparison
   statmodel_contrast = statmodel_values$contrast
-
+  
   # expdesServer - keep callModule if not yet refactored
   callModule(expdesServer, "expdes", session, reactive(loadpage_input),
              reactive(qc_input), app_template, data_comparison,

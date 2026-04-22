@@ -16,35 +16,56 @@
 #' @examples
 #' NA
 #' 
-qcServer <- function(input, output, session,parent_session, loadpage_input,get_data) {
+qcServer <- function(input, output, session, parent_session, loadpage_input, get_data,
+                     app_template = NULL, get_condition_metadata = NULL) {
 
-  # output$showplot = renderUI({
-  #   print("****")
-  #         print(new_input()$DDA_DIA)
-  #         print("****")
-  #           if(loadpage_inputs$"loadpage-filetype"=="sky"){
-  #             print("hhhhhhhhhhh")
-  #             selectizeInput("names", "choose standard", unique(get_data()[2]), multiple = TRUE)
-  #           }
-  # 
-  #       })
   output$Names = renderUI({
     ns <- session$ns
+
+    if (!is.null(app_template) && !is.null(app_template()) &&
+        app_template() == TEMPLATES$protein_turnover) {
+      return(selectizeInput(ns("names"), "Standard name",
+                            choices = "unlabeled", selected = "unlabeled",
+                            multiple = TRUE))
+    }
+
     if (input$standards == "Proteins") {
-      # if((loadpage_input()$DDA_DIA=="LType" && loadpage_input()$filetype=="sky")||(loadpage_input()$DDA_DIA=="LType" && loadpage_input()$filetype=="ump")){
-      #   
-      #   selectizeInput(ns("names"), "choose standard", unique(get_data()[2]), multiple = TRUE)
-      # }
-      # else{
       selectizeInput(ns("names"), "choose standard", unique(get_data()$ProteinName), multiple = TRUE)
-      # }
-      
     }
     else if (input$standards == "Peptides") {
       selectizeInput(ns("names"), "choose standard", unique(get_data()$PeptideSequence), multiple = TRUE)
     }
-    
+
   })
+
+  observeEvent(app_template(), {
+    req(!is.null(app_template))
+    if (app_template() == TEMPLATES$protein_turnover) {
+      showTab(inputId = "qc_tabs", target = "Turnover Ratios", session = session)
+      shinyjs::hide("log_section")
+      shinyjs::hide("censoring_section")
+      shinyjs::hide("standards_type_section")
+      updateSelectInput(session, "norm",
+                        choices = c("none" = "FALSE", "global standards" = "globalStandards"),
+                        selected = "FALSE")
+      updateRadioButtons(session, "features_used",
+                         choices = c("Use all features" = "all"),
+                         selected = "all")
+    } else {
+      hideTab(inputId = "qc_tabs", target = "Turnover Ratios", session = session)
+      shinyjs::show("log_section")
+      shinyjs::show("censoring_section")
+      shinyjs::show("standards_type_section")
+      updateSelectInput(session, "norm",
+                        choices = c("none" = "FALSE", "equalize medians" = "equalizeMedians",
+                                    "quantile" = "quantile", "global standards" = "globalStandards"),
+                        selected = "equalizeMedians")
+      updateRadioButtons(session, "features_used",
+                         choices = c("Use all features" = "all", "Use top N features" = "topN",
+                                     "Remove uninformative features & outliers" = "highQuality"),
+                         selected = "all")
+    }
+  }, ignoreNULL = TRUE)
   
   # toggle censoring input based on type of experiment
   
@@ -161,13 +182,35 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   
   # preprocess data
   preprocess_data = eventReactive(input$run, {
-    
+
    qc_input <- reactive({
       input
     })
     preprocessData(qc_input(),loadpage_input(),get_data())
   })
-  
+
+  # For protein turnover, re-level GROUP factor using TimeVal ordering from loadpage
+  ordered_preprocess_data <- reactive({
+    data <- preprocess_data()
+    if (is.null(data)) return(data)
+    if (!is.null(get_condition_metadata) && !is.null(get_condition_metadata())) {
+      meta <- get_condition_metadata()
+      meta_with_time <- meta[!is.na(meta$TimeVal), ]
+      if (nrow(meta_with_time) > 0) {
+        ordered_conditions <- meta_with_time$Condition[order(meta_with_time$TimeVal)]
+        all_groups <- unique(as.character(data$FeatureLevelData$GROUP))
+        remaining <- setdiff(all_groups, ordered_conditions)
+        final_levels <- c(ordered_conditions, remaining)
+        final_levels <- final_levels[final_levels %in% all_groups]
+        data$FeatureLevelData$GROUP <- factor(data$FeatureLevelData$GROUP, levels = final_levels)
+        if (!is.null(data$ProteinLevelData)) {
+          data$ProteinLevelData$GROUP <- factor(data$ProteinLevelData$GROUP, levels = final_levels)
+        }
+      }
+    }
+    data
+  })
+
   preprocess_data_code <- eventReactive(input$calculate, {
     qc_input <- reactive({
       input
@@ -211,7 +254,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                             address = file)
         
       } else{
-        plot <- dataProcessPlots(data = preprocess_data(),
+        plot <- dataProcessPlots(data = ordered_preprocess_data(),
                          type=input$type1,
                          featureName = input$fname,
                          ylimUp = FALSE,
@@ -397,7 +440,7 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   
   output$showplot = renderUI({
     ns<- session$ns
-    
+
     # PTM plotly plots are still under development
     if (loadpage_input()$BIO == "PTM") {
       output$theplot = renderPlot(theplot())
@@ -462,6 +505,10 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
                                        type = input$typequant,
                                        format = input$format,
                                        use_log_file = FALSE)
+    } else if (!is.null(app_template) && !is.null(app_template()) &&
+               app_template() == TEMPLATES$protein_turnover) {
+      # TODO: Refactor quantification function to handle LABEL column
+      abundant$results <- preprocess_data()$ProteinLevelData
     } else{
       temp = copy(preprocess_data())
       abundant$results =quantification(temp,
@@ -513,10 +560,132 @@ qcServer <- function(input, output, session,parent_session, loadpage_input,get_d
   observeEvent(input$proceed4, {
     updateTabsetPanel(session = parent_session, inputId = "tablist", selected = "StatsModel")
   })
+  # ---- Protein Turnover: tracer constants form and ratio calculation ----
+
+  output$turnover_ratios_sidebar <- renderUI({
+    req(!is.null(app_template) && !is.null(app_template()) &&
+          app_template() == TEMPLATES$protein_turnover)
+    req(get_data())
+
+    req(!is.null(get_condition_metadata) && !is.null(get_condition_metadata()))
+    ns <- session$ns
+    conditions <- as.character(get_condition_metadata()$Condition)
+
+    tracer_inputs <- lapply(conditions, function(cond) {
+      input_id <- ns(paste0("tracer_", make.names(cond)))
+      fluidRow(
+        column(6, p(strong(cond))),
+        column(6, numericInput(input_id, NULL, value = 1.0, min = 0, max = 1, step = 0.001))
+      )
+    })
+
+    tagList(
+      tags$hr(),
+      h4("Turnover Ratio Calculation"),
+      p("Enter tracer constants (0 to 1) for each condition:"),
+      tagList(tracer_inputs)
+    )
+  })
+
+  turnover_ratios <- eventReactive(input$run, {
+    req(!is.null(app_template) && !is.null(app_template()) &&
+          app_template() == TEMPLATES$protein_turnover)
+    req(preprocess_data())
+
+    req(!is.null(get_condition_metadata) && !is.null(get_condition_metadata()))
+    conditions <- as.character(get_condition_metadata()$Condition)
+    tracer_consts <- sapply(conditions, function(cond) {
+      val <- input[[paste0("tracer_", make.names(cond))]]
+      if (is.null(val)) 1.0 else as.numeric(val)
+    })
+    names(tracer_consts) <- conditions
+
+    # Use ProteinLevelData when any condition has more than one sample (run);
+    # fall back to FeatureLevelData for purely single-replicate designs.
+    pld <- preprocess_data()$ProteinLevelData
+    samples_per_condition <- tapply(pld$RUN, pld$GROUP, function(x) length(unique(x)))
+    use_protein_level <- any(samples_per_condition > 1)
+
+    if (use_protein_level) {
+      calculateTurnoverRatios(
+        pld,
+        channel_col      = "LABEL",
+        heavy_label      = "H",
+        light_label      = "L",
+        time_col         = "GROUP",
+        peptide_col      = "Protein",
+        protein_col      = "Protein",
+        intensity_col    = "LogIntensities",
+        run_col          = "RUN",
+        peptide_selector = NULL,
+        agg_function     = max,
+        normalize_tracer = TRUE,
+        tracer_constants = tracer_consts
+      )
+    } else {
+      calculateTurnoverRatios(
+        preprocess_data()$FeatureLevelData,
+        channel_col      = "LABEL",
+        heavy_label      = "H",
+        light_label      = "L",
+        time_col         = "GROUP",
+        peptide_col      = "PEPTIDE",
+        protein_col      = "PROTEIN",
+        intensity_col    = "INTENSITY",
+        run_col          = "RUN",
+        peptide_selector = NULL,
+        agg_function     = max,
+        normalize_tracer = TRUE,
+        tracer_constants = tracer_consts
+      )
+    }
+  })
+
+  observeEvent(input$run, {
+    req(!is.null(app_template) && !is.null(app_template()) &&
+          app_template() == TEMPLATES$protein_turnover)
+    turnover_ratios()
+  }, ignoreInit = TRUE)
+
+  output$turnover_ratios_panel <- renderUI({
+    req(!is.null(app_template) && !is.null(app_template()) &&
+          app_template() == TEMPLATES$protein_turnover)
+
+    ns <- session$ns
+    tagList(
+      tags$br(),
+      p("Run protein summarization after filling in tracer constants in the side panel."),
+      uiOutput(ns("turnover_ratios_table_ui")),
+      tags$br(),
+      disabled(downloadButton(ns("download_turnover_ratios"), "Download Ratios"))
+    )
+  })
+
+  output$turnover_ratios_table_ui <- renderUI({
+    req(turnover_ratios())
+    ns <- session$ns
+    enable("download_turnover_ratios")
+    dataTableOutput(ns("turnover_ratios_table"))
+  })
+
+  output$turnover_ratios_table <- renderDataTable({
+    turnover_ratios()
+  })
+
+  output$download_turnover_ratios <- downloadHandler(
+    filename = function() {
+      paste0("Turnover_Ratios-", Sys.Date(), ".csv")
+    },
+    content = function(file) {
+      write.csv(turnover_ratios(), file, row.names = FALSE)
+    }
+  )
+
   return(
     list(
       input = input,
-      preprocessData = preprocess_data
+      preprocessData = preprocess_data,
+      turnoverRatios = turnover_ratios
     )
   )
 }

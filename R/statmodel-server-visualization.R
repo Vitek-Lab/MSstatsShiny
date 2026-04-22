@@ -4,22 +4,22 @@
 
 render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list, contrast, app_template = reactive(TEMPLATES$default), condition_metadata = reactive(NULL)) {
   ns = session$ns
-
+  
   output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
     selectInput(ns(NAMESPACE_STATMODEL$visualization_which_comparison),
-                label = h5("Select comparison to plot"),
+                label = h5("Select comparison to plot"), 
                 c("all", rownames()), selected = "all")
   })
-
+  
   output[[NAMESPACE_STATMODEL$visualization_which_protein]] = renderUI({
     selectInput(ns(NAMESPACE_STATMODEL$visualization_which_protein),
-                label = h4("which protein to plot"),
+                label = h4("which protein to plot"), 
                 unique(get_data()$ProteinName))
   })
-
+  
   output[[NAMESPACE_STATMODEL$visualization_plot_options_conditional_panel]] = renderUI({
     plot_type = input[[NAMESPACE_STATMODEL$visualization_plot_type]]
-
+    
     if (plot_type == CONSTANTS_STATMODEL$plot_type_volcano_plot) {
       show_protein_name = !is.null(loadpage_input()$DDA_DIA) &&
         loadpage_input()$DDA_DIA != "TMT"
@@ -29,24 +29,27 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_heatmap) {
       create_heatmap_options(ns)
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
-      create_response_curve_options(ns)
+      create_response_curve_options(ns, template = if (!is.null(app_template)) app_template() else NULL)
     } else {
       NULL
     }
   })
-
+  
   output[[NAMESPACE_STATMODEL$visualization_fold_change_input]] = renderUI({
     req(input[[NAMESPACE_STATMODEL$visualization_fold_change_checkbox]])
     if (input[[NAMESPACE_STATMODEL$visualization_fold_change_checkbox]]) {
       numericInput(ns(NAMESPACE_STATMODEL$visualization_fold_change_input), "Fold change cutoff", 1, 0, 100, 0.1)
     }
   })
-
+  
   output[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]] = renderUI({
     req(contrast$matrix)
     if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
         CONSTANTS_STATMODEL$plot_type_response_curve) {
-      if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
+      if (!is.null(app_template) && app_template() == TEMPLATES$protein_turnover) {
+        # Protein turnover always uses time as the x-axis; no selection needed
+        NULL
+      } else {
         meta <- tryCatch(condition_metadata(), error = function(e) NULL)
         if (!is.null(meta) && "DoseVal" %in% colnames(meta)) {
           is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
@@ -57,13 +60,13 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
             stringsAsFactors = FALSE
           )
         }
+        response_curve_setup_matrix = prepare_dose_response_fit(rc_mat)
+        unique_drugs = unique(response_curve_setup_matrix$drug)
+        unique_drugs_without_control = unique_drugs[!grepl("^(dmso|control|vehicle)$", tolower(unique_drugs))]
+        selectInput(session$ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug),
+                    label = h5("Select Treatment"),
+                    unique_drugs_without_control, selected = unique_drugs_without_control[[1]])
       }
-      response_curve_setup_matrix = prepare_dose_response_fit(rc_mat)
-      unique_drugs = unique(response_curve_setup_matrix$drug)
-      unique_drugs_without_control = unique_drugs[!grepl("^(dmso|control|vehicle)$", tolower(unique_drugs))]
-      selectInput(session$ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug),
-                  label = h5("Select Treatment"),
-                  unique_drugs_without_control, selected = unique_drugs_without_control[[1]])
     } else {
       NULL
     }
@@ -179,32 +182,60 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
               showNotification("Please build a contrast matrix first.", type = "error")
               return(NULL)
             }
-            if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
-              meta <- tryCatch(condition_metadata(), error = function(e) NULL)
-              if (!is.null(meta) && "DoseVal" %in% colnames(meta)) {
-                is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
-                matrix <- data.frame(
-                  GROUP      = meta$Condition,
-                  dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
-                  drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
-                  stringsAsFactors = FALSE
-                )
+            if (!is.null(app_template) && app_template() == TEMPLATES$protein_turnover) {
+              ratios <- tryCatch(turnover_ratios(), error = function(e) NULL)
+              if (is.null(ratios)) {
+                showNotification("Turnover ratios not yet calculated.", type = "error")
+                return(NULL)
               }
+              dia_prepared <- prepare_turnover_for_dose_response(ratios)
+            } else {
+              if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
+                meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+                if (!is.null(meta) && "DoseVal" %in% colnames(meta)) {
+                  is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+                  matrix <- data.frame(
+                    GROUP      = meta$Condition,
+                    dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+                    drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+                    stringsAsFactors = FALSE
+                  )
+                }
+              }
+              protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
+              dia_prepared <- prepare_dose_response_fit(data = protein_level_data)
             }
-            protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
-            dia_prepared <- prepare_dose_response_fit(data = protein_level_data)
 
-            response_plot <- visualizeResponseProtein(
-              data = dia_prepared,
-              protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
-              drug_name = input[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]],
-              ratio_response = isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
-              show_ic50 = TRUE,
-              add_ci = TRUE,
-              transform_dose = TRUE,
-              n_samples = 1000,
-              increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
-            )
+            if (!is.null(app_template) && app_template() == TEMPLATES$protein_turnover) {
+              response_plot <- visualizeResponseProtein(
+                data = dia_prepared,
+                protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
+                drug_name = "time",
+                ratio_response = FALSE,
+                show_ic50 = TRUE,
+                add_ci = FALSE,
+                transform_dose = FALSE,
+                n_samples = 1000,
+                increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]],
+                precalculated_ratios = TRUE,
+                color_by = "BaseSequence",
+                target_response = 0.5,
+                y_lab = "relative abundance",
+                x_lab = "time (hrs)"
+              )
+            } else {
+              response_plot <- visualizeResponseProtein(
+                data = dia_prepared,
+                protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
+                drug_name = input[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]],
+                ratio_response = isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
+                show_ic50 = TRUE,
+                add_ci = TRUE,
+                transform_dose = TRUE,
+                n_samples = 1000,
+                increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
+              )
+            }
 
             # Save plot to a temp PDF, then zip and copy
             pdf_path <- tempfile("ResponseCurvePlot-", fileext = ".pdf")

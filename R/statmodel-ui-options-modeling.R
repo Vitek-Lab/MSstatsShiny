@@ -31,15 +31,13 @@ create_moderation_radio_buttons <- function(ns) {
   )
 }
 
-create_response_curve_increasing_trend_checkbox <- function(ns, value = FALSE) {
+create_response_curve_increasing_trend_checkbox <- function(ns, value = FALSE, label_text, tooltip_text) {
   checkboxInput(
     ns(NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend),
-    label = tags$div("Increasing trend for dose response curves",
+    label = tags$div(label_text,
                      class = "icon-wrapper",
                      icon("question-circle", lib = "font-awesome"),
-                     div("Check this box if you expect an increasing trend in your dose response curve, e.g. higher doses lead to higher protein abundance.
-                          Uncheck if you expect a decreasing trend, e.g. higher doses lead to lower protein abundance.",
-                         class = "icon-tooltip")
+                     div(tooltip_text, class = "icon-tooltip")
     ),
     value = value
   )

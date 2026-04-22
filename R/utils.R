@@ -678,7 +678,18 @@ getData <- function(input) {
           removeProtein_with1Feature = input$remove,
           use_log_file = FALSE
         )
-        
+
+        # Add protein turnover specific parameters if provided
+        if (!is.null(input$spec_intensity_col) && nchar(trimws(input$spec_intensity_col)) > 0) {
+          converter_args$intensity <- trimws(input$spec_intensity_col)
+        }
+        if (!is.null(input$spec_peptide_seq_col) && nchar(trimws(input$spec_peptide_seq_col)) > 0) {
+          converter_args$peptideSequenceColumn <- trimws(input$spec_peptide_seq_col)
+        }
+        if (!is.null(input$spec_heavy_labels) && nchar(trimws(input$spec_heavy_labels)) > 0) {
+          converter_args$heavyLabels <- trimws(strsplit(trimws(input$spec_heavy_labels), ",\\s*")[[1]])
+        }
+
         if (isTRUE(input$calculate_anomaly_scores) && !is.null(input$run_order_file)) {
           # Add anomaly score parameters only if the checkbox is checked
           converter_args$calculateAnomalyScores = TRUE
@@ -711,6 +722,11 @@ getData <- function(input) {
       quantificationColumn = if (isTRUE(input$diann_2plus)) "auto" else {
         if (!is.null(input$intensity_column) && nzchar(input$intensity_column)) input$intensity_column else "auto"
       }
+      labeled_aa <- if (!is.null(input$diann_labeled_aa) && nzchar(input$diann_labeled_aa)) {
+        trimws(strsplit(input$diann_labeled_aa, ",")[[1]])
+      } else {
+        NULL
+      }
 
       mydata = DIANNtoMSstatsFormat(data,
                                     annotation = getAnnot(input),
@@ -719,7 +735,8 @@ getData <- function(input) {
                                     removeProtein_with1Feature = TRUE,
                                     removeFewMeasurements = FALSE,
                                     use_log_file = FALSE,
-                                    quantificationColumn = quantificationColumn
+                                    quantificationColumn = quantificationColumn,
+                                    labeledAminoAcids = labeled_aa
       )
       print("Mydata from mstats")
       print(mydata)

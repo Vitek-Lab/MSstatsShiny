@@ -28,6 +28,8 @@ statmodelServer(
 \item{get_data}{stored function that returns the data from loadpage}
 
 \item{preprocess_data}{stored function that returns preprocessed data}
+
+\item{app_template}{reactive returning the selected template name (e.g. TEMPLATES$default)}
 }
 \value{
 list object with user selected options and matrix build

@@ -1,4 +1,4 @@
-generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
+generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app_template = TEMPLATES$default) {
   codes = preprocessDataCode(qc_input, loadpage_input)
 
   # Check if this is a response curve analysis
@@ -59,16 +59,32 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
                   "  ratio_response = FALSE\n)\n", sep = "")
 
     codes = paste(codes, "\n# Visualize response curves\n", sep = "")
-    codes = paste(codes, "visualizeResponseProtein(\n",
-                  "  data = prepared_data,\n",
-                  "  protein_name = \"Enter protein name here\",\n",
-                  "  drug_name = \"Enter drug name here\",\n",
-                  "  ratio_response = ", ratio_response, ",\n",
-                  "  show_ic50 = TRUE,\n",
-                  "  add_ci = TRUE,\n",
-                  "  transform_dose = ", transform_dose, ",\n",
-                  "  n_samples = 1000,\n",
-                  "  increasing = ", increasing, "\n)\n", sep = "")
+    if (app_template == TEMPLATES$protein_turnover) {
+      codes = paste(codes, "visualizeResponseProtein(\n",
+                    "  data = prepared_data,\n",
+                    "  protein_name = \"Enter protein name here\",\n",
+                    "  drug_name = \"time\",\n",
+                    "  ratio_response = FALSE,\n",
+                    "  show_ic50 = TRUE,\n",
+                    "  add_ci = FALSE,\n",
+                    "  transform_dose = FALSE,\n",
+                    "  n_samples = 1000,\n",
+                    "  increasing = ", increasing, ",\n",
+                    "  precalculated_ratios = TRUE,\n",
+                    "  color_by = \"BaseSequence\",\n",
+                    "  target_response = 0.5\n)\n", sep = "")
+    } else {
+      codes = paste(codes, "visualizeResponseProtein(\n",
+                    "  data = prepared_data,\n",
+                    "  protein_name = \"Enter protein name here\",\n",
+                    "  drug_name = \"Enter drug name here\",\n",
+                    "  ratio_response = ", ratio_response, ",\n",
+                    "  show_ic50 = TRUE,\n",
+                    "  add_ci = TRUE,\n",
+                    "  transform_dose = ", transform_dose, ",\n",
+                    "  n_samples = 1000,\n",
+                    "  increasing = ", increasing, "\n)\n", sep = "")
+    }
 
     return(codes)
   }

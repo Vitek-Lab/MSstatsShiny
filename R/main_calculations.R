@@ -77,7 +77,12 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
     summarize_function <- MSstatsSummarizeSingleTMP
   }
   
-  input_split <- split(prep_input, prep_input$PROTEIN)
+  is_labeled_ref <- "is_labeled_ref" %in% colnames(prep_input) && any(prep_input$is_labeled_ref, na.rm = TRUE)
+  input_split <- if (is_labeled_ref) {
+    split(prep_input, prep_input$PROTEIN)
+  } else {
+    split(prep_input, list(prep_input$PROTEIN, prep_input$LABEL))
+  }
   num_proteins <- length(input_split)
   
   if (busy_indicator) {

@@ -49,8 +49,7 @@ uiObject <- function() {
     title = "MSstatsShiny",
     id = "tablist",
     selected = currentTab,
-    
-    
+
     tabPanel("Homepage", icon = icon("home"), homeUI("home")),
     tabPanel("1. Data Uploading",value = "Uploaddata", icon = icon("paper-plane"), loadpageUI("loadpage")),
     tabPanel("2. Data Processing", value = "DataProcessing", icon = icon("gears"), qcUI("qc")),
