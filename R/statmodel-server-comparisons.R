@@ -2,6 +2,64 @@
 # Contrast Matrix Building Functions
 # ============================================================================
 
+#' Convert dose values from their measured unit to molar (M)
+#' @noRd
+convert_dose_to_molar <- function(dose_val, dose_unit) {
+  multipliers <- c(nM=1e-9, nm=1e-9, uM=1e-6, um=1e-6, mM=1e-3, mm=1e-3, M=1, m=1)
+  if (length(dose_unit) == 1) dose_unit <- rep(dose_unit, length(dose_val))
+  mult <- unname(multipliers[dose_unit])
+  mult[is.na(mult)] <- 1
+  dose_val * mult
+}
+
+#' Parse dose unit from condition names (vectorized, per condition)
+#' @noRd
+parse_dose_unit_from_conditions <- function(conditions) {
+  is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(trimws(conditions)))
+  measurement <- str_extract(conditions, "[0-9.]+[a-zA-Z]+")
+  unit <- str_extract(measurement, "[a-zA-Z]+")
+  unit[is_ctrl] <- ""
+  unit[!is_ctrl & (is.na(unit) | nchar(unit) == 0)] <- "?"
+  unit
+}
+
+#' Parse drug name from condition names (returns "Treatment" if unparseable)
+#' @noRd
+parse_drug_name_from_conditions <- function(conditions) {
+  is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(trimws(conditions)))
+  result <- character(length(conditions))
+  result[is_ctrl] <- conditions[is_ctrl]
+  non_ctrl_idx <- which(!is_ctrl)
+  if (length(non_ctrl_idx) == 0) return(result)
+  prefixes <- gsub("[_ .-]?[0-9.]+[a-zA-Z]+.*$", "", conditions[non_ctrl_idx])
+  prefixes <- trimws(prefixes, whitespace = "[ _\t.-]")
+  prefixes[nchar(prefixes) == 0] <- "Treatment"
+  result[non_ctrl_idx] <- prefixes
+  result
+}
+
+#' Auto-fill numeric dose/time value from condition name
+#' @noRd
+autofill_condition_value <- function(conditions) {
+  is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(trimws(conditions)))
+  measurement <- str_extract(conditions, "[0-9.]+[a-zA-Z]+")
+  value <- suppressWarnings(as.numeric(str_extract(measurement, "[0-9.]+")))
+  value[is_ctrl] <- 0
+  failed <- conditions[!is_ctrl & is.na(value)]
+  if (length(failed) > 0) {
+    showNotification(
+      paste0(
+        "Could not parse a dose value from: ",
+        paste(failed, collapse = ", "),
+        ". Edit the metadata table to enter values manually."
+      ),
+      type = "warning",
+      duration = 10
+    )
+  }
+  value
+}
+
 #' Get experimental conditions from preprocessed data
 #'
 #' @param loadpage_input List containing BIO, DDA_DIA, and filetype parameters
@@ -299,77 +357,12 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
   matrix[!(matrix$GROUP %in% excluded), , drop = FALSE]
 }
 
-#' Build response curve matrix from condition list
-#'
-#' Parses condition names to extract dose, time, temperature, or treatment
-#' information and creates a structured matrix for dose-response analysis.
-#'
-#' @param condition_list Character vector of condition names
-#'
-#' @return Data frame with parsed condition information
-#' @noRd
-build_response_curve_matrix = function(condition_list) {
-  matrix = data.frame(GROUP = as.character(condition_list))
-  matrix = matrix %>% mutate(
-    is_control = str_detect(toupper(GROUP), "^(DMSO|CONTROL|VEHICLE)$"),
-    measurements = str_extract_all(GROUP, "[0-9.]+[a-zA-Z]+")
-  )
-  controls = matrix %>% filter(is_control) %>% select(GROUP, is_control)
-  treatments = matrix %>% filter(!is_control) %>%
-    mutate(
-      value = as.numeric(str_extract(measurements, "[0-9.]+")),
-      unit = str_extract(measurements, "[a-zA-Z]+"),
-      measurement_type = case_when(
-        unit %in% c("nM", "uM", "mM", "M", "mg", "ug") ~ "dose",
-        unit %in% c("h", "hr", "hrs", "min", "d", "day") ~ "time",
-        unit %in% c("C", "F", "K") ~ "temperature",
-        TRUE ~ "treatment"
-      )
-    ) 
-  if (length(unique(treatments$unit)) > 1) {
-    showNotification(
-      paste("Multiple units of measurement detected in group names: ",
-            paste(unique(treatments$unit), collapse = ", "),
-            " Edit the metadata table to ensure consistent units."),
-      type = "warning",
-      duration = 10
-    )
-  }
-  treatments = treatments %>%
-    pivot_wider(
-      id_cols = c(GROUP, is_control),
-      names_from = measurement_type,
-      values_from = c(value, unit),
-      names_glue = "{measurement_type}_{.value}"
-    )
-  matrix = bind_rows(controls, treatments)
-  value_cols = grep("_value$", colnames(matrix), value = TRUE)
-  for (col in value_cols) {
-    matrix[[col]][matrix$is_control] = 0
-  }
-  if ("dose_value" %in% colnames(matrix)) {
-    matrix = matrix %>% 
-      mutate(
-        drug = ifelse(
-          is_control,
-          GROUP,
-          str_extract(GROUP, "^[^_0-9]+") %>% str_trim()
-        )
-      )
-    # Auto-fill empty drug names with "Treatment" for datasets without drug prefix
-    matrix$drug[is.na(matrix$drug) | matrix$drug == ""] <- "Treatment"
-  }
-  matrix = matrix %>% select(-is_control)
-  
-  return(matrix)
-}
-
 #' Prepare data for dose-response fitting
 #'
 #' Transforms data into MSstatsResponse-compatible format by selecting and
 #' renaming appropriate columns for dose-response analysis.
 #'
-#' @param data Data frame from build_response_curve_matrix
+#' @param data Data frame with GROUP, dose_value, and drug columns
 #'
 #' @return Data frame with columns: protein, drug, dose, response
 #' @noRd

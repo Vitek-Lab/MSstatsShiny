@@ -25,7 +25,7 @@ create_plot_type_selector <- function(ns) {
         "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot, 
         "Heatmap" = CONSTANTS_STATMODEL$plot_type_heatmap, 
         "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot,
-        "Dose Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve
+        "Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve
       )
     )
   )

@@ -2,24 +2,24 @@
 # Visualization Options and Plotting Functions
 # ============================================================================
 
-render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list, contrast) {
+render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list, contrast, app_template = reactive(TEMPLATES$default), condition_metadata = reactive(NULL)) {
   ns = session$ns
-  
+
   output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
     selectInput(ns(NAMESPACE_STATMODEL$visualization_which_comparison),
-                label = h5("Select comparison to plot"), 
+                label = h5("Select comparison to plot"),
                 c("all", rownames()), selected = "all")
   })
-  
+
   output[[NAMESPACE_STATMODEL$visualization_which_protein]] = renderUI({
     selectInput(ns(NAMESPACE_STATMODEL$visualization_which_protein),
-                label = h4("which protein to plot"), 
+                label = h4("which protein to plot"),
                 unique(get_data()$ProteinName))
   })
-  
+
   output[[NAMESPACE_STATMODEL$visualization_plot_options_conditional_panel]] = renderUI({
     plot_type = input[[NAMESPACE_STATMODEL$visualization_plot_type]]
-    
+
     if (plot_type == CONSTANTS_STATMODEL$plot_type_volcano_plot) {
       show_protein_name = !is.null(loadpage_input()$DDA_DIA) &&
         loadpage_input()$DDA_DIA != "TMT"
@@ -34,23 +34,35 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
       NULL
     }
   })
-  
+
   output[[NAMESPACE_STATMODEL$visualization_fold_change_input]] = renderUI({
     req(input[[NAMESPACE_STATMODEL$visualization_fold_change_checkbox]])
     if (input[[NAMESPACE_STATMODEL$visualization_fold_change_checkbox]]) {
       numericInput(ns(NAMESPACE_STATMODEL$visualization_fold_change_input), "Fold change cutoff", 1, 0, 100, 0.1)
     }
   })
-  
+
   output[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]] = renderUI({
     req(contrast$matrix)
-    if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
+    if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
         CONSTANTS_STATMODEL$plot_type_response_curve) {
-      response_curve_setup_matrix = prepare_dose_response_fit(contrast$matrix)
+      if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
+        meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+        if (!is.null(meta) && "DoseVal" %in% colnames(meta)) {
+          is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+          rc_mat <- data.frame(
+            GROUP      = meta$Condition,
+            dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+            drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+            stringsAsFactors = FALSE
+          )
+        }
+      }
+      response_curve_setup_matrix = prepare_dose_response_fit(rc_mat)
       unique_drugs = unique(response_curve_setup_matrix$drug)
-      unique_drugs_without_control = unique_drugs[unique_drugs != "DMSO"]
+      unique_drugs_without_control = unique_drugs[!grepl("^(dmso|control|vehicle)$", tolower(unique_drugs))]
       selectInput(session$ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug),
-                  label = h5("Select Treatment"), 
+                  label = h5("Select Treatment"),
                   unique_drugs_without_control, selected = unique_drugs_without_control[[1]])
     } else {
       NULL
@@ -151,7 +163,7 @@ zip_and_copy_plot <- function(pdf_files, dest_file) {
 
 #' @importFrom ggplot2 ggsave
 #' @importFrom utils zip
-create_download_plot_handler <- function(output, input, contrast, preprocess_data, data_comparison, loadpage_input) {
+create_download_plot_handler <- function(output, input, contrast, preprocess_data, data_comparison, loadpage_input, app_template = reactive(TEMPLATES$default), condition_metadata = reactive(NULL)) {
   output[[NAMESPACE_STATMODEL$visualization_download_plot_results]] <- downloadHandler(
     filename = function() {
       get_download_plot_filename(input[[NAMESPACE_STATMODEL$visualization_plot_type]])
@@ -167,6 +179,18 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
               showNotification("Please build a contrast matrix first.", type = "error")
               return(NULL)
             }
+            if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
+              meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+              if (!is.null(meta) && "DoseVal" %in% colnames(meta)) {
+                is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+                matrix <- data.frame(
+                  GROUP      = meta$Condition,
+                  dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+                  drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+                  stringsAsFactors = FALSE
+                )
+              }
+            }
             protein_level_data <- merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
             dia_prepared <- prepare_dose_response_fit(data = protein_level_data)
 
@@ -177,7 +201,7 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
               ratio_response = isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
               show_ic50 = TRUE,
               add_ci = TRUE,
-              transform_dose = input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]],
+              transform_dose = TRUE,
               n_samples = 1000,
               increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
             )

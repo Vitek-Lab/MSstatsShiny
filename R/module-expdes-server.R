@@ -33,18 +33,6 @@
   )
 }
 
-#' Check if the current analysis mode is dose response curve
-#'
-#' @param statmodel_input List. The input values from the statmodel module.
-#' @return Logical. TRUE if dose response curve mode is selected.
-#' @noRd
-.is_response_curve_mode <- function(statmodel_input) {
-  !is.null(statmodel_input) &&
-    !is.null(statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]]) &&
-    statmodel_input[[NAMESPACE_STATMODEL$comparison_mode]] ==
-      CONSTANTS_STATMODEL$comparison_mode_response_curve
-}
-
 # ============================================================================
 # Expdes Server Module
 # ============================================================================
@@ -57,7 +45,7 @@
 #' @param parent_session session of the main calling module
 #' @param loadpage_input input object from loadpage UI
 #' @param qc_input input object from QC UI
-#' @param statmodel_input input object from Statmodel UI
+#' @param app_template reactive returning the selected template name
 #' @param data_comparison function for group comparisons
 #' @param preprocess_data function returning preprocessed data
 #' @param statmodel_contrast reactiveValues object containing the contrast matrix from statmodel
@@ -69,8 +57,9 @@
 #' NA
 #'
 expdesServer <- function(input, output, session, parent_session, loadpage_input,
-                         qc_input, statmodel_input, data_comparison,
-                         preprocess_data = NULL, statmodel_contrast = NULL) {
+                         qc_input, app_template = reactive(TEMPLATES$default),
+                         data_comparison, preprocess_data = NULL,
+                         statmodel_contrast = NULL) {
   ns <- session$ns
 
   prepared_response_data <- reactive({
@@ -84,7 +73,7 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
   })
 
   is_response_curve <- reactive({
-    .is_response_curve_mode(statmodel_input())
+    app_template() %in% c(TEMPLATES$chemoproteomics)
   })
 
   # Render sidebar controls based on analysis mode
@@ -146,9 +135,11 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
         remove_modal_spinner()
         return()
       }
+      user_concs <- user_concs * 1e9 # simulations for chemoproteomics assume nM.
 
       # Check replicates per dose in user's data
       sim_data <- prepared_response_data()
+      sim_data$dose <- sim_data$dose * 1e9 # simulations for chemoproteomics assume nM.
       selected_protein <- input[[NAMESPACE_EXPDES$protein_select]]
       reps_per_dose <- .check_replicates_per_dose(sim_data, selected_protein)
 
@@ -170,7 +161,7 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
         dose_range = c(2, length(user_concs)),
         data = sim_data,
         protein = selected_protein,
-        n_proteins = 1000
+        n_proteins = 300
       )
       simulation_results(results)
       remove_modal_spinner()

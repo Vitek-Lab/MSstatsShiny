@@ -7,7 +7,7 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
 
   if (is_response_curve) {
     increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
-    transform_dose = input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]]
+    transform_dose = TRUE
     ratio_response = isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]])
 
     codes = paste(codes, "\n# Set up dose response analysis\n", sep = "")

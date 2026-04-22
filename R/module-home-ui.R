@@ -41,6 +41,18 @@ homeUI <- function(id) {
       providing an all in one, end to end, analysis pipeline for proteomic 
         data."),
           br(),
+          h2("Select a Template"),
+          selectInput(
+            inputId = "app_template",
+            label = "Choose a workflow template to pre-configure analysis options:",
+            choices = setNames(
+              unlist(TEMPLATES, use.names = FALSE),
+              unlist(TEMPLATE_LABELS, use.names = FALSE)
+            ),
+            selected = TEMPLATES$default,
+            width = "400px"
+          ),
+          br(),
           h2("Please select from the following options to get started"),
           h4("1.", actionButton(inputId = ns("StartPipeline"), label = "Run MSstats Pipeline")),
           h4("2.", actionButton(inputId = ns("Reset"), label = "Reset Pipeline")),

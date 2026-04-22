@@ -22,21 +22,54 @@
 #' @examples
 #' NA
 #'
-statmodelServer = function(id, parent_session, loadpage_input, qc_input, 
-                           get_data, preprocess_data) {
+statmodelServer = function(id, parent_session, loadpage_input, qc_input,
+                           get_data, preprocess_data,
+                           app_template = reactive(TEMPLATES$default),
+                           turnover_ratios = reactive(NULL),
+                           condition_metadata = reactive(NULL)) {
   moduleServer(
     id,
     function(input, output, session) {
-      
+
       # Initialize reactive values
-      condition_list = reactive({ 
-        get_experimental_conditions(loadpage_input(), preprocess_data()) 
+      condition_list = reactive({
+        get_experimental_conditions(loadpage_input(), preprocess_data())
       })
       row = reactive({ rep(0, length(condition_list())) })
       contrast = reactiveValues(matrix = NULL, row = NULL)
       comp_list = reactiveValues(dList = NULL)
       significant = reactiveValues(result = NULL)
-      
+
+      # Apply template-specific defaults when the template selection changes.
+      observeEvent(app_template(), {
+        template = app_template()
+        if (template == TEMPLATES$chemoproteomics) {
+          updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
+                             choices = c("Create dose response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
+                             selected = CONSTANTS_STATMODEL$comparison_mode_response_curve)
+          updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
+                            choices = c("Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve),
+                            selected = CONSTANTS_STATMODEL$plot_type_response_curve)
+          updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = FALSE)
+        } else {
+          updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
+                             choices = c(
+                               "All possible pairwise comparisons"      = CONSTANTS_STATMODEL$comparison_mode_all_pairwise,
+                               "Compare all against one"                = CONSTANTS_STATMODEL$comparison_mode_all_vs_one,
+                               "Create custom pairwise comparisons"     = CONSTANTS_STATMODEL$comparison_mode_custom_pairwise,
+                               "Create custom non-pairwise comparisons" = CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise
+                             ),
+                             selected = character(0))
+          updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
+                            choices = c(
+                              "Volcano Plot"    = CONSTANTS_STATMODEL$plot_type_volcano_plot,
+                              "Heatmap"         = CONSTANTS_STATMODEL$plot_type_heatmap,
+                              "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
+                            ))
+          updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = FALSE)
+        }
+      }, ignoreInit = FALSE)
+
       # UI visibility
       observe({
         if (loadpage_input()$DDA_DIA == "TMT" | loadpage_input()$BIO == "PTM") {
@@ -61,7 +94,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         tryCatch({ rownames(matrix_build()) }, error = function(e) {})
       })
       
-      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list,contrast)
+      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list, contrast, app_template, condition_metadata)
 
       output[[NAMESPACE_STATMODEL$comparisons_exclude_conditions]] <- renderUI({
         req(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
@@ -90,7 +123,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         mode <- input[[NAMESPACE_STATMODEL$comparison_mode]]
         if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
           updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-            choices = c("Dose Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve)
+            choices = c("Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve)
           )
         } else {
           updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
@@ -110,10 +143,28 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         significant$result = NULL
 
         # Auto-build response curve metadata when dose response mode is selected
-        if (isTRUE(input[[NAMESPACE_STATMODEL$comparison_mode]] == 
+        if (isTRUE(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
             CONSTANTS_STATMODEL$comparison_mode_response_curve)) {
           tryCatch({
-            rc_matrix <- build_response_curve_matrix(condition_list())
+            if (app_template() == TEMPLATES$chemoproteomics) {
+              meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+              if (!is.null(meta) && nrow(meta) > 0 && "DoseVal" %in% colnames(meta)) {
+                is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+                rc_matrix <- data.frame(
+                  GROUP      = meta$Condition,
+                  dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+                  drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+                  stringsAsFactors = FALSE
+                )
+              } else {
+                showNotification(
+                  "Please enter dose values for each condition on the data upload page.",
+                  type = "warning", duration = 8
+                )
+                disable(NAMESPACE_STATMODEL$modeling_start)
+                return()
+              }
+            }
             if (is.null(rc_matrix) || nrow(rc_matrix) == 0) {
               stop("Unable to auto-build group metadata from the current conditions.")
             }
@@ -127,7 +178,26 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         }
       })
 
-      # Re-filter matrix when excluded conditions change
+      # Propagate loadpage metadata edits to contrast$matrix for chemoproteomics.
+      observeEvent(tryCatch(condition_metadata(), error = function(e) NULL), {
+        req(isTRUE(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
+                     CONSTANTS_STATMODEL$comparison_mode_response_curve))
+        meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+        req(!is.null(meta) && nrow(meta) > 0)
+
+        if (isTRUE(app_template() == TEMPLATES$chemoproteomics) &&
+                   "DoseVal" %in% colnames(meta)) {
+          is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+          contrast$matrix <- data.frame(
+            GROUP      = meta$Condition,
+            dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+            drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+            stringsAsFactors = FALSE
+          )
+          enable(NAMESPACE_STATMODEL$modeling_start)
+        }
+      }, ignoreNULL = TRUE)
+
       observeEvent(input[[NAMESPACE_STATMODEL$comparisons_exclude_conditions]], {
         req(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
               CONSTANTS_STATMODEL$comparison_mode_response_curve)
@@ -139,7 +209,21 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             showNotification("At least 2 conditions are required after exclusion.", type = "error")
             return()
           }
-          rc_matrix <- build_response_curve_matrix(filtered_conditions)
+          meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+          if (is.null(meta) || nrow(meta) == 0 || !("DoseVal" %in% colnames(meta))) {
+            stop("Unable to build group metadata from the included conditions.")
+          }
+          meta <- meta[meta$Condition %in% filtered_conditions, , drop = FALSE]
+          if (nrow(meta) == 0) {
+            stop("Unable to build group metadata from the included conditions.")
+          }
+          is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+          rc_matrix <- data.frame(
+            GROUP      = meta$Condition,
+            dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+            drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+            stringsAsFactors = FALSE
+          )
           if (is.null(rc_matrix) || nrow(rc_matrix) == 0) {
             stop("Unable to build group metadata from the included conditions.")
           }
@@ -177,8 +261,18 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             contrast$matrix = build_all_pair_contrast(
               input, condition_list(), contrast, comp_list, row(), loadpage_input())
           } else if (input[[NAMESPACE_STATMODEL$comparison_mode]] == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
-            contrast$matrix = build_response_curve_matrix(
-              condition_list())
+            if (app_template() == TEMPLATES$chemoproteomics) {
+              meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+              if (!is.null(meta) && nrow(meta) > 0 && "DoseVal" %in% colnames(meta)) {
+                is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+                contrast$matrix = data.frame(
+                  GROUP      = meta$Condition,
+                  dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+                  drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+                  stringsAsFactors = FALSE
+                )
+              }
+            }
           }
           
           enable(NAMESPACE_STATMODEL$modeling_start)
@@ -194,7 +288,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       output[[NAMESPACE_STATMODEL$modeling_response_curve_fitting_options]] = renderUI({
         get_response_curve_fitting_options(
-          input[[NAMESPACE_STATMODEL$comparison_mode]], session$ns)
+          input[[NAMESPACE_STATMODEL$comparison_mode]], session$ns, app_template())
       })
       
       output[[NAMESPACE_STATMODEL$modeling_tmt_moderation]] = renderUI({
@@ -205,9 +299,33 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       data_comparison = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         req(contrast$matrix)
         matrix = contrast$matrix
-        if (input[[NAMESPACE_STATMODEL$comparison_mode]] == 
+        if (input[[NAMESPACE_STATMODEL$comparison_mode]] ==
             CONSTANTS_STATMODEL$comparison_mode_response_curve) {
-          fitResponseCurves(input, matrix, preprocess_data())
+          if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
+            meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+            if (!is.null(meta)) {
+              check_cols <- intersect(c("DoseVal", "DoseUnit"), colnames(meta))
+              if (any(sapply(check_cols, function(col) "?" %in% meta[[col]]))) {
+                showNotification(
+                  "Please fill in all '?' values in the condition metadata table on the data upload page before running the analysis.",
+                  type = "error", duration = 8
+                )
+                req(FALSE)
+              }
+            }
+            meta <- condition_metadata()
+            req(!is.null(meta) && "DoseVal" %in% colnames(meta))
+            is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+            matrix <- data.frame(
+              GROUP      = meta$Condition,
+              dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+              drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+              stringsAsFactors = FALSE
+            )
+            fitResponseCurves(input, matrix, preprocess_data(), transform_dose = TRUE)
+          } else {
+            fitResponseCurves(input, matrix, preprocess_data(), transform_dose = TRUE)
+          }
         } else {
           dataComparison(input, qc_input(), loadpage_input(), matrix, preprocess_data())
         }
@@ -216,7 +334,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       data_comparison_code = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         req(contrast$matrix)
         comp_mat = contrast$matrix
-        generate_analysis_code(qc_input(), loadpage_input(), comp_mat, input)
+        generate_analysis_code(qc_input(), loadpage_input(), comp_mat, input, app_template())
       })
       
       SignificantProteins = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
@@ -247,6 +365,10 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
       
       output$matrix = renderUI({
+        if (!is.null(app_template) && !is.null(app_template()) &&
+            app_template() %in% c(TEMPLATES$chemoproteomics)) {
+          return(NULL)
+        }
         ns = session$ns
         mode = input[[NAMESPACE_STATMODEL$comparison_mode]]
         matrix_title = if (isTRUE(mode == CONSTANTS_STATMODEL$comparison_mode_response_curve)) {
@@ -281,7 +403,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       # Download handlers
       create_download_handlers(output, data_comparison, SignificantProteins, 
                                data_comparison_code)
-      create_download_plot_handler(output, input, contrast, preprocess_data, data_comparison, loadpage_input)
+      create_download_plot_handler(output, input, contrast, preprocess_data, data_comparison, loadpage_input, app_template, condition_metadata)
       
       # Plot rendering
       output[[NAMESPACE_STATMODEL$visualization_plot_output]] = renderUI({
@@ -295,21 +417,33 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             )
           })
           
-        } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
+        } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
-          matrix = contrast$matrix
+          if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
+            meta <- condition_metadata()
+            req(!is.null(meta) && "DoseVal" %in% colnames(meta))
+            is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+            matrix <- data.frame(
+              GROUP      = meta$Condition,
+              dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+              drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+              stringsAsFactors = FALSE
+            )
+          } else {
+            matrix = contrast$matrix
+          }
           protein_level_data = merge(preprocess_data()$ProteinLevelData, matrix, by = "GROUP")
           dia_prepared = prepare_dose_response_fit(data = protein_level_data)
-          
-          output_plot = renderPlot({ 
+
+          output_plot = renderPlot({
             visualizeResponseProtein(
               data = dia_prepared,
               protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
               drug_name = input[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]],
               ratio_response = isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
               show_ic50 = TRUE,
-              add_ci = TRUE, 
-              transform_dose = input[[NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis]], 
+              add_ci = TRUE,
+              transform_dose = TRUE,
               n_samples = 1000,
               increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
             )

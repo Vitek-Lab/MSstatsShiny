@@ -31,11 +31,10 @@ get_modeling_section_header <- function(mode) {
 
 #' Get response curve fitting options conditioned on if contrast mode is response curve
 #' @noRd
-get_response_curve_fitting_options = function(mode, ns) {
+get_response_curve_fitting_options = function(mode, ns, template = TEMPLATES$default) {
   if (!is.null(mode) && mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
     tagList(
-      create_response_curve_log_xaxis_checkbox(ns),
-      create_response_curve_increasing_trend_checkbox(ns)
+      create_response_curve_increasing_trend_checkbox(ns, value = FALSE)
     )
   }
 }
