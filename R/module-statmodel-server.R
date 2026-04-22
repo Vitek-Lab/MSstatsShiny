@@ -512,14 +512,16 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                 protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
                 drug_name = "time",
                 ratio_response = FALSE,
-                show_ic50 = FALSE,
-                add_ci = TRUE,
+                show_ic50 = TRUE,
+                add_ci = FALSE,
                 transform_dose = FALSE,
                 n_samples = 1000,
                 increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]],
                 precalculated_ratios = TRUE,
                 color_by = "BaseSequence",
-                target_response = 0.5
+                target_response = 0.5,
+                y_lab = "relative abundance",
+                x_lab = "time (hrs)"
               )
             } else {
               visualizeResponseProtein(
