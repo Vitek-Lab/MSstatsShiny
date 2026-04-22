@@ -47,27 +47,29 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         template = app_template()
         if (template == TEMPLATES$protein_turnover) {
           # Protein turnover template defaults:
-          #   - Response curve mode selected automatically (turnover is a time-course)
+          #   - Turnover curve mode selected automatically (turnover is a time-course)
           #   - Log scale x-axis off (time points are typically linear, e.g. 1, 2, 4 h)
           #   - Increasing trend on (heavy fraction rises over time)
-          #   - Restrict comparison and plot-type selectors to response-curve only
+          #   - Restrict comparison and plot-type selectors to turnover curve only
+          #   - Ratio scale off (heavy fraction is already a 0–1 ratio; no DMSO control to normalize against)
           updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
-                             choices = c("Create dose response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
+                             choices = c("Create turnover time-course curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
                              selected = CONSTANTS_STATMODEL$comparison_mode_response_curve)
           updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-                            choices = c("Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve),
+                            choices = c("Turnover Curve" = CONSTANTS_STATMODEL$plot_type_response_curve),
                             selected = CONSTANTS_STATMODEL$plot_type_response_curve)
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = TRUE)
+          updateCheckboxInput(session, NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale, value = FALSE)
         } else if (template == TEMPLATES$chemoproteomics) {
           # Chemoproteomics template defaults:
-          #   - Response curve mode only (dose-response is the core chemoproteomics workflow)
+          #   - Dose-response curve mode only (dose-response is the core chemoproteomics workflow)
           #   - Increasing trend off (activity typically decreases with drug concentration)
-          #   - Restrict comparison and plot-type selectors to response-curve only
+          #   - Restrict comparison and plot-type selectors to dose-response curve only
           updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
-                             choices = c("Create dose response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
+                             choices = c("Create dose-response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
                              selected = CONSTANTS_STATMODEL$comparison_mode_response_curve)
           updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-                            choices = c("Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve),
+                            choices = c("Dose-Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve),
                             selected = CONSTANTS_STATMODEL$plot_type_response_curve)
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = FALSE)
         } else {
@@ -120,12 +122,16 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         req(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
               CONSTANTS_STATMODEL$comparison_mode_response_curve)
         conditions <- condition_list()
+        tooltip_text <- if (isTRUE(app_template() == TEMPLATES$protein_turnover)) {
+          "Select time points to exclude from turnover curve fitting (e.g., outlier time points)."
+        } else {
+          "Select conditions to exclude from dose-response modeling (e.g., quality control conditions like PDPD)."
+        }
         selectizeInput(
           session$ns(NAMESPACE_STATMODEL$comparisons_exclude_conditions),
           label = h5("Exclude conditions from analysis", class = "icon-wrapper",
                      icon("question-circle", lib = "font-awesome"),
-                     div("Select conditions to exclude from dose-response modeling (e.g., quality control conditions like PDPD).",
-                         class = "icon-tooltip")),
+                     div(tooltip_text, class = "icon-tooltip")),
           choices = conditions,
           selected = NULL,
           multiple = TRUE,
@@ -134,7 +140,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
 
       output[[NAMESPACE_STATMODEL$modeling_section_header]] <- renderUI({
-        get_modeling_section_header(input[[NAMESPACE_STATMODEL$comparison_mode]])
+        get_modeling_section_header(input[[NAMESPACE_STATMODEL$comparison_mode]], app_template())
       })
       
       # Filter visualization dropdown based on comparison mode
@@ -142,8 +148,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         req(input[[NAMESPACE_STATMODEL$comparison_mode]])
         mode <- input[[NAMESPACE_STATMODEL$comparison_mode]]
         if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
+          curve_label <- if (isTRUE(app_template() == TEMPLATES$protein_turnover)) "Turnover Curve" else "Dose-Response Curve"
           updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-            choices = c("Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve)
+            choices = c(setNames(CONSTANTS_STATMODEL$plot_type_response_curve, curve_label))
           )
         } else {
           updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
@@ -503,8 +510,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               visualizeResponseProtein(
                 data = dia_prepared,
                 protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
-                drug_name = input[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]],
-                ratio_response = isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
+                drug_name = "time",
+                ratio_response = FALSE,
                 show_ic50 = TRUE,
                 add_ci = TRUE,
                 transform_dose = FALSE,

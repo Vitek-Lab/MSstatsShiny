@@ -29,7 +29,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_heatmap) {
       create_heatmap_options(ns)
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
-      create_response_curve_options(ns)
+      create_response_curve_options(ns, template = if (!is.null(app_template)) app_template() else NULL)
     } else {
       NULL
     }
@@ -47,10 +47,8 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
     if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
         CONSTANTS_STATMODEL$plot_type_response_curve) {
       if (!is.null(app_template) && app_template() == TEMPLATES$protein_turnover) {
-        # For protein turnover the drug axis is always "time"
-        selectInput(session$ns(NAMESPACE_STATMODEL$visualization_response_curve_which_drug),
-                    label = h5("Select Treatment"),
-                    choices = "time", selected = "time")
+        # Protein turnover always uses time as the x-axis; no selection needed
+        NULL
       } else {
         if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
           meta <- tryCatch(condition_metadata(), error = function(e) NULL)
@@ -214,8 +212,8 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
               response_plot <- visualizeResponseProtein(
                 data = dia_prepared,
                 protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
-                drug_name = input[[NAMESPACE_STATMODEL$visualization_response_curve_which_drug]],
-                ratio_response = isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]]),
+                drug_name = "time",
+                ratio_response = FALSE,
                 show_ic50 = TRUE,
                 add_ci = TRUE,
                 transform_dose = FALSE,
