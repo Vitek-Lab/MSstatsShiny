@@ -1,4 +1,4 @@
-generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
+generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app_template = TEMPLATES$default) {
   codes = preprocessDataCode(qc_input, loadpage_input)
 
   # Check if this is a response curve analysis

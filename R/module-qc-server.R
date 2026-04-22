@@ -16,21 +16,12 @@
 #' @examples
 #' NA
 #' 
-qcServer <- function(input, output, session,parent_session, loadpage_input,get_data) {
+qcServer <- function(input, output, session, parent_session, loadpage_input, get_data,
+                     app_template = NULL, get_condition_metadata = NULL) {
 
   # Hide the Turnover Ratios tab by default; shown only for protein_turnover template
   hideTab(inputId = "qc_tabs", target = "Turnover Ratios", session = session)
 
-  # output$showplot = renderUI({
-  #   print("****")
-  #         print(new_input()$DDA_DIA)
-  #         print("****")
-  #           if(loadpage_inputs$"loadpage-filetype"=="sky"){
-  #             print("hhhhhhhhhhh")
-  #             selectizeInput("names", "choose standard", unique(get_data()[2]), multiple = TRUE)
-  #           }
-  # 
-  #       })
   output$Names = renderUI({
     ns <- session$ns
 

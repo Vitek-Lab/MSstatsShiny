@@ -424,20 +424,20 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       info <- input$condition_metadata_table_cell_edit
       current <- condition_metadata()
       if (is.null(current)) return()
-      if (info$col == 1) {  # col 0-indexed; col 1 = TimeVal or DoseVal
+      if (info$col == 1) {
         value_col <- if ("TimeVal" %in% colnames(current)) "TimeVal" else "DoseVal"
         current[[value_col]][info$row] <- info$value
         condition_metadata(current)
-      } else if (info$col == 2 && "DrugName" %in% colnames(current)) {  # col 2 = DrugName
+      } else if (info$col == 2 && "DrugName" %in% colnames(current)) {
         current[["DrugName"]][info$row] <- as.character(info$value)
         condition_metadata(current)
-      } else if (info$col == 3 && "DoseUnit" %in% colnames(current)) {  # col 3 = DoseUnit
+      } else if (info$col == 3 && "DoseUnit" %in% colnames(current)) {
         current[["DoseUnit"]][info$row] <- as.character(info$value)
         condition_metadata(current)
       }
     })
 
-    # Render the editable condition metadata table (updates whenever condition_metadata changes)
+    # Render the editable condition metadata table
     output$condition_metadata_table <- DT::renderDT({
       req(!is.null(condition_metadata()))
       meta <- condition_metadata()

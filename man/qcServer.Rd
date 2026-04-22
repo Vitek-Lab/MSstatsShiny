@@ -27,6 +27,10 @@ qcServer(
 \item{loadpage_input}{input object from loadpage UI}
 
 \item{get_data}{stored function that returns the data from loadpage}
+
+\item{app_template}{reactive returning the selected template name (e.g. TEMPLATES$default); defaults to NULL}
+
+\item{get_condition_metadata}{reactive returning the condition metadata data frame from loadpage; defaults to NULL}
 }
 \value{
 input object with user selected options
