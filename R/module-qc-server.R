@@ -641,6 +641,12 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     }
   })
 
+  observeEvent(input$run, {
+    req(!is.null(app_template) && !is.null(app_template()) &&
+          app_template() == TEMPLATES$protein_turnover)
+    turnover_ratios()
+  }, ignoreInit = TRUE)
+
   output$turnover_ratios_panel <- renderUI({
     req(!is.null(app_template) && !is.null(app_template()) &&
           app_template() == TEMPLATES$protein_turnover)
