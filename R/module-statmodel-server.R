@@ -454,6 +454,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
           if (app_template() == TEMPLATES$protein_turnover) {
+            req(turnover_ratios())
             dia_prepared <- prepare_turnover_for_dose_response(turnover_ratios())
           } else {
             meta <- condition_metadata()

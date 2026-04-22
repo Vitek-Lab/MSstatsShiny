@@ -50,18 +50,16 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
         # Protein turnover always uses time as the x-axis; no selection needed
         NULL
       } else {
-        if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
-          meta <- tryCatch(condition_metadata(), error = function(e) NULL)
-          if (!is.null(meta) && "DoseVal" %in% colnames(meta)) {
-            is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
-            rc_mat <- data.frame(
-              GROUP      = meta$Condition,
-              dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
-              drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
-              stringsAsFactors = FALSE
-            )
-          }
-        } 
+        meta <- tryCatch(condition_metadata(), error = function(e) NULL)
+        if (!is.null(meta) && "DoseVal" %in% colnames(meta)) {
+          is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(meta$Condition))
+          rc_mat <- data.frame(
+            GROUP      = meta$Condition,
+            dose_value = convert_dose_to_molar(suppressWarnings(as.numeric(meta$DoseVal)), if ("DoseUnit" %in% colnames(meta)) meta$DoseUnit else "nM"),
+            drug       = ifelse(is_ctrl, meta$Condition, if ("DrugName" %in% colnames(meta)) meta$DrugName else parse_drug_name_from_conditions(meta$Condition)),
+            stringsAsFactors = FALSE
+          )
+        }
         response_curve_setup_matrix = prepare_dose_response_fit(rc_mat)
         unique_drugs = unique(response_curve_setup_matrix$drug)
         unique_drugs_without_control = unique_drugs[!grepl("^(dmso|control|vehicle)$", tolower(unique_drugs))]
