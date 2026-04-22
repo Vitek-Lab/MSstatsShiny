@@ -19,7 +19,6 @@
 qcServer <- function(input, output, session, parent_session, loadpage_input, get_data,
                      app_template = NULL, get_condition_metadata = NULL) {
 
-  # Hide the Turnover Ratios tab by default; shown only for protein_turnover template
   hideTab(inputId = "qc_tabs", target = "Turnover Ratios", session = session)
 
   output$Names = renderUI({
@@ -519,7 +518,7 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
                                        use_log_file = FALSE)
     } else if (!is.null(app_template) && !is.null(app_template()) &&
                app_template() == TEMPLATES$protein_turnover) {
-      # Return ProteinLevelData directly to preserve the LABEL (H/L) column
+      # TODO: Refactor quantification function to handle LABEL column
       abundant$results <- preprocess_data()$ProteinLevelData
     } else{
       temp = copy(preprocess_data())

@@ -46,12 +46,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       observeEvent(app_template(), {
         template = app_template()
         if (template == TEMPLATES$protein_turnover) {
-          # Protein turnover template defaults:
-          #   - Turnover curve mode selected automatically (turnover is a time-course)
-          #   - Log scale x-axis off (time points are typically linear, e.g. 1, 2, 4 h)
-          #   - Increasing trend on (heavy fraction rises over time)
-          #   - Restrict comparison and plot-type selectors to turnover curve only
-          #   - Ratio scale off (heavy fraction is already a 0–1 ratio; no DMSO control to normalize against)
           updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
                              choices = c("Create turnover time-course curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
                              selected = CONSTANTS_STATMODEL$comparison_mode_response_curve)
@@ -61,10 +55,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = TRUE)
           updateCheckboxInput(session, NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale, value = FALSE)
         } else if (template == TEMPLATES$chemoproteomics) {
-          # Chemoproteomics template defaults:
-          #   - Dose-response curve mode only (dose-response is the core chemoproteomics workflow)
-          #   - Increasing trend off (activity typically decreases with drug concentration)
-          #   - Restrict comparison and plot-type selectors to dose-response curve only
           updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
                              choices = c("Create dose-response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
                              selected = CONSTANTS_STATMODEL$comparison_mode_response_curve)
@@ -73,7 +63,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                             selected = CONSTANTS_STATMODEL$plot_type_response_curve)
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = FALSE)
         } else {
-          # Differential abundance template: 4 pairwise/comparison modes, no dose response
           updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
                              choices = c(
                                "All possible pairwise comparisons"      = CONSTANTS_STATMODEL$comparison_mode_all_pairwise,

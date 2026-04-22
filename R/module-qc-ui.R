@@ -166,7 +166,6 @@ qcUI <- function(id) {
         tags$hr(),
         uiOutput(ns("turnover_ratios_sidebar")),
         actionButton(ns("run"), "Run protein summarization"),
-        # run
         width = 3
       ),
       column(width = 8,

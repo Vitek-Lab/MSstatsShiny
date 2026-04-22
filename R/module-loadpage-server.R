@@ -16,7 +16,6 @@
 loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_template = NULL) {
   moduleServer(id, function(input, output, session) {
 
-    # Condition metadata for protein turnover: Condition -> TimeVal mapping
     condition_metadata <- reactiveVal(NULL)
 
     # == shinyFiles LOGIC FOR LOCAL FILE BROWSER =================================
@@ -441,11 +440,8 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
     output$condition_metadata_table <- DT::renderDT({
       req(!is.null(condition_metadata()))
       meta <- condition_metadata()
-      caption_text <- if ("TimeVal" %in% colnames(meta)) {
-        "Click a TimeVal cell to edit. Cells showing '?' could not be parsed and must be filled in before running analysis."
-      } else {
-        "Click any cell to edit. Cells showing '?' could not be parsed and must be filled in before running analysis."
-      }
+      caption_text <- "Click any cell to edit. Cells showing '?' could not be 
+      parsed and must be filled in before running analysis."
       DT::datatable(
         meta,
         editable = list(target = "cell", disable = list(columns = c(0))),
