@@ -1,4 +1,4 @@
-generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app_template = TEMPLATES$default) {
+generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input) {
   codes = preprocessDataCode(qc_input, loadpage_input)
 
   # Check if this is a response curve analysis
@@ -7,7 +7,7 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
 
   if (is_response_curve) {
     increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]]
-    transform_dose = !isTRUE(app_template == TEMPLATES$protein_turnover)
+    transform_dose = TRUE
     ratio_response = isTRUE(input[[NAMESPACE_STATMODEL$visualization_response_curve_ratio_scale]])
 
     codes = paste(codes, "\n# Set up dose response analysis\n", sep = "")

@@ -33,9 +33,8 @@ get_modeling_section_header <- function(mode) {
 #' @noRd
 get_response_curve_fitting_options = function(mode, ns, template = TEMPLATES$default) {
   if (!is.null(mode) && mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
-    is_protein_turnover <- isTRUE(template == TEMPLATES$protein_turnover)
     tagList(
-      create_response_curve_increasing_trend_checkbox(ns, value = is_protein_turnover)
+      create_response_curve_increasing_trend_checkbox(ns, value = FALSE)
     )
   }
 }

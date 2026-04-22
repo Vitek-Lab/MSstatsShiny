@@ -31,21 +31,6 @@ create_moderation_radio_buttons <- function(ns) {
   )
 }
 
-create_response_curve_log_xaxis_checkbox <- function(ns, value = TRUE) {
-  checkboxInput(
-    ns(NAMESPACE_STATMODEL$modeling_response_curve_log_xaxis),
-    label = tags$div("Log scale for treatment values",
-                     class = "icon-wrapper",
-                     icon("question-circle", lib = "font-awesome"),
-                     div("Check this box to use a log scale for the x-axis of dose response curves.
-                          This is typically used when doses are in a log scale (e.g. 0.1, 1, 10, 100).
-                          But if your scale is linear, e.g. time 1, 2, 3 hours, then we recommend unchecking this box",
-                         class = "icon-tooltip")
-                     ),
-    value = value
-  )
-}
-
 create_response_curve_increasing_trend_checkbox <- function(ns, value = FALSE) {
   checkboxInput(
     ns(NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend),

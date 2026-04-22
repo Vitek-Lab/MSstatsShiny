@@ -2,7 +2,7 @@
 # Visualization Options and Plotting Functions
 # ============================================================================
 
-render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list, contrast, app_template = reactive(TEMPLATES$default), turnover_ratios = reactive(NULL), condition_metadata = reactive(NULL)) {
+render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list, contrast, app_template = reactive(TEMPLATES$default), condition_metadata = reactive(NULL)) {
   ns = session$ns
 
   output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
@@ -29,7 +29,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_heatmap) {
       create_heatmap_options(ns)
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
-      create_response_curve_options(ns, is_protein_turnover = !is.null(app_template) && app_template() == TEMPLATES$protein_turnover)
+      create_response_curve_options(ns)
     } else {
       NULL
     }
@@ -167,7 +167,7 @@ zip_and_copy_plot <- function(pdf_files, dest_file) {
 
 #' @importFrom ggplot2 ggsave
 #' @importFrom utils zip
-create_download_plot_handler <- function(output, input, contrast, preprocess_data, data_comparison, loadpage_input, app_template = reactive(TEMPLATES$default), turnover_ratios = reactive(NULL), condition_metadata = reactive(NULL)) {
+create_download_plot_handler <- function(output, input, contrast, preprocess_data, data_comparison, loadpage_input, app_template = reactive(TEMPLATES$default), condition_metadata = reactive(NULL)) {
   output[[NAMESPACE_STATMODEL$visualization_download_plot_results]] <- downloadHandler(
     filename = function() {
       get_download_plot_filename(input[[NAMESPACE_STATMODEL$visualization_plot_type]])
