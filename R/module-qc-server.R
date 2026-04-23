@@ -197,7 +197,7 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
       meta <- get_condition_metadata()
       meta_with_time <- meta[!is.na(meta$TimeVal), ]
       if (nrow(meta_with_time) > 0) {
-        ordered_conditions <- meta_with_time$Condition[order(meta_with_time$TimeVal)]
+        ordered_conditions <- meta_with_time$Condition[order(as.numeric(meta_with_time$TimeVal))]
         all_groups <- unique(as.character(data$FeatureLevelData$GROUP))
         remaining <- setdiff(all_groups, ordered_conditions)
         final_levels <- c(ordered_conditions, remaining)
