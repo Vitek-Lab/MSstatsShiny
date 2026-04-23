@@ -9,8 +9,14 @@
   ext <- if (!is.null(filename)) tolower(tools::file_ext(basename(filename))) else ""
   tryCatch({
     if (ext %in% c("parquet", "pq")) {
-      # For parquet, read the whole file but only need column names for detection
-      arrow::read_parquet(filepath)
+      # For parquet, read only the schema (column names) to avoid OOM on large files.
+      # Return an empty data frame with the correct column structure for detection.
+      schema <- arrow::open_dataset(filepath, format = "parquet")$schema
+      col_names <- schema$names
+      empty_df <- as.data.frame(
+        setNames(lapply(col_names, function(x) logical(0)), col_names)
+      )
+      empty_df
     } else {
       data.table::fread(filepath, nrows = nrows, header = TRUE)
     }

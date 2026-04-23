@@ -91,6 +91,8 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       if (should_preview) {
         file_info <- main_data_file()
         if (!is.null(file_info)) {
+          # Reset DIANN detection tracker so a new file re-triggers the notification
+          last_detected_diann_format(NULL)
           preview <- .read_preview(file_info$datapath, file_info$name)
           if (is.null(preview)) {
             showNotification("Could not preview file. Please verify the file format.",
@@ -105,12 +107,19 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       }
     })
 
+    # Track last detected DIANN format to avoid redundant notifications
+    last_detected_diann_format <- reactiveVal(NULL)
+
     # Auto-toggle DIANN 2.0+ checkbox based on detected file format
     observe({
       req(input$filetype == "diann", input$BIO != "PTM")
       preview <- preview_data()
-      if (!is.null(preview)) {
-        is_2plus <- .is_diann_2plus(preview)
+      if (is.null(preview)) return()
+
+      is_2plus <- .is_diann_2plus(preview)
+      previous <- last_detected_diann_format()
+      # Only update and notify when the detected state actually changes
+      if (is.null(previous) || previous != is_2plus) {
         updateCheckboxInput(session, "diann_2plus", value = is_2plus)
         if (is_2plus) {
           showNotification("Detected DIANN 2.0+ format (per-fragment columns).",
@@ -119,6 +128,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
           showNotification("Detected DIANN 1.x format (legacy fragment column).",
                            type = "message", duration = 5)
         }
+        last_detected_diann_format(is_2plus)
       }
     })
 

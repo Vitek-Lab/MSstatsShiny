@@ -1781,8 +1781,7 @@ test_that("read_preview handles NULL filename gracefully", {
   unlink(tmp)
 })
 
-test_that("read_preview dispatches parquet files to arrow reader", {
-  # Skip if arrow not available
+test_that("read_preview dispatches parquet files to arrow schema reader", {
   skip_if_not_installed("arrow")
 
   tmp <- tempfile(fileext = ".parquet")
@@ -1791,6 +1790,8 @@ test_that("read_preview dispatches parquet files to arrow reader", {
 
   preview <- MSstatsShiny:::.read_preview(tmp, "test.parquet")
   expect_false(is.null(preview))
+  # Schema-only read returns 0 rows but correct column names
+  expect_equal(nrow(preview), 0)
   expect_true(all(c("a", "b") %in% names(preview)))
 
   unlink(tmp)
