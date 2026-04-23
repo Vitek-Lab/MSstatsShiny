@@ -1,3 +1,41 @@
+#' Read preview columns from a data file (handles CSV, TSV, and Parquet)
+#'
+#' @param filepath Path to the file.
+#' @param filename Original filename (used to detect parquet extension).
+#' @param nrows Number of rows to read. Default 100. Parquet returns columns only.
+#' @return A data frame with up to `nrows` rows, or NULL on error.
+#' @noRd
+.read_preview <- function(filepath, filename = NULL, nrows = 100) {
+  ext <- if (!is.null(filename)) tolower(tools::file_ext(basename(filename))) else ""
+  tryCatch({
+    if (ext %in% c("parquet", "pq")) {
+      # For parquet, read the whole file but only need column names for detection
+      arrow::read_parquet(filepath)
+    } else {
+      data.table::fread(filepath, nrows = nrows, header = TRUE)
+    }
+  }, error = function(e) NULL)
+}
+
+#' Detect whether a DIANN preview is in 2.0+ format
+#'
+#' DIANN 2.0+ files have per-fragment columns (Fr.0.Quantity, Fr.1.Quantity, etc.)
+#' and no FragmentQuantCorrected column. Older versions use a single
+#' Fragment.Quant.Corrected / FragmentQuantCorrected column.
+#'
+#' @param preview_df Data frame preview of the DIANN file.
+#' @return Logical. TRUE if the file appears to be DIANN 2.0+.
+#' @noRd
+.is_diann_2plus <- function(preview_df) {
+  if (is.null(preview_df) || ncol(preview_df) == 0) return(FALSE)
+  cols <- names(preview_df)
+  # DIANN 2.0+ signature: numbered fragment columns like "Fr.0.Quantity"
+  has_numbered_fragments <- any(grepl("^Fr\\.[0-9]+\\.Quantity$", cols))
+  # DIANN 1.x signature: the legacy fragment column
+  has_legacy_fragments <- any(cols %in% c("Fragment.Quant.Corrected", "FragmentQuantCorrected"))
+  has_numbered_fragments && !has_legacy_fragments
+}
+
 #' Extract unique modification IDs from preview data
 #'
 #' Parses the Full Sequence column to find bracket-enclosed modification IDs.

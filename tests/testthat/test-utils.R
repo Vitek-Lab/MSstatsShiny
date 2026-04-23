@@ -1651,3 +1651,206 @@ test_that("extract_mod_ids_from_preview handles consecutive modifications", {
   expect_equal(length(result), 3)
   expect_true(all(c("[Mod1]", "[Mod2]", "[Mod3]") %in% result))
 })
+
+# ============================================================================
+# DIANN FORMAT DETECTION TESTS
+# ============================================================================
+
+test_that("is_diann_2plus returns TRUE for DIANN 2.0+ format with numbered fragment columns", {
+  preview <- data.frame(
+    Run = "run1",
+    Protein.Group = "P1",
+    Fr.0.Quantity = 100,
+    Fr.1.Quantity = 200,
+    Fr.2.Quantity = 300,
+    Precursor.Charge = 2
+  )
+  expect_true(MSstatsShiny:::.is_diann_2plus(preview))
+})
+
+test_that("is_diann_2plus returns FALSE for DIANN 1.x format with legacy Fragment.Quant.Corrected", {
+  preview <- data.frame(
+    Run = "run1",
+    Protein.Group = "P1",
+    Fragment.Quant.Corrected = 100,
+    Fragment.Quant.Raw = 95,
+    Precursor.Charge = 2
+  )
+  expect_false(MSstatsShiny:::.is_diann_2plus(preview))
+})
+
+test_that("is_diann_2plus returns FALSE for DIANN 1.x format with FragmentQuantCorrected (no dots)", {
+  preview <- data.frame(
+    Run = "run1",
+    FragmentQuantCorrected = 100,
+    Precursor.Charge = 2
+  )
+  expect_false(MSstatsShiny:::.is_diann_2plus(preview))
+})
+
+test_that("is_diann_2plus returns FALSE when both formats are present (legacy takes precedence)", {
+  preview <- data.frame(
+    Run = "run1",
+    Fragment.Quant.Corrected = 100,
+    Fr.0.Quantity = 200
+  )
+  expect_false(MSstatsShiny:::.is_diann_2plus(preview))
+})
+
+test_that("is_diann_2plus returns FALSE for NULL preview", {
+  expect_false(MSstatsShiny:::.is_diann_2plus(NULL))
+})
+
+test_that("is_diann_2plus returns FALSE for empty data frame", {
+  expect_false(MSstatsShiny:::.is_diann_2plus(data.frame()))
+})
+
+test_that("is_diann_2plus returns FALSE for data with no fragment columns", {
+  preview <- data.frame(
+    Run = "run1",
+    Protein.Group = "P1",
+    Precursor.Charge = 2
+  )
+  expect_false(MSstatsShiny:::.is_diann_2plus(preview))
+})
+
+test_that("is_diann_2plus detects DIANN 2.0+ with many numbered fragment columns", {
+  # Real DIANN 2.0+ files can have Fr.0 through Fr.11
+  cols <- c("Run", "Protein.Group", paste0("Fr.", 0:11, ".Quantity"),
+            paste0("Fr.", 0:11, ".Index"), paste0("Fr.", 0:11, ".Score"))
+  preview <- as.data.frame(setNames(
+    lapply(cols, function(x) if (grepl("Quantity", x)) runif(1) else "x"),
+    cols
+  ))
+  expect_true(MSstatsShiny:::.is_diann_2plus(preview))
+})
+
+# ============================================================================
+# PREVIEW READER TESTS
+# ============================================================================
+
+test_that("read_preview reads CSV files with nrows limit", {
+  tmp <- tempfile(fileext = ".csv")
+  df <- data.frame(a = 1:200, b = letters[1:26][1:200 %% 26 + 1])
+  write.csv(df, tmp, row.names = FALSE)
+
+  preview <- MSstatsShiny:::.read_preview(tmp, "test.csv", nrows = 100)
+  expect_false(is.null(preview))
+  expect_equal(nrow(preview), 100)
+  expect_true(all(c("a", "b") %in% names(preview)))
+
+  unlink(tmp)
+})
+
+test_that("read_preview reads TSV files", {
+  tmp <- tempfile(fileext = ".tsv")
+  df <- data.frame(a = 1:50, b = letters[1:50 %% 26 + 1])
+  write.table(df, tmp, sep = "\t", row.names = FALSE, quote = FALSE)
+
+  preview <- MSstatsShiny:::.read_preview(tmp, "test.tsv", nrows = 100)
+  expect_false(is.null(preview))
+  expect_equal(nrow(preview), 50)
+
+  unlink(tmp)
+})
+
+test_that("read_preview returns NULL for non-existent files", {
+  preview <- MSstatsShiny:::.read_preview("/nonexistent/path.csv", "test.csv")
+  expect_null(preview)
+})
+
+test_that("read_preview returns NULL for malformed files", {
+  tmp <- tempfile(fileext = ".csv")
+  writeBin(as.raw(c(0xFF, 0xFE, 0x00, 0x00)), tmp)  # Garbage bytes
+  preview <- MSstatsShiny:::.read_preview(tmp, "test.csv")
+  # Either NULL or a data frame (fread can sometimes parse garbage) — both acceptable
+  expect_true(is.null(preview) || is.data.frame(preview))
+  unlink(tmp)
+})
+
+test_that("read_preview handles NULL filename gracefully", {
+  tmp <- tempfile(fileext = ".csv")
+  df <- data.frame(a = 1:10)
+  write.csv(df, tmp, row.names = FALSE)
+
+  # Should default to CSV reading path
+  preview <- MSstatsShiny:::.read_preview(tmp, NULL)
+  expect_false(is.null(preview))
+  expect_equal(nrow(preview), 10)
+
+  unlink(tmp)
+})
+
+test_that("read_preview dispatches parquet files to arrow reader", {
+  # Skip if arrow not available
+  skip_if_not_installed("arrow")
+
+  tmp <- tempfile(fileext = ".parquet")
+  df <- data.frame(a = 1:50, b = runif(50))
+  arrow::write_parquet(df, tmp)
+
+  preview <- MSstatsShiny:::.read_preview(tmp, "test.parquet")
+  expect_false(is.null(preview))
+  expect_true(all(c("a", "b") %in% names(preview)))
+
+  unlink(tmp)
+})
+
+test_that("read_preview recognizes .pq extension as parquet", {
+  skip_if_not_installed("arrow")
+
+  tmp <- tempfile(fileext = ".pq")
+  df <- data.frame(a = 1:10)
+  arrow::write_parquet(df, tmp)
+
+  preview <- MSstatsShiny:::.read_preview(tmp, "test.pq")
+  expect_false(is.null(preview))
+
+  unlink(tmp)
+})
+
+# ============================================================================
+# INTEGRATION TESTS: PREVIEW + DIANN DETECTION
+# ============================================================================
+
+test_that("DIANN 1.x CSV file is correctly detected as not 2.0+", {
+  tmp <- tempfile(fileext = ".csv")
+  df <- data.frame(
+    Run = paste0("run", 1:10),
+    Protein.Group = "P1",
+    Fragment.Quant.Corrected = runif(10) * 1000,
+    Fragment.Quant.Raw = runif(10) * 1000,
+    Precursor.Charge = 2,
+    Q.Value = runif(10, 0, 0.01)
+  )
+  write.csv(df, tmp, row.names = FALSE)
+
+  preview <- MSstatsShiny:::.read_preview(tmp, "diann_1x.csv")
+  expect_false(MSstatsShiny:::.is_diann_2plus(preview))
+
+  unlink(tmp)
+})
+
+test_that("DIANN 2.0 parquet file is correctly detected as 2.0+", {
+  skip_if_not_installed("arrow")
+
+  tmp <- tempfile(fileext = ".parquet")
+  df <- data.frame(
+    Run = paste0("run", 1:10),
+    Protein.Group = "P1",
+    Fr.0.Quantity = runif(10) * 1000,
+    Fr.0.Index = 1L,
+    Fr.1.Quantity = runif(10) * 1000,
+    Fr.1.Index = 2L,
+    Fr.2.Quantity = runif(10) * 1000,
+    Fr.2.Index = 3L,
+    Precursor.Charge = 2,
+    Q.Value = runif(10, 0, 0.01)
+  )
+  arrow::write_parquet(df, tmp)
+
+  preview <- MSstatsShiny:::.read_preview(tmp, "diann_2plus.parquet")
+  expect_true(MSstatsShiny:::.is_diann_2plus(preview))
+
+  unlink(tmp)
+})

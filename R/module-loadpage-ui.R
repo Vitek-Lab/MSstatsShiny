@@ -602,7 +602,7 @@ create_label_free_options <- function(ns) {
     # DIANN specific options
     conditionalPanel(
       condition = "input['loadpage-filetype'] == 'diann' && input['loadpage-DDA_DIA'] == 'LType'",
-      checkboxInput(ns("diann_2plus"), "DIANN 2.0+", value = TRUE),
+      checkboxInput(ns("diann_2plus"), "DIANN 2.0+", value = FALSE),
       conditionalPanel(
         condition = "!input['loadpage-diann_2plus']",
         textInput(ns("intensity_column"),
