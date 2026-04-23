@@ -606,14 +606,14 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
           tags$br(),
           conditionalPanel(condition = "input['loadpage-BIO'] !== 'PTM'",
                            h4("Top 6 rows of the dataset"),
-                           tableOutput(ns("summary"))
+                           div(style = "overflow-x: auto;", tableOutput(ns("summary")))
           ),
           conditionalPanel(condition = "input['loadpage-BIO'] == 'PTM'",
                            h4("Top 6 rows of the PTM dataset"),
-                           tableOutput(ns("summary_ptm")),
+                           div(style = "overflow-x: auto;", tableOutput(ns("summary_ptm"))),
                            tags$br(),
                            h4("Top 6 rows of the unmodified protein dataset"),
-                           tableOutput(ns("summary_prot"))
+                           div(style = "overflow-x: auto;", tableOutput(ns("summary_prot")))
           )
         )
       })
