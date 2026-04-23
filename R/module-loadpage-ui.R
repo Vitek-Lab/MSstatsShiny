@@ -611,14 +611,7 @@ create_label_free_options <- function(ns) {
                      div("Enter the column name containing intensity values for DIANN versions prior to 2.0", class = "icon-tooltip")),
                   value = "FragmentQuantCorrected")
       ),
-      conditionalPanel(
-        condition = "input['app_template'] == 'protein_turnover'",
-        textInput(ns("diann_labeled_aa"),
-                  h5("SILAC-labeled amino acids", class = "icon-wrapper",
-                     icon("question-circle", lib = "font-awesome"),
-                     div("Comma-separated single-letter codes of SILAC-labeled amino acids (e.g. K for lysine, or K,R for lysine and arginine).", class = "icon-tooltip")),
-                  value = "K")
-      )
+      uiOutput(ns("diann_turnover_ui"))
     )
   )
 }

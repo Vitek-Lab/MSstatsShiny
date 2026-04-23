@@ -167,6 +167,18 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       )
     })
 
+    output$diann_turnover_ui <- renderUI({
+      req(input$filetype == 'diann', input$DDA_DIA == 'LType')
+      req(!is.null(app_template) && app_template() == TEMPLATES$protein_turnover)
+
+      ns <- session$ns
+      textInput(ns("diann_labeled_aa"),
+                h5("SILAC-labeled amino acids", class = "icon-wrapper",
+                   icon("question-circle", lib = "font-awesome"),
+                   div("Comma-separated single-letter codes of SILAC-labeled amino acids (e.g. K for lysine, or K,R for lysine and arginine).", class = "icon-tooltip")),
+                value = "K")
+    })
+
     output$spectronaut_options_ui <- renderUI({
       req(input$filetype == 'spec', input$BIO != 'PTM')
       
