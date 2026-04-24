@@ -71,7 +71,7 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
                                               rm_feat)
   
   # Select the summarization function based on the user's choice.
-  if (qc_input$summaryMethod == "linear") {
+  if (!is.null(qc_input$summaryMethod) && qc_input$summaryMethod == "linear") {
     summarize_function <- MSstatsSummarizeSingleLinear
   } else {
     summarize_function <- MSstatsSummarizeSingleTMP
@@ -445,8 +445,10 @@ tmt_model = function(data, input, contrast.matrix, busy_indicator = TRUE){
   FittedModel = fitted_models$fitted_model
   names(FittedModel) = fitted_models$protein
   
-  fitted_models = MSstatsTMT:::MSstatsModerateTTest(summarized, fitted_models, 
-                                                    input$moderated)#moderated
+  moderated_flag = isTRUE(as.logical(input[[NAMESPACE_STATMODEL$modeling_tmt_moderation]]))
+  fitted_models = MSstatsTMT:::MSstatsModerateTTest(summarized, 
+                                                    fitted_models, 
+                                                    moderated_flag)
   
   testing_results = vector("list", length(fitted_models))
   
