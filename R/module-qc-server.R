@@ -512,8 +512,9 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
                                        use_log_file = FALSE)
     } else if (loadpage_input()$DDA_DIA == "TMT"){
       temp = copy(preprocess_data())
-      setnames(temp$ProteinLevelData, 
-               c("Abundance", "Condition", "BioReplicate"), 
+      temp$ProteinLevelData = copy(temp$ProteinLevelData)
+      setnames(temp$ProteinLevelData,
+               c("Abundance", "Condition", "BioReplicate"),
                c("LogIntensities", "GROUP", "SUBJECT"))
       abundant$results = quantification(temp,
                                         type = input$typequant,
