@@ -94,6 +94,9 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         address = FALSE,
         isPlotly = TRUE
       )
+      # groupComparisonPlotsPTM returns `result` as a list where element 3 is
+      # the adjusted-peptide plot and element 1 is the unadjusted fallback;
+      # prefer the adjusted plot (result[[3]]) when available.
       plot_result = if (length(result) >= 3) result[[3]] else result[[1]]
     } else if (loadpage_input$DDA_DIA == "TMT") {
       plot_result = groupComparisonPlots(
