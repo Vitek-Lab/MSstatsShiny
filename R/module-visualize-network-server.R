@@ -94,9 +94,16 @@ highlightEdgeInTable <- function(output, edge_data, edges_table) {
 # HELPER FUNCTIONS - Data Management (unchanged)
 # =============================================================================
 
+# Returns the comparison data frame from the reactive, handling both PTM
+# (ADJUSTED.Model) and non-PTM (ComparisonResult) return structures.
+extractComparisonResult <- function(dataComparison) {
+  dc <- dataComparison()
+  if (!is.null(dc$ADJUSTED.Model)) dc$ADJUSTED.Model else dc$ComparisonResult
+}
+
 loadCsvData <- function(input, dataComparison) {
-  if (is.null(input$dataUpload) && !is.null(dataComparison()$ComparisonResult)) {
-    df <- dataComparison()$ComparisonResult
+  if (is.null(input$dataUpload) && !is.null(extractComparisonResult(dataComparison))) {
+    df <- extractComparisonResult(dataComparison)
     if (!is.null(df) && "Protein" %in% names(df)) {
       df$Protein <- as.character(df$Protein)
       return(df)
@@ -283,8 +290,8 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   # Output to control conditional panels
   output$hasValidDataComparison <- reactive({
     !is.null(dataComparison()) &&
-      !is.null(dataComparison()$ComparisonResult) && 
-      !is.null(dataComparison()$ComparisonResult$Protein)
+      !is.null(extractComparisonResult(dataComparison)) &&
+      !is.null(extractComparisonResult(dataComparison)$Protein)
   })
   outputOptions(output, "hasValidDataComparison", suspendWhenHidden = FALSE)
   
