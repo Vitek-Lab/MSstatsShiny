@@ -27,7 +27,8 @@ create_moderation_radio_buttons <- function(ns) {
       icon("question-circle", lib = "font-awesome"),
       div("TRUE will moderate t statistic; FALSE (default) uses ordinary t statistic.", class = "icon-tooltip")
     ), 
-    c(True = TRUE, False = FALSE)
+    choices = c(True = TRUE, False = FALSE),
+    selected = FALSE
   )
 }
 
