@@ -707,14 +707,32 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   # Observe edge deletion events from the visualization
   observeEvent(input$network_edge_deleted, {
     edge_data <- input$network_edge_deleted
-    deletedEdges(c(deletedEdges(), list(edge_data)))
 
+    new_deletions <- list(edge_data)
     updated_edges <- MSstatsBioNet::deleteEdgeFromNetwork(
       currentEdgesTable(),
       edge_data$source,
       edge_data$target,
       edge_data$interaction
     )
+
+    # Complex edges are stored bidirectionally, so also remove the reverse direction
+    if (identical(edge_data$interaction, "Complex")) {
+      reverse_edge_data <- list(
+        source = edge_data$target,
+        target = edge_data$source,
+        interaction = edge_data$interaction
+      )
+      new_deletions <- c(new_deletions, list(reverse_edge_data))
+      updated_edges <- MSstatsBioNet::deleteEdgeFromNetwork(
+        updated_edges,
+        edge_data$target,
+        edge_data$source,
+        edge_data$interaction
+      )
+    }
+
+    deletedEdges(c(deletedEdges(), new_deletions))
     currentEdgesTable(updated_edges)
 
     output$edgesTable <- DT::renderDT({
