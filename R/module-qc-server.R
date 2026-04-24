@@ -446,7 +446,13 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
   output$showplot = renderUI({
     ns<- session$ns
     output$theplot = renderPlotly(theplot())
-    op <- plotlyOutput(ns("theplot"))
+    op <- div(
+      style = "overflow-x: auto; width: 100%;",
+      div(
+        style = "min-width: 1400px;",
+        plotlyOutput(ns("theplot"), width = "100%")
+      )
+    )
     tagList(
       op,
       conditionalPanel(condition = "input['qc-type'] == 'ConditionPlot' && input['qc-which'] != ''",
