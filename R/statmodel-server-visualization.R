@@ -83,7 +83,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
       stop('** Cannot generate multiple plots in a screen. Please refine selection or save to a pdf. **')
     }
     if (loadpage_input$BIO == "PTM") {
-      plot_result = groupComparisonPlotsPTM(
+      result = groupComparisonPlotsPTM(
         data_comparison,
         input[[NAMESPACE_STATMODEL$visualization_plot_type]],
         sig = input[[NAMESPACE_STATMODEL$visualization_volcano_significance_cutoff]],
@@ -91,8 +91,10 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         logBase.pvalue = as.integer(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
         ProteinName = TRUE,
         which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
-        address = FALSE
+        address = FALSE,
+        isPlotly = TRUE
       )
+      plot_result = if (length(result) >= 3) result[[3]] else result[[1]]
     } else if (loadpage_input$DDA_DIA == "TMT") {
       plot_result = groupComparisonPlots(
         data = data_comparison$ComparisonResult,

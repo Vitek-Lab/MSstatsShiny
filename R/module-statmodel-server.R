@@ -448,7 +448,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         ns = session$ns
         
         if (loadpage_input()$BIO == "PTM") {
-          output_plot = renderPlot({ 
+          output_plot = renderPlotly({
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
             )
