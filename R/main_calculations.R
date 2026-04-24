@@ -445,9 +445,10 @@ tmt_model = function(data, input, contrast.matrix, busy_indicator = TRUE){
   FittedModel = fitted_models$fitted_model
   names(FittedModel) = fitted_models$protein
   
+  moderated_flag = isTRUE(as.logical(input[[NAMESPACE_STATMODEL$modeling_tmt_moderation]]))
   fitted_models = MSstatsTMT:::MSstatsModerateTTest(summarized, 
                                                     fitted_models, 
-                                                    input[[NAMESPACE_STATMODEL$modeling_tmt_moderation]])
+                                                    moderated_flag)
   
   testing_results = vector("list", length(fitted_models))
   
