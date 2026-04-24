@@ -445,15 +445,8 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
   
   output$showplot = renderUI({
     ns<- session$ns
-
-    if (loadpage_input()$BIO == "PTM") {
-      output$theplot = renderPlotly(theplot())
-      op <- plotlyOutput(ns("theplot"))
-    } else {
-      output$theplot = renderPlotly(theplot())
-      op <- plotlyOutput(ns("theplot"))
-    }
-
+    output$theplot = renderPlotly(theplot())
+    op <- plotlyOutput(ns("theplot"))
     tagList(
       op,
       conditionalPanel(condition = "input['qc-type'] == 'ConditionPlot' && input['qc-which'] != ''",
@@ -496,16 +489,7 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     validate(need(preprocess_data(),
                   message = "PLEASE COMPLETE DATA PROCESSING"))
     
-    if (loadpage_input()$DDA_DIA == "TMT"){
-      temp = copy(preprocess_data())
-      setnames(temp$ProteinLevelData, 
-               c("Abundance", "Condition", "BioReplicate"), 
-               c("LogIntensities", "GROUP", "SUBJECT"))
-      abundant$results = quantification(temp,
-                                        type = input$typequant,
-                                        format = input$format,
-                                        use_log_file = FALSE)
-    } else if (loadpage_input()$BIO == "PTM" & ((loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA == "TMT") | loadpage_input()$filetype=='phil')){
+    if (loadpage_input()$BIO == "PTM" && loadpage_input()$DDA_DIA == "TMT"){
       temp = copy(preprocess_data())
       setnames(temp$PTM$ProteinLevelData, 
                c("Abundance", "Condition", "BioReplicate"), 
@@ -514,12 +498,21 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
                                         type = input$typequant,
                                         format = input$format,
                                         use_log_file = FALSE)
-    } else if (loadpage_input()$BIO == "PTM" & (loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA != "TMT")){
+    } else if (loadpage_input()$BIO == "PTM" && loadpage_input()$DDA_DIA != "TMT"){
       temp = copy(preprocess_data())
       abundant$results =quantification(temp$PTM,
                                        type = input$typequant,
                                        format = input$format,
                                        use_log_file = FALSE)
+    } else if (loadpage_input()$DDA_DIA == "TMT"){
+      temp = copy(preprocess_data())
+      setnames(temp$ProteinLevelData, 
+               c("Abundance", "Condition", "BioReplicate"), 
+               c("LogIntensities", "GROUP", "SUBJECT"))
+      abundant$results = quantification(temp,
+                                        type = input$typequant,
+                                        format = input$format,
+                                        use_log_file = FALSE)
     } else if (!is.null(app_template) && !is.null(app_template()) &&
                app_template() == TEMPLATES$protein_turnover) {
       # TODO: Refactor quantification function to handle LABEL column
