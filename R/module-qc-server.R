@@ -182,10 +182,9 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
                   "IsotopeLabelType", "Condition", "BioReplicate", "Run",
                   "TechReplicate", "StandardType", "Fraction",
                   "DetectionQValue", "Intensity")
-    data_cols  <- colnames(get_data())
+    data_cols   <- colnames(get_data())
     metric_cols <- setdiff(data_cols, std_cols)
 
-    # Put AnomalyScores first when present
     if ("AnomalyScores" %in% metric_cols) {
       metric_cols <- c("AnomalyScores", setdiff(metric_cols, "AnomalyScores"))
     }
@@ -194,10 +193,17 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
       return(p("No quality metric columns found in the data."))
     }
 
-    selectInput(ns("quality_metric"),
-                label = h5("Quality metric"),
-                choices = metric_cols,
-                selected = metric_cols[1])
+    protein_choices <- unique(get_data()$ProteinName)
+
+    tagList(
+      selectInput(ns("quality_metric"),
+                  label    = h5("Quality metric"),
+                  choices  = metric_cols,
+                  selected = metric_cols[1]),
+      selectizeInput(ns("qm_protein"),
+                     label   = h5("Show plot for"),
+                     choices = c("", protein_choices))
+    )
   })
 
   output$summaryMethodUI <- renderUI({
@@ -511,10 +517,12 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     if (!is.null(input$type1) && input$type1 == "QualityMetricsPlot") {
       req(get_data())
       req(input$quality_metric)
+      req(input$qm_protein != "")
       return(MSstats::MSstatsQualityMetricsPlot(
         get_data(),
-        metric    = input$quality_metric,
-        isPlotly  = TRUE
+        metric        = input$quality_metric,
+        which.Protein = input$qm_protein,
+        isPlotly      = TRUE
       ))
     }
     if (input$summ == FALSE) {
