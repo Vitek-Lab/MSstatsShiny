@@ -32,12 +32,9 @@ create_plot_type_selector <- function(ns) {
 }
 #' Create volcano plot specific options
 #' @noRd
-create_volcano_plot_options <- function(ns, show_protein_name = TRUE) {
+create_volcano_plot_options <- function(ns) {
   tagList(
     uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_comparison)),
-    if (show_protein_name) {
-      checkboxInput(ns(NAMESPACE_STATMODEL$visualization_volcano_display_protein_name), label = p("display protein name"))
-    },
     selectInput(
       ns(NAMESPACE_STATMODEL$visualization_logp_base), 
       label = h5("Log transformation of adjusted p-value"),

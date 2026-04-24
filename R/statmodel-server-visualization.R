@@ -6,9 +6,36 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   ns = session$ns
   
   output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
+    comparison_names <- rownames()
+    req(length(comparison_names) > 0)
     selectInput(ns(NAMESPACE_STATMODEL$visualization_which_comparison),
                 label = h5("Select comparison to plot"), 
-                c("all", rownames()), selected = "all")
+                comparison_names, selected = comparison_names[1])
+  })
+
+  # Dynamically filter plot type choices based on number of comparisons.
+  # Skips response curve mode (handled separately in module-statmodel-server.R).
+  observe({
+    req(input[[NAMESPACE_STATMODEL$comparison_mode]])
+    mode <- input[[NAMESPACE_STATMODEL$comparison_mode]]
+    if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) return()
+
+    comparison_names <- rownames()
+    n_comparisons <- length(comparison_names)
+
+    choices <- c(
+      "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot,
+      "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
+    )
+    if (n_comparisons >= 2) {
+      choices <- c(
+        "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot,
+        "Heatmap" = CONSTANTS_STATMODEL$plot_type_heatmap,
+        "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
+      )
+    }
+    updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
+                      choices = choices)
   })
   
   output[[NAMESPACE_STATMODEL$visualization_which_protein]] = renderUI({
@@ -21,9 +48,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
     plot_type = input[[NAMESPACE_STATMODEL$visualization_plot_type]]
     
     if (plot_type == CONSTANTS_STATMODEL$plot_type_volcano_plot) {
-      show_protein_name = !is.null(loadpage_input()$DDA_DIA) &&
-        loadpage_input()$DDA_DIA != "TMT"
-      create_volcano_plot_options(ns, show_protein_name)
+      create_volcano_plot_options(ns)
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_comparison_plot) {
       create_comparison_plot_options(ns)
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_heatmap) {
@@ -78,10 +103,6 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
   fold_change_cutoff = ifelse(!is.null(input[[NAMESPACE_STATMODEL$visualization_fold_change_input]]), input[[NAMESPACE_STATMODEL$visualization_fold_change_input]], FALSE)
   
   tryCatch({
-    if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == CONSTANTS_STATMODEL$plot_type_volcano_plot && input[[NAMESPACE_STATMODEL$visualization_which_comparison]] == "all") {
-      remove_modal_spinner()
-      stop('** Cannot generate multiple plots in a screen. Please refine selection or save to a pdf. **')
-    }
     if (loadpage_input$BIO == "PTM") {
       plot_result = groupComparisonPlotsPTM(
         data_comparison,
@@ -116,7 +137,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         sig = input[[NAMESPACE_STATMODEL$visualization_volcano_significance_cutoff]],
         FCcutoff = fold_change_cutoff,
         logBase.pvalue = as.numeric(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
-        ProteinName = input[[NAMESPACE_STATMODEL$visualization_volcano_display_protein_name]],
+        ProteinName = FALSE,
         numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
         clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
         which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
@@ -266,7 +287,7 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 sig = input[[NAMESPACE_STATMODEL$visualization_volcano_significance_cutoff]],
                 FCcutoff = fold_change_cutoff,
                 logBase.pvalue = as.integer(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
-                ProteinName = input[[NAMESPACE_STATMODEL$visualization_volcano_display_protein_name]],
+                ProteinName = FALSE,
                 which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
                 address = address_prefix
               )
@@ -277,7 +298,7 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 sig = input[[NAMESPACE_STATMODEL$visualization_volcano_significance_cutoff]],
                 FCcutoff = fold_change_cutoff,
                 logBase.pvalue = as.numeric(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
-                ProteinName = input[[NAMESPACE_STATMODEL$visualization_volcano_display_protein_name]],
+                ProteinName = FALSE,
                 numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
                 clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
                 which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
