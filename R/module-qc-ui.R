@@ -197,22 +197,19 @@ qcUI <- function(id) {
                  ),
                  tabPanel("Summarization Plots",
                           wellPanel(
-                            selectInput(ns("type1"),
-                                        label =  h5("Select plot type",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                                           div("For details on plotting options please see the Help tab.", class = "icon-tooltip")),
-                                        c("Quality Control Plots"="QCPlot", 
-                                          "Profile Plots"="ProfilePlot")),
+                            uiOutput(ns("plotTypeUI")),
                             conditionalPanel(condition = "input['qc-type1'] === 'ProfilePlot'",
                                              checkboxInput(ns("summ"), "Show plot with summary"),
-                                             selectInput(ns("fname"),  
+                                             selectInput(ns("fname"),
                                                          label = h5("Feature legend",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                                             div("Type of legend to use in plot", class = "icon-tooltip")),
-                                                         c("Transition level"="Transition", 
-                                                           "Peptide level"="Peptide", 
+                                                         c("Transition level"="Transition",
+                                                           "Peptide level"="Peptide",
                                                            "No feature legend"="NA"))
-                                             
                             ),
-                            
+                            conditionalPanel(condition = "input['qc-type1'] === 'QualityMetricsPlot'",
+                                             uiOutput(ns("qualityMetricSelector"))
+                            ),
                             uiOutput(ns("Which")),
                             tags$br()
                           ),
