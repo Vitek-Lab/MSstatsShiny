@@ -213,10 +213,6 @@ qcUI <- function(id) {
                             uiOutput(ns("Which")),
                             tags$br()
                           ),
-                          # conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-                          #                  tags$br(),
-                          #                  tags$br(),
-                          #                  tags$h4("Calculation in progress...")),
                           uiOutput(ns("showplot")),
                           # disabled(downloadButton(ns("saveplot"), "Save this plot"))
                  ),
