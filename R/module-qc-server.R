@@ -130,15 +130,9 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
       return(NULL)
     }
     if ((loadpage_input()$BIO!="PTM" && input$type1 == "QCPlot")) {
-      # if((loadpage_input()$DDA_DIA=="LType" && loadpage_input()$filetype=="sky") || (loadpage_input()$DDA_DIA=="LType" && loadpage_input()$filetype=="ump")){
-      #   selectizeInput(ns("which"), "Show plot for", 
-      #                  choices = c("", "ALL PROTEINS" = "allonly", 
-      #                              unique(get_data()[2])))
-      # } else {
       selectizeInput(ns("which"), "Show plot for", 
                      choices = c("", "ALL PROTEINS" = "allonly", 
                                  unique(get_data()$ProteinName)))
-      # }
     } else if (loadpage_input()$BIO == "PTM"){
       if (input$type1 == "QCPlot"){
         selectizeInput(ns("which"), "Show plot for", 
@@ -274,19 +268,17 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
   
   plotresult = function(saveFile, protein, summary, original, file) {
     if (input$which != "") {
-      # id = as.character(UUIDgenerate(FALSE))
-      # id_address = paste("tmp/",id, sep = "")
-      # path = function()  {
-      #   if (saveFile) {
-      #     path_id = paste("www/", id_address, sep = "")
-      #   } 
-      #   else {
-      #     path_id = FALSE
-      #   }
-      #   return (path_id)
-      # }
-      
-      if(loadpage_input()$DDA_DIA == "TMT"){
+      if (loadpage_input()$BIO == "PTM"){
+        plot = dataProcessPlotsPTM(preprocess_data(),
+                            type=input$type1,
+                            which.PTM = protein,
+                            originalPlot = original,
+                            summaryPlot = input$summ,
+                            address = file,
+                            isPlotly = TRUE
+        )[[1]]
+        return(plot)
+      } else if(loadpage_input()$DDA_DIA == "TMT"){
         plot <- dataProcessPlotsTMT(preprocess_data(),
                             type=input$type1,
                             featureName = input$fname,
@@ -298,16 +290,7 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
                             address = file, isPlotly = TRUE
         )[[1]]
         return(plot)
-        
-      } else if (loadpage_input()$BIO == "PTM"){
-        
-        dataProcessPlotsPTM(preprocess_data(),
-                            type=input$type1,
-                            which.PTM = protein,
-                            summaryPlot = input$summ,
-                            address = file)
-        
-      } else{
+      } else {
         plot <- dataProcessPlots(data = ordered_preprocess_data(),
                          type=input$type1,
                          featureName = input$fname,
@@ -460,50 +443,16 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     }
   )
   
-  # observeEvent(input$saveone, {
-  #   path = plotresult(TRUE, input$which, FALSE, TRUE)
-  #   if (input$type1 == "ProfilePlot" || input$type1 == "ProfilePlot") {
-  #     js = paste("window.open('", path, "ProfilePlot.pdf')", sep="")
-  #     runjs(js);
-  #   }
-  #   else if (input$type1 == "ConditionPlot") {
-  #     js = paste("window.open('", path, "ConditionPlot.pdf')", sep="")
-  #     runjs(js);
-  #   }
-  #   else if (input$type1 == "QCPlot" || input$type1 == "QCPlot") {
-  #     js = paste("window.open('", path, "QCPlot.pdf')", sep="")
-  #     runjs(js);
-  #   }
-  # })
-  
-  # observeEvent(input$saveall, {
-  #   path = plotresult(TRUE, "all", FALSE, TRUE)
-  #   if (input$type1 == "ProfilePlot" || input$type1 == "ProfilePlot") {
-  #     js = paste("window.open('", path, "ProfilePlot.pdf')", sep="")
-  #     runjs(js);
-  #   }
-  #   else if (input$type1 == "ConditionPlot") {
-  #     js = paste("window.open('", path, "ConditionPlot.pdf')", sep="")
-  #     runjs(js);
-  #   }
-  #   else if (input$type1 == "QCPlot" || input$type1 == "QCPlot") {
-  #     js = paste("window.open('", path, "QCPlot.pdf')", sep="")
-  #     runjs(js);
-  #   }
-  # })
-  
   output$showplot = renderUI({
     ns<- session$ns
-
-    # PTM plotly plots are still under development
-    if (loadpage_input()$BIO == "PTM") {
-      output$theplot = renderPlot(theplot())
-      op <- plotOutput(ns("theplot"))
-    } else {
-      output$theplot = renderPlotly(theplot())
-      op <- plotlyOutput(ns("theplot"))
-    }
-
+    output$theplot = renderPlotly(theplot())
+    op <- div(
+      style = "overflow-x: auto; width: 100%;",
+      div(
+        style = "min-width: 1400px;",
+        plotlyOutput(ns("theplot"), width = "100%")
+      )
+    )
     tagList(
       op,
       conditionalPanel(condition = "input['qc-type'] == 'ConditionPlot' && input['qc-which'] != ''",
@@ -546,16 +495,7 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     validate(need(preprocess_data(),
                   message = "PLEASE COMPLETE DATA PROCESSING"))
     
-    if (loadpage_input()$DDA_DIA == "TMT"){
-      temp = copy(preprocess_data())
-      setnames(temp$ProteinLevelData, 
-               c("Abundance", "Condition", "BioReplicate"), 
-               c("LogIntensities", "GROUP", "SUBJECT"))
-      abundant$results = quantification(temp,
-                                        type = input$typequant,
-                                        format = input$format,
-                                        use_log_file = FALSE)
-    } else if (loadpage_input()$BIO == "PTM" & ((loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA == "TMT") | loadpage_input()$filetype=='phil')){
+    if (loadpage_input()$BIO == "PTM" && loadpage_input()$DDA_DIA == "TMT"){
       temp = copy(preprocess_data())
       setnames(temp$PTM$ProteinLevelData, 
                c("Abundance", "Condition", "BioReplicate"), 
@@ -564,12 +504,22 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
                                         type = input$typequant,
                                         format = input$format,
                                         use_log_file = FALSE)
-    } else if (loadpage_input()$BIO == "PTM" & (loadpage_input()$BIO == "PTM" & loadpage_input()$DDA_DIA != "TMT")){
+    } else if (loadpage_input()$BIO == "PTM" && loadpage_input()$DDA_DIA != "TMT"){
       temp = copy(preprocess_data())
       abundant$results =quantification(temp$PTM,
                                        type = input$typequant,
                                        format = input$format,
                                        use_log_file = FALSE)
+    } else if (loadpage_input()$DDA_DIA == "TMT"){
+      temp = copy(preprocess_data())
+      temp$ProteinLevelData = copy(temp$ProteinLevelData)
+      setnames(temp$ProteinLevelData,
+               c("Abundance", "Condition", "BioReplicate"),
+               c("LogIntensities", "GROUP", "SUBJECT"))
+      abundant$results = quantification(temp,
+                                        type = input$typequant,
+                                        format = input$format,
+                                        use_log_file = FALSE)
     } else if (!is.null(app_template) && !is.null(app_template()) &&
                app_template() == TEMPLATES$protein_turnover) {
       # TODO: Refactor quantification function to handle LABEL column

@@ -104,7 +104,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
   
   tryCatch({
     if (loadpage_input$BIO == "PTM") {
-      plot_result = groupComparisonPlotsPTM(
+      result = groupComparisonPlotsPTM(
         data_comparison,
         input[[NAMESPACE_STATMODEL$visualization_plot_type]],
         sig = input[[NAMESPACE_STATMODEL$visualization_volcano_significance_cutoff]],
@@ -112,8 +112,13 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         logBase.pvalue = as.integer(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
         ProteinName = TRUE,
         which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
-        address = FALSE
+        address = FALSE,
+        isPlotly = TRUE
       )
+      # groupComparisonPlotsPTM returns `result` as a list where element 3 is
+      # the adjusted-peptide plot and element 1 is the unadjusted fallback;
+      # prefer the adjusted plot (result[[3]]) when available.
+      plot_result = if (length(result) >= 3) result[[3]] else result[[1]]
     } else if (loadpage_input$DDA_DIA == "TMT") {
       plot_result = groupComparisonPlots(
         data = data_comparison$ComparisonResult,
@@ -152,6 +157,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
   }, error = function(e) {
     remove_modal_spinner()
     showNotification(conditionMessage(e), type = "error", duration = 8)
+    NULL
   })
 }
 #' Get filename for plot download based on plot type

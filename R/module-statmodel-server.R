@@ -434,10 +434,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Results rendering
       render_results_table(output, session, data_comparison, SignificantProteins)
-      
+      render_ptm_results_tables(output, session, data_comparison, SignificantProteins)
+
       # Download handlers
-      create_download_handlers(output, data_comparison, SignificantProteins, 
+      create_download_handlers(output, data_comparison, SignificantProteins,
                                data_comparison_code)
+      create_ptm_download_handlers(output, data_comparison, SignificantProteins)
       create_download_plot_handler(output, input, contrast, preprocess_data, data_comparison, loadpage_input, app_template, condition_metadata)
       
       # Plot rendering
@@ -445,14 +447,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         req(input[[NAMESPACE_STATMODEL$visualization_view_results]])
         ns = session$ns
         
-        if (loadpage_input()$BIO == "PTM") {
-          output_plot = renderPlot({ 
-            create_group_comparison_plot(
-              input, loadpage_input(), data_comparison()
-            )
-          })
-          
-        } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
+        if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
           if (app_template() == TEMPLATES$protein_turnover) {
             req(turnover_ratios())
