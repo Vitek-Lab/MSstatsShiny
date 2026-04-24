@@ -71,7 +71,7 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
                                               rm_feat)
   
   # Select the summarization function based on the user's choice.
-  if (qc_input$summaryMethod == "linear") {
+  if (!is.null(qc_input$summaryMethod) && qc_input$summaryMethod == "linear") {
     summarize_function <- MSstatsSummarizeSingleLinear
   } else {
     summarize_function <- MSstatsSummarizeSingleTMP
