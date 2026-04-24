@@ -434,10 +434,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Results rendering
       render_results_table(output, session, data_comparison, SignificantProteins)
-      
+      render_ptm_results_tables(output, session, data_comparison, SignificantProteins)
+
       # Download handlers
-      create_download_handlers(output, data_comparison, SignificantProteins, 
+      create_download_handlers(output, data_comparison, SignificantProteins,
                                data_comparison_code)
+      create_ptm_download_handlers(output, data_comparison, SignificantProteins)
       create_download_plot_handler(output, input, contrast, preprocess_data, data_comparison, loadpage_input, app_template, condition_metadata)
       
       # Plot rendering
