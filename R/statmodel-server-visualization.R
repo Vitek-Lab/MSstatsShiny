@@ -133,6 +133,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
   }, error = function(e) {
     remove_modal_spinner()
     showNotification(conditionMessage(e), type = "error", duration = 8)
+    NULL
   })
 }
 #' Get filename for plot download based on plot type
