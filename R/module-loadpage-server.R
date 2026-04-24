@@ -82,21 +82,22 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       }
     })
 
-    # Read first 100 rows for Metamorpheus PTM preview.
-    # TODO: Extend preview reading to other input formats (e.g., Spectronaut, MaxQuant)
-    # for dynamic UI updates. Currently limited to Metamorpheus.
+    # Read first 100 rows for preview-based UI features.
+    # Supported: Metamorpheus PTM (modification ID dropdown), DIANN (version auto-detection).
+    # TODO: Extend to other input formats (Spectronaut, MaxQuant) as needed.
     observe({
-      if (isTRUE(input$filetype == "meta") && isTRUE(input$BIO == "PTM")) {
+      should_preview <- (isTRUE(input$filetype == "meta") && isTRUE(input$BIO == "PTM")) ||
+                       (isTRUE(input$filetype == "diann") && isTRUE(input$BIO != "PTM"))
+      if (should_preview) {
         file_info <- main_data_file()
         if (!is.null(file_info)) {
-          preview <- tryCatch(
-            data.table::fread(file_info$datapath, nrows = 100, header = TRUE),
-            error = function(e) {
-              showNotification(paste("Could not preview file:", conditionMessage(e)),
-                               type = "warning", duration = 5)
-              NULL
-            }
-          )
+          # Reset DIANN detection tracker so a new file re-triggers the notification
+          last_detected_diann_format(NULL)
+          preview <- .read_preview(file_info$datapath, file_info$name)
+          if (is.null(preview)) {
+            showNotification("Could not preview file. Please verify the file format.",
+                             type = "warning", duration = 5)
+          }
           preview_data(preview)
         } else {
           preview_data(NULL)
@@ -105,6 +106,48 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
         preview_data(NULL)
       }
     })
+
+    # Track last detected DIANN format to avoid redundant notifications
+    last_detected_diann_format <- reactiveVal(NULL)
+
+    # Auto-toggle DIANN 2.0+ checkbox based on detected file format
+    observe({
+      req(input$filetype == "diann", input$BIO != "PTM")
+      preview <- preview_data()
+      if (is.null(preview)) return()
+
+      is_2plus <- .is_diann_2plus(preview)
+      previous <- last_detected_diann_format()
+      # Only update and notify when the detected state actually changes
+      if (is.null(previous) || previous != is_2plus) {
+        updateCheckboxInput(session, "diann_2plus", value = is_2plus)
+        if (is_2plus) {
+          showNotification("Detected DIANN 2.0+ format (per-fragment columns).",
+                           type = "message", duration = 5)
+        } else {
+          showNotification("Detected DIANN 1.x format (legacy fragment column).",
+                           type = "message", duration = 5)
+        }
+        last_detected_diann_format(is_2plus)
+      }
+    })
+
+    # Warn user if they manually set DIANN 2.0+ checkbox to a value that conflicts with detected format
+    observeEvent(input$diann_2plus, {
+      req(input$filetype == "diann", input$BIO != "PTM")
+      preview <- preview_data()
+      if (is.null(preview)) return()
+      detected_2plus <- .is_diann_2plus(preview)
+      if (isTRUE(input$diann_2plus) != detected_2plus) {
+        showNotification(
+          paste0("Warning: You've ",
+                 if (isTRUE(input$diann_2plus)) "checked" else "unchecked",
+                 " DIANN 2.0+, but the uploaded file appears to be ",
+                 if (detected_2plus) "DIANN 2.0+ format" else "DIANN 1.x format",
+                 ". This mismatch may cause upload to fail."),
+          type = "warning", duration = 10)
+      }
+    }, ignoreInit = TRUE)
 
     # ========= METAMORPHEUS PTM: Dynamic modification ID dropdown =========
     output$mod_id_meta_ui <- renderUI({
@@ -412,9 +455,17 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       getMaxqPtmSites(input)
     })
 
-
     get_data = eventReactive(input$proceed1, {
-      getData(input)
+      tryCatch(
+        getData(input),
+        error = function(e) {
+          tryCatch(remove_modal_spinner(), error = function(e2) NULL)
+          showNotification(
+            paste("Failed to load data:", conditionMessage(e)),
+            type = "error", duration = 12)
+          NULL
+        }
+      )
     })
 
 
