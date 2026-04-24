@@ -125,8 +125,10 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
   
   output$Which = renderUI({
     ns <- session$ns
-    print("Inside render UI and getting input$type1")
-    print(input$type1)
+    req(input$type1)
+    if (input$type1 == "QualityMetricsPlot") {
+      return(NULL)
+    }
     if ((loadpage_input()$BIO!="PTM" && input$type1 == "QCPlot")) {
       # if((loadpage_input()$DDA_DIA=="LType" && loadpage_input()$filetype=="sky") || (loadpage_input()$DDA_DIA=="LType" && loadpage_input()$filetype=="ump")){
       #   selectizeInput(ns("which"), "Show plot for", 
@@ -152,6 +154,58 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     }
   })
   
+  output$plotTypeUI <- renderUI({
+    ns <- session$ns
+
+    choices <- c("Quality Control Plots" = "QCPlot",
+                 "Profile Plots"         = "ProfilePlot")
+
+    if (isTRUE(loadpage_input()$calculate_anomaly_scores)) {
+      choices <- c(choices, "Quality Metrics Plots" = "QualityMetricsPlot")
+    }
+
+    selectInput(ns("type1"),
+                label = h5("Select plot type",
+                           class = "icon-wrapper",
+                           icon("question-circle", lib = "font-awesome"),
+                           div("For details on plotting options please see the Help tab.",
+                               class = "icon-tooltip")),
+                choices = choices)
+  })
+
+  output$qualityMetricSelector <- renderUI({
+    ns <- session$ns
+    req(get_data())
+
+    std_cols <- c("ProteinName", "PeptideSequence", "PeptideModifiedSequence",
+                  "PrecursorCharge", "FragmentIon", "ProductCharge",
+                  "IsotopeLabelType", "Condition", "BioReplicate", "Run",
+                  "TechReplicate", "StandardType", "Fraction",
+                  "DetectionQValue", "Intensity")
+    data_cols   <- colnames(get_data())
+    metric_cols <- setdiff(data_cols, std_cols)
+
+    if ("AnomalyScores" %in% metric_cols) {
+      metric_cols <- c("AnomalyScores", setdiff(metric_cols, "AnomalyScores"))
+    }
+
+    if (length(metric_cols) == 0) {
+      return(p("No quality metric columns found in the data."))
+    }
+
+    protein_choices <- unique(get_data()$ProteinName)
+
+    tagList(
+      selectInput(ns("quality_metric"),
+                  label    = h5("Quality metric"),
+                  choices  = metric_cols,
+                  selected = metric_cols[1]),
+      selectizeInput(ns("qm_protein"),
+                     label   = h5("Show plot for"),
+                     choices = c("", protein_choices))
+    )
+  })
+
   output$summaryMethodUI <- renderUI({
     ns <- session$ns
     
@@ -460,12 +514,23 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
   })
   
   theplot = reactive({
+    if (!is.null(input$type1) && input$type1 == "QualityMetricsPlot") {
+      req(get_data())
+      req(input$quality_metric)
+      req(input$qm_protein != "")
+      return(MSstats::MSstatsQualityMetricsPlot(
+        get_data(),
+        metric        = input$quality_metric,
+        which.Protein = input$qm_protein,
+        isPlotly      = TRUE
+      ))
+    }
     if (input$summ == FALSE) {
       output = plotresult(FALSE, input$which, FALSE, TRUE, FALSE)
     }
     else if (input$summ == TRUE) {
       output = plotresult(FALSE, input$which, TRUE, FALSE, FALSE)
-    } 
+    }
     return(output)
   })
   
