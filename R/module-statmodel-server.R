@@ -447,14 +447,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         req(input[[NAMESPACE_STATMODEL$visualization_view_results]])
         ns = session$ns
         
-        if (loadpage_input()$BIO == "PTM") {
-          output_plot = renderPlotly({
-            create_group_comparison_plot(
-              input, loadpage_input(), data_comparison()
-            )
-          })
-          
-        } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
+        if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
           if (app_template() == TEMPLATES$protein_turnover) {
             req(turnover_ratios())
