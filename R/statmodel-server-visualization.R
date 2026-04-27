@@ -6,6 +6,9 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   ns = session$ns
   
   output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
+    # Don't render dropdown for Heatmap (uses all comparisons)
+    req(input[[NAMESPACE_STATMODEL$visualization_plot_type]] !=
+          CONSTANTS_STATMODEL$plot_type_heatmap)
     comparison_names <- rownames()
     req(length(comparison_names) > 0)
     selectInput(ns(NAMESPACE_STATMODEL$visualization_which_comparison),
@@ -111,7 +114,9 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         FCcutoff = fold_change_cutoff,
         logBase.pvalue = as.integer(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
         ProteinName = TRUE,
-        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
+        which.Comparison = if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
+                               CONSTANTS_STATMODEL$plot_type_heatmap) "all" 
+                           else input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         address = FALSE,
         isPlotly = TRUE
       )
@@ -129,7 +134,9 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         ProteinName = TRUE,
         numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
         clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
-        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
+        which.Comparison = if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
+                               CONSTANTS_STATMODEL$plot_type_heatmap) "all" 
+                           else input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
         height = input[[NAMESPACE_STATMODEL$visualization_plot_height_slider]],
         address = "Ex_",
@@ -145,7 +152,9 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         ProteinName = TRUE,
         numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
         clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
-        which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
+        which.Comparison = if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] == 
+                               CONSTANTS_STATMODEL$plot_type_heatmap) "all" 
+                           else input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
         height = input[[NAMESPACE_STATMODEL$visualization_plot_height_slider]],
         address = "Ex_",

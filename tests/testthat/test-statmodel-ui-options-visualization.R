@@ -39,8 +39,6 @@ test_that("Correct elements are present in create_volcano_plot_options", {
   ui_html <- htmltools::renderTags(result)$html
   expect_true(grepl(NAMESPACE_STATMODEL$visualization_which_comparison, ui_html),
               info = "Which comparison namespace should be present")
-  expect_false(grepl(NAMESPACE_STATMODEL$visualization_volcano_display_protein_name, ui_html),
-               info = "Display protein name checkbox should be removed")
   expect_true(grepl(NAMESPACE_STATMODEL$visualization_logp_base, ui_html),
               info = "Log p-value base namespace should be present")
   expect_true(grepl(NAMESPACE_STATMODEL$visualization_volcano_significance_cutoff, ui_html),

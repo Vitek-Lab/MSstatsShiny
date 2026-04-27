@@ -36,7 +36,6 @@ NAMESPACE_STATMODEL = list(
   visualization_fold_change_checkbox = "visualization_fold_change_checkbox",
   visualization_fold_change_input = "visualization_fold_change_input", 
   visualization_which_comparison = "visualization_which_comparison",
-  visualization_volcano_display_protein_name = "visualization_volcano_display_protein_name",
   visualization_volcano_significance_cutoff = "visualization_volcano_significance_cutoff", 
   visualization_heatmap_number_proteins = "visualization_heatmap_number_proteins",
   visualization_heatmap_cluster_option = "visualization_heatmap_cluster_option", 
