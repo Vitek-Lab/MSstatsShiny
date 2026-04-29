@@ -51,3 +51,4 @@ vignettes/*.pdf
 *_.new.png
 
 /*.csv
+.positai
