@@ -19,7 +19,7 @@ render_results_table = function(output, session, data_comparison, SignificantPro
     )
   })
 
-  output$significant = renderDataTable({ SignificantProteins() })
+  output$significant = renderDataTable({ SignificantProteins() }, options = list(scrollX = TRUE))
   output$number = renderText({ nrow(SignificantProteins()) })
 }
 
@@ -83,9 +83,9 @@ render_ptm_results_tables = function(output, session, data_comparison, Significa
     }
   })
 
-  output$adj_significant = renderDataTable({ SignificantProteins()$ADJUSTED.Model })
-  output$unadj_significant = renderDataTable({ SignificantProteins()$PTM.Model })
-  output$prot_significant = renderDataTable({ SignificantProteins()$PROTEIN.Model })
+  output$adj_significant = renderDataTable({ SignificantProteins()$ADJUSTED.Model }, options = list(scrollX = TRUE))
+  output$unadj_significant = renderDataTable({ SignificantProteins()$PTM.Model }, options = list(scrollX = TRUE))
+  output$prot_significant = renderDataTable({ SignificantProteins()$PROTEIN.Model }, options = list(scrollX = TRUE))
 
   output$number_adj = renderText({ nrow(SignificantProteins()$ADJUSTED.Model) })
   output$number_unadj = renderText({ nrow(SignificantProteins()$PTM.Model) })
