@@ -283,7 +283,7 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 sig = input[[NAMESPACE_STATMODEL$visualization_volcano_significance_cutoff]],
                 FCcutoff = fold_change_cutoff,
                 logBase.pvalue = as.numeric(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
-                ProteinName = input[[NAMESPACE_STATMODEL$visualization_volcano_display_protein_name]],
+                ProteinName = TRUE,
                 numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
                 clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
                 which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
