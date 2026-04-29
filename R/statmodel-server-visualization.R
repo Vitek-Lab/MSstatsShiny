@@ -111,7 +111,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
         height = input[[NAMESPACE_STATMODEL$visualization_plot_height_slider]],
-        address = "Ex_",
+        address = FALSE,
         isPlotly = TRUE
       )[[1]]
     } else {
@@ -127,7 +127,7 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
         which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
         which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
         height = input[[NAMESPACE_STATMODEL$visualization_plot_height_slider]],
-        address = "Ex_",
+        address = FALSE,
         isPlotly = TRUE
       )[[1]]
     }
