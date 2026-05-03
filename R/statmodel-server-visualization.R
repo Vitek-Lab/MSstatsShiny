@@ -6,9 +6,6 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   ns = session$ns
   
   output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
-    # Don't render dropdown for Heatmap (uses all comparisons)
-    req(input[[NAMESPACE_STATMODEL$visualization_plot_type]] !=
-          CONSTANTS_STATMODEL$plot_type_heatmap)
     comparison_names <- rownames()
     req(length(comparison_names) > 0)
     selectInput(ns(NAMESPACE_STATMODEL$visualization_which_comparison),

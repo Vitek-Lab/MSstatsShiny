@@ -66,7 +66,6 @@ create_comparison_plot_options <- function(ns) {
 #' @noRd
 create_heatmap_options <- function(ns) {
   tagList(
-    uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_comparison)),
     h4("Note: Only one page will be shown in browser. To view all proteins please view this plot as a pdf. Heatmaps require at least two comparisons."),
     selectInput(
       ns(NAMESPACE_STATMODEL$visualization_logp_base),
