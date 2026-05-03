@@ -300,7 +300,9 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 FCcutoff = fold_change_cutoff,
                 logBase.pvalue = as.integer(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
                 ProteinName = TRUE,
-                which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
+                which.Comparison = if (plot_type == 
+                                       CONSTANTS_STATMODEL$plot_type_heatmap) "all"
+                                   else input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
                 address = address_prefix
               )
             } else {
@@ -313,7 +315,9 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 ProteinName = TRUE,
                 numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
                 clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
-                which.Comparison = input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
+                which.Comparison = if (plot_type == 
+                                       CONSTANTS_STATMODEL$plot_type_heatmap) "all"
+                                   else input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
                 which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
                 height = input[[NAMESPACE_STATMODEL$visualization_plot_height_slider]],
                 address = address_prefix,
