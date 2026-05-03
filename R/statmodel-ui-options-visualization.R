@@ -32,12 +32,9 @@ create_plot_type_selector <- function(ns) {
 }
 #' Create volcano plot specific options
 #' @noRd
-create_volcano_plot_options <- function(ns, show_protein_name = TRUE) {
+create_volcano_plot_options <- function(ns) {
   tagList(
     uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_comparison)),
-    if (show_protein_name) {
-      checkboxInput(ns(NAMESPACE_STATMODEL$visualization_volcano_display_protein_name), label = p("display protein name"))
-    },
     selectInput(
       ns(NAMESPACE_STATMODEL$visualization_logp_base), 
       label = h5("Log transformation of adjusted p-value"),
@@ -71,7 +68,7 @@ create_heatmap_options <- function(ns) {
   tagList(
     h4("Note: Only one page will be shown in browser. To view all proteins please view this plot as a pdf. Heatmaps require at least two comparisons."),
     selectInput(
-      ns(NAMESPACE_STATMODEL$visualization_logp_base), 
+      ns(NAMESPACE_STATMODEL$visualization_logp_base),
       label = h5("Log transformation of adjusted p-value"),
       c("base 2" = "2", "base 10" = "10"), 
       selected = "10"

@@ -130,6 +130,21 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       output[[NAMESPACE_STATMODEL$modeling_section_header]] <- renderUI({
         get_modeling_section_header(input[[NAMESPACE_STATMODEL$comparison_mode]], app_template())
       })
+
+      # Auto-generate unique default name for non-pairwise comparisons
+      observe({
+        req(input[[NAMESPACE_STATMODEL$comparison_mode]] ==
+              CONSTANTS_STATMODEL$comparison_mode_custom_nonpairwise)
+        existing_names <- if (!is.null(contrast$matrix)) rownames(contrast$matrix) else character(0)
+        # Find the next available "custom comparison N"
+        n <- 1
+        while (paste0("custom comparison ", n) %in% existing_names) {
+          n <- n + 1
+        }
+        updateTextInput(session,
+                        NAMESPACE_STATMODEL$comparisons_custom_nonpairwise_name,
+                        value = paste0("custom comparison ", n))
+      })
       
       # Reset on configuration change
       observeEvent(c(input[[NAMESPACE_STATMODEL$comparison_mode]], loadpage_input()$proceed1), {
