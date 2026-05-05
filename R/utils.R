@@ -613,19 +613,32 @@ getData <- function(input) {
         
         shinybusy::update_modal_spinner(text = "Processing large DIANN file...")
         
-        # Call the big file conversion function from MSstatsConvert
-        converted_data <- bigDIANNtoMSstatsFormat(
+        big_quantificationColumn <- if (isTRUE(input$diann_2plus)) {
+          "auto"
+        } else if (!is.null(input$intensity_column) && nzchar(input$intensity_column)) {
+          input$intensity_column
+        } else {
+          "auto"
+        }
+
+        # Call the big file conversion function from MsStatsBig
+        big_diann_args <- list(
           input_file = local_big_file_path,
           annotation = getAnnot(input),
           output_file_name = "output_file.csv",
           backend = "arrow",
           MBR = isTRUE(input$diann_MBR),
-          quantificationColumn = input$diann_quantificationColumn,
+          quantificationColumn = big_quantificationColumn,
           max_feature_count = input$max_feature_count,
           filter_unique_peptides = input$filter_unique_peptides,
           aggregate_psms = input$aggregate_psms,
           filter_few_obs = input$filter_few_obs
         )
+        message("---- bigDIANNtoMSstatsFormat args ----")
+        utils::str(big_diann_args, max.level = 1, give.attr = FALSE)
+        message("--------------------------------------")
+        converted_data <- do.call(MSstatsBig::bigDIANNtoMSstatsFormat, big_diann_args)
+        
         
         # Attempt to load the data into memory. 
         mydata <- tryCatch({
