@@ -328,8 +328,8 @@ create_diann_standard_ui <- function(ns) {
 #' @noRd
 create_spectronaut_large_file_ui <- function(ns) {
   tagList(
-    shinyFiles::shinyFilesButton(ns("big_file_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
-    verbatimTextOutput(ns("big_file_path"))
+    shinyFiles::shinyFilesButton(ns("big_file_browse_spec"), "Browse for local file...", "Please select a file", multiple = FALSE),
+    verbatimTextOutput(ns("big_file_path_spec"))
   )
 }
 
@@ -337,8 +337,8 @@ create_spectronaut_large_file_ui <- function(ns) {
 #' @noRd
 create_diann_large_file_ui <- function(ns) {
   tagList(
-    shinyFiles::shinyFilesButton(ns("big_file_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
-    verbatimTextOutput(ns("big_file_path"))
+    shinyFiles::shinyFilesButton(ns("big_file_browse_diann"), "Browse for local file...", "Please select a file", multiple = FALSE),
+    verbatimTextOutput(ns("big_file_path_diann"))
   )
 }
 

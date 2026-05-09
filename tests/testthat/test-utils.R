@@ -1444,7 +1444,7 @@ describe("getData for Big Spectronaut", {
   mock_input_big <- list(
     filetype = "spec",
     big_file_spec = TRUE,
-    big_file_browse = list(files = list("file.csv")),
+    big_file_browse_spec = list(files = list("file.csv")),
     qvalue_cutoff = 0.01,
     max_feature_count = 20,
     filter_by_excluded = FALSE,
@@ -1534,7 +1534,7 @@ describe("getData for Big DIANN", {
   mock_input_big_diann <- list(
     filetype = "diann",
     big_file_diann = TRUE,
-    big_file_browse = list(files = list("file.csv")),
+    big_file_browse_diann = list(files = list("file.csv")),
     max_feature_count = 20,
     diann_MBR = TRUE,
     diann_quantificationColumn = "Fragment.Quant.Corrected",

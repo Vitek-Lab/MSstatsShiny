@@ -20,31 +20,37 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
     # Define volumes for the file selection.
     if (!is_web_server) {
       volumes <- shinyFiles::getVolumes()()
-      
-      # Server-side logic for the shinyFiles button
-      shinyFiles::shinyFileChoose(input, "big_file_browse", roots = volumes, session = session)
-      
-      # Reactive to parse and store the full file information (path, name, etc.)
-      # This is efficient because parseFilePaths is only called once.
-      local_file_info <- reactive({
-        req(is.list(input$big_file_browse))
-        shinyFiles::parseFilePaths(volumes, input$big_file_browse)
-      })
-      
-      # Reactive to get just the full datapath, for use in backend processing.
-      local_big_file_path <- reactive({
-        path_info <- local_file_info()
-        if (nrow(path_info) > 0) path_info$datapath else NULL
-      })
-      
-      # Render just the filename for user feedback in the UI.
-      output$big_file_path <- renderPrint({
-        req(nrow(local_file_info()) > 0)
-        cat(local_file_info()$name)
-      })
-    } 
+
+      # Register one shinyFiles pipeline per filetype so DIANN and Spectronaut
+      # selections can't leak across when the user switches filetypes mid-session.
+      make_big_file_path <- function(id_suffix) {
+        browse_id <- paste0("big_file_browse_", id_suffix)
+        path_id   <- paste0("big_file_path_", id_suffix)
+
+        shinyFiles::shinyFileChoose(input, browse_id, roots = volumes, session = session)
+
+        file_info <- reactive({
+          req(is.list(input[[browse_id]]))
+          shinyFiles::parseFilePaths(volumes, input[[browse_id]])
+        })
+
+        output[[path_id]] <- renderPrint({
+          req(nrow(file_info()) > 0)
+          cat(file_info()$name)
+        })
+
+        reactive({
+          info <- file_info()
+          if (nrow(info) > 0) info$datapath else NULL
+        })
+      }
+
+      local_big_file_path_spec  <- make_big_file_path("spec")
+      local_big_file_path_diann <- make_big_file_path("diann")
+    }
     else {
-      local_big_file_path <- reactive({ NULL })
+      local_big_file_path_spec  <- reactive({ NULL })
+      local_big_file_path_diann <- reactive({ NULL })
     }
     
     output$spectronaut_header_ui <- renderUI({
@@ -232,7 +238,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
               }
             } else if (input$filetype == "spec") {
               spec_regular_file_ok <- !isTRUE(input$big_file_spec) && !is.null(input$specdata)
-              spec_big_file_ok <- isTRUE(input$big_file_spec) && length(local_big_file_path()) > 0
+              spec_big_file_ok <- isTRUE(input$big_file_spec) && length(local_big_file_path_spec()) > 0
               if((spec_regular_file_ok || spec_big_file_ok) && !is.null(input$sep_specdata)) {
                 enable("proceed1")
               }
@@ -242,7 +248,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
               }
             } else if (input$filetype == "diann") {
               diann_regular_file_ok <- !isTRUE(input$big_file_diann) && !is.null(input$dianndata)
-              diann_big_file_ok <- isTRUE(input$big_file_diann) && length(local_big_file_path()) > 0
+              diann_big_file_ok <- isTRUE(input$big_file_diann) && length(local_big_file_path_diann()) > 0
               if((diann_regular_file_ok || diann_big_file_ok) && !is.null(input$sep_dianndata)) {
                 enable("proceed1")
               }

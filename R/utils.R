@@ -195,6 +195,20 @@ getFileExtension <- function(filename) {
   tolower(file_ext(basename(filename)))
 }
 
+# Resolves the DIANN intensity-column name from UI inputs. Used by both the
+# runtime call and the exported-script generator so they cannot drift apart.
+# "auto" is a sentinel handled by MSstatsConvert::.cleanDIANNProcessQuantificationColumns
+# that detects DIANN 2.0+ column renames at parse time.
+resolveDiannQuantCol <- function(input) {
+  if (isTRUE(input$diann_2plus)) {
+    "auto"
+  } else if (!is.null(input$intensity_column) && nzchar(input$intensity_column)) {
+    input$intensity_column
+  } else {
+    "auto"
+  }
+}
+
 #' @importFrom arrow read_parquet
 getData <- function(input) {
   show_modal_spinner()
@@ -502,10 +516,11 @@ getData <- function(input) {
     else if(input$filetype == 'spec') {
       
       if (isTRUE(input$big_file_spec)) {
-        # Logic for big Spectronaut files
-        # Parse the file path from shinyFiles input
+        # Each filetype has its own shinyFiles input id — see make_big_file_path()
+        # in module-loadpage-server.R — so a path picked under DIANN cannot
+        # accidentally feed the Spectronaut converter when the user switches modes.
         volumes <- shinyFiles::getVolumes()()
-        path_info <- shinyFiles::parseFilePaths(volumes, input$big_file_browse)
+        path_info <- shinyFiles::parseFilePaths(volumes, input$big_file_browse_spec)
         local_big_file_path <- if (nrow(path_info) > 0) path_info$datapath else NULL
         
         # Validate inputs
@@ -529,8 +544,8 @@ getData <- function(input) {
         
         shinybusy::update_modal_spinner(text = "Processing large Spectronaut file...")
         
-        # Call the big file conversion function from MSstatsConvert
-        converted_data <- bigSpectronauttoMSstatsFormat(
+        # Call the big file conversion function from MSstatsBig
+        converted_data <- MSstatsBig::bigSpectronauttoMSstatsFormat(
           input_file = local_big_file_path,
           output_file_name = "output_file.csv",
           backend = "arrow",
@@ -593,10 +608,10 @@ getData <- function(input) {
     }
     else if(input$filetype == 'diann') {
       if (isTRUE(input$big_file_diann)) {
-        # Logic for big DIANN files
-        # Parse the file path from shinyFiles input
+        # Reads the DIANN-scoped shinyFiles input — see the Spectronaut branch
+        # above and make_big_file_path() for why ids are split per filetype.
         volumes <- shinyFiles::getVolumes()()
-        path_info <- shinyFiles::parseFilePaths(volumes, input$big_file_browse)
+        path_info <- shinyFiles::parseFilePaths(volumes, input$big_file_browse_diann)
         local_big_file_path <- if (nrow(path_info) > 0) path_info$datapath else NULL
         
         if (!is.numeric(input$max_feature_count) || is.na(input$max_feature_count) || input$max_feature_count <= 0) {
@@ -613,16 +628,9 @@ getData <- function(input) {
         
         shinybusy::update_modal_spinner(text = "Processing large DIANN file...")
         
-        big_quantificationColumn <- if (isTRUE(input$diann_2plus)) {
-          "auto"
-        } else if (!is.null(input$intensity_column) && nzchar(input$intensity_column)) {
-          input$intensity_column
-        } else {
-          "auto"
-        }
+        big_quantificationColumn <- resolveDiannQuantCol(input)
 
-        # Call the big file conversion function from MsStatsBig
-        big_diann_args <- list(
+        converted_data <- MSstatsBig::bigDIANNtoMSstatsFormat(
           input_file = local_big_file_path,
           annotation = getAnnot(input),
           output_file_name = "output_file.csv",
@@ -634,10 +642,6 @@ getData <- function(input) {
           aggregate_psms = input$aggregate_psms,
           filter_few_obs = input$filter_few_obs
         )
-        message("---- bigDIANNtoMSstatsFormat args ----")
-        utils::str(big_diann_args, max.level = 1, give.attr = FALSE)
-        message("--------------------------------------")
-        converted_data <- do.call(MSstatsBig::bigDIANNtoMSstatsFormat, big_diann_args)
         
         
         # Attempt to load the data into memory. 
@@ -955,7 +959,7 @@ library(MSstatsPTM)\n", sep = "")
         codes = paste(codes, "  output_file_name = \"output_file.csv\",\n", sep = "")
         codes = paste(codes, "  backend = \"arrow\",\n", sep = "")
         codes = paste(codes, "  MBR = ", isTRUE(input$diann_MBR), ",\n", sep = "")
-        codes = paste(codes, "  quantificationColumn = \"", input$diann_quantificationColumn, "\",\n", sep = "")
+        codes = paste(codes, "  quantificationColumn = \"", resolveDiannQuantCol(input), "\",\n", sep = "")
         codes = paste(codes, "  max_feature_count = ", input$max_feature_count, ",\n", sep = "")
         codes = paste(codes, "  filter_unique_peptides = ", input$filter_unique_peptides, ",\n", sep = "")
         codes = paste(codes, "  aggregate_psms = ", input$aggregate_psms, ",\n", sep = "")
