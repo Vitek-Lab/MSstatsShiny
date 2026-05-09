@@ -356,12 +356,11 @@ create_spectronaut_large_filter_options <- function(ns, excluded_def = FALSE, id
 
 #' Create DIANN large file filter options
 #' @noRd
-create_diann_large_filter_options <- function(ns, mbr_def = TRUE, quant_col_def = "Fragment.Quant.Corrected") {
+create_diann_large_filter_options <- function(ns, mbr_def = TRUE) {
   tagList(
     tags$hr(),
     h4("Options for large file processing"),
-    checkboxInput(ns("diann_MBR"), "MBR Enabled", value = mbr_def),
-    textInput(ns("diann_quantificationColumn"), "Quantification Column", value = quant_col_def)
+    checkboxInput(ns("diann_MBR"), "MBR Enabled", value = mbr_def)
   )
 }
 

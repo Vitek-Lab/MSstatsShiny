@@ -108,15 +108,14 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
       
       if (!is_web_server && isTRUE(input$big_file_diann)) {
         mbr_def <- if (is.null(input$diann_MBR)) TRUE else input$diann_MBR
-        quant_col_def <- if (is.null(input$diann_quantificationColumn)) "Fragment.Quant.Corrected" else input$diann_quantificationColumn
-        
+
         max_feature_def <- if (is.null(input$max_feature_count)) 100 else input$max_feature_count
         unique_peps_def <- if (is.null(input$filter_unique_peptides)) FALSE else input$filter_unique_peptides
         agg_psms_def <- if (is.null(input$aggregate_psms)) FALSE else input$aggregate_psms
         few_obs_def <- if (is.null(input$filter_few_obs)) FALSE else input$filter_few_obs
-        
+
         tagList(
-          create_diann_large_filter_options(session$ns, mbr_def, quant_col_def),
+          create_diann_large_filter_options(session$ns, mbr_def),
           create_diann_large_bottom_ui(session$ns, max_feature_def, unique_peps_def, agg_psms_def, few_obs_def)
         )
       } else {

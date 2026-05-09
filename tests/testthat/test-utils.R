@@ -1537,7 +1537,7 @@ describe("getData for Big DIANN", {
     big_file_browse_diann = list(files = list("file.csv")),
     max_feature_count = 20,
     diann_MBR = TRUE,
-    diann_quantificationColumn = "Fragment.Quant.Corrected",
+    diann_2plus = TRUE,
     filter_unique_peptides = TRUE,
     aggregate_psms = TRUE,
     filter_few_obs = TRUE,
