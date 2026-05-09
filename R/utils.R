@@ -210,7 +210,7 @@ resolveDiannQuantCol <- function(input) {
 }
 
 #' @importFrom arrow read_parquet
-getData <- function(input) {
+getData <- function(input, big_file_path_spec = NULL, big_file_path_diann = NULL) {
   show_modal_spinner()
   ev_maxq = getEvidence(input)
   pg_maxq = getProteinGroups(input)
@@ -516,13 +516,17 @@ getData <- function(input) {
     else if(input$filetype == 'spec') {
       
       if (isTRUE(input$big_file_spec)) {
-        # Each filetype has its own shinyFiles input id — see make_big_file_path()
-        # in module-loadpage-server.R — so a path picked under DIANN cannot
-        # accidentally feed the Spectronaut converter when the user switches modes.
-        volumes <- shinyFiles::getVolumes()()
-        path_info <- shinyFiles::parseFilePaths(volumes, input$big_file_browse_spec)
-        local_big_file_path <- if (nrow(path_info) > 0) path_info$datapath else NULL
-        
+        # The resolved path is supplied by the caller (the loadpage server's
+        # local_big_file_path_spec reactive). See make_big_file_path() in
+        # module-loadpage-server.R — each filetype has its own shinyFiles input
+        # so a selection made under DIANN cannot leak into the Spectronaut path.
+        if (!requireNamespace("MSstatsBig", quietly = TRUE)) {
+          showNotification("Error: MSstatsBig is required for large file mode but is not installed.", type = "error", duration = NULL)
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+        local_big_file_path <- big_file_path_spec
+
         # Validate inputs
         if (!is.numeric(input$qvalue_cutoff) || is.na(input$qvalue_cutoff) || input$qvalue_cutoff < 0 || input$qvalue_cutoff > 1) {
           showNotification("Error: qvalue_cutoff must be between 0 and 1.", type = "error")
@@ -608,12 +612,15 @@ getData <- function(input) {
     }
     else if(input$filetype == 'diann') {
       if (isTRUE(input$big_file_diann)) {
-        # Reads the DIANN-scoped shinyFiles input — see the Spectronaut branch
-        # above and make_big_file_path() for why ids are split per filetype.
-        volumes <- shinyFiles::getVolumes()()
-        path_info <- shinyFiles::parseFilePaths(volumes, input$big_file_browse_diann)
-        local_big_file_path <- if (nrow(path_info) > 0) path_info$datapath else NULL
-        
+        # See the Spectronaut branch above for the rationale on per-filetype
+        # path resolution.
+        if (!requireNamespace("MSstatsBig", quietly = TRUE)) {
+          showNotification("Error: MSstatsBig is required for large file mode but is not installed.", type = "error", duration = NULL)
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+        local_big_file_path <- big_file_path_diann
+
         if (!is.numeric(input$max_feature_count) || is.na(input$max_feature_count) || input$max_feature_count <= 0) {
           showNotification("Error: max_feature_count must be a positive number.", type = "error")
           shinybusy::remove_modal_spinner()

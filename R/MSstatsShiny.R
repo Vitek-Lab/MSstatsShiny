@@ -35,7 +35,6 @@
 #' @importFrom dplyr `%>%` filter summarise n_distinct group_by ungroup select n mutate
 #' @importFrom tidyr unite
 #' @importFrom MSstatsConvert MSstatsLogsSettings
-#' @importFrom MSstatsBig bigDIANNtoMSstatsFormat bigSpectronauttoMSstatsFormat
 #' @importFrom MSstatsPTM dataProcessPlotsPTM groupComparisonPlotsPTM MaxQtoMSstatsPTMFormat PDtoMSstatsPTMFormat FragPipetoMSstatsPTMFormat SkylinetoMSstatsPTMFormat SpectronauttoMSstatsPTMFormat
 #' @importFrom utils capture.output head packageVersion read.csv read.delim write.csv
 #' @importFrom stats aggregate

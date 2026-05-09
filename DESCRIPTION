@@ -25,10 +25,11 @@ Authors@R: c(
 License: Artistic-2.0
 Depends: R (>= 4.2)
 Imports: shiny, shinyBS, shinyjs, shinybusy, dplyr, ggplot2, plotly, data.table, Hmisc, shinyFiles,
-  MSstats,MSstatsBig, MSstatsTMT, MSstatsPTM, MSstatsConvert, gplots, marray, DT, readxl,
+  MSstats, MSstatsTMT, MSstatsPTM, MSstatsConvert, gplots, marray, DT, readxl,
   ggrepel, uuid, utils, stats, htmltools, methods, tidyr, grDevices, graphics, mockery, MSstatsBioNet,
   shinydashboard, arrow, tools, MSstatsResponse
-Suggests: 
+Suggests:
+    MSstatsBig,
     rmarkdown,
     tinytest,
     sessioninfo,

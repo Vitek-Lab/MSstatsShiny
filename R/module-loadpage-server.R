@@ -358,7 +358,11 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE) {
 
 
     get_data = eventReactive(input$proceed1, {
-      getData(input)
+      getData(
+        input,
+        big_file_path_spec  = local_big_file_path_spec(),
+        big_file_path_diann = local_big_file_path_diann()
+      )
     })
 
 
