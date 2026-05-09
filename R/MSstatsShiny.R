@@ -39,7 +39,7 @@
 #' @importFrom MSstatsPTM dataProcessPlotsPTM groupComparisonPlotsPTM MaxQtoMSstatsPTMFormat PDtoMSstatsPTMFormat FragPipetoMSstatsPTMFormat SkylinetoMSstatsPTMFormat MetamorpheusToMSstatsPTMFormat SpectronauttoMSstatsPTMFormat
 #' @importFrom MSstatsBioNet exportNetworkToHTML deleteEdgeFromNetwork
 #' @importFrom MSstatsResponse futureExperimentSimulation run_tpr_simulation plot_tpr_power_curve calculateTurnoverRatios
-#' @importFrom utils capture.output head packageVersion read.csv read.delim write.csv
+#' @importFrom utils capture.output head packageVersion write.csv
 #' @importFrom stats aggregate
 #' @importFrom methods is
 #' @importFrom readxl read_excel

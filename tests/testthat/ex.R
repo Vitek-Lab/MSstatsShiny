@@ -78,9 +78,8 @@ mock_input <- list(
   remove_norm_channel = TRUE,
   maxQC1 = NULL,
   summ = TRUE,
-  sep_skylinedata = NULL,
   moderated = TRUE
-  
+
 )
 
 

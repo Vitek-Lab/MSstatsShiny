@@ -215,8 +215,7 @@ create_standard_uploads <- function(ns) {
     condition = "(input['loadpage-filetype'] =='10col' || input['loadpage-filetype'] =='prog' || input['loadpage-filetype'] =='PD' || input['loadpage-filetype'] =='open'||
                    input['loadpage-filetype'] =='openms' || input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' || input['loadpage-filetype'] == 'meta') && input['loadpage-BIO'] != 'PTM'",
     h4("4. Upload quantification dataset"),
-    fileInput(ns('data'), "", multiple = FALSE, accept = NULL),
-    create_separator_buttons(ns, "sep_data")
+    fileInput(ns('data'), "", multiple = FALSE, accept = NULL)
   )
 }
 
@@ -240,8 +239,7 @@ create_msstats_uploads <- function(ns) {
     conditionalPanel(
       condition = "input['loadpage-filetype'] == 'msstats' && (input['loadpage-BIO'] != 'PTM' && (input['loadpage-BIO'] != 'PTM' && input['loadpage-DDA_DIA'] != 'TMT'))",
       h4("4. Upload data in MSstats Format"),
-      fileInput(ns('msstatsdata'), "", multiple = FALSE, accept = NULL),
-      create_separator_buttons(ns, "sep_msstatsdata")
+      fileInput(ns('msstatsdata'), "", multiple = FALSE, accept = NULL)
     ),
     
     # PTM MSstats format
@@ -249,8 +247,7 @@ create_msstats_uploads <- function(ns) {
       condition = "input['loadpage-filetype'] == 'msstats' && (input['loadpage-BIO'] == 'PTM' || (input['loadpage-BIO'] == 'PTM' && input['loadpage-DDA_DIA'] == 'TMT'))",
       h4("4. Upload PTM data in MSstats Format"),
       fileInput(ns('msstatsptmdata'), "", multiple = FALSE, accept = NULL),
-      create_separator_buttons(ns, "sep_msstatsptmdata"),
-      
+
       h4("5. (Optional) Upload unmodified data in MSstats Format"),
       fileInput(ns('unmod'), "", multiple = FALSE, accept = NULL),
       tags$br()
@@ -264,8 +261,7 @@ create_skyline_uploads <- function(ns) {
   conditionalPanel(
     condition = "input['loadpage-filetype'] == 'sky' && input['loadpage-BIO'] != 'PTM'",
     h4("4. Upload MSstats report from Skyline"),
-    fileInput(ns('skylinedata'), "", multiple = FALSE, accept = NULL),
-    create_separator_buttons(ns, "sep_skylinedata")
+    fileInput(ns('skylinedata'), "", multiple = FALSE, accept = NULL)
   )
 }
 
@@ -275,8 +271,7 @@ create_diann_uploads <- function(ns) {
   conditionalPanel(
     condition = "input['loadpage-filetype'] == 'diann' && input['loadpage-BIO'] != 'PTM'",
     h4("4. Upload MSstats report from DIANN"),
-    fileInput(ns('dianndata'), "", multiple = FALSE, accept = NULL),
-    create_separator_buttons(ns, "sep_dianndata")
+    fileInput(ns('dianndata'), "", multiple = FALSE, accept = NULL)
   )
 }
 
@@ -662,21 +657,5 @@ create_quality_filtering_options <- function(ns) {
         numericInput(ns("m_cutoff"), "M-score cutoff", 0.01, 0, 1, 0.01)
       )
     )
-  )
-}
-
-
-#' Create column separator radio buttons
-#' 
-#' @param ns Namespace function
-#' @param input_id ID for the radio button input
-#' @noRd
-create_separator_buttons <- function(ns, input_id) {
-  radioButtons(ns(input_id),
-               label = h5("Column separator in uploaded file", class = "icon-wrapper", 
-                          icon("question-circle", lib = "font-awesome"),
-                          div("Choose how columns are separated in the uploaded file", class = "icon-tooltip")),
-               c(Comma=",", Semicolon=";", Tab="\t", Pipe="|"),
-               inline = TRUE
   )
 }
