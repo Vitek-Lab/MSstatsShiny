@@ -863,7 +863,7 @@ library(MSstatsPTM)\n", sep = "")
 
   } else if (input$filetype == "msstats") {
     if (input$BIO == "PTM") {
-      codes = paste(codes, "\nptm_data = data.table::fread(\"Enter PTM data file path here\")\nglobal_data = data.table::fread(\"Enter unmod data file path here\")\ndata = list(PTM = ptm_data, PROTEIN = unmod)\n")
+      codes = paste(codes, "\nptm_data = data.table::fread(\"Enter PTM data file path here\")\nglobal_data = data.table::fread(\"Enter unmod data file path here\")\ndata = list(PTM = ptm_data, PROTEIN = global_data)\n")
     } else {
       codes = paste(codes, "data = data.table::fread(\"Enter MSstats formatted data file path here\")\n")
     }
