@@ -89,7 +89,7 @@ getEvidence <- function(input) {
   if(is.null(input$evidence)) {
     return(NULL)
   }
-  evidence = try(read.table(evidence$datapath, sep="\t", header=TRUE), silent=TRUE)
+  evidence = try(data.table::fread(evidence$datapath), silent=TRUE)
   if (is(evidence,"try-error")) {
     evidence = "File load error. Please ensure file is in csv format."
   }
@@ -103,7 +103,7 @@ getEvidence2 <- function(input) {
   if(is.null(input$evidence2)) {
     return(NULL)
   }
-  evidence2 = try(read.delim(evidence2$datapath), silent=TRUE)
+  evidence2 = try(data.table::fread(evidence2$datapath), silent=TRUE)
   if (is(evidence2,"try-error")) {
     evidence2 = "File load error. Please ensure file is in csv format."
   }
@@ -117,8 +117,7 @@ getGlobal <- function(input) {
   if(is.null(input$unmod)) {
     return(NULL)
   }
-  unmod = try(read.csv(unmod$datapath, sep=",", header=TRUE,
-                       stringsAsFactors=FALSE), silent=TRUE)
+  unmod = try(data.table::fread(unmod$datapath), silent=TRUE)
   if (is(unmod,"try-error")) {
     unmod = "File load error. Please ensure file is in csv format."
   }
@@ -133,7 +132,7 @@ getProteinGroups <- function(input) {
   if(is.null(input$pGroup)) {
     return(NULL)
   }
-  pGroup = try(read.table(pGroup$datapath, sep="\t", header=TRUE), silent=TRUE)
+  pGroup = try(data.table::fread(pGroup$datapath), silent=TRUE)
   if (is(pGroup,"try-error")) {
     pGroup = "File load error. Please ensure file is in csv format."
   }
@@ -147,7 +146,7 @@ getProteinGroups2 <- function(input) {
   if(is.null(input$pGroup2)) {
     return(NULL)
   }
-  pGroup2 = try(read.delim(pGroup2$datapath), silent=TRUE)
+  pGroup2 = try(data.table::fread(pGroup2$datapath), silent=TRUE)
   if (is(pGroup2,"try-error")) {
     pGroup2 = "File load error. Please ensure file is in csv format."
   }
@@ -160,8 +159,7 @@ getFragSummary <- function(input) {
   if(is.null(input$fragSummary)) {
     return(NULL)
   }
-  fragSummary = try(read.table(fragSummary$datapath, sep="\t", header=TRUE),
-                    silent=TRUE)
+  fragSummary = try(data.table::fread(fragSummary$datapath), silent=TRUE)
   if (is(fragSummary,"try-error")) {
     fragSummary = "File load error. Please ensure file is in excel format."
   }
@@ -174,8 +172,7 @@ getPeptideSummary <- function(input) {
   if(is.null(input$peptideSummary)) {
     return(NULL)
   }
-  peptideSummary = try(read.table(peptideSummary$datapath, sep="\t",
-                                  header=TRUE), silent=TRUE)
+  peptideSummary = try(data.table::fread(peptideSummary$datapath), silent=TRUE)
   if (is(peptideSummary,"try-error")) {
     peptideSummary = "File load error. Please ensure file is in csv format."
   }
@@ -188,8 +185,7 @@ getProtSummary <- function(input) {
   if(is.null(input$protSummary)) {
     return(NULL)
   }
-  protSummary = try(read.table(protSummary$datapath, sep="\t", header=TRUE),
-                    silent=TRUE)
+  protSummary = try(data.table::fread(protSummary$datapath), silent=TRUE)
   if (is(protSummary,"try-error")) {
     protSummary = "File load error. Please ensure file is in csv format."
   }
@@ -202,7 +198,7 @@ getMaxqPtmSites <- function(input) {
   if(is.null(input$maxq_ptm_sites)) {
     return(NULL)
   }
-  maxq_ptm_sites = try(read.delim(maxq_ptm_sites$datapath), silent=TRUE)
+  maxq_ptm_sites = try(data.table::fread(maxq_ptm_sites$datapath), silent=TRUE)
   if (is(maxq_ptm_sites,"try-error")) {
     maxq_ptm_sites = "File load error. Please ensure file is in csv format."
   }
@@ -216,7 +212,7 @@ getAnnot3 <- function(input) {
   if(is.null(input$annot3)) {
     return(NULL)
   }
-  annot3 = try(read.delim(annot3$datapath, sep=","), silent=TRUE)
+  annot3 = try(data.table::fread(annot3$datapath), silent=TRUE)
   if (is(annot3,"try-error")) {
     annot3 = "File load error. Please ensure file is in csv format."
   }
@@ -230,7 +226,7 @@ getAnnot2 <- function(input) {
   if(is.null(input$annot2)) {
     return(NULL)
   }
-  annot2=try(read.csv(annot1$datapath, header = TRUE), silent=TRUE)
+  annot2=try(data.table::fread(annot1$datapath), silent=TRUE)
 
   if (is(annot2,"try-error")) {
     annot2 = "File load error. Please ensure file is in csv format."
@@ -251,7 +247,7 @@ getAnnot <- function(input) {
     return(annotation.pd)
   }
   print("before reading annot file")
-  annot_file = try(read.csv(annot$datapath), silent=TRUE)
+  annot_file = try(data.table::fread(annot$datapath), silent=TRUE)
   print("after reading annot file")
   if(is(annot_file,"try-error")) {
     annot_file = "File load error. Please ensure file is in csv format."
@@ -264,7 +260,7 @@ getAnnot1 <- function(input) {
   if(is.null(input$annot1)) {
     return(NULL)
   }
-  annot1=try(read.csv(annot1$datapath, header = TRUE), silent=TRUE)
+  annot1=try(data.table::fread(annot1$datapath), silent=TRUE)
 
   if (is(annot1,"try-error")) {
     annot1 = "File load error. Please ensure file is in csv format."
@@ -310,9 +306,8 @@ getData <- function(input) {
       mydata = MSstats::DDARawData
     }
     else if(input$BIO != "PTM" && input$DDA_DIA =='LType' && input$LabelFreeType == "DIA"){
-      mydata = read.csv(system.file("extdata/dataset.csv",
-                                    package = "MSstatsShiny"),
-                        header = TRUE, sep = ";")
+      mydata = data.table::fread(system.file("extdata/dataset.csv",
+                                             package = "MSstatsShiny"))
     }
     else if(input$BIO != "PTM" && input$DDA_DIA == "TMT"){
       mydata = PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd,
@@ -331,9 +326,9 @@ getData <- function(input) {
   }
   else if (input$BIO == 'PTM' || (input$BIO == 'PTM' && input$DDA_DIA == 'TMT')){
     if (input$filetype == 'maxq') {
-      mydata = read.csv(input$ptm_input$datapath,sep="\t") # it needs default tab sep file
+      mydata = data.table::fread(input$ptm_input$datapath)
       print(input$globaldata$datapath)
-      mydata_protein = try(read.csv(input$ptm_protein_input$datapath,sep="\t"),silent=TRUE)
+      mydata_protein = try(data.table::fread(input$ptm_protein_input$datapath),silent=TRUE)
       if (typeof(mydata_protein)=="character"){
         mydata_protein=NULL
         use_unmod_peptides=TRUE
@@ -341,8 +336,8 @@ getData <- function(input) {
         use_unmod_peptides=FALSE
       }
 
-      pg_maxq_ptm = try(read.csv(input$ptm_pgroup$datapath, sep="\t"),silent=TRUE)
-      annotation = try(read.csv(input$ptm_annot$datapath),silent=TRUE)
+      pg_maxq_ptm = try(data.table::fread(input$ptm_pgroup$datapath),silent=TRUE)
+      annotation = try(data.table::fread(input$ptm_annot$datapath),silent=TRUE)
       if (input$BIO == "PTM" && input$DDA_DIA == "TMT"){
         label = "TMT"
       } else {
@@ -362,10 +357,10 @@ getData <- function(input) {
 
     } else if(input$filetype=='phil'){
 
-      mydata = read.csv(input$ptmdata$datapath)
-      mydata_protein = try(read.csv(input$globaldata$datapath),silent=TRUE)
-      annotation = read.csv(input$annotation$datapath)
-      annotation_protein = try(read.csv(input$globalannotation$datapath),silent=TRUE)
+      mydata = data.table::fread(input$ptmdata$datapath)
+      mydata_protein = try(data.table::fread(input$globaldata$datapath),silent=TRUE)
+      annotation = data.table::fread(input$annotation$datapath)
+      annotation_protein = try(data.table::fread(input$globalannotation$datapath),silent=TRUE)
 
       mydata = FragPipetoMSstatsPTMFormat(mydata,
                                           annotation,
@@ -382,11 +377,11 @@ getData <- function(input) {
       mydata$PROTEIN[mydata$PROTEIN$Condition == "NORM", "Condition"] = "Norm"
 
     } else if (input$filetype=='PD'){
-      mydata = read.csv(input$ptm_input$datapath, sep = "\t")
+      mydata = data.table::fread(input$ptm_input$datapath)
       mydata_protein = try(
-        read.csv(input$ptm_protein_input$datapath, sep = "\t"),
+        data.table::fread(input$ptm_protein_input$datapath),
         silent=TRUE)
-      annotation = read.csv(input$ptm_annot$datapath)
+      annotation = data.table::fread(input$ptm_annot$datapath)
 
       if (typeof(mydata_protein)=="character"){
         mydata_protein=NULL
@@ -411,9 +406,9 @@ getData <- function(input) {
                                     use_unmod_peptides=use_unmod_peptides,
                                     which_proteinid = "Master.Protein.Accessions")
     } else if (input$filetype=='spec'){
-      mydata = read.csv(input$ptm_input$datapath)
-      mydata_protein = try(read.csv(input$ptm_protein_input$datapath),silent=TRUE)
-      annotation = read.csv(input$ptm_annot$datapath)
+      mydata = data.table::fread(input$ptm_input$datapath)
+      mydata_protein = try(data.table::fread(input$ptm_protein_input$datapath),silent=TRUE)
+      annotation = data.table::fread(input$ptm_annot$datapath)
 
       if (typeof(mydata_protein)=="character"){
         mydata_protein=NULL
@@ -434,7 +429,7 @@ getData <- function(input) {
     } else if (input$filetype=='sky') {
       mydata = read_excel(input$ptm_input$datapath)
       mydata_protein = try(read_excel(input$ptm_protein_input$datapath),silent=TRUE)
-      annotation = try(read.csv(input$ptm_annot$datapath),silent=TRUE)
+      annotation = try(data.table::fread(input$ptm_annot$datapath),silent=TRUE)
 
       if (typeof(mydata_protein)=="character"){
         mydata_protein=NULL
@@ -515,21 +510,19 @@ getData <- function(input) {
       )
       if (is.null(mydata)) return(NULL)
     } else {
-      data = read.csv(input$msstatsptmdata$datapath, header = TRUE,sep = input$sep_msstatsptmdata, 
-                      stringsAsFactors=FALSE)
+      data = data.table::fread(input$msstatsptmdata$datapath)
       mydata = list("PTM" = data, "PROTEIN" = unmod)
     }
   }
   else if (input$filetype == "msstats"){
-    mydata = read.csv(input$msstatsdata$datapath, header = TRUE,sep = input$sep_msstatsdata, 
-                      stringsAsFactors=FALSE)
+    mydata = data.table::fread(input$msstatsdata$datapath)
   }
   else {
     if(input$filetype=='spec' || input$filetype=='spmin'){
       infile = input$data1
     }
     else if(input$filetype=='phil' & input$BIO != "PTM"){
-      mydata = read.csv(input$data$datapath, sep=input$sep_data)
+      mydata = data.table::fread(input$data$datapath)
 
     }
     else{
@@ -556,17 +549,11 @@ getData <- function(input) {
     # }
 
     if(input$filetype == '10col') {
-      mydata = read.csv(infile$datapath, header = TRUE, sep = input$sep_data) 
+      mydata = data.table::fread(infile$datapath)
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
-      # if (input$subset){
-      #   data = read.csv.sql(infile$datapath, sep=input$sep,
-      #                           sql = "select * from file order by random() limit 100000")
-      # } else {
-      data = read.csv(input$skylinedata$datapath, header = TRUE, sep = input$sep_skylinedata,
-                      stringsAsFactors=FALSE)
-      # }
+      data = data.table::fread(input$skylinedata$datapath)
         mydata = SkylinetoMSstatsFormat(data,
                                         annotation = getAnnot(input),
                                         filter_with_Qvalue = input$q_val, 
@@ -597,14 +584,7 @@ getData <- function(input) {
     else if(input$filetype == 'prog') {
       cat(file=stderr(), "Reached in prog\n")
 
-      # if (input$subset){
-      #   data = read.csv.sql(infile$datapath, sep=input$sep,
-      #                       sql = "select * from file order by random() limit 100000")
-      # } else {
-      
-      data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data,
-                      stringsAsFactors=FALSE)
-      # }
+      data = data.table::fread(infile$datapath)
 
       mydata = ProgenesistoMSstatsFormat(data, annotation = getAnnot(input),
                                          removeProtein_with1Peptide = TRUE,
@@ -615,13 +595,7 @@ getData <- function(input) {
 
       if(input$DDA_DIA=="TMT"){
 
-        # if (input$subset){
-        #   data = read.csv.sql(infile$datapath, sep=input$sep,
-        #                       sql = "select * from file order by random() limit 100000")
-        # } else {
-        data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data,
-                        stringsAsFactors=FALSE)
-        # }
+        data = data.table::fread(infile$datapath)
         mydata = PDtoMSstatsTMTFormat(input = data,
                                       annotation = getAnnot(input),
                                       which.proteinid = input$which.proteinid, ## same as default
@@ -629,13 +603,7 @@ getData <- function(input) {
         )
       }
       else{
-        # if (input$subset){
-        #   data = read.csv.sql(infile$datapath, sep=input$sep,
-        #                       sql = "select * from file order by random() limit 100000")
-        # } else {
-        data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data,
-                        stringsAsFactors=FALSE)
-        # }
+        data = data.table::fread(infile$datapath)
         print(data)
         mydata = PDtoMSstatsFormat(data, annotation = getAnnot(input),
                                    removeProtein_with1Peptide = input$remove,
@@ -707,12 +675,7 @@ getData <- function(input) {
         }
         
       } else {
-        # if (input$subset){
-        #   data = read.csv.sql(infile$datapath, sep="\t",
-        #                       sql = "select * from file order by random() limit 100000")
-        # } else {
-        data = read.csv(input$specdata$datapath, sep=input$sep_specdata, check.names = FALSE)
-        # }
+        data = data.table::fread(input$specdata$datapath)
         # Base arguments for the Spectronaut converter
         converter_args = list(
           input = data,
@@ -737,7 +700,7 @@ getData <- function(input) {
         if (isTRUE(input$calculate_anomaly_scores) && !is.null(input$run_order_file)) {
           # Add anomaly score parameters only if the checkbox is checked
           converter_args$calculateAnomalyScores = TRUE
-          converter_args$runOrder = read.csv(input$run_order_file$datapath)
+          converter_args$runOrder = data.table::fread(input$run_order_file$datapath)
           converter_args$anomalyModelFeatures = c("FG.ShapeQualityScore (MS2)", "FG.ShapeQualityScore (MS1)", "EGDeltaRT")
           converter_args$anomalyModelFeatureTemporal = c("mean_decrease", "mean_decrease", "dispersion_increase")
           converter_args$n_trees = 100
@@ -751,7 +714,7 @@ getData <- function(input) {
       if (getFileExtension(input$dianndata$name) %in% c("parquet", "pq")) {
         data = read_parquet(input$dianndata$datapath)
       } else {
-        data = read.csv(input$dianndata$datapath, sep=input$sep_dianndata)
+        data = data.table::fread(input$dianndata$datapath)
       }
       
       qvalue_cutoff = 0.01
@@ -797,12 +760,7 @@ getData <- function(input) {
     }
     else if(input$filetype == 'open') {
 
-      # if (input$subset){
-      #   data = read.csv.sql(infile$datapath, sep = input$sep,
-      #                       sql = "select * from file order by random() limit 100000")
-      # } else {
-      data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data)
-      # }
+      data = data.table::fread(infile$datapath)
       mydata =OpenSWATHtoMSstatsFormat(data,
                                        annotation = getAnnot(input),
                                        filter_with_mscore = TRUE, ## same as default
@@ -814,22 +772,12 @@ getData <- function(input) {
     else if(input$filetype == 'openms') {
       if(input$DDA_DIA=="TMT"){
 
-        # if (input$subset){
-        #   data = read.csv.sql(infile$datapath, sep = input$sep,
-        #                       sql = "select * from file order by random() limit 100000")
-        # } else {
-        data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data)
-        # }
+        data = data.table::fread(infile$datapath)
         mydata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)
 
       }
       else{
-        # if (input$subset){
-        #   data = read.csv.sql(infile$datapath, sep = input$sep,
-        #                       sql = "select * from file order by random() limit 100000")
-        # } else {
-        data = read.csv(infile$datapath, header = TRUE, sep = input$sep_data)
-        # }
+        data = data.table::fread(infile$datapath)
         unique(data[, c('Run', 'BioReplicate', 'Condition')])
         mydata =OpenMStoMSstatsFormat(data,
                                       removeProtein_with1Feature=TRUE,
@@ -847,12 +795,7 @@ getData <- function(input) {
                                         use_log_file = FALSE)
     }
     else if(input$filetype == 'spmin') {
-      # if (input$subset){
-      #   data = read.csv.sql(infile$datapath, sep = "\t",
-      #                       sql = "select * from file order by random() limit 100000")
-      # } else {
-      data = read.csv(infile$datapath, sep=input$sep_data)
-      # }
+      data = data.table::fread(infile$datapath)
       mydata = SpectroMinetoMSstatsTMTFormat(data, getAnnot(input),
                                              use_log_file = FALSE)
     }
@@ -903,7 +846,7 @@ library(MSstatsPTM)\n", sep = "")
       codes = paste(codes, "data = DDARawData\n", sep = "")
     }
     else if(input$BIO != "PTM" &&  input$DDA_DIA =='LType' && input$LabelFreeType == "DIA"){
-      codes = paste(codes, "data = read.csv(\"dataset.csv\", header = TRUE, sep = \";\")\n", sep = "")
+      codes = paste(codes, "data = data.table::fread(\"dataset.csv\")\n", sep = "")
     }
     else if(input$BIO != "PTM" &&  input$DDA_DIA == "TMT"){
       codes = paste(codes, "data = PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd,
@@ -920,20 +863,20 @@ library(MSstatsPTM)\n", sep = "")
 
   } else if (input$filetype == "msstats") {
     if (input$BIO == "PTM") {
-      codes = paste(codes, "\nptm_data = read.csv(\"Enter PTM data file path here\", sep =",input$sep_msstatsptmdata,")\nglobal_data = read.csv(\'Enter unmod data file path here\')\ndata = list(PTM = ptm_data, PROTEIN = unmod)\n")
+      codes = paste(codes, "\nptm_data = data.table::fread(\"Enter PTM data file path here\")\nglobal_data = data.table::fread(\"Enter unmod data file path here\")\ndata = list(PTM = ptm_data, PROTEIN = global_data)\n")
     } else {
-      codes = paste(codes, "data = read.csv(\"Enter MSstats formatted data file path here\", sep=",input$sep_msstatsdata,")\n")
+      codes = paste(codes, "data = data.table::fread(\"Enter MSstats formatted data file path here\")\n")
     }
   } else {
 
     if(input$filetype == '10col') {
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")\n", sep = "")
+      codes = paste(codes, "data = data.table::fread(\"insert your quantification dataset filepath\")\n", sep = "")
     }
     else if(input$filetype == 'sky') {
       cat(file=stderr(), "Reached here in skyline\n")
-      codes = paste(codes, "data = read.csv(\"insert your MSstats report from Skyline filepath\", header = TRUE, sep = ",input$sep_skylinedata,", stringsAsFactors=F)\n", sep = "")
+      codes = paste(codes, "data = data.table::fread(\"insert your MSstats report from Skyline filepath\")\n", sep = "")
 
-      codes = paste(codes, "annot_file = read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "annot_file = data.table::fread(\"insert your annotation filepath\")\n"
                     , sep = "")
 
 
@@ -948,7 +891,7 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'maxq') {
       cat(file=stderr(), "Reached in maxq\n")
-      codes = paste(codes, "an_maxq = read.csv(\"insert your annotation filepath\")\n ev_maxq = read.table(\"insert your evidence.txt filepath\",sep=\"\t\", header=TRUE)\n pg_maxq = read.table(\"insert your proteinGroups.txt filepath\",sep=\"\t\", header=TRUE)\n"
+      codes = paste(codes, "an_maxq = data.table::fread(\"insert your annotation filepath\")\n ev_maxq = data.table::fread(\"insert your evidence.txt filepath\")\n pg_maxq = data.table::fread(\"insert your proteinGroups.txt filepath\")\n"
                     , sep = "")
       if(input$DDA_DIA=="TMT"){
 
@@ -957,7 +900,7 @@ library(MSstatsPTM)\n", sep = "")
                                          proteinGroups=\'", input$which.proteinid,"\',\n\t\t\t\t       ",
                       "use_log_file = FALSE)\n", sep = "")
       } else if (input$BIO=="PTM"){
-        codes = paste(codes, "sites.data = read.csv(\"insert your PTM site data filepath\")\n data = MaxQtoMSstatsPTMFormat(sites.data, an_maxq, ev_maxq, pg_maxq, an_maxq)\n",
+        codes = paste(codes, "sites.data = data.table::fread(\"insert your PTM site data filepath\")\n data = MaxQtoMSstatsPTMFormat(sites.data, an_maxq, ev_maxq, pg_maxq, an_maxq)\n",
                       sep="")
       } else {
         codes = paste(codes, "data = MaxQtoMSstatsFormat(evidence=ev_maxq,
@@ -972,8 +915,8 @@ library(MSstatsPTM)\n", sep = "")
     else if(input$filetype == 'prog') {
       cat(file=stderr(), "Reached in prog\n")
 
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")
-                       annot_file = read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "data = data.table::fread(\"insert your quantification dataset filepath\")
+                       annot_file = data.table::fread(\"insert your annotation filepath\")\n"
                     , sep = "")
 
       codes = paste(codes, "data = ProgenesistoMSstatsFormat(input = data,
@@ -988,8 +931,8 @@ library(MSstatsPTM)\n", sep = "")
 
       if(input$DDA_DIA=="TMT"){
 
-        codes = paste(codes, "data = read.delim(\"insert your quantification dataset filepath\",sep=",input$sep_data,")
-                       annot_file = read.csv(\"insert your annotation filepath\")\n"
+        codes = paste(codes, "data = data.table::fread(\"insert your quantification dataset filepath\")
+                       annot_file = data.table::fread(\"insert your annotation filepath\")\n"
                       , sep = "")
 
 
@@ -1000,7 +943,7 @@ library(MSstatsPTM)\n", sep = "")
 
       }
       else{
-        codes = paste(codes, "data = read.delim(\"insert your quantification dataset filepath\",sep=",input$sep_data,")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
+        codes = paste(codes, "data = data.table::fread(\"insert your quantification dataset filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")\n"
                       , sep = "")
 
         codes = paste(codes, "data = PDtoMSstatsFormat(data,
@@ -1015,7 +958,7 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'spec') {
 
-      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from Spectronaut filepath\", header = TRUE, sep = ",input$sep_specdata,")\nannot_file = read.csv(\"insert your annotation filepath\", sep='\t')#Optional\n"
+      codes = paste(codes, "data = data.table::fread(\"insert your MSstats scheme output from Spectronaut filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")#Optional\n"
                     , sep = "")
 
       codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
@@ -1028,7 +971,7 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'diann') {
       
-      codes = paste(codes, "data = read.csv(\"insert your MSstats scheme output from DIANN filepath\", header = TRUE, sep = '\\t')\nannot_file = read.csv(\"insert your annotation filepath\")#Optional\n"
+      codes = paste(codes, "data = data.table::fread(\"insert your MSstats scheme output from DIANN filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")#Optional\n"
                     , sep = "")
       
       codes = paste(codes, "data = DIANNtoMSstatsFormat(data,
@@ -1040,10 +983,10 @@ library(MSstatsPTM)\n", sep = "")
     else if(input$filetype == 'meta') {
       if (input$BIO == "PTM") {
         codes = paste(codes, "ptm_data = data.table::fread(\"insert your AllQuantifiedPeaks.tsv filepath\")\n", sep = "")
-        codes = paste(codes, "annot = read.csv(\"insert your ExperimentalDesign annotation filepath\")\n", sep = "")
+        codes = paste(codes, "annot = data.table::fread(\"insert your ExperimentalDesign annotation filepath\")\n", sep = "")
         codes = paste(codes, "fasta_path = \"insert your FASTA filepath\"\n", sep = "")
         codes = paste(codes, "# Optional: set protein_data = NULL if no GlobalProteome data\nprotein_data = tryCatch(data.table::fread(\"insert your GlobalProteome AllQuantifiedPeaks.tsv filepath\"), error = function(e) NULL)\n", sep = "")
-        codes = paste(codes, "annot_protein = if (!is.null(protein_data)) read.csv(\"insert your GlobalProteome annotation filepath\") else NULL\n", sep = "")
+        codes = paste(codes, "annot_protein = if (!is.null(protein_data)) data.table::fread(\"insert your GlobalProteome annotation filepath\") else NULL\n", sep = "")
         # Resolve mod ID for generated code
         code_mod_id <- tryCatch(
           .resolve_mod_id(input$mod_id_meta_select, input$mod_id_meta_custom),
@@ -1060,7 +1003,7 @@ library(MSstatsPTM)\n", sep = "")
                                        use_unmod_peptides = use_unmod_peptides,
                                        mod_ids = c(\"", gsub('"', '\\\\"', gsub("\\\\", "\\\\\\\\", code_mod_id)), "\"))\n", sep = "")
       } else {
-        codes = paste(codes, "data = data.table::fread(\"insert your QuantifiedPeaks.tsv filepath\")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
+        codes = paste(codes, "data = data.table::fread(\"insert your QuantifiedPeaks.tsv filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")\n"
                       , sep = "")
 
         codes = paste(codes, "data = MetamorpheusToMSstatsFormat(data,
@@ -1073,7 +1016,7 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'open') {
 
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")\nannot_file = read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes, "data = data.table::fread(\"insert your quantification dataset filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")\n"
                     , sep = "")
 
       codes = paste(codes, "data = OpenSWATHtoMSstatsFormat(data,
@@ -1088,41 +1031,41 @@ library(MSstatsPTM)\n", sep = "")
     else if(input$filetype == 'openms') {
       if(input$DDA_DIA=="TMT"){
 
-        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")\ndata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)\n"
+        codes = paste(codes, "data = data.table::fread(\"insert your quantification dataset filepath\")\ndata = OpenMStoMSstatsTMTFormat(data, use_log_file = FALSE)\n"
                       , sep = "")
 
       }
       else{
 
-        codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")\nunique(data[, c('Run', 'BioReplicate', 'Condition')])\ndata = OpenMStoMSstatsFormat(data, removeProtein_with1Feature=TRUE, use_log_file = FALSE)\n"
+        codes = paste(codes, "data = data.table::fread(\"insert your quantification dataset filepath\")\nunique(data[, c('Run', 'BioReplicate', 'Condition')])\ndata = OpenMStoMSstatsFormat(data, removeProtein_with1Feature=TRUE, use_log_file = FALSE)\n"
                       , sep = "")
 
       }
     }
     else if(input$filetype == 'spmin') {
 
-      codes = paste(codes, "data = read.csv(\"insert your quantification dataset filepath\", header = TRUE, sep = ",input$sep_data,")\nannot_file = read.csv(\"insert your annotation filepath\")\ndata = SpectroMinetoMSstatsTMTFormat(data, annot_file,
+      codes = paste(codes, "data = data.table::fread(\"insert your quantification dataset filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")\ndata = SpectroMinetoMSstatsTMTFormat(data, annot_file,
                                               use_log_file = FALSE)"
                     , sep = "")
     }
     else if(input$filetype == 'phil' & input$DDA_DIA == "TMT") {
 
-      codes = paste(codes,"data = read.csv(\"insert your msstats filepath\",sep=",input$sep_data,")\n"
+      codes = paste(codes,"data = data.table::fread(\"insert your msstats filepath\")\n"
                     , sep = "")
-      codes = paste(codes,"annot_file = read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes,"annot_file = data.table::fread(\"insert your annotation filepath\")\n"
                     , sep = "")
 
       codes = paste(codes, "data = PhilosophertoMSstatsTMTFormat(data,
                                        annotation = annot_file)\n", sep = "")
     }else if (input$filetype == 'phil' & input$BIO == "PTM"){
-      codes = paste(codes,"data = read.csv(\"insert your msstats filepath\")\n"
+      codes = paste(codes,"data = data.table::fread(\"insert your msstats filepath\")\n"
                     , sep = "")
-      codes = paste(codes,"annot_file = read.csv(\"insert your annotation filepath\")\n"
+      codes = paste(codes,"annot_file = data.table::fread(\"insert your annotation filepath\")\n"
                     , sep = "")
 
-      codes = paste(codes,"data_protein = read.csv(\"insert your global profiling msstats filepath\")\n"
+      codes = paste(codes,"data_protein = data.table::fread(\"insert your global profiling msstats filepath\")\n"
                     , sep = "")
-      codes = paste(codes,"annot_protein_file = read.csv(\"insert your global profiling annotation filepath\")\n"
+      codes = paste(codes,"annot_protein_file = data.table::fread(\"insert your global profiling annotation filepath\")\n"
                     , sep = "")
 
       codes = paste(codes, paste0("data = PhilosophertoMSstatsPTMFormat(data,
@@ -1135,7 +1078,7 @@ library(MSstatsPTM)\n", sep = "")
                                   ")\n"), sep = "")
     } else if (input$filetype == 'phil'){
       codes = paste(codes,
-                    "data = read.csv(\"insert your msstats.csv filepath\")\n"
+                    "data = data.table::fread(\"insert your msstats.csv filepath\")\n"
                     , sep = "")
       codes = paste(codes, paste0("data = FragPipetoMSstatsFormat(data)\n"), 
                     sep = "")

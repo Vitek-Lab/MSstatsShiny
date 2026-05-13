@@ -187,7 +187,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
         ui_elements <- tagList(ui_elements, create_spectronaut_standard_ui(session$ns))
       }
       
-      tagList(ui_elements, create_separator_buttons(session$ns, "sep_specdata"))
+      ui_elements
     })
     
     output$spectronaut_turnover_ui <- renderUI({
@@ -305,7 +305,6 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
     #   enable("proceed1")
     # })
 
-    # can remove separator is.null check because shiny by default assigns the first value as the default value for radiobutton
     observe({
       disable("proceed1")
       if(((input$BIO == "Protein") || (input$BIO == "Peptide"))) {
@@ -316,12 +315,11 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
                 enable("proceed1")
               }
             } else if (input$filetype == "msstats") {
-              if(!is.null(input$msstatsdata) && !is.null(input$sep_msstatsdata)) {
+              if(!is.null(input$msstatsdata)) {
                 enable("proceed1")
               }
             } else if (input$filetype == "sky") {
-              print(input$sep_skylinedata)
-              if(!is.null(input$skylinedata) && !is.null(input$sep_skylinedata)) { # && !is.null(input$annot)
+              if(!is.null(input$skylinedata)) {
                 enable("proceed1")
               }
             } else if (input$filetype == "maxq") {
@@ -329,17 +327,17 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
                 enable("proceed1")
               }
             } else if (input$filetype == "prog" || input$filetype == "PD" || input$filetype == "open" || input$filetype == "phil" || input$filetype == "meta") {
-              if(!is.null(input$data) && !is.null(input$sep_data)) { # && !is.null(input$annot)
+              if(!is.null(input$data)) {
                 enable("proceed1")
               }
             } else if (input$filetype == "openms") {
-              if(!is.null(input$data) && !is.null(input$sep_data)) {
+              if(!is.null(input$data)) {
                 enable("proceed1")
               }
             } else if (input$filetype == "spec") {
               spec_regular_file_ok <- !isTRUE(input$big_file_spec) && !is.null(input$specdata)
               spec_big_file_ok <- isTRUE(input$big_file_spec) && length(local_big_file_path()) > 0
-              if((spec_regular_file_ok || spec_big_file_ok) && !is.null(input$sep_specdata)) {
+              if(spec_regular_file_ok || spec_big_file_ok) {
                 enable("proceed1")
               }
             } else if (input$filetype == "ump") {
@@ -347,7 +345,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
                 enable("proceed1")
               }
             } else if (input$filetype == "diann") {
-              if(!is.null(input$dianndata) && !is.null(input$sep_dianndata)) { # && !is.null(input$annot)
+              if(!is.null(input$dianndata)) {
                 enable("proceed1")
               }
             }
@@ -362,21 +360,21 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
                 enable("proceed1")
               }
             } else if (input$filetype == "PD") {
-              if(!is.null(input$data) && !is.null(input$sep_data)) { # && !is.null(input$annot)
+              if(!is.null(input$data)) {
                 enable("proceed1")
               }
             } else if (input$filetype == "openms") {
-              if(!is.null(input$data) && !is.null(input$sep_data)) {
+              if(!is.null(input$data)) {
                 enable("proceed1")
               }
             } else if (input$filetype == "spmin" || input$filetype == "phil") {
-              if(!is.null(input$data) && !is.null(input$sep_data)) { # && !is.null(input$annot)
+              if(!is.null(input$data)) {
                 enable("proceed1")
               }
             }
           }
         }
-        
+
       }
       else if ((input$BIO == "PTM")) {
         if (input$DDA_DIA == "LType" || input$DDA_DIA == "TMT") {
@@ -384,7 +382,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
             if (input$filetype == "sample") {
               enable("proceed1")
             } else if (input$filetype == "msstats") {
-              if(!is.null(input$msstatsptmdata) && !is.null(input$sep_msstatsptmdata)) {
+              if(!is.null(input$msstatsptmdata)) {
                 enable("proceed1")
               }
             } else if (input$filetype == "sky" || input$filetype == "maxq" || input$filetype == "spec" || input$filetype == "PD" || input$filetype == "meta") {

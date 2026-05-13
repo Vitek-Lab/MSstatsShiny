@@ -82,7 +82,7 @@
 #' @importFrom grDevices dev.off pdf
 #' @importFrom graphics image mtext par plot.new
 #' @importFrom stats dist hclust qt
-#' @importFrom utils read.table write.table
+#' @importFrom utils write.table
 #' 
 #' @examples
 #' data("dia_skyline_model")
@@ -136,7 +136,7 @@ groupComparisonPlots2 = function(data=data,
     }
     
     finalfile = lastfilename
-    processout = as.matrix(read.table(finalfile, header=TRUE, sep="\t"))
+    processout = as.matrix(data.table::fread(finalfile))
   }	
   
   processout = rbind(processout, as.matrix(c(" ", " ", "MSstats - groupComparisonPlots function", " "), ncol=1))

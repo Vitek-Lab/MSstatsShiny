@@ -111,7 +111,7 @@ loadCsvData <- function(input, dataComparison) {
   }
   req(input$dataUpload)
   tryCatch({
-    read.csv(input$dataUpload$datapath)
+    data.table::fread(input$dataUpload$datapath)
   }, error = function(e) {
     showNotification(paste("Error reading file:", e$message), type = "error")
     return(NULL)
@@ -535,7 +535,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     codes <- paste(codes, "library(MSstatsBioNet)\nlibrary(dplyr)\n\n", sep = "")
     
     codes <- paste(codes, "# Read data\n", sep = "")
-    codes <- paste(codes, "df <- read.csv(\"path/to/your/data.csv\")\n\n", sep = "")
+    codes <- paste(codes, "df <- data.table::fread(\"path/to/your/data.csv\")\n\n", sep = "")
     
     # Add label filtering if not default
     if (params$selectedLabel != "" && !is.null(params$selectedLabel)) {

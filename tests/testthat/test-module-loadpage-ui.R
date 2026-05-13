@@ -94,10 +94,6 @@ test_that("loadpageUI properly handles file input elements and validation", {
   expect_true(grepl("proceed1", html_output),
               "Upload button not found")
   
-  # Check for separator radio buttons for file parsing
-  expect_true(grepl("sep_data", html_output) || grepl("Column separator", html_output),
-              "File separator options not found")
-  
   # Should include help text and external links
   expect_true(grepl("User Guide", html_output),
               "Help documentation links not found")
@@ -334,21 +330,6 @@ test_that("create_quality_filtering_options creates filtering controls", {
   expect_true(grepl("Q-value cutoff", options_html))
   expect_true(grepl("M-score cutoff", options_html))
   expect_true(grepl("MBR Enabled", options_html))
-})
-
-# Tests for create_separator_buttons()
-test_that("create_separator_buttons creates proper radio buttons", {
-  buttons <- create_separator_buttons(NS("test"), "sep_test")
-  buttons_html <- as.character(buttons)
-  
-  expect_true(grepl("Column separator", buttons_html))
-  expect_true(grepl("Comma", buttons_html))
-  expect_true(grepl("Semicolon", buttons_html))
-  expect_true(grepl("Tab", buttons_html))
-  expect_true(grepl("Pipe", buttons_html))
-  
-  # Check for inline display
-  expect_true(grepl("radio-inline", buttons_html))
 })
 
 # Test order preservation in main selection controls

@@ -78,9 +78,7 @@ mock_input <- list(
   remove_norm_channel = TRUE,
   maxQC1 = NULL,
   summ = TRUE,
-  moderated = TRUE,
-  sep_skylinedata = NULL,
-  sep_data = NULL
+  moderated = TRUE
 )
 
 ################################################################################
@@ -467,8 +465,7 @@ test_that("dda pd", {
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "PD"
     mock_input$sep = ","
-    mock_input$sep_data = ","
-    
+
     mock_input$data$datapath <- system.file("tinytest/raw_data/PD/pd_input.csv",
                                             package = "MSstatsConvert")
     
@@ -487,8 +484,7 @@ test_that("dda prog", {
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "prog"
     mock_input$sep = ","
-    mock_input$sep_data = ","
-    
+
     mock_input$data$datapath <- system.file("tinytest/raw_data/Progenesis/progenesis_input.csv",
                                             package = "MSstatsConvert")
     
@@ -508,7 +504,6 @@ test_that("dda metamorpheus", {
     mock_input$BIO <- "Protein"
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype <- "meta"
-    mock_input$sep_data <- "\t"
     mock_input$unique_peptides <- TRUE
     mock_input$remove <- FALSE
 
@@ -573,7 +568,6 @@ test_that("dda dia skyline", {
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "sky"
     mock_input$sep = ","
-    mock_input$sep_skylinedata = ","
 
     mock_input$skylinedata$datapath <- system.file("tinytest/raw_data/Skyline/skyline_input.csv",
                                             package = "MSstatsConvert")
@@ -599,8 +593,7 @@ test_that("dda openms", {
     mock_input$DDA_DIA <- "LType"
     mock_input$filetype = "openms"
     mock_input$sep = ","
-    mock_input$sep_data = ","
-    
+
     mock_input$data$datapath <- system.file("tinytest/raw_data/OpenMS/openms_input.csv",
                                             package = "MSstatsConvert")
     
@@ -642,8 +635,8 @@ test_that("dia spectronaut", {
     mock_input$q_cutoff = 0.01 
     stub(getData,"getAnnot",NULL)
     
-    stub(getData,"read.csv",data.table::fread(system.file("tinytest/raw_data/Spectronaut/spectronaut_input.csv",
-                                                          package = "MSstatsConvert")))
+    stub(getData,"data.table::fread",data.table::fread(system.file("tinytest/raw_data/Spectronaut/spectronaut_input.csv",
+                                                                   package = "MSstatsConvert")))
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
@@ -660,8 +653,8 @@ test_that("dia openswath", {
     
     stub(getData,"getAnnot",data.table::fread(system.file("tinytest/annotations/annot_os.csv",
                                                           package = "MSstats")))
-    stub(getData,"read.csv",data.table::fread(system.file("tinytest/raw_data/OpenSWATH/openswath_input.csv",
-                                                          package = "MSstatsConvert")))
+    stub(getData,"data.table::fread",data.table::fread(system.file("tinytest/raw_data/OpenSWATH/openswath_input.csv",
+                                                                   package = "MSstatsConvert")))
     output <- getData(mock_input)
     expected_names <- c("ProteinName","PeptideSequence","PrecursorCharge","FragmentIon","ProductCharge","IsotopeLabelType","Condition","BioReplicate","Run","Fraction","Intensity")
     expect_type(output,"list")
@@ -701,7 +694,7 @@ test_that("tmt openms", {
     mock_input$sep = ","
     
     load(system.file("data/raw.om.rda", package = "MSstatsShiny"))
-    stub(getData,"read.csv",raw.om)
+    stub(getData,"data.table::fread",raw.om)
     
     output <- getData(mock_input)
     print(names(output))
@@ -720,7 +713,7 @@ test_that("tmt spectromine", {
                      package = "MSstatsShiny"))
     load(system.file("data/annotation.mine.rda",
                      package = "MSstatsShiny"))
-    stub(getData,"read.csv",raw.mine)
+    stub(getData,"data.table::fread",raw.mine)
     stub(getData,"getAnnot",annotation.mine)
     
     output <- getData(mock_input)
@@ -805,10 +798,9 @@ test_that("get data code filetype sky", {
     mock_input$filetype = "sky"
     
     mock_input$DDA_DIA <- "LType"
-    mock_input$sep_skylinedata <- ","
     output <- getDataCode(mock_input)
     expect_type(output,"character")
-    
+
     mock_input$DDA_DIA <- "LType"
     output <- getDataCode(mock_input)
     expect_type(output,"character")
@@ -1444,7 +1436,6 @@ describe("getData for Spectronaut input with anomaly scores", {
       DDA_DIA = "DIA",
       filetype = "spec",
       specdata = list(datapath = "dummy_spec.csv"),
-      sep_specdata = ",",
       annot = list(datapath = "dummy_annot.csv"),
       q_val = TRUE,
       q_cutoff = 0.01,
@@ -1452,9 +1443,9 @@ describe("getData for Spectronaut input with anomaly scores", {
       calculate_anomaly_scores = TRUE,
       run_order_file = list(datapath = "dummy_run_order.csv")
     )
-    
+
     # Mock the functions that getData calls
-    stub(getData, "read.csv", function(path, ...) {
+    stub(getData, "data.table::fread", function(path, ...) {
       if (path == "dummy_run_order.csv") return(dummy_run_order)
       return(dummy_spec_data)
     })
@@ -1480,7 +1471,6 @@ describe("getData for Spectronaut input with anomaly scores", {
       DDA_DIA = "DIA",
       filetype = "spec",
       specdata = list(datapath = "dummy_spec.csv"),
-      sep_specdata = ",",
       annot = list(datapath = "dummy_annot.csv"),
       q_val = TRUE,
       q_cutoff = 0.01,
@@ -1488,8 +1478,8 @@ describe("getData for Spectronaut input with anomaly scores", {
       calculate_anomaly_scores = FALSE, # Main difference
       run_order_file = NULL
     )
-    
-    stub(getData, "read.csv", dummy_spec_data)
+
+    stub(getData, "data.table::fread", dummy_spec_data)
     stub(getData, "getAnnot", dummy_annot)
     stub(getData, "SpectronauttoMSstatsFormat", mock_spectro_converter)
     
