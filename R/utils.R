@@ -978,11 +978,10 @@ library(MSstatsPTM)\n", sep = "")
                                        numberOfCores = 1)\n", sep = "")
       } else {
         codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
-                                       annotation = annot_file #Optional,
-                                       filter_with_Qvalue = TRUE, ## same as default
-                                       qvalue_cutoff = 0.01, ## same as default
-                                       fewMeasurements=\"remove\",
-                                       removeProtein_with1Feature = TRUE,
+                                       annotation = annot_file, #Optional
+                                       filter_with_Qvalue = ", input$q_val, ",
+                                       qvalue_cutoff = ", input$q_cutoff, ",
+                                       removeProtein_with1Feature = ", input$remove, ",
                                        use_log_file = FALSE)\n", sep = "")
       }
     }
