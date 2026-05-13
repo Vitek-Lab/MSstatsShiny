@@ -961,13 +961,29 @@ library(MSstatsPTM)\n", sep = "")
       codes = paste(codes, "data = data.table::fread(\"insert your MSstats scheme output from Spectronaut filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")#Optional\n"
                     , sep = "")
 
-      codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
-                                       annotation = annot_file #Optional,
-                                       filter_with_Qvalue = TRUE, ## same as default
-                                       qvalue_cutoff = 0.01, ## same as default
-                                       fewMeasurements=\"remove\",
-                                       removeProtein_with1Feature = TRUE,
+      if (isTRUE(input$calculate_anomaly_scores)) {
+        codes = paste(codes, "run_order = data.table::fread(\"insert your run order CSV filepath (Run, Order columns)\")\n", sep = "")
+        codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
+                                       annotation = annot_file, #Optional
+                                       filter_with_Qvalue = ", input$q_val, ",
+                                       qvalue_cutoff = ", input$q_cutoff, ",
+                                       removeProtein_with1Feature = ", input$remove, ",
+                                       use_log_file = FALSE,
+                                       calculateAnomalyScores = TRUE,
+                                       runOrder = run_order,
+                                       anomalyModelFeatures = c(\"FG.ShapeQualityScore (MS2)\", \"FG.ShapeQualityScore (MS1)\", \"EGDeltaRT\"),
+                                       anomalyModelFeatureTemporal = c(\"mean_decrease\", \"mean_decrease\", \"dispersion_increase\"),
+                                       n_trees = 100,
+                                       max_depth = \"auto\",
+                                       numberOfCores = 1)\n", sep = "")
+      } else {
+        codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
+                                       annotation = annot_file, #Optional
+                                       filter_with_Qvalue = ", input$q_val, ",
+                                       qvalue_cutoff = ", input$q_cutoff, ",
+                                       removeProtein_with1Feature = ", input$remove, ",
                                        use_log_file = FALSE)\n", sep = "")
+      }
     }
     else if(input$filetype == 'diann') {
       
@@ -1391,6 +1407,8 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
       code_n_feat = 'NULL'
     }
 
+    sum_method = if (!is.null(qc_input$summaryMethod)) qc_input$summaryMethod else "TMP"
+
     codes = paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
     codes = paste(codes, "summarized = MSstats::dataProcess(data,
                                normalization = \'", qc_input$norm,"\',\t\t\t\t
@@ -1398,7 +1416,7 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
                                nameStandards = ", paste0("c('", paste(qc_input$names, collapse = "', '"), "')"), ",\t\t\t\t
                                featureSubset = \'", qc_input$features_used, "\',\t\t\t\t
                                n_top_feature = ", code_n_feat, ",\t\t\t\t
-                               summaryMethod=\"TMP\",
+                               summaryMethod=\"", sum_method, "\",
                                censoredInt=\'", qc_input$censInt, "\',\t\t\t\t
                                MBimpute=", qc_input$MBi, ",\t\t\t\t
                                remove50missing=", qc_input$remove50, ",\t\t\t\t
@@ -1411,6 +1429,14 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
                            which.Protein = \"Enter Protein to Plot Here\",
                            summaryPlot = TRUE,
                            address = FALSE,isPlotly=TRUE)\n", sep="")
+
+    if (isTRUE(loadpage_input$calculate_anomaly_scores)) {
+      codes = paste(codes, "\n# Plot per-feature quality metrics (e.g. AnomalyScores) carried through from the converter\n", sep = "")
+      codes = paste(codes, "MSstats::MSstatsQualityMetricsPlot(data,
+                                       metric = \"AnomalyScores\",
+                                       which.Protein = \"Enter Protein to Plot Here\",
+                                       isPlotly = TRUE)\n", sep = "")
+    }
   }
 
   return(codes)
