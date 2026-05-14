@@ -60,9 +60,13 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
   prep_input = MSstatsNormalize(prep_input, qc_input$norm, peptides_dict, 
                                 qc_input$names)
   prep_input = MSstatsMergeFractions(prep_input) 
-  prep_input = MSstatsHandleMissing(prep_input, qc_input$summaryMethod, 
-                                    qc_input$MBi, "NA", 
-                                    QC_check(qc_input,loadpage_input))
+  prep_input = MSstatsHandleMissing(
+    input = prep_input,
+    summary_method = qc_input$summaryMethod,
+    impute = qc_input$MBi,
+    missing_symbol = qc_input$censInt,
+    censored_cutoff = QC_check(qc_input, loadpage_input)
+  )
   prep_input = MSstatsSelectFeatures(prep_input, qc_input$features_used, 
                                      qc_input$n_feat, 2)
   processed = getProcessed(prep_input) 
