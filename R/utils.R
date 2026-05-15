@@ -1101,9 +1101,6 @@ library(MSstatsPTM)\n", sep = "")
     }
   }
 
-  if (input$BIO != "PTM"){
-    codes = paste(codes,"data = unique(as.data.frame(data))\n", sep = "")
-  }
   return(codes)
 
 }
