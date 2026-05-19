@@ -43,12 +43,12 @@ get_response_curve_fitting_options = function(mode, ns, template = TEMPLATES$def
   if (!is.null(mode) && mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) {
     is_turnover <- isTRUE(template == TEMPLATES$protein_turnover)
     label_text <- if (is_turnover) {
-      "Increasing heavy-isotope incorporation over time"
+      "Synthesis (heavy-isotope incorporation, increasing)"
     } else {
       "Increasing trend for dose-response curves"
     }
     tooltip_text <- if (is_turnover) {
-      "Check this box if you expect the heavy-isotope fraction to increase over time (typical for pulse-chase turnover experiments)."
+      "Check for synthesis (H_frac, increasing over time). Uncheck for degradation (L_frac, decreasing over time)."
     } else {
       "Check this box if you expect an increasing trend in your dose-response curve, e.g. higher doses lead to higher protein abundance. Uncheck if you expect a decreasing trend, e.g. higher doses lead to lower protein abundance."
     }

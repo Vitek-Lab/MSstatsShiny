@@ -364,15 +364,21 @@ build_all_pair_contrast = function(input, condition_list, contrast, comp_list, r
 #' matrix stored in contrast$matrix as the dose axis.
 #'
 #' @param ratios Data frame from calculateTurnoverRatios (Protein, GROUP,
-#'   H_frac columns required)
+#'   H_frac and L_frac columns required).
+#' @param add_zero_timepoint If TRUE, inserts a synthetic dose=0 / response=0
+#'   row for any (protein[, BaseSequence]) group missing one.
+#' @param increasing If TRUE (default), models synthesis from H_frac
+#'   (increasing trend over time). If FALSE, models degradation from L_frac
+#'   (decreasing trend over time).
 #' @return Data frame with columns: protein, drug, dose, response
 #' @noRd
-prepare_turnover_for_dose_response <- function(ratios, add_zero_timepoint = FALSE) {
-  result <- ratios[!is.na(ratios$H_frac), ]
+prepare_turnover_for_dose_response <- function(ratios, add_zero_timepoint = FALSE, increasing = TRUE) {
+  frac_col <- if (isTRUE(increasing)) "H_frac" else "L_frac"
+  result <- ratios[!is.na(ratios[[frac_col]]), ]
   result$protein  <- as.character(result$Protein)
   result$drug     <- "time"
   result$dose     <- as.numeric(result$TimeVal)
-  result$response <- result$H_frac
+  result$response <- result[[frac_col]]
   keep_cols <- c("protein", "drug", "dose", "response")
   if ("BaseSequence" %in% colnames(result)) {
     keep_cols <- c(keep_cols, "BaseSequence")
@@ -394,7 +400,9 @@ prepare_turnover_for_dose_response <- function(ratios, add_zero_timepoint = FALS
       zero_rows          <- needs_zero
       zero_rows$drug     <- "time"
       zero_rows$dose     <- 0
-      zero_rows$response <- 0
+      # Synthesis (H_frac): heavy fraction is 0 at t=0 (no incorporation yet).
+      # Degradation (L_frac): light fraction is 1 at t=0 (pre-existing pool intact).
+      zero_rows$response <- if (isTRUE(increasing)) 0 else 1
       result <- rbind(zero_rows[, keep_cols], result)
     }
   }
