@@ -353,10 +353,11 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
           }
           if (app_template() == TEMPLATES$protein_turnover) {
             ratios <- turnover_ratios()
-            dia_prepared <- prepare_turnover_for_dose_response(ratios)
+            increasing <- isTRUE(input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]])
+            dia_prepared <- prepare_turnover_for_dose_response(ratios, increasing = increasing)
             response_results <- doseResponseFit(
               data      = dia_prepared,
-              increasing    = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]],
+              increasing    = increasing,
               transform_dose = FALSE,
               ratio_response = FALSE,
               precalculated_ratios = TRUE
@@ -466,7 +467,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                    CONSTANTS_STATMODEL$plot_type_response_curve) {
           if (app_template() == TEMPLATES$protein_turnover) {
             req(turnover_ratios())
-            dia_prepared <- prepare_turnover_for_dose_response(turnover_ratios(), add_zero_timepoint = TRUE)
+            increasing <- isTRUE(input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]])
+            dia_prepared <- prepare_turnover_for_dose_response(turnover_ratios(), add_zero_timepoint = TRUE, increasing = increasing)
           } else {
             meta <- condition_metadata()
             req(!is.null(meta) && "DoseVal" %in% colnames(meta))
@@ -492,11 +494,11 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                 add_ci = FALSE,
                 transform_dose = FALSE,
                 n_samples = 1000,
-                increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]],
+                increasing = increasing,
                 precalculated_ratios = TRUE,
                 color_by = "BaseSequence",
                 target_response = 0.5,
-                y_lab = "relative abundance",
+                y_lab = "Turnover Ratio",
                 x_lab = "time (hrs)"
               )
             } else {

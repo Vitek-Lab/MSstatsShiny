@@ -221,7 +221,8 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 showNotification("Turnover ratios not yet calculated.", type = "error")
                 return(NULL)
               }
-              dia_prepared <- prepare_turnover_for_dose_response(ratios, add_zero_timepoint = TRUE)
+              increasing <- isTRUE(input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]])
+              dia_prepared <- prepare_turnover_for_dose_response(ratios, add_zero_timepoint = TRUE, increasing = increasing)
             } else {
               if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
                 meta <- tryCatch(condition_metadata(), error = function(e) NULL)
@@ -249,11 +250,11 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 add_ci = FALSE,
                 transform_dose = FALSE,
                 n_samples = 1000,
-                increasing = input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]],
+                increasing = increasing,
                 precalculated_ratios = TRUE,
                 color_by = "BaseSequence",
                 target_response = 0.5,
-                y_lab = "relative abundance",
+                y_lab = "Turnover Ratio",
                 x_lab = "time (hrs)"
               )
             } else {

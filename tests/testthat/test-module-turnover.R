@@ -131,6 +131,109 @@ test_that("prepare_turnover_for_dose_response coerces TimeVal to numeric dose", 
   expect_equal(result$dose, 4)
 })
 
+test_that("prepare_turnover_for_dose_response selects H_frac when increasing = TRUE (synthesis)", {
+  ratios <- data.frame(
+    Protein = c("ProtA", "ProtB"),
+    TimeVal = c(1, 2),
+    H_frac  = c(0.3, 0.7),
+    L_frac  = c(0.7, 0.3),
+    stringsAsFactors = FALSE
+  )
+
+  result <- MSstatsShiny:::prepare_turnover_for_dose_response(ratios, increasing = TRUE)
+
+  expect_equal(result$response, c(0.3, 0.7),
+               info = "increasing = TRUE should map response to H_frac")
+})
+
+test_that("prepare_turnover_for_dose_response selects L_frac when increasing = FALSE (degradation)", {
+  ratios <- data.frame(
+    Protein = c("ProtA", "ProtB"),
+    TimeVal = c(1, 2),
+    H_frac  = c(0.3, 0.7),
+    L_frac  = c(0.7, 0.3),
+    stringsAsFactors = FALSE
+  )
+
+  result <- MSstatsShiny:::prepare_turnover_for_dose_response(ratios, increasing = FALSE)
+
+  expect_equal(result$response, c(0.7, 0.3),
+               info = "increasing = FALSE should map response to L_frac (degradation)")
+})
+
+test_that("prepare_turnover_for_dose_response defaults to H_frac (synthesis) when increasing is unset", {
+  ratios <- data.frame(
+    Protein = c("ProtA"),
+    TimeVal = c(1),
+    H_frac  = c(0.4),
+    L_frac  = c(0.6),
+    stringsAsFactors = FALSE
+  )
+
+  result <- MSstatsShiny:::prepare_turnover_for_dose_response(ratios)
+
+  expect_equal(result$response, 0.4,
+               info = "default behavior should remain H_frac for backward compatibility")
+})
+
+test_that("prepare_turnover_for_dose_response zero timepoint is 0 for synthesis", {
+  ratios <- data.frame(
+    Protein = c("ProtA", "ProtA"),
+    TimeVal = c(2, 4),
+    H_frac  = c(0.3, 0.6),
+    L_frac  = c(0.7, 0.4),
+    stringsAsFactors = FALSE
+  )
+
+  result <- MSstatsShiny:::prepare_turnover_for_dose_response(
+    ratios, add_zero_timepoint = TRUE, increasing = TRUE
+  )
+
+  zero_row <- result[result$dose == 0, ]
+  expect_equal(nrow(zero_row), 1,
+               info = "exactly one synthetic zero-timepoint row added")
+  expect_equal(zero_row$response, 0,
+               info = "synthesis: zero timepoint response is 0 (no heavy incorporated yet)")
+})
+
+test_that("prepare_turnover_for_dose_response zero timepoint is 1 for degradation", {
+  ratios <- data.frame(
+    Protein = c("ProtA", "ProtA"),
+    TimeVal = c(2, 4),
+    H_frac  = c(0.3, 0.6),
+    L_frac  = c(0.7, 0.4),
+    stringsAsFactors = FALSE
+  )
+
+  result <- MSstatsShiny:::prepare_turnover_for_dose_response(
+    ratios, add_zero_timepoint = TRUE, increasing = FALSE
+  )
+
+  zero_row <- result[result$dose == 0, ]
+  expect_equal(nrow(zero_row), 1,
+               info = "exactly one synthetic zero-timepoint row added")
+  expect_equal(zero_row$response, 1,
+               info = "degradation: zero timepoint response is 1 (pre-existing light pool intact)")
+})
+
+test_that("prepare_turnover_for_dose_response drops NA on the selected fraction column", {
+  ratios <- data.frame(
+    Protein = c("ProtA", "ProtB", "ProtC"),
+    TimeVal = c(1, 2, 4),
+    H_frac  = c(0.3, NA,  0.8),
+    L_frac  = c(NA,  0.5, 0.2),
+    stringsAsFactors = FALSE
+  )
+
+  syn <- MSstatsShiny:::prepare_turnover_for_dose_response(ratios, increasing = TRUE)
+  deg <- MSstatsShiny:::prepare_turnover_for_dose_response(ratios, increasing = FALSE)
+
+  expect_equal(syn$response, c(0.3, 0.8),
+               info = "synthesis: drops the row with NA H_frac")
+  expect_equal(deg$response, c(0.5, 0.2),
+               info = "degradation: drops the row with NA L_frac")
+})
+
 # ============================================================================
 # Tests for get_modeling_section_header with protein_turnover template
 # ============================================================================
