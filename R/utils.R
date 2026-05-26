@@ -727,6 +727,15 @@ getData <- function(input) {
         }
 
       } else {
+
+        if (isTRUE(input$calculate_anomaly_scores) && is.null(input$run_order_file)) {
+          showNotification(
+            "Error: Run Order CSV is required when Calculate Anomaly Scores is enabled. Please upload a CSV with Run and Order columns.",
+            type = "error",
+            duration = NULL)
+          return(NULL)
+        }
+
         data = data.table::fread(input$specdata$datapath)
         # Base arguments for the Spectronaut converter
         converter_args = list(

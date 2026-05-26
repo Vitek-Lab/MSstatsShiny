@@ -1485,11 +1485,37 @@ describe("getData for Spectronaut input with anomaly scores", {
     
     #EXECUTION
     result_args <- getData(mock_input_no_anomaly)
-    
+
     #ASSERTION: Check that the anomaly arguments are NOT present
     expect_null(result_args$calculateAnomalyScores)
     expect_null(result_args$runOrder)
     expect_null(result_args$anomalyModelFeatures)
+  })
+
+  test_that("fails fast when calculate_anomaly_scores is TRUE but run_order_file is missing (regular path)", {
+    mock_input_missing_runorder <- list(
+      BIO = "Protein",
+      DDA_DIA = "DIA",
+      filetype = "spec",
+      specdata = list(datapath = "dummy_spec.csv"),
+      annot = list(datapath = "dummy_annot.csv"),
+      q_val = TRUE,
+      q_cutoff = 0.01,
+      remove = TRUE,
+      calculate_anomaly_scores = TRUE,
+      run_order_file = NULL
+    )
+
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "Run Order CSV"))
+    # The converter should never run; if it does, fail the test.
+    stub(getData, "data.table::fread",
+         function(...) stop("fread reached despite missing run order"))
+    stub(getData, "SpectronauttoMSstatsFormat",
+         function(...) stop("converter reached despite missing run order"))
+
+    res <- getData(mock_input_missing_runorder)
+    expect_null(res)
   })
 })
 
