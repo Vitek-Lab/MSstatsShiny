@@ -282,6 +282,7 @@ create_spectronaut_uploads <- function(ns) {
     uiOutput(ns("spectronaut_header_ui")),
     uiOutput(ns("spectronaut_file_selection_ui")),
     uiOutput(ns("spectronaut_options_ui")),
+    uiOutput(ns("spectronaut_intensity_ui")),
     uiOutput(ns("spectronaut_turnover_ui"))
   )
 }

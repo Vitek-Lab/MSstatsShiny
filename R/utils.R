@@ -660,6 +660,11 @@ getData <- function(input) {
           filter_few_obs = input$filter_few_obs
         )
 
+        if (!is.null(input$spec_intensity_col) &&
+            nchar(trimws(input$spec_intensity_col)) > 0) {
+          big_spec_args$intensity <- trimws(input$spec_intensity_col)
+        }
+
         if (!is.null(input$big_spec_annotation)) {
           big_spec_args$annotation <- data.table::fread(
             input$big_spec_annotation$datapath)
@@ -670,7 +675,7 @@ getData <- function(input) {
           big_spec_args$anomalyModelFeatures <- c(
             "FG.ShapeQualityScore (MS2)",
             "FG.ShapeQualityScore (MS1)",
-            "EGDeltaRT")
+            "EG.DeltaRT")
         }
 
         converted_data <- do.call(
@@ -693,20 +698,13 @@ getData <- function(input) {
           return(NULL)
         }
 
-        # Step 2 of the anomaly scoring pipeline: the converter only
-        # carries the model feature columns through the out-of-memory
-        # steps; MSstatsAnomalyScores fits the isolation-forest model
-        # on the in-memory result and adds the AnomalyScores column.
-        # Defaults mirror SpectronauttoMSstatsFormat's regular path
-        # (missing_run_count = 0.5, n_feat = 100, n_trees = 100,
-        # max_depth = "auto", cores = 1).
         if (isTRUE(input$carry_anomaly_features) &&
             !is.null(input$big_run_order_file)) {
           run_order <- data.table::fread(input$big_run_order_file$datapath)
           mydata <- MSstatsConvert::MSstatsAnomalyScores(
             input = mydata,
-            quality_metrics = c("FG.ShapeQualityScore (MS2)",
-                                "FG.ShapeQualityScore (MS1)",
+            quality_metrics = c("FGShapeQualityScore(MS2)",
+                                "FGShapeQualityScore(MS1)",
                                 "EGDeltaRT"),
             temporal_direction = c("mean_decrease",
                                    "mean_decrease",
@@ -1010,6 +1008,12 @@ library(MSstatsPTM)\n", sep = "")
                       sep = "")
 
         big_spec_extra <- ""
+        if (!is.null(input$spec_intensity_col) &&
+            nchar(trimws(input$spec_intensity_col)) > 0) {
+          big_spec_extra <- paste0(big_spec_extra,
+                                   ",\n                                          intensity = \"",
+                                   trimws(input$spec_intensity_col), "\"")
+        }
         if (!is.null(input$big_spec_annotation)) {
           codes = paste(codes,
                         "annot_file = data.table::fread(\"insert your annotation filepath (Run, BioReplicate, Condition)\")\n",
@@ -1020,7 +1024,7 @@ library(MSstatsPTM)\n", sep = "")
         if (isTRUE(input$carry_anomaly_features)) {
           big_spec_extra <- paste0(big_spec_extra,
                                    ",\n                                          calculateAnomalyScores = TRUE",
-                                   ",\n                                          anomalyModelFeatures = c(\"FG.ShapeQualityScore (MS2)\", \"FG.ShapeQualityScore (MS1)\", \"EGDeltaRT\")")
+                                   ",\n                                          anomalyModelFeatures = c(\"FG.ShapeQualityScore (MS2)\", \"FG.ShapeQualityScore (MS1)\", \"EG.DeltaRT\")")
         }
 
         codes = paste(codes,
@@ -1047,7 +1051,9 @@ library(MSstatsPTM)\n", sep = "")
                         "run_order = data.table::fread(\"insert your run order CSV filepath (Run, Order columns)\")\n",
                         "data = MSstatsConvert::MSstatsAnomalyScores(\n",
                         "  input = data,\n",
-                        "  quality_metrics = c(\"FG.ShapeQualityScore (MS2)\", \"FG.ShapeQualityScore (MS1)\", \"EGDeltaRT\"),\n",
+                        "  # Standardized column names (raw Spectronaut names\n",
+                        "  # had `.` and ` ` stripped during the converter step).\n",
+                        "  quality_metrics = c(\"FGShapeQualityScore(MS2)\", \"FGShapeQualityScore(MS1)\", \"EGDeltaRT\"),\n",
                         "  temporal_direction = c(\"mean_decrease\", \"mean_decrease\", \"dispersion_increase\"),\n",
                         "  missing_run_count = 0.5,\n",
                         "  n_feat = 100,\n",
@@ -1063,11 +1069,19 @@ library(MSstatsPTM)\n", sep = "")
       codes = paste(codes, "data = data.table::fread(\"insert your MSstats scheme output from Spectronaut filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")#Optional\n"
                     , sep = "")
 
+      reg_spec_intensity_arg <- if (!is.null(input$spec_intensity_col) &&
+                                    nchar(trimws(input$spec_intensity_col)) > 0) {
+        paste0("                                       intensity = \"",
+               trimws(input$spec_intensity_col), "\",\n")
+      } else {
+        ""
+      }
+
       if (isTRUE(input$calculate_anomaly_scores)) {
         codes = paste(codes, "run_order = data.table::fread(\"insert your run order CSV filepath (Run, Order columns)\")\n", sep = "")
         codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
                                        annotation = annot_file, #Optional
-                                       filter_with_Qvalue = ", input$q_val, ",
+", reg_spec_intensity_arg, "                                       filter_with_Qvalue = ", input$q_val, ",
                                        qvalue_cutoff = ", input$q_cutoff, ",
                                        removeProtein_with1Feature = ", input$remove, ",
                                        use_log_file = FALSE,
@@ -1081,7 +1095,7 @@ library(MSstatsPTM)\n", sep = "")
       } else {
         codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
                                        annotation = annot_file, #Optional
-                                       filter_with_Qvalue = ", input$q_val, ",
+", reg_spec_intensity_arg, "                                       filter_with_Qvalue = ", input$q_val, ",
                                        qvalue_cutoff = ", input$q_cutoff, ",
                                        removeProtein_with1Feature = ", input$remove, ",
                                        use_log_file = FALSE)\n", sep = "")

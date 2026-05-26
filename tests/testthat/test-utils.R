@@ -1650,10 +1650,12 @@ describe("getData for Big Spectronaut", {
     getData(input_with_anomaly)
 
     expect_true(isTRUE(captured_args$calculateAnomalyScores))
+    # Raw Spectronaut export names — the converter applies
+    # .standardizeColnames internally on the way out.
     expect_equal(captured_args$anomalyModelFeatures,
                  c("FG.ShapeQualityScore (MS2)",
                    "FG.ShapeQualityScore (MS1)",
-                   "EGDeltaRT"))
+                   "EG.DeltaRT"))
     # The big-file converter itself does NOT take a runOrder arg —
     # that's consumed by the separate MSstatsAnomalyScores step
     # post-collect (covered in the next test).
@@ -1691,9 +1693,12 @@ describe("getData for Big Spectronaut", {
 
     expect_false(is.null(captured_scoring_args))
     expect_equal(captured_scoring_args$input, mock_df)
+    # Standardized column names — the in-memory data after collect
+    # has had .standardizeColnames applied during the converter
+    # step, so MSstatsAnomalyScores must look for these names.
     expect_equal(captured_scoring_args$quality_metrics,
-                 c("FG.ShapeQualityScore (MS2)",
-                   "FG.ShapeQualityScore (MS1)",
+                 c("FGShapeQualityScore(MS2)",
+                   "FGShapeQualityScore(MS1)",
                    "EGDeltaRT"))
     expect_equal(captured_scoring_args$temporal_direction,
                  c("mean_decrease",
@@ -1730,6 +1735,29 @@ describe("getData for Big Spectronaut", {
     getData(input_no_runorder)
 
     expect_false(scoring_called)
+  })
+
+  test_that("passes intensity to converter when spec_intensity_col is set", {
+    input_with_intensity <- mock_input_big
+    input_with_intensity$spec_intensity_col <- "FG.MS1Quantity"
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat",
+         mock_big_spec_converter)
+    captured_args <- NULL
+    stub(getData, "dplyr::collect", function(x) {
+      captured_args <<- x
+      mock_df
+    })
+
+    getData(input_with_intensity)
+
+    expect_equal(captured_args$intensity, "FG.MS1Quantity")
   })
 
   test_that("omits annotation + anomaly args when neither is supplied", {
