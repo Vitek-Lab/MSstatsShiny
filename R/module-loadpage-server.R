@@ -256,13 +256,13 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
         unique_peps_def <- if (is.null(input$filter_unique_peptides)) FALSE else input$filter_unique_peptides
         agg_psms_def <- if (is.null(input$aggregate_psms)) FALSE else input$aggregate_psms
         few_obs_def <- if (is.null(input$filter_few_obs)) FALSE else input$filter_few_obs
-        carry_anomaly_def <- if (is.null(input$carry_anomaly_features)) FALSE else input$carry_anomaly_features
+        calculate_anomaly_def <- if (is.null(input$calculate_anomaly_scores)) FALSE else input$calculate_anomaly_scores
 
         tagList(
           create_spectronaut_large_filter_options(session$ns, excluded_def, identified_def, qval_def),
           if (qval_def) create_spectronaut_qvalue_cutoff_ui(session$ns, cutoff_def),
           create_spectronaut_large_bottom_ui(session$ns, max_feature_def, unique_peps_def, agg_psms_def, few_obs_def),
-          create_spectronaut_large_annotation_ui(session$ns, carry_anomaly_def)
+          create_spectronaut_large_annotation_ui(session$ns, calculate_anomaly_def)
         )
       } else {
         NULL

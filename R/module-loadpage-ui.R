@@ -356,12 +356,18 @@ create_spectronaut_large_bottom_ui <- function(ns, max_feature_def = 20, unique_
 #'   (2) After `dplyr::collect`, `MSstatsConvert::MSstatsAnomalyScores`
 #'       is called on the in-memory result to fit the isolation-forest
 #'       model and produce the `AnomalyScores` column.
-#' The internal input ID `carry_anomaly_features` is named for step (1)
-#' but gates both steps; the user-facing label reflects step (2)'s outcome.
+#' Input IDs `calculate_anomaly_scores` and `run_order_file` are deliberately
+#' the same as the regular Spectronaut path's so downstream pages
+#' (module-qc-server's MSstats+ summarization gate, getDataCode's
+#' reproducibility script, etc.) read a single source of truth regardless
+#' of which path the user took. The two UI checkboxes never coexist —
+#' the regular path's `create_label_free_options` is hidden when
+#' `big_file_spec` is on, and this helper only renders when it is — so
+#' there is no Shiny namespace collision.
 #' A run-order CSV is required (Run + Order columns) — `MSstatsAnomalyScores`
 #' uses it for temporal feature engineering.
 #' @noRd
-create_spectronaut_large_annotation_ui <- function(ns, carry_anomaly_def = FALSE) {
+create_spectronaut_large_annotation_ui <- function(ns, calculate_anomaly_def = FALSE) {
   tagList(
     tags$hr(),
     h5("Annotation file (optional)",
@@ -371,17 +377,17 @@ create_spectronaut_large_annotation_ui <- function(ns, carry_anomaly_def = FALSE
            class = "icon-tooltip")),
     fileInput(ns("big_spec_annotation"), label = NULL,
               multiple = FALSE, accept = c(".csv", ".tsv", ".txt")),
-    checkboxInput(ns("carry_anomaly_features"),
+    checkboxInput(ns("calculate_anomaly_scores"),
                   label = tags$span(
                     "Calculate Anomaly Scores",
                     class = "icon-wrapper",
                     icon("question-circle", lib = "font-awesome"),
                     div("Runs the same anomaly scoring pipeline as the regular Spectronaut path: the converter carries FG.ShapeQualityScore (MS2)/(MS1) and EGDeltaRT through the out-of-memory steps, then MSstatsConvert::MSstatsAnomalyScores fits the isolation-forest model on the collected data and adds an AnomalyScores column. Requires a run order CSV.",
                         class = "icon-tooltip")),
-                  value = carry_anomaly_def),
+                  value = calculate_anomaly_def),
     conditionalPanel(
-      condition = sprintf("input['%s']", ns("carry_anomaly_features")),
-      fileInput(ns("big_run_order_file"),
+      condition = sprintf("input['%s']", ns("calculate_anomaly_scores")),
+      fileInput(ns("run_order_file"),
                 label = h5("Upload Run Order File",
                            class = "icon-wrapper",
                            icon("question-circle", lib = "font-awesome"),

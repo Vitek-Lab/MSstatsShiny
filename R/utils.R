@@ -670,7 +670,7 @@ getData <- function(input) {
             input$big_spec_annotation$datapath)
         }
 
-        if (isTRUE(input$carry_anomaly_features)) {
+        if (isTRUE(input$calculate_anomaly_scores)) {
           big_spec_args$calculateAnomalyScores <- TRUE
           big_spec_args$anomalyModelFeatures <- c(
             "FG.ShapeQualityScore (MS2)",
@@ -698,9 +698,9 @@ getData <- function(input) {
           return(NULL)
         }
 
-        if (isTRUE(input$carry_anomaly_features) &&
-            !is.null(input$big_run_order_file)) {
-          run_order <- data.table::fread(input$big_run_order_file$datapath)
+        if (isTRUE(input$calculate_anomaly_scores) &&
+            !is.null(input$run_order_file)) {
+          run_order <- data.table::fread(input$run_order_file$datapath)
           mydata <- MSstatsConvert::MSstatsAnomalyScores(
             input = mydata,
             quality_metrics = c("FGShapeQualityScore(MS2)",
@@ -1021,7 +1021,7 @@ library(MSstatsPTM)\n", sep = "")
           big_spec_extra <- paste0(big_spec_extra,
                                    ",\n                                          annotation = annot_file")
         }
-        if (isTRUE(input$carry_anomaly_features)) {
+        if (isTRUE(input$calculate_anomaly_scores)) {
           big_spec_extra <- paste0(big_spec_extra,
                                    ",\n                                          calculateAnomalyScores = TRUE",
                                    ",\n                                          anomalyModelFeatures = c(\"FG.ShapeQualityScore (MS2)\", \"FG.ShapeQualityScore (MS1)\", \"EG.DeltaRT\")")
@@ -1043,7 +1043,7 @@ library(MSstatsPTM)\n", sep = "")
                       ")\ndata = dplyr::collect(converted)\n",
                       sep = "")
 
-        if (isTRUE(input$carry_anomaly_features)) {
+        if (isTRUE(input$calculate_anomaly_scores)) {
           codes = paste(codes,
                         "# Step 2 of the anomaly scoring pipeline: fit the\n",
                         "# isolation-forest model on the collected data and\n",

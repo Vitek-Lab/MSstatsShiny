@@ -1622,10 +1622,10 @@ describe("getData for Big Spectronaut", {
     expect_equal(captured_args$annotation, dummy_annot_df)
   })
 
-  test_that("passes calculateAnomalyScores + anomalyModelFeatures to converter when carry_anomaly_features = TRUE", {
+  test_that("passes calculateAnomalyScores + anomalyModelFeatures to converter when calculate_anomaly_scores = TRUE", {
     input_with_anomaly <- mock_input_big
-    input_with_anomaly$carry_anomaly_features <- TRUE
-    input_with_anomaly$big_run_order_file <- list(datapath = "run_order.csv")
+    input_with_anomaly$calculate_anomaly_scores <- TRUE
+    input_with_anomaly$run_order_file <- list(datapath = "run_order.csv")
 
     stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
     stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
@@ -1662,10 +1662,10 @@ describe("getData for Big Spectronaut", {
     expect_null(captured_args$runOrder)
   })
 
-  test_that("calls MSstatsConvert::MSstatsAnomalyScores after collect when carry_anomaly_features && big_run_order_file are set", {
+  test_that("calls MSstatsConvert::MSstatsAnomalyScores after collect when calculate_anomaly_scores && run_order_file are set", {
     input_with_full_anomaly <- mock_input_big
-    input_with_full_anomaly$carry_anomaly_features <- TRUE
-    input_with_full_anomaly$big_run_order_file <- list(datapath = "run_order.csv")
+    input_with_full_anomaly$calculate_anomaly_scores <- TRUE
+    input_with_full_anomaly$run_order_file <- list(datapath = "run_order.csv")
 
     stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
     stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
@@ -1710,10 +1710,10 @@ describe("getData for Big Spectronaut", {
     expect_equal(captured_scoring_args$cores, 1)
   })
 
-  test_that("does NOT call MSstatsAnomalyScores when carry_anomaly_features is TRUE but big_run_order_file is missing", {
+  test_that("does NOT call MSstatsAnomalyScores when calculate_anomaly_scores is TRUE but run_order_file is missing", {
     input_no_runorder <- mock_input_big
-    input_no_runorder$carry_anomaly_features <- TRUE
-    input_no_runorder$big_run_order_file <- NULL
+    input_no_runorder$calculate_anomaly_scores <- TRUE
+    input_no_runorder$run_order_file <- NULL
 
     stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
     stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
