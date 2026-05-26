@@ -1485,11 +1485,44 @@ describe("getData for Spectronaut input with anomaly scores", {
     
     #EXECUTION
     result_args <- getData(mock_input_no_anomaly)
-    
+
     #ASSERTION: Check that the anomaly arguments are NOT present
     expect_null(result_args$calculateAnomalyScores)
     expect_null(result_args$runOrder)
     expect_null(result_args$anomalyModelFeatures)
+  })
+
+  test_that("fails fast when calculate_anomaly_scores is TRUE but run_order_file is missing (regular path)", {
+    mock_input_missing_runorder <- list(
+      BIO = "Protein",
+      DDA_DIA = "DIA",
+      filetype = "spec",
+      specdata = list(datapath = "dummy_spec.csv"),
+      annot = list(datapath = "dummy_annot.csv"),
+      q_val = TRUE,
+      q_cutoff = 0.01,
+      remove = TRUE,
+      calculate_anomaly_scores = TRUE,
+      run_order_file = NULL
+    )
+
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "Run Order CSV"))
+    # getData starts with show_modal_spinner() — the validation
+    # must call remove_modal_spinner() before returning NULL so
+    # the spinner doesn't get stuck. Track that it was called.
+    spinner_removed <- FALSE
+    stub(getData, "remove_modal_spinner",
+         function(...) { spinner_removed <<- TRUE; NULL })
+    # The converter should never run; if it does, fail the test.
+    stub(getData, "data.table::fread",
+         function(...) stop("fread reached despite missing run order"))
+    stub(getData, "SpectronauttoMSstatsFormat",
+         function(...) stop("converter reached despite missing run order"))
+
+    res <- getData(mock_input_missing_runorder)
+    expect_null(res)
+    expect_true(spinner_removed)
   })
 })
 
@@ -1577,9 +1610,201 @@ describe("getData for Big Spectronaut", {
     stub(getData, "showNotification", function(msg, ...) expect_match(msg, "Memory Error"))
     stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
     stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
-    
+
     res <- getData(mock_input_big)
     expect_null(res)
+  })
+
+  # Capturing converter (returns its args so we can inspect what
+  # got forwarded). Same idea as mock_spectro_converter above; the
+  # big-file caller uses do.call(), but mockery intercepts the
+  # MSstatsBig::bigSpectronauttoMSstatsFormat symbol resolution
+  # rather than the call form, so this still works.
+  mock_big_spec_converter <- function(...) list(...)
+  dummy_annot_df <- data.frame(
+    Run = c("run1", "run2"),
+    BioReplicate = c(7L, 8L),
+    Condition = c("ctrl", "treat"),
+    stringsAsFactors = FALSE)
+
+  test_that("passes annotation to converter when big_spec_annotation is supplied", {
+    input_with_annot <- mock_input_big
+    input_with_annot$big_spec_annotation <- list(datapath = "annot.csv")
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "data.table::fread", dummy_annot_df)
+    stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat",
+         mock_big_spec_converter)
+    # Hijack dplyr::collect to read back what the (stubbed)
+    # converter received — getData passes its return value into
+    # collect, so the captured value IS the list of args.
+    captured_args <- NULL
+    stub(getData, "dplyr::collect", function(x) {
+      captured_args <<- x
+      mock_df
+    })
+
+    getData(input_with_annot)
+
+    expect_true(!is.null(captured_args$annotation))
+    expect_equal(captured_args$annotation, dummy_annot_df)
+  })
+
+  test_that("passes calculateAnomalyScores + anomalyModelFeatures to converter when calculate_anomaly_scores = TRUE", {
+    input_with_anomaly <- mock_input_big
+    input_with_anomaly$calculate_anomaly_scores <- TRUE
+    input_with_anomaly$run_order_file <- list(datapath = "run_order.csv")
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat",
+         mock_big_spec_converter)
+    captured_args <- NULL
+    stub(getData, "dplyr::collect", function(x) {
+      captured_args <<- x
+      mock_df
+    })
+    # Skip the post-collect scoring call for this test — it's
+    # exercised separately below.
+    stub(getData, "data.table::fread",
+         data.frame(Run = "run1", Order = 1L))
+    stub(getData, "MSstatsConvert::MSstatsAnomalyScores",
+         function(...) mock_df)
+
+    getData(input_with_anomaly)
+
+    expect_true(isTRUE(captured_args$calculateAnomalyScores))
+    # Raw Spectronaut export names — the converter applies
+    # .standardizeColnames internally on the way out.
+    expect_equal(captured_args$anomalyModelFeatures,
+                 c("FG.ShapeQualityScore (MS2)",
+                   "FG.ShapeQualityScore (MS1)",
+                   "EG.DeltaRT"))
+    # The big-file converter itself does NOT take a runOrder arg —
+    # that's consumed by the separate MSstatsAnomalyScores step
+    # post-collect (covered in the next test).
+    expect_null(captured_args$runOrder)
+  })
+
+  test_that("calls MSstatsConvert::MSstatsAnomalyScores after collect when calculate_anomaly_scores && run_order_file are set", {
+    input_with_full_anomaly <- mock_input_big
+    input_with_full_anomaly$calculate_anomaly_scores <- TRUE
+    input_with_full_anomaly$run_order_file <- list(datapath = "run_order.csv")
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat",
+         mock_arrow_obj)
+    stub(getData, "dplyr::collect", mock_df)
+
+    run_order_df <- data.frame(Run = c("run1", "run2"),
+                               Order = c(1L, 2L),
+                               stringsAsFactors = FALSE)
+    stub(getData, "data.table::fread", run_order_df)
+
+    captured_scoring_args <- NULL
+    stub(getData, "MSstatsConvert::MSstatsAnomalyScores",
+         function(...) {
+           captured_scoring_args <<- list(...)
+           mock_df
+         })
+
+    getData(input_with_full_anomaly)
+
+    expect_false(is.null(captured_scoring_args))
+    expect_equal(captured_scoring_args$input, mock_df)
+    # Standardized column names — the in-memory data after collect
+    # has had .standardizeColnames applied during the converter
+    # step, so MSstatsAnomalyScores must look for these names.
+    expect_equal(captured_scoring_args$quality_metrics,
+                 c("FGShapeQualityScore(MS2)",
+                   "FGShapeQualityScore(MS1)",
+                   "EGDeltaRT"))
+    expect_equal(captured_scoring_args$temporal_direction,
+                 c("mean_decrease",
+                   "mean_decrease",
+                   "dispersion_increase"))
+    expect_equal(captured_scoring_args$run_order, run_order_df)
+    expect_equal(captured_scoring_args$n_trees, 100)
+    expect_equal(captured_scoring_args$max_depth, "auto")
+    expect_equal(captured_scoring_args$cores, 1)
+  })
+
+  test_that("fails fast when calculate_anomaly_scores is TRUE but run_order_file is missing", {
+    input_no_runorder <- mock_input_big
+    input_no_runorder$calculate_anomaly_scores <- TRUE
+    input_no_runorder$run_order_file <- NULL
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "Run Order CSV"))
+    # The converter should never run; if it does, fail the test.
+    stub(getData, "shinybusy::update_modal_spinner",
+         function(...) stop("converter step reached despite missing run order"))
+
+    res <- getData(input_no_runorder)
+    expect_null(res)
+  })
+
+  test_that("passes intensity to converter when spec_intensity_col is set", {
+    input_with_intensity <- mock_input_big
+    input_with_intensity$spec_intensity_col <- "FG.MS1Quantity"
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat",
+         mock_big_spec_converter)
+    captured_args <- NULL
+    stub(getData, "dplyr::collect", function(x) {
+      captured_args <<- x
+      mock_df
+    })
+
+    getData(input_with_intensity)
+
+    expect_equal(captured_args$intensity, "FG.MS1Quantity")
+  })
+
+  test_that("omits annotation + anomaly args when neither is supplied", {
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat",
+         mock_big_spec_converter)
+    captured_args <- NULL
+    stub(getData, "dplyr::collect", function(x) {
+      captured_args <<- x
+      mock_df
+    })
+
+    getData(mock_input_big)
+
+    expect_null(captured_args$annotation)
+    expect_null(captured_args$calculateAnomalyScores)
+    expect_null(captured_args$anomalyModelFeatures)
   })
 })
 

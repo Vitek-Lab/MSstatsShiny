@@ -639,11 +639,23 @@ getData <- function(input) {
           shinybusy::remove_modal_spinner()
           return(NULL)
         }
-        
+
+        if (isTRUE(input$calculate_anomaly_scores) && is.null(input$run_order_file)) {
+          showNotification(
+            "Error: Run Order CSV is required when Calculate Anomaly Scores is enabled. Please upload a CSV with Run and Order columns.",
+            type = "error",
+            duration = NULL)
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+
         shinybusy::update_modal_spinner(text = "Processing large Spectronaut file...")
-        
-        # Call the big file conversion function from MSstatsConvert
-        converted_data <- MSstatsBig::bigSpectronauttoMSstatsFormat(
+
+        # Base arguments shared by every large-file Spectronaut run.
+        # Optional args (annotation override, anomaly-feature
+        # carry-through) are spliced in below so callers that don't
+        # supply them aren't forced to pass NULL / FALSE explicitly.
+        big_spec_args <- list(
           input_file = local_big_file_path,
           output_file_name = "output_file.csv",
           backend = "arrow",
@@ -656,6 +668,27 @@ getData <- function(input) {
           aggregate_psms = input$aggregate_psms,
           filter_few_obs = input$filter_few_obs
         )
+
+        if (!is.null(input$spec_intensity_col) &&
+            nchar(trimws(input$spec_intensity_col)) > 0) {
+          big_spec_args$intensity <- trimws(input$spec_intensity_col)
+        }
+
+        if (!is.null(input$big_spec_annotation)) {
+          big_spec_args$annotation <- data.table::fread(
+            input$big_spec_annotation$datapath)
+        }
+
+        if (isTRUE(input$calculate_anomaly_scores)) {
+          big_spec_args$calculateAnomalyScores <- TRUE
+          big_spec_args$anomalyModelFeatures <- c(
+            "FG.ShapeQualityScore (MS2)",
+            "FG.ShapeQualityScore (MS1)",
+            "EG.DeltaRT")
+        }
+
+        converted_data <- do.call(
+          MSstatsBig::bigSpectronauttoMSstatsFormat, big_spec_args)
         
         # Attempt to load the data into memory. 
         mydata <- tryCatch({
@@ -673,8 +706,37 @@ getData <- function(input) {
           shinybusy::remove_modal_spinner()
           return(NULL)
         }
-        
+
+        if (isTRUE(input$calculate_anomaly_scores) &&
+            !is.null(input$run_order_file)) {
+          run_order <- data.table::fread(input$run_order_file$datapath)
+          mydata <- MSstatsConvert::MSstatsAnomalyScores(
+            input = mydata,
+            quality_metrics = c("FGShapeQualityScore(MS2)",
+                                "FGShapeQualityScore(MS1)",
+                                "EGDeltaRT"),
+            temporal_direction = c("mean_decrease",
+                                   "mean_decrease",
+                                   "dispersion_increase"),
+            missing_run_count = 0.5,
+            n_feat = 100,
+            run_order = run_order,
+            n_trees = 100,
+            max_depth = "auto",
+            cores = 1)
+        }
+
       } else {
+
+        if (isTRUE(input$calculate_anomaly_scores) && is.null(input$run_order_file)) {
+          showNotification(
+            "Error: Run Order CSV is required when Calculate Anomaly Scores is enabled. Please upload a CSV with Run and Order columns.",
+            type = "error",
+            duration = NULL)
+          remove_modal_spinner()
+          return(NULL)
+        }
+
         data = data.table::fread(input$specdata$datapath)
         # Base arguments for the Spectronaut converter
         converter_args = list(
@@ -958,14 +1020,87 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'spec') {
 
+      if (isTRUE(input$big_file_spec)) {
+        codes = paste(codes,
+                      "# Large-file (out-of-memory) Spectronaut path.\n",
+                      "input_file = \"insert your raw Spectronaut export filepath\"\n",
+                      sep = "")
+
+        big_spec_extra <- ""
+        if (!is.null(input$spec_intensity_col) &&
+            nchar(trimws(input$spec_intensity_col)) > 0) {
+          big_spec_extra <- paste0(big_spec_extra,
+                                   ",\n                                          intensity = \"",
+                                   trimws(input$spec_intensity_col), "\"")
+        }
+        if (!is.null(input$big_spec_annotation)) {
+          codes = paste(codes,
+                        "annot_file = data.table::fread(\"insert your annotation filepath (Run, BioReplicate, Condition)\")\n",
+                        sep = "")
+          big_spec_extra <- paste0(big_spec_extra,
+                                   ",\n                                          annotation = annot_file")
+        }
+        if (isTRUE(input$calculate_anomaly_scores)) {
+          big_spec_extra <- paste0(big_spec_extra,
+                                   ",\n                                          calculateAnomalyScores = TRUE",
+                                   ",\n                                          anomalyModelFeatures = c(\"FG.ShapeQualityScore (MS2)\", \"FG.ShapeQualityScore (MS1)\", \"EG.DeltaRT\")")
+        }
+
+        codes = paste(codes,
+                      "converted = MSstatsBig::bigSpectronauttoMSstatsFormat(input_file,
+                                          output_file_name = \"output_file.csv\",
+                                          backend = \"arrow\",
+                                          filter_by_excluded = ", input$filter_by_excluded, ",
+                                          filter_by_identified = ", input$filter_by_identified, ",
+                                          filter_by_qvalue = ", input$filter_by_qvalue, ",
+                                          qvalue_cutoff = ", input$qvalue_cutoff, ",
+                                          max_feature_count = ", input$max_feature_count, ",
+                                          filter_unique_peptides = ", input$filter_unique_peptides, ",
+                                          aggregate_psms = ", input$aggregate_psms, ",
+                                          filter_few_obs = ", input$filter_few_obs,
+                      big_spec_extra,
+                      ")\ndata = dplyr::collect(converted)\n",
+                      sep = "")
+
+        if (isTRUE(input$calculate_anomaly_scores)) {
+          codes = paste(codes,
+                        "# Step 2 of the anomaly scoring pipeline: fit the\n",
+                        "# isolation-forest model on the collected data and\n",
+                        "# add an AnomalyScores column.\n",
+                        "run_order = data.table::fread(\"insert your run order CSV filepath (Run, Order columns)\")\n",
+                        "data = MSstatsConvert::MSstatsAnomalyScores(\n",
+                        "  input = data,\n",
+                        "  # Standardized column names (raw Spectronaut names\n",
+                        "  # had `.` and ` ` stripped during the converter step).\n",
+                        "  quality_metrics = c(\"FGShapeQualityScore(MS2)\", \"FGShapeQualityScore(MS1)\", \"EGDeltaRT\"),\n",
+                        "  temporal_direction = c(\"mean_decrease\", \"mean_decrease\", \"dispersion_increase\"),\n",
+                        "  missing_run_count = 0.5,\n",
+                        "  n_feat = 100,\n",
+                        "  run_order = run_order,\n",
+                        "  n_trees = 100,\n",
+                        "  max_depth = \"auto\",\n",
+                        "  cores = 1)\n",
+                        sep = "")
+        }
+
+      } else {
+
       codes = paste(codes, "data = data.table::fread(\"insert your MSstats scheme output from Spectronaut filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")#Optional\n"
                     , sep = "")
+
+      reg_spec_intensity_arg <- if (!is.null(input$spec_intensity_col) &&
+                                    nchar(trimws(input$spec_intensity_col)) > 0) {
+        paste0("                                       intensity = \"",
+               trimws(input$spec_intensity_col), "\",\n")
+      } else {
+        ""
+      }
 
       if (isTRUE(input$calculate_anomaly_scores)) {
         codes = paste(codes, "run_order = data.table::fread(\"insert your run order CSV filepath (Run, Order columns)\")\n", sep = "")
         codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
                                        annotation = annot_file, #Optional
-                                       filter_with_Qvalue = ", input$q_val, ",
+", reg_spec_intensity_arg, "                                       filter_with_Qvalue = ", input$q_val, ",
                                        qvalue_cutoff = ", input$q_cutoff, ",
                                        removeProtein_with1Feature = ", input$remove, ",
                                        use_log_file = FALSE,
@@ -979,10 +1114,12 @@ library(MSstatsPTM)\n", sep = "")
       } else {
         codes = paste(codes, "data = SpectronauttoMSstatsFormat(data,
                                        annotation = annot_file, #Optional
-                                       filter_with_Qvalue = ", input$q_val, ",
+", reg_spec_intensity_arg, "                                       filter_with_Qvalue = ", input$q_val, ",
                                        qvalue_cutoff = ", input$q_cutoff, ",
                                        removeProtein_with1Feature = ", input$remove, ",
                                        use_log_file = FALSE)\n", sep = "")
+      }
+
       }
     }
     else if(input$filetype == 'diann') {

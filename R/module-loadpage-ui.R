@@ -282,6 +282,7 @@ create_spectronaut_uploads <- function(ns) {
     uiOutput(ns("spectronaut_header_ui")),
     uiOutput(ns("spectronaut_file_selection_ui")),
     uiOutput(ns("spectronaut_options_ui")),
+    uiOutput(ns("spectronaut_intensity_ui")),
     uiOutput(ns("spectronaut_turnover_ui"))
   )
 }
@@ -339,6 +340,61 @@ create_spectronaut_large_bottom_ui <- function(ns, max_feature_def = 20, unique_
     checkboxInput(ns("filter_unique_peptides"), "Use unique peptides", value = unique_peps_def),
     checkboxInput(ns("aggregate_psms"), "Aggregate PSMs to peptides", value = agg_psms_def),
     checkboxInput(ns("filter_few_obs"), "Filter features with few observations", value = few_obs_def)
+  )
+}
+
+#' Create Spectronaut large file annotation override + anomaly UI
+#'
+#' Renders an optional annotation upload that overrides Spectronaut's embedded
+#' R.Condition / R.Replicate columns on Run, plus the "Calculate Anomaly
+#' Scores" controls. End-to-end anomaly scoring is a two-step pipeline in
+#' the large-file path:
+#'   (1) `bigSpectronauttoMSstatsFormat` runs with
+#'       `calculateAnomalyScores = TRUE` + the model feature column list,
+#'       which carries those feature columns through the out-of-memory
+#'       reduce/preprocess steps.
+#'   (2) After `dplyr::collect`, `MSstatsConvert::MSstatsAnomalyScores`
+#'       is called on the in-memory result to fit the isolation-forest
+#'       model and produce the `AnomalyScores` column.
+#' Input IDs `calculate_anomaly_scores` and `run_order_file` are deliberately
+#' the same as the regular Spectronaut path's so downstream pages
+#' (module-qc-server's MSstats+ summarization gate, getDataCode's
+#' reproducibility script, etc.) read a single source of truth regardless
+#' of which path the user took. The two UI checkboxes never coexist —
+#' the regular path's `create_label_free_options` is hidden when
+#' `big_file_spec` is on, and this helper only renders when it is — so
+#' there is no Shiny namespace collision.
+#' A run-order CSV is required (Run + Order columns) — `MSstatsAnomalyScores`
+#' uses it for temporal feature engineering.
+#' @noRd
+create_spectronaut_large_annotation_ui <- function(ns, calculate_anomaly_def = FALSE) {
+  tagList(
+    tags$hr(),
+    h5("Annotation file (optional)",
+       class = "icon-wrapper",
+       icon("question-circle", lib = "font-awesome"),
+       div("Upload a CSV/TSV with columns Run, BioReplicate, Condition (and any extras). When supplied, the converter merges it on Run and overrides any Condition / BioReplicate values from Spectronaut's R.Condition / R.Replicate. Required for paired designs and other layouts Spectronaut's own annotation cannot express.",
+           class = "icon-tooltip")),
+    fileInput(ns("big_spec_annotation"), label = NULL,
+              multiple = FALSE, accept = c(".csv", ".tsv", ".txt")),
+    checkboxInput(ns("calculate_anomaly_scores"),
+                  label = tags$span(
+                    "Calculate Anomaly Scores",
+                    class = "icon-wrapper",
+                    icon("question-circle", lib = "font-awesome"),
+                    div("Runs the same anomaly scoring pipeline as the regular Spectronaut path: the converter carries FG.ShapeQualityScore (MS2)/(MS1) and EGDeltaRT through the out-of-memory steps, then MSstatsConvert::MSstatsAnomalyScores fits the isolation-forest model on the collected data and adds an AnomalyScores column. Requires a run order CSV.",
+                        class = "icon-tooltip")),
+                  value = calculate_anomaly_def),
+    conditionalPanel(
+      condition = sprintf("input['%s']", ns("calculate_anomaly_scores")),
+      fileInput(ns("run_order_file"),
+                label = h5("Upload Run Order File",
+                           class = "icon-wrapper",
+                           icon("question-circle", lib = "font-awesome"),
+                           div("CSV with two columns: 'Run' (sequence name matching the converter output) and 'Order' (chronological run number, e.g. 1, 2, 3...).",
+                               class = "icon-tooltip")),
+                multiple = FALSE, accept = c(".csv"))
+    )
   )
 }
 

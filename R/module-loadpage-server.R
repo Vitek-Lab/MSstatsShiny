@@ -190,6 +190,30 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       ui_elements
     })
     
+    # Spectronaut intensity column input — universal across both the
+    # regular (in-memory) and large-file paths, regardless of analysis
+    # template. Default tracks the template: turnover analyses want the
+    # MS1-only quantity, normal analyses want the normalized peak area
+    # (which is also `bigSpectronauttoMSstatsFormat`'s default).
+    output$spectronaut_intensity_ui <- renderUI({
+      req(input$filetype == 'spec', input$BIO != 'PTM')
+
+      default_intensity <- if (!is.null(app_template) &&
+                               app_template() == TEMPLATES$protein_turnover) {
+        "FG.MS1Quantity"
+      } else {
+        "F.NormalizedPeakArea"
+      }
+
+      textInput(session$ns("spec_intensity_col"),
+                label = h5("Intensity column",
+                           class = "icon-wrapper",
+                           icon("question-circle", lib = "font-awesome"),
+                           div("Spectronaut export column to use as the intensity measure (e.g. F.NormalizedPeakArea, F.PeakArea, FG.MS1Quantity). Leave at the default unless you have a specific reason to override it.",
+                               class = "icon-tooltip")),
+                value = default_intensity)
+    })
+
     output$spectronaut_turnover_ui <- renderUI({
       req(input$filetype == 'spec', input$BIO != 'PTM')
       req(!is.null(app_template) && app_template() == TEMPLATES$protein_turnover)
@@ -198,9 +222,6 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       tagList(
         tags$hr(),
         h4("Protein Turnover Options"),
-        textInput(ns("spec_intensity_col"),
-                  "Intensity column",
-                  value = "FG.MS1Quantity"),
         textInput(ns("spec_peptide_seq_col"),
                   "Peptide sequence column",
                   value = "FG.LabeledSequence"),
@@ -235,11 +256,13 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
         unique_peps_def <- if (is.null(input$filter_unique_peptides)) FALSE else input$filter_unique_peptides
         agg_psms_def <- if (is.null(input$aggregate_psms)) FALSE else input$aggregate_psms
         few_obs_def <- if (is.null(input$filter_few_obs)) FALSE else input$filter_few_obs
-        
+        calculate_anomaly_def <- if (is.null(input$calculate_anomaly_scores)) FALSE else input$calculate_anomaly_scores
+
         tagList(
           create_spectronaut_large_filter_options(session$ns, excluded_def, identified_def, qval_def),
           if (qval_def) create_spectronaut_qvalue_cutoff_ui(session$ns, cutoff_def),
-          create_spectronaut_large_bottom_ui(session$ns, max_feature_def, unique_peps_def, agg_psms_def, few_obs_def)
+          create_spectronaut_large_bottom_ui(session$ns, max_feature_def, unique_peps_def, agg_psms_def, few_obs_def),
+          create_spectronaut_large_annotation_ui(session$ns, calculate_anomaly_def)
         )
       } else {
         NULL
