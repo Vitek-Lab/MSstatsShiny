@@ -692,7 +692,33 @@ getData <- function(input) {
           shinybusy::remove_modal_spinner()
           return(NULL)
         }
-        
+
+        # Step 2 of the anomaly scoring pipeline: the converter only
+        # carries the model feature columns through the out-of-memory
+        # steps; MSstatsAnomalyScores fits the isolation-forest model
+        # on the in-memory result and adds the AnomalyScores column.
+        # Defaults mirror SpectronauttoMSstatsFormat's regular path
+        # (missing_run_count = 0.5, n_feat = 100, n_trees = 100,
+        # max_depth = "auto", cores = 1).
+        if (isTRUE(input$carry_anomaly_features) &&
+            !is.null(input$big_run_order_file)) {
+          run_order <- data.table::fread(input$big_run_order_file$datapath)
+          mydata <- MSstatsConvert::MSstatsAnomalyScores(
+            input = mydata,
+            quality_metrics = c("FG.ShapeQualityScore (MS2)",
+                                "FG.ShapeQualityScore (MS1)",
+                                "EGDeltaRT"),
+            temporal_direction = c("mean_decrease",
+                                   "mean_decrease",
+                                   "dispersion_increase"),
+            missing_run_count = 0.5,
+            n_feat = 100,
+            run_order = run_order,
+            n_trees = 100,
+            max_depth = "auto",
+            cores = 1)
+        }
+
       } else {
         data = data.table::fread(input$specdata$datapath)
         # Base arguments for the Spectronaut converter
@@ -1012,6 +1038,25 @@ library(MSstatsPTM)\n", sep = "")
                       big_spec_extra,
                       ")\ndata = dplyr::collect(converted)\n",
                       sep = "")
+
+        if (isTRUE(input$carry_anomaly_features)) {
+          codes = paste(codes,
+                        "# Step 2 of the anomaly scoring pipeline: fit the\n",
+                        "# isolation-forest model on the collected data and\n",
+                        "# add an AnomalyScores column.\n",
+                        "run_order = data.table::fread(\"insert your run order CSV filepath (Run, Order columns)\")\n",
+                        "data = MSstatsConvert::MSstatsAnomalyScores(\n",
+                        "  input = data,\n",
+                        "  quality_metrics = c(\"FG.ShapeQualityScore (MS2)\", \"FG.ShapeQualityScore (MS1)\", \"EGDeltaRT\"),\n",
+                        "  temporal_direction = c(\"mean_decrease\", \"mean_decrease\", \"dispersion_increase\"),\n",
+                        "  missing_run_count = 0.5,\n",
+                        "  n_feat = 100,\n",
+                        "  run_order = run_order,\n",
+                        "  n_trees = 100,\n",
+                        "  max_depth = \"auto\",\n",
+                        "  cores = 1)\n",
+                        sep = "")
+        }
 
       } else {
 

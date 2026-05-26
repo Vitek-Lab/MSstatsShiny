@@ -1622,9 +1622,10 @@ describe("getData for Big Spectronaut", {
     expect_equal(captured_args$annotation, dummy_annot_df)
   })
 
-  test_that("passes calculateAnomalyScores + anomalyModelFeatures when carry_anomaly_features = TRUE", {
+  test_that("passes calculateAnomalyScores + anomalyModelFeatures to converter when carry_anomaly_features = TRUE", {
     input_with_anomaly <- mock_input_big
     input_with_anomaly$carry_anomaly_features <- TRUE
+    input_with_anomaly$big_run_order_file <- list(datapath = "run_order.csv")
 
     stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
     stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
@@ -1639,6 +1640,12 @@ describe("getData for Big Spectronaut", {
       captured_args <<- x
       mock_df
     })
+    # Skip the post-collect scoring call for this test — it's
+    # exercised separately below.
+    stub(getData, "data.table::fread",
+         data.frame(Run = "run1", Order = 1L))
+    stub(getData, "MSstatsConvert::MSstatsAnomalyScores",
+         function(...) mock_df)
 
     getData(input_with_anomaly)
 
@@ -1647,9 +1654,82 @@ describe("getData for Big Spectronaut", {
                  c("FG.ShapeQualityScore (MS2)",
                    "FG.ShapeQualityScore (MS1)",
                    "EGDeltaRT"))
-    # No runOrder for the big-file path — the converter doesn't
-    # accept one (MSstatsBig has no MSstatsAnomalyScores call).
+    # The big-file converter itself does NOT take a runOrder arg —
+    # that's consumed by the separate MSstatsAnomalyScores step
+    # post-collect (covered in the next test).
     expect_null(captured_args$runOrder)
+  })
+
+  test_that("calls MSstatsConvert::MSstatsAnomalyScores after collect when carry_anomaly_features && big_run_order_file are set", {
+    input_with_full_anomaly <- mock_input_big
+    input_with_full_anomaly$carry_anomaly_features <- TRUE
+    input_with_full_anomaly$big_run_order_file <- list(datapath = "run_order.csv")
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat",
+         mock_arrow_obj)
+    stub(getData, "dplyr::collect", mock_df)
+
+    run_order_df <- data.frame(Run = c("run1", "run2"),
+                               Order = c(1L, 2L),
+                               stringsAsFactors = FALSE)
+    stub(getData, "data.table::fread", run_order_df)
+
+    captured_scoring_args <- NULL
+    stub(getData, "MSstatsConvert::MSstatsAnomalyScores",
+         function(...) {
+           captured_scoring_args <<- list(...)
+           mock_df
+         })
+
+    getData(input_with_full_anomaly)
+
+    expect_false(is.null(captured_scoring_args))
+    expect_equal(captured_scoring_args$input, mock_df)
+    expect_equal(captured_scoring_args$quality_metrics,
+                 c("FG.ShapeQualityScore (MS2)",
+                   "FG.ShapeQualityScore (MS1)",
+                   "EGDeltaRT"))
+    expect_equal(captured_scoring_args$temporal_direction,
+                 c("mean_decrease",
+                   "mean_decrease",
+                   "dispersion_increase"))
+    expect_equal(captured_scoring_args$run_order, run_order_df)
+    expect_equal(captured_scoring_args$n_trees, 100)
+    expect_equal(captured_scoring_args$max_depth, "auto")
+    expect_equal(captured_scoring_args$cores, 1)
+  })
+
+  test_that("does NOT call MSstatsAnomalyScores when carry_anomaly_features is TRUE but big_run_order_file is missing", {
+    input_no_runorder <- mock_input_big
+    input_no_runorder$carry_anomaly_features <- TRUE
+    input_no_runorder$big_run_order_file <- NULL
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat",
+         mock_arrow_obj)
+    stub(getData, "dplyr::collect", mock_df)
+
+    scoring_called <- FALSE
+    stub(getData, "MSstatsConvert::MSstatsAnomalyScores",
+         function(...) {
+           scoring_called <<- TRUE
+           mock_df
+         })
+
+    getData(input_no_runorder)
+
+    expect_false(scoring_called)
   })
 
   test_that("omits annotation + anomaly args when neither is supplied", {

@@ -342,16 +342,23 @@ create_spectronaut_large_bottom_ui <- function(ns, max_feature_def = 20, unique_
   )
 }
 
-#' Create Spectronaut large file annotation override + anomaly carry-through UI
+#' Create Spectronaut large file annotation override + anomaly UI
 #'
 #' Renders an optional annotation upload that overrides Spectronaut's embedded
-#' R.Condition / R.Replicate columns on Run, and a checkbox that asks the
-#' converter to carry the anomaly-model feature columns
-#' (FG.ShapeQualityScore (MS2)/(MS1), EGDeltaRT) through the pipeline. The
-#' big-file converter does not fit the temporal anomaly RF (MSstatsBig
-#' provides no MSstatsAnomalyScores equivalent), so this is feature
-#' carry-through only — distinct from the regular-Spectronaut
-#' `calculate_anomaly_scores` checkbox which drives full model fitting.
+#' R.Condition / R.Replicate columns on Run, plus the "Calculate Anomaly
+#' Scores" controls. End-to-end anomaly scoring is a two-step pipeline in
+#' the large-file path:
+#'   (1) `bigSpectronauttoMSstatsFormat` runs with
+#'       `calculateAnomalyScores = TRUE` + the model feature column list,
+#'       which carries those feature columns through the out-of-memory
+#'       reduce/preprocess steps.
+#'   (2) After `dplyr::collect`, `MSstatsConvert::MSstatsAnomalyScores`
+#'       is called on the in-memory result to fit the isolation-forest
+#'       model and produce the `AnomalyScores` column.
+#' The internal input ID `carry_anomaly_features` is named for step (1)
+#' but gates both steps; the user-facing label reflects step (2)'s outcome.
+#' A run-order CSV is required (Run + Order columns) — `MSstatsAnomalyScores`
+#' uses it for temporal feature engineering.
 #' @noRd
 create_spectronaut_large_annotation_ui <- function(ns, carry_anomaly_def = FALSE) {
   tagList(
@@ -365,12 +372,22 @@ create_spectronaut_large_annotation_ui <- function(ns, carry_anomaly_def = FALSE
               multiple = FALSE, accept = c(".csv", ".tsv", ".txt")),
     checkboxInput(ns("carry_anomaly_features"),
                   label = tags$span(
-                    "Carry anomaly model features through pipeline",
+                    "Calculate Anomaly Scores",
                     class = "icon-wrapper",
                     icon("question-circle", lib = "font-awesome"),
-                    div("Preserves the FG.ShapeQualityScore (MS2)/(MS1) and EGDeltaRT columns on the converted output so downstream tools can use them. Note: unlike the regular Spectronaut path, the large-file converter does not fit the temporal anomaly model itself — it only carries the columns through.",
+                    div("Runs the same anomaly scoring pipeline as the regular Spectronaut path: the converter carries FG.ShapeQualityScore (MS2)/(MS1) and EGDeltaRT through the out-of-memory steps, then MSstatsConvert::MSstatsAnomalyScores fits the isolation-forest model on the collected data and adds an AnomalyScores column. Requires a run order CSV.",
                         class = "icon-tooltip")),
-                  value = carry_anomaly_def)
+                  value = carry_anomaly_def),
+    conditionalPanel(
+      condition = sprintf("input['%s']", ns("carry_anomaly_features")),
+      fileInput(ns("big_run_order_file"),
+                label = h5("Upload Run Order File",
+                           class = "icon-wrapper",
+                           icon("question-circle", lib = "font-awesome"),
+                           div("CSV with two columns: 'Run' (sequence name matching the converter output) and 'Order' (chronological run number, e.g. 1, 2, 3...).",
+                               class = "icon-tooltip")),
+                multiple = FALSE, accept = c(".csv"))
+    )
   )
 }
 
