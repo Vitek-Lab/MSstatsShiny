@@ -641,9 +641,12 @@ getData <- function(input) {
         }
         
         shinybusy::update_modal_spinner(text = "Processing large Spectronaut file...")
-        
-        # Call the big file conversion function from MSstatsConvert
-        converted_data <- MSstatsBig::bigSpectronauttoMSstatsFormat(
+
+        # Base arguments shared by every large-file Spectronaut run.
+        # Optional args (annotation override, anomaly-feature
+        # carry-through) are spliced in below so callers that don't
+        # supply them aren't forced to pass NULL / FALSE explicitly.
+        big_spec_args <- list(
           input_file = local_big_file_path,
           output_file_name = "output_file.csv",
           backend = "arrow",
@@ -656,6 +659,22 @@ getData <- function(input) {
           aggregate_psms = input$aggregate_psms,
           filter_few_obs = input$filter_few_obs
         )
+
+        if (!is.null(input$big_spec_annotation)) {
+          big_spec_args$annotation <- data.table::fread(
+            input$big_spec_annotation$datapath)
+        }
+
+        if (isTRUE(input$carry_anomaly_features)) {
+          big_spec_args$calculateAnomalyScores <- TRUE
+          big_spec_args$anomalyModelFeatures <- c(
+            "FG.ShapeQualityScore (MS2)",
+            "FG.ShapeQualityScore (MS1)",
+            "EGDeltaRT")
+        }
+
+        converted_data <- do.call(
+          MSstatsBig::bigSpectronauttoMSstatsFormat, big_spec_args)
         
         # Attempt to load the data into memory. 
         mydata <- tryCatch({
@@ -958,6 +977,44 @@ library(MSstatsPTM)\n", sep = "")
     }
     else if(input$filetype == 'spec') {
 
+      if (isTRUE(input$big_file_spec)) {
+        codes = paste(codes,
+                      "# Large-file (out-of-memory) Spectronaut path.\n",
+                      "input_file = \"insert your raw Spectronaut export filepath\"\n",
+                      sep = "")
+
+        big_spec_extra <- ""
+        if (!is.null(input$big_spec_annotation)) {
+          codes = paste(codes,
+                        "annot_file = data.table::fread(\"insert your annotation filepath (Run, BioReplicate, Condition)\")\n",
+                        sep = "")
+          big_spec_extra <- paste0(big_spec_extra,
+                                   ",\n                                          annotation = annot_file")
+        }
+        if (isTRUE(input$carry_anomaly_features)) {
+          big_spec_extra <- paste0(big_spec_extra,
+                                   ",\n                                          calculateAnomalyScores = TRUE",
+                                   ",\n                                          anomalyModelFeatures = c(\"FG.ShapeQualityScore (MS2)\", \"FG.ShapeQualityScore (MS1)\", \"EGDeltaRT\")")
+        }
+
+        codes = paste(codes,
+                      "converted = MSstatsBig::bigSpectronauttoMSstatsFormat(input_file,
+                                          output_file_name = \"output_file.csv\",
+                                          backend = \"arrow\",
+                                          filter_by_excluded = ", input$filter_by_excluded, ",
+                                          filter_by_identified = ", input$filter_by_identified, ",
+                                          filter_by_qvalue = ", input$filter_by_qvalue, ",
+                                          qvalue_cutoff = ", input$qvalue_cutoff, ",
+                                          max_feature_count = ", input$max_feature_count, ",
+                                          filter_unique_peptides = ", input$filter_unique_peptides, ",
+                                          aggregate_psms = ", input$aggregate_psms, ",
+                                          filter_few_obs = ", input$filter_few_obs,
+                      big_spec_extra,
+                      ")\ndata = dplyr::collect(converted)\n",
+                      sep = "")
+
+      } else {
+
       codes = paste(codes, "data = data.table::fread(\"insert your MSstats scheme output from Spectronaut filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")#Optional\n"
                     , sep = "")
 
@@ -983,6 +1040,8 @@ library(MSstatsPTM)\n", sep = "")
                                        qvalue_cutoff = ", input$q_cutoff, ",
                                        removeProtein_with1Feature = ", input$remove, ",
                                        use_log_file = FALSE)\n", sep = "")
+      }
+
       }
     }
     else if(input$filetype == 'diann') {

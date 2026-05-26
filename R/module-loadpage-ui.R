@@ -342,6 +342,38 @@ create_spectronaut_large_bottom_ui <- function(ns, max_feature_def = 20, unique_
   )
 }
 
+#' Create Spectronaut large file annotation override + anomaly carry-through UI
+#'
+#' Renders an optional annotation upload that overrides Spectronaut's embedded
+#' R.Condition / R.Replicate columns on Run, and a checkbox that asks the
+#' converter to carry the anomaly-model feature columns
+#' (FG.ShapeQualityScore (MS2)/(MS1), EGDeltaRT) through the pipeline. The
+#' big-file converter does not fit the temporal anomaly RF (MSstatsBig
+#' provides no MSstatsAnomalyScores equivalent), so this is feature
+#' carry-through only — distinct from the regular-Spectronaut
+#' `calculate_anomaly_scores` checkbox which drives full model fitting.
+#' @noRd
+create_spectronaut_large_annotation_ui <- function(ns, carry_anomaly_def = FALSE) {
+  tagList(
+    tags$hr(),
+    h5("Annotation file (optional)",
+       class = "icon-wrapper",
+       icon("question-circle", lib = "font-awesome"),
+       div("Upload a CSV/TSV with columns Run, BioReplicate, Condition (and any extras). When supplied, the converter merges it on Run and overrides any Condition / BioReplicate values from Spectronaut's R.Condition / R.Replicate. Required for paired designs and other layouts Spectronaut's own annotation cannot express.",
+           class = "icon-tooltip")),
+    fileInput(ns("big_spec_annotation"), label = NULL,
+              multiple = FALSE, accept = c(".csv", ".tsv", ".txt")),
+    checkboxInput(ns("carry_anomaly_features"),
+                  label = tags$span(
+                    "Carry anomaly model features through pipeline",
+                    class = "icon-wrapper",
+                    icon("question-circle", lib = "font-awesome"),
+                    div("Preserves the FG.ShapeQualityScore (MS2)/(MS1) and EGDeltaRT columns on the converted output so downstream tools can use them. Note: unlike the regular Spectronaut path, the large-file converter does not fit the temporal anomaly model itself — it only carries the columns through.",
+                        class = "icon-tooltip")),
+                  value = carry_anomaly_def)
+  )
+}
+
 #' Create PTM FragPipe uploads
 #' @noRd
 create_ptm_fragpipe_uploads <- function(ns) {
