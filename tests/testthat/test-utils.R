@@ -1508,6 +1508,12 @@ describe("getData for Spectronaut input with anomaly scores", {
 
     stub(getData, "showNotification",
          function(msg, ...) expect_match(msg, "Run Order CSV"))
+    # getData starts with show_modal_spinner() — the validation
+    # must call remove_modal_spinner() before returning NULL so
+    # the spinner doesn't get stuck. Track that it was called.
+    spinner_removed <- FALSE
+    stub(getData, "remove_modal_spinner",
+         function(...) { spinner_removed <<- TRUE; NULL })
     # The converter should never run; if it does, fail the test.
     stub(getData, "data.table::fread",
          function(...) stop("fread reached despite missing run order"))
@@ -1516,6 +1522,7 @@ describe("getData for Spectronaut input with anomaly scores", {
 
     res <- getData(mock_input_missing_runorder)
     expect_null(res)
+    expect_true(spinner_removed)
   })
 })
 

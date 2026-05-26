@@ -733,6 +733,7 @@ getData <- function(input) {
             "Error: Run Order CSV is required when Calculate Anomaly Scores is enabled. Please upload a CSV with Run and Order columns.",
             type = "error",
             duration = NULL)
+          remove_modal_spinner()
           return(NULL)
         }
 
