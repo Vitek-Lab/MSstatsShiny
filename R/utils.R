@@ -769,42 +769,129 @@ getData <- function(input) {
       }
     }
     else if(input$filetype == 'diann') {
-      if (getFileExtension(input$dianndata$name) %in% c("parquet", "pq")) {
-        data = read_parquet(input$dianndata$datapath)
-      } else {
-        data = data.table::fread(input$dianndata$datapath)
-      }
-      
-      qvalue_cutoff = 0.01
-      MBR = FALSE
-      if (isTRUE(input$q_val)) {
-        if (is.numeric(input$q_cutoff) && length(input$q_cutoff) == 1L &&
-            !is.na(input$q_cutoff) && input$q_cutoff >= 0 && input$q_cutoff <= 1) {
-          qvalue_cutoff = input$q_cutoff
-        }
-        MBR = isTRUE(input$MBR)
-      }
-      quantificationColumn = if (isTRUE(input$diann_2plus)) "auto" else {
-        if (!is.null(input$intensity_column) && nzchar(input$intensity_column)) input$intensity_column else "auto"
-      }
-      labeled_aa <- if (!is.null(input$diann_labeled_aa) && nzchar(input$diann_labeled_aa)) {
-        trimws(strsplit(input$diann_labeled_aa, ",")[[1]])
-      } else {
-        NULL
-      }
 
-      mydata = DIANNtoMSstatsFormat(data,
-                                    annotation = getAnnot(input),
-                                    qvalue_cutoff = qvalue_cutoff,
-                                    MBR = MBR,
-                                    removeProtein_with1Feature = TRUE,
-                                    removeFewMeasurements = FALSE,
-                                    use_log_file = FALSE,
-                                    quantificationColumn = quantificationColumn,
-                                    labeledAminoAcids = labeled_aa
-      )
-      print("Mydata from mstats")
-      print(mydata)
+      if (isTRUE(input$big_file_diann)) {
+        # Out-of-memory DIANN path via MSstatsBig::bigDIANNtoMSstatsFormat.
+        # Mirrors the Spectronaut big-file branch above: parse the
+        # shinyFiles path, validate cutoffs, then collect the lazy
+        # arrow/sparklyr result into an in-memory MSstats-format table.
+        volumes <- shinyFiles::getVolumes()()
+        path_info <- shinyFiles::parseFilePaths(volumes, input$big_diann_browse)
+        local_big_diann_path <- if (nrow(path_info) > 0) path_info$datapath else NULL
+
+        for (cutoff_name in c("big_diann_global_qvalue_cutoff",
+                              "big_diann_qvalue_cutoff",
+                              "big_diann_pg_qvalue_cutoff")) {
+          val <- input[[cutoff_name]]
+          if (!is.numeric(val) || is.na(val) || val < 0 || val > 1) {
+            showNotification(
+              paste0("Error: ", cutoff_name, " must be between 0 and 1."),
+              type = "error")
+            shinybusy::remove_modal_spinner()
+            return(NULL)
+          }
+        }
+
+        if (!is.numeric(input$big_diann_max_feature_count) ||
+            is.na(input$big_diann_max_feature_count) ||
+            input$big_diann_max_feature_count <= 0) {
+          showNotification("Error: max_feature_count must be a positive number.",
+                           type = "error")
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+
+        if (is.null(local_big_diann_path) || !file.exists(local_big_diann_path)) {
+          showNotification("Error: The selected DIANN file does not exist or is not readable.",
+                           type = "error")
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+
+        shinybusy::update_modal_spinner(text = "Processing large DIANN file...")
+
+        big_diann_args <- list(
+          input_file = local_big_diann_path,
+          output_file_name = "output_file.csv",
+          backend = if (!is.null(input$big_diann_backend) && nzchar(input$big_diann_backend)) input$big_diann_backend else "arrow",
+          MBR = isTRUE(input$big_diann_MBR),
+          quantificationColumn = if (!is.null(input$big_diann_quantification_column) &&
+                                     nzchar(input$big_diann_quantification_column)) {
+            input$big_diann_quantification_column
+          } else {
+            "FragmentQuantCorrected"
+          },
+          global_qvalue_cutoff = input$big_diann_global_qvalue_cutoff,
+          qvalue_cutoff = input$big_diann_qvalue_cutoff,
+          pg_qvalue_cutoff = input$big_diann_pg_qvalue_cutoff,
+          max_feature_count = input$big_diann_max_feature_count,
+          filter_unique_peptides = isTRUE(input$big_diann_filter_unique_peptides),
+          aggregate_psms = isTRUE(input$big_diann_aggregate_psms),
+          filter_few_obs = isTRUE(input$big_diann_filter_few_obs)
+        )
+
+        if (!is.null(input$big_diann_annotation)) {
+          big_diann_args$annotation <- data.table::fread(
+            input$big_diann_annotation$datapath)
+        }
+
+        converted_data <- do.call(
+          MSstatsBig::bigDIANNtoMSstatsFormat, big_diann_args)
+
+        mydata <- tryCatch({
+          dplyr::collect(converted_data)
+        }, error = function(e) {
+          showNotification(
+            paste("Memory Error: The dataset is too large to process in-memory.", e$message),
+            type = "error",
+            duration = NULL)
+          NULL
+        })
+
+        if (is.null(mydata)) {
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+
+      } else {
+
+        if (getFileExtension(input$dianndata$name) %in% c("parquet", "pq")) {
+          data = read_parquet(input$dianndata$datapath)
+        } else {
+          data = data.table::fread(input$dianndata$datapath)
+        }
+
+        qvalue_cutoff = 0.01
+        MBR = FALSE
+        if (isTRUE(input$q_val)) {
+          if (is.numeric(input$q_cutoff) && length(input$q_cutoff) == 1L &&
+              !is.na(input$q_cutoff) && input$q_cutoff >= 0 && input$q_cutoff <= 1) {
+            qvalue_cutoff = input$q_cutoff
+          }
+          MBR = isTRUE(input$MBR)
+        }
+        quantificationColumn = if (isTRUE(input$diann_2plus)) "auto" else {
+          if (!is.null(input$intensity_column) && nzchar(input$intensity_column)) input$intensity_column else "auto"
+        }
+        labeled_aa <- if (!is.null(input$diann_labeled_aa) && nzchar(input$diann_labeled_aa)) {
+          trimws(strsplit(input$diann_labeled_aa, ",")[[1]])
+        } else {
+          NULL
+        }
+
+        mydata = DIANNtoMSstatsFormat(data,
+                                      annotation = getAnnot(input),
+                                      qvalue_cutoff = qvalue_cutoff,
+                                      MBR = MBR,
+                                      removeProtein_with1Feature = TRUE,
+                                      removeFewMeasurements = FALSE,
+                                      use_log_file = FALSE,
+                                      quantificationColumn = quantificationColumn,
+                                      labeledAminoAcids = labeled_aa
+        )
+        print("Mydata from mstats")
+        print(mydata)
+      }
     }
     else if(input$filetype == 'meta') {
       cat(file=stderr(), "Reached in metamorpheus\n")
@@ -1119,15 +1206,63 @@ library(MSstatsPTM)\n", sep = "")
       }
     }
     else if(input$filetype == 'diann') {
-      
-      codes = paste(codes, "data = data.table::fread(\"insert your MSstats scheme output from DIANN filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")#Optional\n"
-                    , sep = "")
-      
-      codes = paste(codes, "data = DIANNtoMSstatsFormat(data,
+
+      if (isTRUE(input$big_file_diann)) {
+        codes = paste(codes,
+                      "# Large-file (out-of-memory) DIANN path.\n",
+                      "input_file = \"insert your raw DIANN report filepath\"\n",
+                      sep = "")
+
+        big_diann_extra <- ""
+        if (!is.null(input$big_diann_annotation)) {
+          codes = paste(codes,
+                        "annot_file = data.table::fread(\"insert your annotation filepath (Run, BioReplicate, Condition)\")\n",
+                        sep = "")
+          big_diann_extra <- paste0(big_diann_extra,
+                                    ",\n                                    annotation = annot_file")
+        }
+
+        quantcol_arg <- if (!is.null(input$big_diann_quantification_column) &&
+                            nzchar(input$big_diann_quantification_column)) {
+          input$big_diann_quantification_column
+        } else {
+          "FragmentQuantCorrected"
+        }
+        backend_arg <- if (!is.null(input$big_diann_backend) &&
+                           nzchar(input$big_diann_backend)) {
+          input$big_diann_backend
+        } else {
+          "arrow"
+        }
+
+        codes = paste(codes,
+                      "converted = MSstatsBig::bigDIANNtoMSstatsFormat(input_file,
+                                    output_file_name = \"output_file.csv\",
+                                    backend = \"", backend_arg, "\",
+                                    MBR = ", isTRUE(input$big_diann_MBR), ",
+                                    quantificationColumn = \"", quantcol_arg, "\",
+                                    global_qvalue_cutoff = ", input$big_diann_global_qvalue_cutoff, ",
+                                    qvalue_cutoff = ", input$big_diann_qvalue_cutoff, ",
+                                    pg_qvalue_cutoff = ", input$big_diann_pg_qvalue_cutoff, ",
+                                    max_feature_count = ", input$big_diann_max_feature_count, ",
+                                    filter_unique_peptides = ", isTRUE(input$big_diann_filter_unique_peptides), ",
+                                    aggregate_psms = ", isTRUE(input$big_diann_aggregate_psms), ",
+                                    filter_few_obs = ", isTRUE(input$big_diann_filter_few_obs),
+                      big_diann_extra,
+                      ")\ndata = dplyr::collect(converted)\n",
+                      sep = "")
+
+      } else {
+
+        codes = paste(codes, "data = data.table::fread(\"insert your MSstats scheme output from DIANN filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")#Optional\n"
+                      , sep = "")
+
+        codes = paste(codes, "data = DIANNtoMSstatsFormat(data,
                                        annotation = annot_file, #Optional
                                        qvalue_cutoff = 0.01, ## same as default
                                        removeProtein_with1Feature = TRUE,
                                        use_log_file = FALSE)\n", sep = "")
+      }
     }
     else if(input$filetype == 'meta') {
       if (input$BIO == "PTM") {

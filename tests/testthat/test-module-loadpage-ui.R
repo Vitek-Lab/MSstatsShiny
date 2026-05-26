@@ -385,6 +385,75 @@ test_that("create_spectronaut_uploads creates UI outputs", {
   expect_true(grepl("spectronaut_options_ui", uploads_html))
 })
 
+test_that("create_diann_uploads exposes the diann renderUI slots", {
+  uploads <- create_diann_uploads(NS("test"))
+  uploads_html <- as.character(uploads)
+
+  expect_true(grepl("diann_header_ui", uploads_html))
+  expect_true(grepl("diann_file_selection_ui", uploads_html))
+  expect_true(grepl("diann_options_ui", uploads_html))
+})
+
+test_that("DIANN large-file helper functions create correct UI elements", {
+  # Header
+  header <- create_diann_header()
+  expect_true(grepl("Upload MSstats report from DIANN", as.character(header)))
+
+  # Mode selector
+  mode_sel <- create_diann_mode_selector(NS("test"))
+  mode_html <- as.character(mode_sel)
+  expect_true(grepl("Large file mode", mode_html))
+  expect_true(grepl("checkbox", mode_html))
+  expect_true(grepl("test-big_file_diann", mode_html))
+
+  # Standard UI
+  std_ui <- create_diann_standard_ui(NS("test"))
+  std_html <- as.character(std_ui)
+  expect_true(grepl("file", std_html))
+  expect_true(grepl("test-dianndata", std_html))
+
+  # Large file UI
+  large_ui <- create_diann_large_file_ui(NS("test"))
+  large_html <- as.character(large_ui)
+  expect_true(grepl("Browse for local file", large_html))
+  expect_true(grepl("dianndata_big_path", large_html))
+  expect_true(grepl("test-big_diann_browse", large_html))
+
+  # Filter options
+  filter_opts <- create_diann_large_filter_options(NS("test"))
+  opts_html <- as.character(filter_opts)
+  expect_true(grepl("MBR Enabled", opts_html))
+  expect_true(grepl("Quantification column", opts_html))
+  expect_true(grepl("Global Q-value cutoff", opts_html))
+  expect_true(grepl("Protein group Q-value cutoff", opts_html))
+  expect_true(grepl("FragmentQuantCorrected", opts_html))
+
+  # Bottom UI
+  bottom_ui <- create_diann_large_bottom_ui(NS("test"))
+  bottom_html <- as.character(bottom_ui)
+  expect_true(grepl("Max feature count", bottom_html))
+  expect_true(grepl("Use unique peptides", bottom_html))
+  expect_true(grepl("Aggregate PSMs", bottom_html))
+  expect_true(grepl("Filter features with few observations", bottom_html))
+  expect_true(grepl("Backend", bottom_html))
+  expect_true(grepl("arrow", bottom_html))
+
+  # Annotation UI
+  annot_ui <- create_diann_large_annotation_ui(NS("test"))
+  annot_html <- as.character(annot_ui)
+  expect_true(grepl("Annotation file", annot_html))
+  expect_true(grepl("test-big_diann_annotation", annot_html))
+})
+
+test_that("DIANN regular-path condition strings hide controls in big-file mode", {
+  result <- loadpageUI("test")
+  html_output <- as.character(result)
+
+  # Annotation upload is gated on !big_file_diann for DIANN
+  expect_true(grepl("loadpage-big_file_diann", html_output, fixed = TRUE),
+              info = "DIANN large-file gating condition is missing from rendered UI")
+})
+
 test_that("Spectronaut helper functions create correct UI elements", {
   # Header
   header <- create_spectronaut_header()

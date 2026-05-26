@@ -1844,6 +1844,147 @@ test_that("extract_mod_ids_from_preview handles consecutive modifications", {
   expect_true(all(c("[Mod1]", "[Mod2]", "[Mod3]") %in% result))
 })
 
+describe("getData for Big DIANN", {
+
+  mock_input_big_diann <- list(
+    filetype = "diann",
+    big_file_diann = TRUE,
+    big_diann_browse = list(files = list("file.parquet")),
+    big_diann_MBR = TRUE,
+    big_diann_quantification_column = "FragmentQuantCorrected",
+    big_diann_global_qvalue_cutoff = 0.01,
+    big_diann_qvalue_cutoff = 0.01,
+    big_diann_pg_qvalue_cutoff = 0.01,
+    big_diann_max_feature_count = 100,
+    big_diann_filter_unique_peptides = FALSE,
+    big_diann_aggregate_psms = FALSE,
+    big_diann_filter_few_obs = FALSE,
+    big_diann_backend = "arrow",
+    BIO = "Protein",
+    DDA_DIA = "DIA"
+  )
+
+  mock_arrow_obj <- list(dummy = "arrow")
+  mock_df <- data.frame(ProteinName = "P1", Intensity = 100)
+
+  test_that("Valid input routes to bigDIANNtoMSstatsFormat and returns data", {
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat", mock_arrow_obj)
+    stub(getData, "dplyr::collect", mock_df)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+
+    res <- getData(mock_input_big_diann)
+    expect_equal(res, mock_df)
+  })
+
+  test_that("Invalid qvalue_cutoff returns NULL", {
+    bad_input <- mock_input_big_diann
+    bad_input$big_diann_qvalue_cutoff <- 1.5
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "big_diann_qvalue_cutoff"))
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+
+    res <- getData(bad_input)
+    expect_null(res)
+  })
+
+  test_that("Invalid max_feature_count returns NULL", {
+    bad_input <- mock_input_big_diann
+    bad_input$big_diann_max_feature_count <- 0
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "max_feature_count"))
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+
+    res <- getData(bad_input)
+    expect_null(res)
+  })
+
+  test_that("File not found returns NULL", {
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "nonexistent.parquet"))
+    stub(getData, "file.exists", FALSE)
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "does not exist"))
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+
+    res <- getData(mock_input_big_diann)
+    expect_null(res)
+  })
+
+  test_that("passes annotation to converter when big_diann_annotation is supplied", {
+    input_with_annot <- mock_input_big_diann
+    input_with_annot$big_diann_annotation <- list(datapath = "annot.csv")
+
+    dummy_annot_df <- data.frame(
+      Run = c("run1", "run2"),
+      BioReplicate = c(7L, 8L),
+      Condition = c("ctrl", "treat"),
+      stringsAsFactors = FALSE)
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "data.table::fread", dummy_annot_df)
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat",
+         function(...) list(...))
+    captured_args <- NULL
+    stub(getData, "dplyr::collect", function(x) {
+      captured_args <<- x
+      mock_df
+    })
+
+    getData(input_with_annot)
+
+    expect_true(!is.null(captured_args$annotation))
+    expect_equal(captured_args$annotation, dummy_annot_df)
+  })
+
+  test_that("passes converter knobs through to bigDIANNtoMSstatsFormat", {
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat",
+         function(...) list(...))
+    captured_args <- NULL
+    stub(getData, "dplyr::collect", function(x) {
+      captured_args <<- x
+      mock_df
+    })
+
+    getData(mock_input_big_diann)
+
+    expect_equal(captured_args$backend, "arrow")
+    expect_true(isTRUE(captured_args$MBR))
+    expect_equal(captured_args$quantificationColumn, "FragmentQuantCorrected")
+    expect_equal(captured_args$global_qvalue_cutoff, 0.01)
+    expect_equal(captured_args$qvalue_cutoff, 0.01)
+    expect_equal(captured_args$pg_qvalue_cutoff, 0.01)
+    expect_equal(captured_args$max_feature_count, 100)
+  })
+})
+
 # ============================================================================
 # DIANN FORMAT DETECTION TESTS
 # ============================================================================
