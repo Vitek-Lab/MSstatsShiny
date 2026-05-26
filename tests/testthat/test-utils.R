@@ -1957,6 +1957,70 @@ describe("getData for Big DIANN", {
     expect_equal(captured_args$annotation, dummy_annot_df)
   })
 
+  test_that("passes calculateAnomalyScores + anomalyModelFeatures to converter when big_diann_calculate_anomaly_scores = TRUE", {
+    input_with_anomaly <- mock_input_big_diann
+    input_with_anomaly$big_diann_calculate_anomaly_scores <- TRUE
+    input_with_anomaly$big_diann_run_order_file <- list(datapath = "run_order.csv")
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat",
+         function(...) list(...))
+    captured_args <- NULL
+    captured_anomaly_input <- NULL
+    stub(getData, "dplyr::collect", function(x) {
+      captured_args <<- x
+      data.frame(ProteinName = "P1", Intensity = 100,
+                 RT = 10.0, Predicted.RT = 9.5,
+                 Ms1ProfileCorr = 0.9, Evidence = 1.0,
+                 check.names = FALSE)
+    })
+    stub(getData, "data.table::fread",
+         data.frame(Run = "run1", Order = 1L))
+    stub(getData, "MSstatsConvert::MSstatsAnomalyScores",
+         function(input, ...) {
+           captured_anomaly_input <<- input
+           input
+         })
+
+    getData(input_with_anomaly)
+
+    expect_true(isTRUE(captured_args$calculateAnomalyScores))
+    expect_equal(captured_args$anomalyModelFeatures,
+                 c("Ms1ProfileCorr", "Evidence", "RT", "Predicted.RT"))
+    # DeltaRT is engineered in-memory after collect.
+    expect_true("DeltaRT" %in% colnames(captured_anomaly_input))
+    expect_equal(captured_anomaly_input$DeltaRT,
+                 captured_anomaly_input$RT - captured_anomaly_input$Predicted.RT)
+  })
+
+  test_that("fails fast when big_diann_calculate_anomaly_scores is TRUE but run_order_file is missing", {
+    input_missing_runorder <- mock_input_big_diann
+    input_missing_runorder$big_diann_calculate_anomaly_scores <- TRUE
+    input_missing_runorder$big_diann_run_order_file <- NULL
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "Run Order CSV"))
+    spinner_removed <- FALSE
+    stub(getData, "shinybusy::remove_modal_spinner",
+         function(...) { spinner_removed <<- TRUE; NULL })
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat",
+         function(...) stop("converter reached despite missing run order"))
+
+    res <- getData(input_missing_runorder)
+    expect_null(res)
+    expect_true(spinner_removed)
+  })
+
   test_that("passes converter knobs through to bigDIANNtoMSstatsFormat", {
     stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
     stub(getData, "shinyFiles::parseFilePaths",
@@ -1982,6 +2046,120 @@ describe("getData for Big DIANN", {
     expect_equal(captured_args$qvalue_cutoff, 0.01)
     expect_equal(captured_args$pg_qvalue_cutoff, 0.01)
     expect_equal(captured_args$max_feature_count, 100)
+  })
+})
+
+describe("getData for regular DIANN with anomaly scoring", {
+
+  mock_diann_raw <- data.frame(
+    ProteinNames = "P1",
+    StrippedSequence = "PEPTIDE",
+    ModifiedSequence = "PEPTIDE",
+    PrecursorCharge = 2,
+    FragmentQuantCorrected = 100,
+    QValue = 0.001,
+    GlobalQValue = 0.001,
+    GlobalPGQValue = 0.001,
+    LibQValue = 0.001,
+    LibPGQValue = 0.001,
+    Run = "run1",
+    RT = 10.0,
+    Predicted.RT = 9.5,
+    Ms1ProfileCorr = 0.9,
+    Evidence = 1.0,
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+
+  mock_input_diann_anomaly <- list(
+    filetype = "diann",
+    BIO = "Protein",
+    DDA_DIA = "LType",
+    big_file_diann = FALSE,
+    dianndata = list(name = "report.tsv", datapath = "report.tsv"),
+    q_val = TRUE,
+    q_cutoff = 0.01,
+    MBR = FALSE,
+    diann_2plus = FALSE,
+    intensity_column = "FragmentQuantCorrected",
+    diann_calculate_anomaly_scores = TRUE,
+    diann_run_order_file = list(datapath = "run_order.csv")
+  )
+
+  test_that("fails fast when diann_calculate_anomaly_scores is TRUE but run_order_file is missing", {
+    bad_input <- mock_input_diann_anomaly
+    bad_input$diann_run_order_file <- NULL
+
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "Run Order CSV"))
+    stub(getData, "remove_modal_spinner", function(...) NULL)
+    stub(getData, "DIANNtoMSstatsFormat",
+         function(...) stop("converter reached despite missing run order"))
+
+    res <- getData(bad_input)
+    expect_null(res)
+  })
+
+  test_that("engineers DeltaRT and passes anomaly args to DIANNtoMSstatsFormat", {
+    captured_args <- NULL
+    stub(getData, "data.table::fread", function(...) {
+      args <- list(...)
+      # First fread is for the DIANN data, second is for the run-order file.
+      if (grepl("run_order", args[[1]] %||% "", fixed = TRUE)) {
+        data.frame(Run = "run1", Order = 1L)
+      } else {
+        data.table::as.data.table(mock_diann_raw)
+      }
+    })
+    stub(getData, "getFileExtension", "tsv")
+    stub(getData, "getAnnot",
+         data.frame(Run = "run1", BioReplicate = 1L, Condition = "ctrl",
+                    stringsAsFactors = FALSE))
+    stub(getData, "DIANNtoMSstatsFormat", function(...) {
+      captured_args <<- list(...)
+      data.frame(ProteinName = "P1", Intensity = 100)
+    })
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "remove_modal_spinner", function(...) NULL)
+    stub(getData, "show_modal_spinner", function(...) NULL)
+
+    res <- getData(mock_input_diann_anomaly)
+
+    expect_true(!is.null(res))
+    expect_true(isTRUE(captured_args$calculateAnomalyScores))
+    expect_equal(captured_args$anomalyModelFeatures,
+                 c("Ms1ProfileCorr", "Evidence", "DeltaRT"))
+    expect_equal(captured_args$anomalyModelFeatureTemporal,
+                 c("mean_decrease", "mean_decrease", "dispersion_increase"))
+    expect_true("DeltaRT" %in% colnames(captured_args$input))
+    expect_equal(captured_args$input$DeltaRT,
+                 captured_args$input$RT - captured_args$input$Predicted.RT)
+  })
+
+  test_that("regular DIANN path without anomaly checkbox does NOT add anomaly args", {
+    plain_input <- mock_input_diann_anomaly
+    plain_input$diann_calculate_anomaly_scores <- FALSE
+    plain_input$diann_run_order_file <- NULL
+
+    captured_args <- NULL
+    stub(getData, "data.table::fread", data.table::as.data.table(mock_diann_raw))
+    stub(getData, "getFileExtension", "tsv")
+    stub(getData, "getAnnot",
+         data.frame(Run = "run1", BioReplicate = 1L, Condition = "ctrl",
+                    stringsAsFactors = FALSE))
+    stub(getData, "DIANNtoMSstatsFormat", function(...) {
+      captured_args <<- list(...)
+      data.frame(ProteinName = "P1", Intensity = 100)
+    })
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "remove_modal_spinner", function(...) NULL)
+
+    getData(plain_input)
+
+    expect_null(captured_args$calculateAnomalyScores)
+    expect_null(captured_args$anomalyModelFeatures)
+    expect_null(captured_args$runOrder)
+    expect_false("DeltaRT" %in% colnames(captured_args$input))
   })
 })
 

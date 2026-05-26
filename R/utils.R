@@ -808,6 +808,16 @@ getData <- function(input) {
           return(NULL)
         }
 
+        if (isTRUE(input$big_diann_calculate_anomaly_scores) &&
+            is.null(input$big_diann_run_order_file)) {
+          showNotification(
+            "Error: Run Order CSV is required when Calculate Anomaly Scores is enabled. Please upload a CSV with Run and Order columns.",
+            type = "error",
+            duration = NULL)
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+
         shinybusy::update_modal_spinner(text = "Processing large DIANN file...")
 
         big_diann_args <- list(
@@ -835,6 +845,20 @@ getData <- function(input) {
             input$big_diann_annotation$datapath)
         }
 
+        if (isTRUE(input$big_diann_calculate_anomaly_scores)) {
+          # Carry through the raw quality-metric columns the post-collect
+          # step needs. DeltaRT is engineered in-memory from RT and
+          # Predicted.RT after dplyr::collect, then fed to
+          # MSstatsConvert::MSstatsAnomalyScores alongside Ms1ProfileCorr
+          # and Evidence.
+          big_diann_args$calculateAnomalyScores <- TRUE
+          big_diann_args$anomalyModelFeatures <- c(
+            "Ms1ProfileCorr",
+            "Evidence",
+            "RT",
+            "Predicted.RT")
+        }
+
         converted_data <- do.call(
           MSstatsBig::bigDIANNtoMSstatsFormat, big_diann_args)
 
@@ -853,7 +877,38 @@ getData <- function(input) {
           return(NULL)
         }
 
+        if (isTRUE(input$big_diann_calculate_anomaly_scores) &&
+            !is.null(input$big_diann_run_order_file)) {
+          # Step 2 of the anomaly scoring pipeline. The converter carried
+          # RT and Predicted.RT through; compute DeltaRT now that the
+          # data is in memory, then fit the isolation-forest model.
+          mydata$DeltaRT <- mydata$RT - mydata$Predicted.RT
+          run_order <- data.table::fread(input$big_diann_run_order_file$datapath)
+          mydata <- MSstatsConvert::MSstatsAnomalyScores(
+            input = mydata,
+            quality_metrics = c("Ms1ProfileCorr", "Evidence", "DeltaRT"),
+            temporal_direction = c("mean_decrease",
+                                   "mean_decrease",
+                                   "dispersion_increase"),
+            missing_run_count = 0.5,
+            n_feat = 100,
+            run_order = run_order,
+            n_trees = 100,
+            max_depth = "auto",
+            cores = 1)
+        }
+
       } else {
+
+        if (isTRUE(input$diann_calculate_anomaly_scores) &&
+            is.null(input$diann_run_order_file)) {
+          showNotification(
+            "Error: Run Order CSV is required when Calculate Anomaly Scores is enabled. Please upload a CSV with Run and Order columns.",
+            type = "error",
+            duration = NULL)
+          remove_modal_spinner()
+          return(NULL)
+        }
 
         if (getFileExtension(input$dianndata$name) %in% c("parquet", "pq")) {
           data = read_parquet(input$dianndata$datapath)
@@ -879,16 +934,48 @@ getData <- function(input) {
           NULL
         }
 
-        mydata = DIANNtoMSstatsFormat(data,
-                                      annotation = getAnnot(input),
-                                      qvalue_cutoff = qvalue_cutoff,
-                                      MBR = MBR,
-                                      removeProtein_with1Feature = TRUE,
-                                      removeFewMeasurements = FALSE,
-                                      use_log_file = FALSE,
-                                      quantificationColumn = quantificationColumn,
-                                      labeledAminoAcids = labeled_aa
+        diann_converter_args <- list(
+          input = data,
+          annotation = getAnnot(input),
+          qvalue_cutoff = qvalue_cutoff,
+          MBR = MBR,
+          removeProtein_with1Feature = TRUE,
+          removeFewMeasurements = FALSE,
+          use_log_file = FALSE,
+          quantificationColumn = quantificationColumn,
+          labeledAminoAcids = labeled_aa
         )
+
+        if (isTRUE(input$diann_calculate_anomaly_scores) &&
+            !is.null(input$diann_run_order_file)) {
+          # DIANN reports don't ship DeltaRT — engineer it from RT and
+          # Predicted.RT (raw DIANN column names, with dot) before the
+          # converter standardizes column names. DIANNtoMSstatsFormat
+          # then carries Ms1.Profile.Corr / Evidence / DeltaRT through
+          # cleaning and calls MSstatsAnomalyScores internally.
+          if (all(c("RT", "Predicted.RT") %in% colnames(data))) {
+            data[, DeltaRT := RT - Predicted.RT]
+            diann_converter_args$input <- data
+          } else {
+            showNotification(
+              "Error: DIANN report is missing RT or Predicted.RT columns, which are required to compute DeltaRT for anomaly scoring.",
+              type = "error", duration = NULL)
+            remove_modal_spinner()
+            return(NULL)
+          }
+          diann_converter_args$calculateAnomalyScores <- TRUE
+          diann_converter_args$anomalyModelFeatures <- c(
+            "Ms1ProfileCorr", "Evidence", "DeltaRT")
+          diann_converter_args$anomalyModelFeatureTemporal <- c(
+            "mean_decrease", "mean_decrease", "dispersion_increase")
+          diann_converter_args$runOrder <- data.table::fread(
+            input$diann_run_order_file$datapath)
+          diann_converter_args$n_trees <- 100
+          diann_converter_args$max_depth <- "auto"
+          diann_converter_args$numberOfCores <- 1
+        }
+
+        mydata = do.call(DIANNtoMSstatsFormat, diann_converter_args)
         print("Mydata from mstats")
         print(mydata)
       }
@@ -1221,6 +1308,11 @@ library(MSstatsPTM)\n", sep = "")
           big_diann_extra <- paste0(big_diann_extra,
                                     ",\n                                    annotation = annot_file")
         }
+        if (isTRUE(input$big_diann_calculate_anomaly_scores)) {
+          big_diann_extra <- paste0(big_diann_extra,
+                                    ",\n                                    calculateAnomalyScores = TRUE",
+                                    ",\n                                    anomalyModelFeatures = c(\"Ms1ProfileCorr\", \"Evidence\", \"RT\", \"Predicted.RT\")")
+        }
 
         quantcol_arg <- if (!is.null(input$big_diann_quantification_column) &&
                             nzchar(input$big_diann_quantification_column)) {
@@ -1252,16 +1344,59 @@ library(MSstatsPTM)\n", sep = "")
                       ")\ndata = dplyr::collect(converted)\n",
                       sep = "")
 
+        if (isTRUE(input$big_diann_calculate_anomaly_scores)) {
+          codes = paste(codes,
+                        "# Step 2 of the anomaly scoring pipeline: engineer\n",
+                        "# DeltaRT from the carried-through columns, then\n",
+                        "# fit the isolation-forest model.\n",
+                        "data$DeltaRT = data$RT - data$Predicted.RT\n",
+                        "run_order = data.table::fread(\"insert your run order CSV filepath (Run, Order columns)\")\n",
+                        "data = MSstatsConvert::MSstatsAnomalyScores(\n",
+                        "  input = data,\n",
+                        "  quality_metrics = c(\"Ms1ProfileCorr\", \"Evidence\", \"DeltaRT\"),\n",
+                        "  temporal_direction = c(\"mean_decrease\", \"mean_decrease\", \"dispersion_increase\"),\n",
+                        "  missing_run_count = 0.5,\n",
+                        "  n_feat = 100,\n",
+                        "  run_order = run_order,\n",
+                        "  n_trees = 100,\n",
+                        "  max_depth = \"auto\",\n",
+                        "  cores = 1)\n",
+                        sep = "")
+        }
+
       } else {
 
         codes = paste(codes, "data = data.table::fread(\"insert your MSstats scheme output from DIANN filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")#Optional\n"
                       , sep = "")
 
-        codes = paste(codes, "data = DIANNtoMSstatsFormat(data,
+        if (isTRUE(input$diann_calculate_anomaly_scores)) {
+          codes = paste(codes,
+                        "# DIANN does not ship a DeltaRT column — engineer\n",
+                        "# it from RT and Predicted.RT before the converter\n",
+                        "# runs, so it can be carried through cleaning into\n",
+                        "# MSstatsConvert::MSstatsAnomalyScores.\n",
+                        "data$DeltaRT = data$RT - data$Predicted.RT\n",
+                        "run_order = data.table::fread(\"insert your run order CSV filepath (Run, Order columns)\")\n",
+                        sep = "")
+          codes = paste(codes, "data = DIANNtoMSstatsFormat(data,
+                                       annotation = annot_file, #Optional
+                                       qvalue_cutoff = 0.01, ## same as default
+                                       removeProtein_with1Feature = TRUE,
+                                       use_log_file = FALSE,
+                                       calculateAnomalyScores = TRUE,
+                                       anomalyModelFeatures = c(\"Ms1ProfileCorr\", \"Evidence\", \"DeltaRT\"),
+                                       anomalyModelFeatureTemporal = c(\"mean_decrease\", \"mean_decrease\", \"dispersion_increase\"),
+                                       runOrder = run_order,
+                                       n_trees = 100,
+                                       max_depth = \"auto\",
+                                       numberOfCores = 1)\n", sep = "")
+        } else {
+          codes = paste(codes, "data = DIANNtoMSstatsFormat(data,
                                        annotation = annot_file, #Optional
                                        qvalue_cutoff = 0.01, ## same as default
                                        removeProtein_with1Feature = TRUE,
                                        use_log_file = FALSE)\n", sep = "")
+        }
       }
     }
     else if(input$filetype == 'meta') {

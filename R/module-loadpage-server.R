@@ -300,6 +300,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
         agg_psms_def <- if (is.null(input$big_diann_aggregate_psms)) FALSE else input$big_diann_aggregate_psms
         few_obs_def <- if (is.null(input$big_diann_filter_few_obs)) FALSE else input$big_diann_filter_few_obs
         backend_def <- if (is.null(input$big_diann_backend) || !nzchar(input$big_diann_backend)) "arrow" else input$big_diann_backend
+        calculate_anomaly_def <- if (is.null(input$big_diann_calculate_anomaly_scores)) FALSE else input$big_diann_calculate_anomaly_scores
 
         tagList(
           create_diann_large_filter_options(session$ns, mbr_def, quantcol_def,
@@ -307,7 +308,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
           create_diann_large_bottom_ui(session$ns, max_feature_def,
                                        unique_peps_def, agg_psms_def, few_obs_def,
                                        backend_def),
-          create_diann_large_annotation_ui(session$ns)
+          create_diann_large_annotation_ui(session$ns, calculate_anomaly_def)
         )
       } else {
         NULL

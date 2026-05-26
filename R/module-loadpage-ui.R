@@ -361,13 +361,28 @@ create_diann_large_bottom_ui <- function(ns,
   )
 }
 
-#' Create DIANN large file annotation override UI
+#' Create DIANN large file annotation override + anomaly UI
 #'
 #' Renders an optional annotation upload that overrides DIANN's embedded
-#' Run / Condition / BioReplicate columns. `bigDIANNtoMSstatsFormat`
-#' accepts the data frame directly via its `annotation` argument.
+#' Run / Condition / BioReplicate columns, plus the "Calculate Anomaly
+#' Scores" controls. `bigDIANNtoMSstatsFormat` accepts the annotation
+#' data frame directly via its `annotation` argument.
+#'
+#' Anomaly scoring is a two-step pipeline in the large-file path:
+#'   (1) `bigDIANNtoMSstatsFormat` runs with `calculateAnomalyScores = TRUE`
+#'       and `anomalyModelFeatures = c("Ms1ProfileCorr", "Evidence", "RT",
+#'       "Predicted.RT")`, which carries those columns through the
+#'       out-of-memory reduce/preprocess steps.
+#'   (2) After `dplyr::collect`, `DeltaRT = RT - Predicted.RT` is
+#'       engineered in-memory and `MSstatsConvert::MSstatsAnomalyScores`
+#'       fits the isolation-forest model on
+#'       `c("Ms1ProfileCorr", "Evidence", "DeltaRT")` to produce the
+#'       `AnomalyScores` column.
+#'
+#' A run-order CSV is required (Run + Order columns) — `MSstatsAnomalyScores`
+#' uses it for temporal feature engineering.
 #' @noRd
-create_diann_large_annotation_ui <- function(ns) {
+create_diann_large_annotation_ui <- function(ns, calculate_anomaly_def = FALSE) {
   tagList(
     tags$hr(),
     h5("Annotation file (optional)",
@@ -376,7 +391,25 @@ create_diann_large_annotation_ui <- function(ns) {
        div("Upload a CSV/TSV with columns Run, BioReplicate, Condition (and any extras). When supplied, the converter merges it on Run and overrides any Condition / BioReplicate values from DIANN's embedded annotation. Required for paired designs and other layouts the report itself cannot express.",
            class = "icon-tooltip")),
     fileInput(ns("big_diann_annotation"), label = NULL,
-              multiple = FALSE, accept = c(".csv", ".tsv", ".txt"))
+              multiple = FALSE, accept = c(".csv", ".tsv", ".txt")),
+    checkboxInput(ns("big_diann_calculate_anomaly_scores"),
+                  label = tags$span(
+                    "Calculate Anomaly Scores",
+                    class = "icon-wrapper",
+                    icon("question-circle", lib = "font-awesome"),
+                    div("Carries Ms1ProfileCorr, Evidence, RT, and Predicted.RT through the out-of-memory steps, then engineers DeltaRT = RT - Predicted.RT in-memory after collect and fits MSstatsConvert::MSstatsAnomalyScores on c(Ms1ProfileCorr, Evidence, DeltaRT). Requires a run order CSV.",
+                        class = "icon-tooltip")),
+                  value = calculate_anomaly_def),
+    conditionalPanel(
+      condition = sprintf("input['%s']", ns("big_diann_calculate_anomaly_scores")),
+      fileInput(ns("big_diann_run_order_file"),
+                label = h5("Upload Run Order File",
+                           class = "icon-wrapper",
+                           icon("question-circle", lib = "font-awesome"),
+                           div("CSV with two columns: 'Run' (sequence name matching the converter output) and 'Order' (chronological run number, e.g. 1, 2, 3...).",
+                               class = "icon-tooltip")),
+                multiple = FALSE, accept = c(".csv"))
+    )
   )
 }
 
@@ -770,21 +803,51 @@ create_quality_filtering_options <- function(ns) {
     
     conditionalPanel(
       condition = "input['loadpage-filetype'] == 'spec'",
-      checkboxInput(ns("calculate_anomaly_scores"), 
+      checkboxInput(ns("calculate_anomaly_scores"),
                     label = tags$span(
                       "Calculate Anomaly Scores",
                       class = "icon-wrapper",
                       icon("question-circle", lib = "font-awesome"),
-                      div("Calculate anomaly scores for each feature based on a random forest model. This requires a CSV file containing the order of your MS runs.", 
+                      div("Calculate anomaly scores for each feature based on a random forest model. This requires a CSV file containing the order of your MS runs.",
                           class = "icon-tooltip")
-                    ), 
+                    ),
                     value = FALSE),
       conditionalPanel(
         condition = "input['loadpage-calculate_anomaly_scores']",
-        fileInput(ns("run_order_file"), 
+        fileInput(ns("run_order_file"),
                   label = h5("Upload Run Order File", class = "icon-wrapper",
                              icon("question-circle", lib = "font-awesome"),
                              div("The run order file should be a CSV with two columns: 'Run' and 'Order'. 'Run' contains the sequence name, and 'Order' contains the chronological run number (e.g., 1, 2, 3...).", class = "icon-tooltip")),
+                  multiple = FALSE, accept = c(".csv"))
+      )
+    ),
+
+    # DIANN anomaly scoring (regular path).
+    #
+    # DIANN reports do not ship a DeltaRT column; it's engineered as
+    # RT - Predicted.RT before the converter runs. The user supplies a
+    # run-order CSV (same shape as the Spectronaut path) so
+    # MSstatsConvert::MSstatsAnomalyScores (invoked internally by
+    # DIANNtoMSstatsFormat when calculateAnomalyScores = TRUE) can do
+    # temporal feature engineering on Ms1ProfileCorr, Evidence, and
+    # DeltaRT.
+    conditionalPanel(
+      condition = "input['loadpage-filetype'] == 'diann' && !input['loadpage-big_file_diann']",
+      checkboxInput(ns("diann_calculate_anomaly_scores"),
+                    label = tags$span(
+                      "Calculate Anomaly Scores",
+                      class = "icon-wrapper",
+                      icon("question-circle", lib = "font-awesome"),
+                      div("Engineers DeltaRT = RT - Predicted.RT in the raw DIANN report, then calls MSstatsConvert::MSstatsAnomalyScores via DIANNtoMSstatsFormat with quality_metrics c(Ms1ProfileCorr, Evidence, DeltaRT) and temporal directions c(mean_decrease, mean_decrease, dispersion_increase). Requires a run order CSV.",
+                          class = "icon-tooltip")
+                    ),
+                    value = FALSE),
+      conditionalPanel(
+        condition = "input['loadpage-diann_calculate_anomaly_scores']",
+        fileInput(ns("diann_run_order_file"),
+                  label = h5("Upload Run Order File", class = "icon-wrapper",
+                             icon("question-circle", lib = "font-awesome"),
+                             div("CSV with two columns: 'Run' (sequence name matching the DIANN report's Run column) and 'Order' (chronological run number, e.g. 1, 2, 3...).", class = "icon-tooltip")),
                   multiple = FALSE, accept = c(".csv"))
       )
     ),
