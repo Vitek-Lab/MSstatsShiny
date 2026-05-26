@@ -190,11 +190,6 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       ui_elements
     })
     
-    # Spectronaut intensity column input — universal across both the
-    # regular (in-memory) and large-file paths, regardless of analysis
-    # template. Default tracks the template: turnover analyses want the
-    # MS1-only quantity, normal analyses want the normalized peak area
-    # (which is also `bigSpectronauttoMSstatsFormat`'s default).
     output$spectronaut_intensity_ui <- renderUI({
       req(input$filetype == 'spec', input$BIO != 'PTM')
 

@@ -345,27 +345,6 @@ create_spectronaut_large_bottom_ui <- function(ns, max_feature_def = 20, unique_
 
 #' Create Spectronaut large file annotation override + anomaly UI
 #'
-#' Renders an optional annotation upload that overrides Spectronaut's embedded
-#' R.Condition / R.Replicate columns on Run, plus the "Calculate Anomaly
-#' Scores" controls. End-to-end anomaly scoring is a two-step pipeline in
-#' the large-file path:
-#'   (1) `bigSpectronauttoMSstatsFormat` runs with
-#'       `calculateAnomalyScores = TRUE` + the model feature column list,
-#'       which carries those feature columns through the out-of-memory
-#'       reduce/preprocess steps.
-#'   (2) After `dplyr::collect`, `MSstatsConvert::MSstatsAnomalyScores`
-#'       is called on the in-memory result to fit the isolation-forest
-#'       model and produce the `AnomalyScores` column.
-#' Input IDs `calculate_anomaly_scores` and `run_order_file` are deliberately
-#' the same as the regular Spectronaut path's so downstream pages
-#' (module-qc-server's MSstats+ summarization gate, getDataCode's
-#' reproducibility script, etc.) read a single source of truth regardless
-#' of which path the user took. The two UI checkboxes never coexist —
-#' the regular path's `create_label_free_options` is hidden when
-#' `big_file_spec` is on, and this helper only renders when it is — so
-#' there is no Shiny namespace collision.
-#' A run-order CSV is required (Run + Order columns) — `MSstatsAnomalyScores`
-#' uses it for temporal feature engineering.
 #' @noRd
 create_spectronaut_large_annotation_ui <- function(ns, calculate_anomaly_def = FALSE) {
   tagList(

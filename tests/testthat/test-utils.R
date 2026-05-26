@@ -1508,13 +1508,9 @@ describe("getData for Spectronaut input with anomaly scores", {
 
     stub(getData, "showNotification",
          function(msg, ...) expect_match(msg, "Run Order CSV"))
-    # getData starts with show_modal_spinner() — the validation
-    # must call remove_modal_spinner() before returning NULL so
-    # the spinner doesn't get stuck. Track that it was called.
     spinner_removed <- FALSE
     stub(getData, "remove_modal_spinner",
          function(...) { spinner_removed <<- TRUE; NULL })
-    # The converter should never run; if it does, fail the test.
     stub(getData, "data.table::fread",
          function(...) stop("fread reached despite missing run order"))
     stub(getData, "SpectronauttoMSstatsFormat",
@@ -1615,11 +1611,6 @@ describe("getData for Big Spectronaut", {
     expect_null(res)
   })
 
-  # Capturing converter (returns its args so we can inspect what
-  # got forwarded). Same idea as mock_spectro_converter above; the
-  # big-file caller uses do.call(), but mockery intercepts the
-  # MSstatsBig::bigSpectronauttoMSstatsFormat symbol resolution
-  # rather than the call form, so this still works.
   mock_big_spec_converter <- function(...) list(...)
   dummy_annot_df <- data.frame(
     Run = c("run1", "run2"),
@@ -1640,9 +1631,6 @@ describe("getData for Big Spectronaut", {
     stub(getData, "data.table::fread", dummy_annot_df)
     stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat",
          mock_big_spec_converter)
-    # Hijack dplyr::collect to read back what the (stubbed)
-    # converter received — getData passes its return value into
-    # collect, so the captured value IS the list of args.
     captured_args <- NULL
     stub(getData, "dplyr::collect", function(x) {
       captured_args <<- x
@@ -1673,8 +1661,6 @@ describe("getData for Big Spectronaut", {
       captured_args <<- x
       mock_df
     })
-    # Skip the post-collect scoring call for this test — it's
-    # exercised separately below.
     stub(getData, "data.table::fread",
          data.frame(Run = "run1", Order = 1L))
     stub(getData, "MSstatsConvert::MSstatsAnomalyScores",
@@ -1683,15 +1669,10 @@ describe("getData for Big Spectronaut", {
     getData(input_with_anomaly)
 
     expect_true(isTRUE(captured_args$calculateAnomalyScores))
-    # Raw Spectronaut export names — the converter applies
-    # .standardizeColnames internally on the way out.
     expect_equal(captured_args$anomalyModelFeatures,
                  c("FG.ShapeQualityScore (MS2)",
                    "FG.ShapeQualityScore (MS1)",
                    "EG.DeltaRT"))
-    # The big-file converter itself does NOT take a runOrder arg —
-    # that's consumed by the separate MSstatsAnomalyScores step
-    # post-collect (covered in the next test).
     expect_null(captured_args$runOrder)
   })
 
@@ -1726,9 +1707,6 @@ describe("getData for Big Spectronaut", {
 
     expect_false(is.null(captured_scoring_args))
     expect_equal(captured_scoring_args$input, mock_df)
-    # Standardized column names — the in-memory data after collect
-    # has had .standardizeColnames applied during the converter
-    # step, so MSstatsAnomalyScores must look for these names.
     expect_equal(captured_scoring_args$quality_metrics,
                  c("FGShapeQualityScore(MS2)",
                    "FGShapeQualityScore(MS1)",
@@ -1754,7 +1732,6 @@ describe("getData for Big Spectronaut", {
     stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
     stub(getData, "showNotification",
          function(msg, ...) expect_match(msg, "Run Order CSV"))
-    # The converter should never run; if it does, fail the test.
     stub(getData, "shinybusy::update_modal_spinner",
          function(...) stop("converter step reached despite missing run order"))
 

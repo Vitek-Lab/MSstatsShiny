@@ -651,10 +651,6 @@ getData <- function(input) {
 
         shinybusy::update_modal_spinner(text = "Processing large Spectronaut file...")
 
-        # Base arguments shared by every large-file Spectronaut run.
-        # Optional args (annotation override, anomaly-feature
-        # carry-through) are spliced in below so callers that don't
-        # supply them aren't forced to pass NULL / FALSE explicitly.
         big_spec_args <- list(
           input_file = local_big_file_path,
           output_file_name = "output_file.csv",
