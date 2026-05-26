@@ -1710,7 +1710,7 @@ describe("getData for Big Spectronaut", {
     expect_equal(captured_scoring_args$cores, 1)
   })
 
-  test_that("does NOT call MSstatsAnomalyScores when calculate_anomaly_scores is TRUE but run_order_file is missing", {
+  test_that("fails fast when calculate_anomaly_scores is TRUE but run_order_file is missing", {
     input_no_runorder <- mock_input_big
     input_no_runorder$calculate_anomaly_scores <- TRUE
     input_no_runorder$run_order_file <- NULL
@@ -1718,23 +1718,15 @@ describe("getData for Big Spectronaut", {
     stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
     stub(getData, "shinyFiles::parseFilePaths", function(...) data.frame(datapath = "test.csv"))
     stub(getData, "file.exists", TRUE)
-    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
     stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
-    stub(getData, "showNotification", function(...) NULL)
-    stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat",
-         mock_arrow_obj)
-    stub(getData, "dplyr::collect", mock_df)
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "Run Order CSV"))
+    # The converter should never run; if it does, fail the test.
+    stub(getData, "shinybusy::update_modal_spinner",
+         function(...) stop("converter step reached despite missing run order"))
 
-    scoring_called <- FALSE
-    stub(getData, "MSstatsConvert::MSstatsAnomalyScores",
-         function(...) {
-           scoring_called <<- TRUE
-           mock_df
-         })
-
-    getData(input_no_runorder)
-
-    expect_false(scoring_called)
+    res <- getData(input_no_runorder)
+    expect_null(res)
   })
 
   test_that("passes intensity to converter when spec_intensity_col is set", {

@@ -639,7 +639,16 @@ getData <- function(input) {
           shinybusy::remove_modal_spinner()
           return(NULL)
         }
-        
+
+        if (isTRUE(input$calculate_anomaly_scores) && is.null(input$run_order_file)) {
+          showNotification(
+            "Error: Run Order CSV is required when Calculate Anomaly Scores is enabled. Please upload a CSV with Run and Order columns.",
+            type = "error",
+            duration = NULL)
+          shinybusy::remove_modal_spinner()
+          return(NULL)
+        }
+
         shinybusy::update_modal_spinner(text = "Processing large Spectronaut file...")
 
         # Base arguments shared by every large-file Spectronaut run.
