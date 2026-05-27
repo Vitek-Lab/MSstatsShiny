@@ -536,7 +536,7 @@ create_ptm_fragpipe_uploads <- function(ns) {
     textInput(ns("mod_id_col"), 
               h5("Please enter the name of the modification id column", class = "icon-wrapper", 
                  icon("question-circle", lib = "font-awesome"),
-                 div("Only part of the string is required. For example if your mod id column is named 'STY:1221.12' you only need to enter 'STY' here.", class = "icon-tooltip")),
+                 div("Only part of the string is required. For example if your mod id column is named 'STY.1221.12' you only need to enter 'STY' here.", class = "icon-tooltip")),
               value = "STY"),
     
     textInput(ns("localization_cutoff"), 
