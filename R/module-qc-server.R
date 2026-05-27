@@ -154,7 +154,7 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     choices <- c("Quality Control Plots" = "QCPlot",
                  "Profile Plots"         = "ProfilePlot")
 
-    if (isTRUE(loadpage_input()$calculate_anomaly_scores)) {
+    if (.anomaly_scores_enabled(loadpage_input())) {
       choices <- c(choices, "Quality Metrics Plots" = "QualityMetricsPlot")
     }
 
@@ -209,7 +209,8 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     selected <- "TMP"
     
     # Conditionally add MSstats+ if anomaly score calculation is checked
-    if (isTRUE(loadpage_input()$calculate_anomaly_scores)) {
+    # (Spectronaut, regular DIANN, or big-file DIANN).
+    if (.anomaly_scores_enabled(loadpage_input())) {
       choices <- c(choices, "MSstats+" = "linear")
       tooltip_text <- paste0(tooltip_text, "MSstats+ uses a weighted linear model.")
       selected = "linear"

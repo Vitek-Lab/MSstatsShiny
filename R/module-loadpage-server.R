@@ -22,31 +22,48 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
     # Define volumes for the file selection.
     if (!is_web_server) {
       volumes <- shinyFiles::getVolumes()()
-      
-      # Server-side logic for the shinyFiles button
+
+      # Server-side logic for the shinyFiles buttons (Spectronaut + DIANN)
       shinyFiles::shinyFileChoose(input, "big_file_browse", roots = volumes, session = session)
-      
+      shinyFiles::shinyFileChoose(input, "big_diann_browse", roots = volumes, session = session)
+
       # Reactive to parse and store the full file information (path, name, etc.)
       # This is efficient because parseFilePaths is only called once.
       local_file_info <- reactive({
         req(is.list(input$big_file_browse))
         shinyFiles::parseFilePaths(volumes, input$big_file_browse)
       })
-      
+
+      local_diann_file_info <- reactive({
+        req(is.list(input$big_diann_browse))
+        shinyFiles::parseFilePaths(volumes, input$big_diann_browse)
+      })
+
       # Reactive to get just the full datapath, for use in backend processing.
       local_big_file_path <- reactive({
         path_info <- local_file_info()
         if (nrow(path_info) > 0) path_info$datapath else NULL
       })
-      
+
+      local_big_diann_path <- reactive({
+        path_info <- local_diann_file_info()
+        if (nrow(path_info) > 0) path_info$datapath else NULL
+      })
+
       # Render just the filename for user feedback in the UI.
       output$specdata_big_path <- renderPrint({
         req(nrow(local_file_info()) > 0)
         cat(local_file_info()$name)
       })
-    } 
+
+      output$dianndata_big_path <- renderPrint({
+        req(nrow(local_diann_file_info()) > 0)
+        cat(local_diann_file_info()$name)
+      })
+    }
     else {
       local_big_file_path <- reactive({ NULL })
+      local_big_diann_path <- reactive({ NULL })
     }
 
     # ============ PREVIEW DATA: Read first 100 rows on file upload ============
@@ -190,11 +207,6 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       ui_elements
     })
     
-    # Spectronaut intensity column input — universal across both the
-    # regular (in-memory) and large-file paths, regardless of analysis
-    # template. Default tracks the template: turnover analyses want the
-    # MS1-only quantity, normal analyses want the normalized peak area
-    # (which is also `bigSpectronauttoMSstatsFormat`'s default).
     output$spectronaut_intensity_ui <- renderUI({
       req(input$filetype == 'spec', input$BIO != 'PTM')
 
@@ -243,9 +255,69 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
                 value = "K")
     })
 
+    output$diann_header_ui <- renderUI({
+      req(input$filetype == 'diann', input$BIO != 'PTM')
+      create_diann_header()
+    })
+
+    output$diann_file_selection_ui <- renderUI({
+      req(input$filetype == 'diann', input$BIO != 'PTM')
+
+      ui_elements <- tagList()
+
+      if (!is_web_server) {
+        ui_elements <- tagList(ui_elements, create_diann_mode_selector(session$ns, isTRUE(input$big_file_diann)))
+
+        if (isTRUE(input$big_file_diann)) {
+          ui_elements <- tagList(ui_elements, create_diann_large_file_ui(session$ns))
+        } else {
+          ui_elements <- tagList(ui_elements, create_diann_standard_ui(session$ns))
+        }
+      } else {
+        ui_elements <- tagList(ui_elements, create_diann_standard_ui(session$ns))
+      }
+
+      ui_elements
+    })
+
+    output$diann_options_ui <- renderUI({
+      req(input$filetype == 'diann', input$BIO != 'PTM')
+
+      if (!is_web_server && isTRUE(input$big_file_diann)) {
+        mbr_def <- if (is.null(input$big_diann_MBR)) TRUE else input$big_diann_MBR
+        quantcol_def <- if (is.null(input$big_diann_quantification_column) ||
+                            !nzchar(input$big_diann_quantification_column)) {
+          "FragmentQuantCorrected"
+        } else {
+          input$big_diann_quantification_column
+        }
+        global_qv_def <- if (is.null(input$big_diann_global_qvalue_cutoff)) 0.01 else input$big_diann_global_qvalue_cutoff
+        qv_def <- if (is.null(input$big_diann_qvalue_cutoff)) 0.01 else input$big_diann_qvalue_cutoff
+        pg_qv_def <- if (is.null(input$big_diann_pg_qvalue_cutoff)) 0.01 else input$big_diann_pg_qvalue_cutoff
+
+        max_feature_def <- if (is.null(input$big_diann_max_feature_count)) 100 else input$big_diann_max_feature_count
+        unique_peps_def <- if (is.null(input$big_diann_filter_unique_peptides)) FALSE else input$big_diann_filter_unique_peptides
+        agg_psms_def <- if (is.null(input$big_diann_aggregate_psms)) FALSE else input$big_diann_aggregate_psms
+        few_obs_def <- if (is.null(input$big_diann_filter_few_obs)) FALSE else input$big_diann_filter_few_obs
+        backend_def <- if (is.null(input$big_diann_backend) || !nzchar(input$big_diann_backend)) "arrow" else input$big_diann_backend
+        calculate_anomaly_def <- if (is.null(input$big_diann_calculate_anomaly_scores)) FALSE else input$big_diann_calculate_anomaly_scores
+
+        tagList(
+          create_diann_large_filter_options(session$ns, mbr_def, quantcol_def,
+                                            global_qv_def, qv_def, pg_qv_def),
+          create_diann_large_bottom_ui(session$ns, max_feature_def,
+                                       unique_peps_def, agg_psms_def, few_obs_def,
+                                       backend_def),
+          create_diann_large_annotation_ui(session$ns, calculate_anomaly_def)
+        )
+      } else {
+        NULL
+      }
+    })
+
     output$spectronaut_options_ui <- renderUI({
       req(input$filetype == 'spec', input$BIO != 'PTM')
-      
+
       if (!is_web_server && isTRUE(input$big_file_spec)) {
         qval_def <- if (is.null(input$filter_by_qvalue)) TRUE else input$filter_by_qvalue
         excluded_def <- if (is.null(input$filter_by_excluded)) FALSE else input$filter_by_excluded
@@ -368,7 +440,9 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
                 enable("proceed1")
               }
             } else if (input$filetype == "diann") {
-              if(!is.null(input$dianndata)) {
+              diann_regular_file_ok <- !isTRUE(input$big_file_diann) && !is.null(input$dianndata)
+              diann_big_file_ok <- isTRUE(input$big_file_diann) && length(local_big_diann_path()) > 0
+              if(diann_regular_file_ok || diann_big_file_ok) {
                 enable("proceed1")
               }
             }

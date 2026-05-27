@@ -1,6 +1,29 @@
 library(testthat)
 library(mockery)
 
+test_that(".anomaly_scores_enabled ORs all three loadpage checkboxes", {
+  # Spectronaut
+  expect_true(MSstatsShiny:::.anomaly_scores_enabled(
+    list(calculate_anomaly_scores = TRUE)))
+  # Regular DIANN
+  expect_true(MSstatsShiny:::.anomaly_scores_enabled(
+    list(diann_calculate_anomaly_scores = TRUE)))
+  # Big-file DIANN
+  expect_true(MSstatsShiny:::.anomaly_scores_enabled(
+    list(big_diann_calculate_anomaly_scores = TRUE)))
+  # None
+  expect_false(MSstatsShiny:::.anomaly_scores_enabled(list()))
+  expect_false(MSstatsShiny:::.anomaly_scores_enabled(
+    list(calculate_anomaly_scores = FALSE,
+         diann_calculate_anomaly_scores = FALSE,
+         big_diann_calculate_anomaly_scores = FALSE)))
+  # NULL-safety
+  expect_false(MSstatsShiny:::.anomaly_scores_enabled(
+    list(calculate_anomaly_scores = NULL,
+         diann_calculate_anomaly_scores = NULL)))
+})
+
+
 test_file_tsv <- tempfile(fileext = ".tsv")
 writeLines("a\tb\tcd", test_file_tsv)
 
@@ -1508,13 +1531,9 @@ describe("getData for Spectronaut input with anomaly scores", {
 
     stub(getData, "showNotification",
          function(msg, ...) expect_match(msg, "Run Order CSV"))
-    # getData starts with show_modal_spinner() — the validation
-    # must call remove_modal_spinner() before returning NULL so
-    # the spinner doesn't get stuck. Track that it was called.
     spinner_removed <- FALSE
     stub(getData, "remove_modal_spinner",
          function(...) { spinner_removed <<- TRUE; NULL })
-    # The converter should never run; if it does, fail the test.
     stub(getData, "data.table::fread",
          function(...) stop("fread reached despite missing run order"))
     stub(getData, "SpectronauttoMSstatsFormat",
@@ -1615,11 +1634,6 @@ describe("getData for Big Spectronaut", {
     expect_null(res)
   })
 
-  # Capturing converter (returns its args so we can inspect what
-  # got forwarded). Same idea as mock_spectro_converter above; the
-  # big-file caller uses do.call(), but mockery intercepts the
-  # MSstatsBig::bigSpectronauttoMSstatsFormat symbol resolution
-  # rather than the call form, so this still works.
   mock_big_spec_converter <- function(...) list(...)
   dummy_annot_df <- data.frame(
     Run = c("run1", "run2"),
@@ -1640,9 +1654,6 @@ describe("getData for Big Spectronaut", {
     stub(getData, "data.table::fread", dummy_annot_df)
     stub(getData, "MSstatsBig::bigSpectronauttoMSstatsFormat",
          mock_big_spec_converter)
-    # Hijack dplyr::collect to read back what the (stubbed)
-    # converter received — getData passes its return value into
-    # collect, so the captured value IS the list of args.
     captured_args <- NULL
     stub(getData, "dplyr::collect", function(x) {
       captured_args <<- x
@@ -1673,8 +1684,6 @@ describe("getData for Big Spectronaut", {
       captured_args <<- x
       mock_df
     })
-    # Skip the post-collect scoring call for this test — it's
-    # exercised separately below.
     stub(getData, "data.table::fread",
          data.frame(Run = "run1", Order = 1L))
     stub(getData, "MSstatsConvert::MSstatsAnomalyScores",
@@ -1683,15 +1692,10 @@ describe("getData for Big Spectronaut", {
     getData(input_with_anomaly)
 
     expect_true(isTRUE(captured_args$calculateAnomalyScores))
-    # Raw Spectronaut export names — the converter applies
-    # .standardizeColnames internally on the way out.
     expect_equal(captured_args$anomalyModelFeatures,
                  c("FG.ShapeQualityScore (MS2)",
                    "FG.ShapeQualityScore (MS1)",
                    "EG.DeltaRT"))
-    # The big-file converter itself does NOT take a runOrder arg —
-    # that's consumed by the separate MSstatsAnomalyScores step
-    # post-collect (covered in the next test).
     expect_null(captured_args$runOrder)
   })
 
@@ -1726,9 +1730,6 @@ describe("getData for Big Spectronaut", {
 
     expect_false(is.null(captured_scoring_args))
     expect_equal(captured_scoring_args$input, mock_df)
-    # Standardized column names — the in-memory data after collect
-    # has had .standardizeColnames applied during the converter
-    # step, so MSstatsAnomalyScores must look for these names.
     expect_equal(captured_scoring_args$quality_metrics,
                  c("FGShapeQualityScore(MS2)",
                    "FGShapeQualityScore(MS1)",
@@ -1754,7 +1755,6 @@ describe("getData for Big Spectronaut", {
     stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
     stub(getData, "showNotification",
          function(msg, ...) expect_match(msg, "Run Order CSV"))
-    # The converter should never run; if it does, fail the test.
     stub(getData, "shinybusy::update_modal_spinner",
          function(...) stop("converter step reached despite missing run order"))
 
@@ -1865,6 +1865,329 @@ test_that("extract_mod_ids_from_preview handles consecutive modifications", {
   result <- MSstatsShiny:::.extract_mod_ids_from_preview(preview)
   expect_equal(length(result), 3)
   expect_true(all(c("[Mod1]", "[Mod2]", "[Mod3]") %in% result))
+})
+
+describe("getData for Big DIANN", {
+
+  mock_input_big_diann <- list(
+    filetype = "diann",
+    big_file_diann = TRUE,
+    big_diann_browse = list(files = list("file.parquet")),
+    big_diann_MBR = TRUE,
+    big_diann_quantification_column = "FragmentQuantCorrected",
+    big_diann_global_qvalue_cutoff = 0.01,
+    big_diann_qvalue_cutoff = 0.01,
+    big_diann_pg_qvalue_cutoff = 0.01,
+    big_diann_max_feature_count = 100,
+    big_diann_filter_unique_peptides = FALSE,
+    big_diann_aggregate_psms = FALSE,
+    big_diann_filter_few_obs = FALSE,
+    big_diann_backend = "arrow",
+    BIO = "Protein",
+    DDA_DIA = "DIA"
+  )
+
+  mock_arrow_obj <- list(dummy = "arrow")
+  mock_df <- data.frame(ProteinName = "P1", Intensity = 100)
+
+  test_that("Valid input routes to bigDIANNtoMSstatsFormat and returns data", {
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat", mock_arrow_obj)
+    stub(getData, "dplyr::collect", mock_df)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+
+    res <- getData(mock_input_big_diann)
+    expect_equal(res, mock_df)
+  })
+
+  test_that("Invalid qvalue_cutoff returns NULL", {
+    bad_input <- mock_input_big_diann
+    bad_input$big_diann_qvalue_cutoff <- 1.5
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "big_diann_qvalue_cutoff"))
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+
+    res <- getData(bad_input)
+    expect_null(res)
+  })
+
+  test_that("Invalid max_feature_count returns NULL", {
+    bad_input <- mock_input_big_diann
+    bad_input$big_diann_max_feature_count <- 0
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "max_feature_count"))
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+
+    res <- getData(bad_input)
+    expect_null(res)
+  })
+
+  test_that("File not found returns NULL", {
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "nonexistent.parquet"))
+    stub(getData, "file.exists", FALSE)
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "does not exist"))
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+
+    res <- getData(mock_input_big_diann)
+    expect_null(res)
+  })
+
+  test_that("passes annotation to converter when big_diann_annotation is supplied", {
+    input_with_annot <- mock_input_big_diann
+    input_with_annot$big_diann_annotation <- list(datapath = "annot.csv")
+
+    dummy_annot_df <- data.frame(
+      Run = c("run1", "run2"),
+      BioReplicate = c(7L, 8L),
+      Condition = c("ctrl", "treat"),
+      stringsAsFactors = FALSE)
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "data.table::fread", dummy_annot_df)
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat",
+         function(...) list(...))
+    captured_args <- NULL
+    stub(getData, "dplyr::collect", function(x) {
+      captured_args <<- x
+      mock_df
+    })
+
+    getData(input_with_annot)
+
+    expect_true(!is.null(captured_args$annotation))
+    expect_equal(captured_args$annotation, dummy_annot_df)
+  })
+
+  test_that("passes calculateAnomalyScores + anomalyModelFeatures to converter when big_diann_calculate_anomaly_scores = TRUE", {
+    input_with_anomaly <- mock_input_big_diann
+    input_with_anomaly$big_diann_calculate_anomaly_scores <- TRUE
+    input_with_anomaly$big_diann_run_order_file <- list(datapath = "run_order.csv")
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat",
+         function(...) list(...))
+    captured_args <- NULL
+    captured_anomaly_input <- NULL
+    stub(getData, "dplyr::collect", function(x) {
+      captured_args <<- x
+      # MSstatsImport's column standardization (called inside
+      # bigDIANNtoMSstatsFormat) strips dots, so the carried-through
+      # Predicted.RT lands here as PredictedRT.
+      data.frame(ProteinName = "P1", Intensity = 100,
+                 RT = 10.0, PredictedRT = 9.5,
+                 Ms1ProfileCorr = 0.9, Evidence = 1.0,
+                 stringsAsFactors = FALSE)
+    })
+    stub(getData, "data.table::fread",
+         data.frame(Run = "run1", Order = 1L))
+    stub(getData, "MSstatsConvert::MSstatsAnomalyScores",
+         function(input, ...) {
+           captured_anomaly_input <<- input
+           input
+         })
+
+    getData(input_with_anomaly)
+
+    expect_true(isTRUE(captured_args$calculateAnomalyScores))
+    expect_equal(captured_args$anomalyModelFeatures,
+                 c("Ms1ProfileCorr", "Evidence", "RT", "PredictedRT"))
+    # DeltaRT is engineered in-memory after collect, using the
+    # standardized PredictedRT column name.
+    expect_true("DeltaRT" %in% colnames(captured_anomaly_input))
+    expect_equal(captured_anomaly_input$DeltaRT,
+                 captured_anomaly_input$RT - captured_anomaly_input$PredictedRT)
+  })
+
+  test_that("fails fast when big_diann_calculate_anomaly_scores is TRUE but run_order_file is missing", {
+    input_missing_runorder <- mock_input_big_diann
+    input_missing_runorder$big_diann_calculate_anomaly_scores <- TRUE
+    input_missing_runorder$big_diann_run_order_file <- NULL
+
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "Run Order CSV"))
+    spinner_removed <- FALSE
+    stub(getData, "shinybusy::remove_modal_spinner",
+         function(...) { spinner_removed <<- TRUE; NULL })
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat",
+         function(...) stop("converter reached despite missing run order"))
+
+    res <- getData(input_missing_runorder)
+    expect_null(res)
+    expect_true(spinner_removed)
+  })
+
+  test_that("passes converter knobs through to bigDIANNtoMSstatsFormat", {
+    stub(getData, "shinyFiles::getVolumes", function() function() c(root = "/"))
+    stub(getData, "shinyFiles::parseFilePaths",
+         function(...) data.frame(datapath = "test.parquet"))
+    stub(getData, "file.exists", TRUE)
+    stub(getData, "shinybusy::update_modal_spinner", function(...) NULL)
+    stub(getData, "shinybusy::remove_modal_spinner", function(...) NULL)
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "MSstatsBig::bigDIANNtoMSstatsFormat",
+         function(...) list(...))
+    captured_args <- NULL
+    stub(getData, "dplyr::collect", function(x) {
+      captured_args <<- x
+      mock_df
+    })
+
+    getData(mock_input_big_diann)
+
+    expect_equal(captured_args$backend, "arrow")
+    expect_true(isTRUE(captured_args$MBR))
+    expect_equal(captured_args$quantificationColumn, "FragmentQuantCorrected")
+    expect_equal(captured_args$global_qvalue_cutoff, 0.01)
+    expect_equal(captured_args$qvalue_cutoff, 0.01)
+    expect_equal(captured_args$pg_qvalue_cutoff, 0.01)
+    expect_equal(captured_args$max_feature_count, 100)
+  })
+})
+
+describe("getData for regular DIANN with anomaly scoring", {
+
+  mock_diann_raw <- data.frame(
+    ProteinNames = "P1",
+    StrippedSequence = "PEPTIDE",
+    ModifiedSequence = "PEPTIDE",
+    PrecursorCharge = 2,
+    FragmentQuantCorrected = 100,
+    QValue = 0.001,
+    GlobalQValue = 0.001,
+    GlobalPGQValue = 0.001,
+    LibQValue = 0.001,
+    LibPGQValue = 0.001,
+    Run = "run1",
+    RT = 10.0,
+    Predicted.RT = 9.5,
+    Ms1ProfileCorr = 0.9,
+    Evidence = 1.0,
+    stringsAsFactors = FALSE,
+    check.names = FALSE
+  )
+
+  mock_input_diann_anomaly <- list(
+    filetype = "diann",
+    BIO = "Protein",
+    DDA_DIA = "LType",
+    big_file_diann = FALSE,
+    dianndata = list(name = "report.tsv", datapath = "report.tsv"),
+    q_val = TRUE,
+    q_cutoff = 0.01,
+    MBR = FALSE,
+    diann_2plus = FALSE,
+    intensity_column = "FragmentQuantCorrected",
+    diann_calculate_anomaly_scores = TRUE,
+    diann_run_order_file = list(datapath = "run_order.csv")
+  )
+
+  test_that("fails fast when diann_calculate_anomaly_scores is TRUE but run_order_file is missing", {
+    bad_input <- mock_input_diann_anomaly
+    bad_input$diann_run_order_file <- NULL
+
+    stub(getData, "showNotification",
+         function(msg, ...) expect_match(msg, "Run Order CSV"))
+    stub(getData, "remove_modal_spinner", function(...) NULL)
+    stub(getData, "DIANNtoMSstatsFormat",
+         function(...) stop("converter reached despite missing run order"))
+
+    res <- getData(bad_input)
+    expect_null(res)
+  })
+
+  test_that("engineers DeltaRT and passes anomaly args to DIANNtoMSstatsFormat", {
+    captured_args <- NULL
+    stub(getData, "data.table::fread", function(...) {
+      args <- list(...)
+      # First fread is for the DIANN data, second is for the run-order file.
+      if (grepl("run_order", args[[1]] %||% "", fixed = TRUE)) {
+        data.frame(Run = "run1", Order = 1L)
+      } else {
+        data.table::as.data.table(mock_diann_raw)
+      }
+    })
+    stub(getData, "getFileExtension", "tsv")
+    stub(getData, "getAnnot",
+         data.frame(Run = "run1", BioReplicate = 1L, Condition = "ctrl",
+                    stringsAsFactors = FALSE))
+    stub(getData, "DIANNtoMSstatsFormat", function(...) {
+      captured_args <<- list(...)
+      data.frame(ProteinName = "P1", Intensity = 100)
+    })
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "remove_modal_spinner", function(...) NULL)
+    stub(getData, "show_modal_spinner", function(...) NULL)
+
+    res <- getData(mock_input_diann_anomaly)
+
+    expect_true(!is.null(res))
+    expect_true(isTRUE(captured_args$calculateAnomalyScores))
+    expect_equal(captured_args$anomalyModelFeatures,
+                 c("Ms1ProfileCorr", "Evidence", "DeltaRT"))
+    expect_equal(captured_args$anomalyModelFeatureTemporal,
+                 c("mean_decrease", "mean_decrease", "dispersion_increase"))
+    expect_true("DeltaRT" %in% colnames(captured_args$input))
+    expect_equal(captured_args$input$DeltaRT,
+                 captured_args$input$RT - captured_args$input$Predicted.RT)
+  })
+
+  test_that("regular DIANN path without anomaly checkbox does NOT add anomaly args", {
+    plain_input <- mock_input_diann_anomaly
+    plain_input$diann_calculate_anomaly_scores <- FALSE
+    plain_input$diann_run_order_file <- NULL
+
+    captured_args <- NULL
+    stub(getData, "data.table::fread", data.table::as.data.table(mock_diann_raw))
+    stub(getData, "getFileExtension", "tsv")
+    stub(getData, "getAnnot",
+         data.frame(Run = "run1", BioReplicate = 1L, Condition = "ctrl",
+                    stringsAsFactors = FALSE))
+    stub(getData, "DIANNtoMSstatsFormat", function(...) {
+      captured_args <<- list(...)
+      data.frame(ProteinName = "P1", Intensity = 100)
+    })
+    stub(getData, "showNotification", function(...) NULL)
+    stub(getData, "remove_modal_spinner", function(...) NULL)
+
+    getData(plain_input)
+
+    expect_null(captured_args$calculateAnomalyScores)
+    expect_null(captured_args$anomalyModelFeatures)
+    expect_null(captured_args$runOrder)
+    expect_false("DeltaRT" %in% colnames(captured_args$input))
+  })
 })
 
 # ============================================================================

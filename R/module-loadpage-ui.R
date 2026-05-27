@@ -76,7 +76,7 @@ create_header_content <- function() {
       a("documentation", 
         href="https://www.bioconductor.org/packages/release/bioc/vignettes/MSstatsPTM/inst/doc/MSstatsPTM_LabelFree_Workflow.html",
         target="_blank")),
-    p("Note: files must be in CSV/TSV format, or Parquet (.parquet/.pq) for DIANN 2.0+ inputs, and under 250 MB when using msstatsshiny.com (no limit when running locally)."),
+    p("Note: files must be in CSV/TSV format, or Parquet (.parquet/.pq) for DIANN 2.0+ inputs, and under 250 MB when using msstatsshiny.com. When running the app locally, Spectronaut and DIANN reports above this limit can be processed via 'Large file mode' (out-of-memory streaming through MSstatsBig)."),
     p("Some users may have trouble uploading files while using the application via Google Chrome. If the 'Browse...' button does not work please try a different web browser.")
   )
 }
@@ -223,7 +223,7 @@ create_standard_uploads <- function(ns) {
 #' @noRd
 create_standard_annotation_uploads <- function(ns) {
   conditionalPanel(
-    condition = "(input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || (input['loadpage-filetype'] == 'spec' && !input['loadpage-big_file_spec']) || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' || input['loadpage-filetype'] == 'diann' || input['loadpage-filetype'] == 'meta') && input['loadpage-BIO'] != 'PTM'",
+    condition = "(input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'prog' || input['loadpage-filetype'] == 'PD' || (input['loadpage-filetype'] == 'spec' && !input['loadpage-big_file_spec']) || input['loadpage-filetype'] == 'open'|| input['loadpage-filetype'] =='spmin' || input['loadpage-filetype'] == 'phil' || (input['loadpage-filetype'] == 'diann' && !input['loadpage-big_file_diann']) || input['loadpage-filetype'] == 'meta') && input['loadpage-BIO'] != 'PTM'",
     h4("5. Upload annotation File", class = "icon-wrapper", 
        icon("question-circle", lib = "font-awesome"),
        div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.", class = "icon-tooltip")),
@@ -266,12 +266,150 @@ create_skyline_uploads <- function(ns) {
 }
 
 #' Create DIANN file uploads
+#'
+#' Mirrors the Spectronaut layout (`create_spectronaut_uploads`): a stack
+#' of `uiOutput()` slots that the server renders conditionally based on
+#' `input$filetype == 'diann'` and the `big_file_diann` mode toggle.
 #' @noRd
 create_diann_uploads <- function(ns) {
-  conditionalPanel(
-    condition = "input['loadpage-filetype'] == 'diann' && input['loadpage-BIO'] != 'PTM'",
-    h4("4. Upload MSstats report from DIANN"),
-    fileInput(ns('dianndata'), "", multiple = FALSE, accept = NULL)
+  tagList(
+    uiOutput(ns("diann_header_ui")),
+    uiOutput(ns("diann_file_selection_ui")),
+    uiOutput(ns("diann_options_ui"))
+  )
+}
+
+#' Create DIANN header
+#' @noRd
+create_diann_header <- function() {
+  h4("4. Upload MSstats report from DIANN")
+}
+
+#' Create DIANN mode selector (Local only)
+#' @noRd
+create_diann_mode_selector <- function(ns, selected = FALSE) {
+  checkboxInput(ns("big_file_diann"), "Large file mode", value = selected)
+}
+
+#' Create DIANN standard file input
+#' @noRd
+create_diann_standard_ui <- function(ns) {
+  fileInput(ns('dianndata'), "", multiple = FALSE, accept = NULL)
+}
+
+#' Create DIANN large file selection UI
+#' @noRd
+create_diann_large_file_ui <- function(ns) {
+  tagList(
+    shinyFiles::shinyFilesButton(ns("big_diann_browse"), "Browse for local file...", "Please select a file", multiple = FALSE),
+    verbatimTextOutput(ns("dianndata_big_path"))
+  )
+}
+
+#' Create DIANN large file filter / cutoff options
+#'
+#' Exposes `bigDIANNtoMSstatsFormat`'s converter knobs: MBR, three q-value
+#' cutoffs (global / precursor / protein-group), and the quantification
+#' column (reuses the same default the regular DIANN 1.x path's
+#' `intensity_column` defaults to).
+#' @noRd
+create_diann_large_filter_options <- function(ns,
+                                              mbr_def = TRUE,
+                                              quantcol_def = "FragmentQuantCorrected",
+                                              global_qv_def = 0.01,
+                                              qv_def = 0.01,
+                                              pg_qv_def = 0.01) {
+  tagList(
+    tags$hr(),
+    h4("Options for large file processing"),
+    checkboxInput(ns("big_diann_MBR"), "MBR Enabled", value = mbr_def),
+    textInput(ns("big_diann_quantification_column"),
+              h5("Quantification column", class = "icon-wrapper",
+                 icon("question-circle", lib = "font-awesome"),
+                 div("Column in the DIANN report to use as the intensity measure. Use 'auto' for DIANN 2.0+ (per-fragment columns); otherwise the legacy column name (default: FragmentQuantCorrected).",
+                     class = "icon-tooltip")),
+              value = quantcol_def),
+    numericInput(ns("big_diann_global_qvalue_cutoff"),
+                 "Global Q-value cutoff", value = global_qv_def, min = 0, max = 1, step = 0.01),
+    numericInput(ns("big_diann_qvalue_cutoff"),
+                 "Q-value cutoff", value = qv_def, min = 0, max = 1, step = 0.01),
+    numericInput(ns("big_diann_pg_qvalue_cutoff"),
+                 "Protein group Q-value cutoff", value = pg_qv_def, min = 0, max = 1, step = 0.01)
+  )
+}
+
+#' Create DIANN large file options (feature processing)
+#' @noRd
+create_diann_large_bottom_ui <- function(ns,
+                                         max_feature_def = 100,
+                                         unique_peps_def = FALSE,
+                                         agg_psms_def = FALSE,
+                                         few_obs_def = FALSE,
+                                         backend_def = "arrow") {
+  tagList(
+    numericInput(ns("big_diann_max_feature_count"), "Max feature count",
+                 value = max_feature_def, min = 1),
+    checkboxInput(ns("big_diann_filter_unique_peptides"), "Use unique peptides",
+                  value = unique_peps_def),
+    checkboxInput(ns("big_diann_aggregate_psms"), "Aggregate PSMs to peptides",
+                  value = agg_psms_def),
+    checkboxInput(ns("big_diann_filter_few_obs"), "Filter features with few observations",
+                  value = few_obs_def),
+    selectInput(ns("big_diann_backend"), "Backend",
+                choices = c("arrow", "sparklyr"),
+                selected = backend_def)
+  )
+}
+
+#' Create DIANN large file annotation override + anomaly UI
+#'
+#' Renders an optional annotation upload that overrides DIANN's embedded
+#' Run / Condition / BioReplicate columns, plus the "Calculate Anomaly
+#' Scores" controls. `bigDIANNtoMSstatsFormat` accepts the annotation
+#' data frame directly via its `annotation` argument.
+#'
+#' Anomaly scoring is a two-step pipeline in the large-file path:
+#'   (1) `bigDIANNtoMSstatsFormat` runs with `calculateAnomalyScores = TRUE`
+#'       and `anomalyModelFeatures = c("Ms1ProfileCorr", "Evidence", "RT",
+#'       "Predicted.RT")`, which carries those columns through the
+#'       out-of-memory reduce/preprocess steps.
+#'   (2) After `dplyr::collect`, `DeltaRT = RT - Predicted.RT` is
+#'       engineered in-memory and `MSstatsConvert::MSstatsAnomalyScores`
+#'       fits the isolation-forest model on
+#'       `c("Ms1ProfileCorr", "Evidence", "DeltaRT")` to produce the
+#'       `AnomalyScores` column.
+#'
+#' A run-order CSV is required (Run + Order columns) — `MSstatsAnomalyScores`
+#' uses it for temporal feature engineering.
+#' @noRd
+create_diann_large_annotation_ui <- function(ns, calculate_anomaly_def = FALSE) {
+  tagList(
+    tags$hr(),
+    h5("Annotation file (optional)",
+       class = "icon-wrapper",
+       icon("question-circle", lib = "font-awesome"),
+       div("Upload a CSV/TSV with columns Run, BioReplicate, Condition (and any extras). When supplied, the converter merges it on Run and overrides any Condition / BioReplicate values from DIANN's embedded annotation. Required for paired designs and other layouts the report itself cannot express.",
+           class = "icon-tooltip")),
+    fileInput(ns("big_diann_annotation"), label = NULL,
+              multiple = FALSE, accept = c(".csv", ".tsv", ".txt")),
+    checkboxInput(ns("big_diann_calculate_anomaly_scores"),
+                  label = tags$span(
+                    "Calculate Anomaly Scores",
+                    class = "icon-wrapper",
+                    icon("question-circle", lib = "font-awesome"),
+                    div("Carries Ms1ProfileCorr, Evidence, RT, and Predicted.RT through the out-of-memory steps, then engineers DeltaRT = RT - Predicted.RT in-memory after collect and fits MSstatsConvert::MSstatsAnomalyScores on c(Ms1ProfileCorr, Evidence, DeltaRT). Requires a run order CSV.",
+                        class = "icon-tooltip")),
+                  value = calculate_anomaly_def),
+    conditionalPanel(
+      condition = sprintf("input['%s']", ns("big_diann_calculate_anomaly_scores")),
+      fileInput(ns("big_diann_run_order_file"),
+                label = h5("Upload Run Order File",
+                           class = "icon-wrapper",
+                           icon("question-circle", lib = "font-awesome"),
+                           div("CSV with two columns: 'Run' (sequence name matching the converter output) and 'Order' (chronological run number, e.g. 1, 2, 3...).",
+                               class = "icon-tooltip")),
+                multiple = FALSE, accept = c(".csv"))
+    )
   )
 }
 
@@ -345,27 +483,6 @@ create_spectronaut_large_bottom_ui <- function(ns, max_feature_def = 20, unique_
 
 #' Create Spectronaut large file annotation override + anomaly UI
 #'
-#' Renders an optional annotation upload that overrides Spectronaut's embedded
-#' R.Condition / R.Replicate columns on Run, plus the "Calculate Anomaly
-#' Scores" controls. End-to-end anomaly scoring is a two-step pipeline in
-#' the large-file path:
-#'   (1) `bigSpectronauttoMSstatsFormat` runs with
-#'       `calculateAnomalyScores = TRUE` + the model feature column list,
-#'       which carries those feature columns through the out-of-memory
-#'       reduce/preprocess steps.
-#'   (2) After `dplyr::collect`, `MSstatsConvert::MSstatsAnomalyScores`
-#'       is called on the in-memory result to fit the isolation-forest
-#'       model and produce the `AnomalyScores` column.
-#' Input IDs `calculate_anomaly_scores` and `run_order_file` are deliberately
-#' the same as the regular Spectronaut path's so downstream pages
-#' (module-qc-server's MSstats+ summarization gate, getDataCode's
-#' reproducibility script, etc.) read a single source of truth regardless
-#' of which path the user took. The two UI checkboxes never coexist —
-#' the regular path's `create_label_free_options` is hidden when
-#' `big_file_spec` is on, and this helper only renders when it is — so
-#' there is no Shiny namespace collision.
-#' A run-order CSV is required (Run + Order columns) — `MSstatsAnomalyScores`
-#' uses it for temporal feature engineering.
 #' @noRd
 create_spectronaut_large_annotation_ui <- function(ns, calculate_anomaly_def = FALSE) {
   tagList(
@@ -642,7 +759,7 @@ create_tmt_options <- function(ns) {
 create_label_free_options <- function(ns) {
   tagList(
     conditionalPanel(
-      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] != 'sample' && (input['loadpage-filetype'] != 'spec' || !input['loadpage-big_file_spec'])",
+      condition = "input['loadpage-filetype'] && input['loadpage-DDA_DIA'] == 'LType' && input['loadpage-filetype'] != 'sample' && (input['loadpage-filetype'] != 'spec' || !input['loadpage-big_file_spec']) && (input['loadpage-filetype'] != 'diann' || !input['loadpage-big_file_diann'])",
       h4("Select the options for pre-processing"),
       checkboxInput(ns("unique_peptides"), "Use unique peptides", value = TRUE),
       checkboxInput(ns("remove"), "Remove proteins with 1 feature", value = FALSE),
@@ -652,7 +769,7 @@ create_label_free_options <- function(ns) {
     
     # DIANN specific options
     conditionalPanel(
-      condition = "input['loadpage-filetype'] == 'diann' && input['loadpage-DDA_DIA'] == 'LType'",
+      condition = "input['loadpage-filetype'] == 'diann' && input['loadpage-DDA_DIA'] == 'LType' && !input['loadpage-big_file_diann']",
       checkboxInput(ns("diann_2plus"), "DIANN 2.0+", value = FALSE),
       conditionalPanel(
         condition = "!input['loadpage-diann_2plus']",
@@ -672,7 +789,7 @@ create_label_free_options <- function(ns) {
 create_quality_filtering_options <- function(ns) {
   tagList(
     conditionalPanel(
-      condition = "input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'spec'|| input['loadpage-filetype'] == 'diann'",
+      condition = "input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'spec'|| (input['loadpage-filetype'] == 'diann' && !input['loadpage-big_file_diann'])",
       checkboxInput(ns("q_val"), "Filter with Q-value"),
       conditionalPanel(
         condition = "input['loadpage-q_val']",
@@ -686,21 +803,51 @@ create_quality_filtering_options <- function(ns) {
     
     conditionalPanel(
       condition = "input['loadpage-filetype'] == 'spec'",
-      checkboxInput(ns("calculate_anomaly_scores"), 
+      checkboxInput(ns("calculate_anomaly_scores"),
                     label = tags$span(
                       "Calculate Anomaly Scores",
                       class = "icon-wrapper",
                       icon("question-circle", lib = "font-awesome"),
-                      div("Calculate anomaly scores for each feature based on a random forest model. This requires a CSV file containing the order of your MS runs.", 
+                      div("Calculate anomaly scores for each feature based on a random forest model. This requires a CSV file containing the order of your MS runs.",
                           class = "icon-tooltip")
-                    ), 
+                    ),
                     value = FALSE),
       conditionalPanel(
         condition = "input['loadpage-calculate_anomaly_scores']",
-        fileInput(ns("run_order_file"), 
+        fileInput(ns("run_order_file"),
                   label = h5("Upload Run Order File", class = "icon-wrapper",
                              icon("question-circle", lib = "font-awesome"),
                              div("The run order file should be a CSV with two columns: 'Run' and 'Order'. 'Run' contains the sequence name, and 'Order' contains the chronological run number (e.g., 1, 2, 3...).", class = "icon-tooltip")),
+                  multiple = FALSE, accept = c(".csv"))
+      )
+    ),
+
+    # DIANN anomaly scoring (regular path).
+    #
+    # DIANN reports do not ship a DeltaRT column; it's engineered as
+    # RT - Predicted.RT before the converter runs. The user supplies a
+    # run-order CSV (same shape as the Spectronaut path) so
+    # MSstatsConvert::MSstatsAnomalyScores (invoked internally by
+    # DIANNtoMSstatsFormat when calculateAnomalyScores = TRUE) can do
+    # temporal feature engineering on Ms1ProfileCorr, Evidence, and
+    # DeltaRT.
+    conditionalPanel(
+      condition = "input['loadpage-filetype'] == 'diann' && !input['loadpage-big_file_diann']",
+      checkboxInput(ns("diann_calculate_anomaly_scores"),
+                    label = tags$span(
+                      "Calculate Anomaly Scores",
+                      class = "icon-wrapper",
+                      icon("question-circle", lib = "font-awesome"),
+                      div("Engineers DeltaRT = RT - Predicted.RT in the raw DIANN report, then calls MSstatsConvert::MSstatsAnomalyScores via DIANNtoMSstatsFormat with quality_metrics c(Ms1ProfileCorr, Evidence, DeltaRT) and temporal directions c(mean_decrease, mean_decrease, dispersion_increase). Requires a run order CSV.",
+                          class = "icon-tooltip")
+                    ),
+                    value = FALSE),
+      conditionalPanel(
+        condition = "input['loadpage-diann_calculate_anomaly_scores']",
+        fileInput(ns("diann_run_order_file"),
+                  label = h5("Upload Run Order File", class = "icon-wrapper",
+                             icon("question-circle", lib = "font-awesome"),
+                             div("CSV with two columns: 'Run' (sequence name matching the DIANN report's Run column) and 'Order' (chronological run number, e.g. 1, 2, 3...).", class = "icon-tooltip")),
                   multiple = FALSE, accept = c(".csv"))
       )
     ),
