@@ -1,6 +1,29 @@
 library(testthat)
 library(mockery)
 
+test_that(".anomaly_scores_enabled ORs all three loadpage checkboxes", {
+  # Spectronaut
+  expect_true(MSstatsShiny:::.anomaly_scores_enabled(
+    list(calculate_anomaly_scores = TRUE)))
+  # Regular DIANN
+  expect_true(MSstatsShiny:::.anomaly_scores_enabled(
+    list(diann_calculate_anomaly_scores = TRUE)))
+  # Big-file DIANN
+  expect_true(MSstatsShiny:::.anomaly_scores_enabled(
+    list(big_diann_calculate_anomaly_scores = TRUE)))
+  # None
+  expect_false(MSstatsShiny:::.anomaly_scores_enabled(list()))
+  expect_false(MSstatsShiny:::.anomaly_scores_enabled(
+    list(calculate_anomaly_scores = FALSE,
+         diann_calculate_anomaly_scores = FALSE,
+         big_diann_calculate_anomaly_scores = FALSE)))
+  # NULL-safety
+  expect_false(MSstatsShiny:::.anomaly_scores_enabled(
+    list(calculate_anomaly_scores = NULL,
+         diann_calculate_anomaly_scores = NULL)))
+})
+
+
 test_file_tsv <- tempfile(fileext = ".tsv")
 writeLines("a\tb\tcd", test_file_tsv)
 
@@ -1975,10 +1998,13 @@ describe("getData for Big DIANN", {
     captured_anomaly_input <- NULL
     stub(getData, "dplyr::collect", function(x) {
       captured_args <<- x
+      # MSstatsImport's column standardization (called inside
+      # bigDIANNtoMSstatsFormat) strips dots, so the carried-through
+      # Predicted.RT lands here as PredictedRT.
       data.frame(ProteinName = "P1", Intensity = 100,
-                 RT = 10.0, Predicted.RT = 9.5,
+                 RT = 10.0, PredictedRT = 9.5,
                  Ms1ProfileCorr = 0.9, Evidence = 1.0,
-                 check.names = FALSE)
+                 stringsAsFactors = FALSE)
     })
     stub(getData, "data.table::fread",
          data.frame(Run = "run1", Order = 1L))
@@ -1992,11 +2018,12 @@ describe("getData for Big DIANN", {
 
     expect_true(isTRUE(captured_args$calculateAnomalyScores))
     expect_equal(captured_args$anomalyModelFeatures,
-                 c("Ms1ProfileCorr", "Evidence", "RT", "Predicted.RT"))
-    # DeltaRT is engineered in-memory after collect.
+                 c("Ms1ProfileCorr", "Evidence", "RT", "PredictedRT"))
+    # DeltaRT is engineered in-memory after collect, using the
+    # standardized PredictedRT column name.
     expect_true("DeltaRT" %in% colnames(captured_anomaly_input))
     expect_equal(captured_anomaly_input$DeltaRT,
-                 captured_anomaly_input$RT - captured_anomaly_input$Predicted.RT)
+                 captured_anomaly_input$RT - captured_anomaly_input$PredictedRT)
   })
 
   test_that("fails fast when big_diann_calculate_anomaly_scores is TRUE but run_order_file is missing", {

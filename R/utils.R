@@ -276,6 +276,24 @@ getFileExtension <- function(filename) {
   tolower(file_ext(basename(filename)))
 }
 
+#' TRUE if any loadpage anomaly-score checkbox is on
+#'
+#' Three checkboxes (Spectronaut, regular DIANN, big-file DIANN) all
+#' feed the same downstream surface: the QC page's MSstats+
+#' summarization option and Quality Metrics Plot type. Centralizing the
+#' OR-test here keeps those gates in sync as new inputs are added.
+#'
+#' @param loadpage_input the resolved loadpage input list (NOT the
+#'   reactive — call it before passing in).
+#' @return logical(1)
+#' @keywords internal
+#' @noRd
+.anomaly_scores_enabled <- function(loadpage_input) {
+  isTRUE(loadpage_input$calculate_anomaly_scores) ||
+    isTRUE(loadpage_input$diann_calculate_anomaly_scores) ||
+    isTRUE(loadpage_input$big_diann_calculate_anomaly_scores)
+}
+
 #' @importFrom arrow read_parquet
 getData <- function(input) {
   show_modal_spinner()
@@ -771,10 +789,6 @@ getData <- function(input) {
     else if(input$filetype == 'diann') {
 
       if (isTRUE(input$big_file_diann)) {
-        # Out-of-memory DIANN path via MSstatsBig::bigDIANNtoMSstatsFormat.
-        # Mirrors the Spectronaut big-file branch above: parse the
-        # shinyFiles path, validate cutoffs, then collect the lazy
-        # arrow/sparklyr result into an in-memory MSstats-format table.
         volumes <- shinyFiles::getVolumes()()
         path_info <- shinyFiles::parseFilePaths(volumes, input$big_diann_browse)
         local_big_diann_path <- if (nrow(path_info) > 0) path_info$datapath else NULL
@@ -846,9 +860,12 @@ getData <- function(input) {
         }
 
         if (isTRUE(input$big_diann_calculate_anomaly_scores)) {
-          # Carry through the raw quality-metric columns the post-collect
-          # step needs. DeltaRT is engineered in-memory from RT and
-          # Predicted.RT after dplyr::collect, then fed to
+          # Carry through the quality-metric columns the post-collect
+          # step needs. Names here are the standardized form
+          # (MSstatsImport strips dots during column cleaning, so the raw
+          # DIANN column `Predicted.RT` becomes `PredictedRT`).
+          # DeltaRT is engineered in-memory from RT and PredictedRT after
+          # dplyr::collect, then fed to
           # MSstatsConvert::MSstatsAnomalyScores alongside Ms1ProfileCorr
           # and Evidence.
           big_diann_args$calculateAnomalyScores <- TRUE
@@ -856,7 +873,7 @@ getData <- function(input) {
             "Ms1ProfileCorr",
             "Evidence",
             "RT",
-            "Predicted.RT")
+            "PredictedRT")
         }
 
         converted_data <- do.call(
@@ -880,9 +897,19 @@ getData <- function(input) {
         if (isTRUE(input$big_diann_calculate_anomaly_scores) &&
             !is.null(input$big_diann_run_order_file)) {
           # Step 2 of the anomaly scoring pipeline. The converter carried
-          # RT and Predicted.RT through; compute DeltaRT now that the
-          # data is in memory, then fit the isolation-forest model.
-          mydata$DeltaRT <- mydata$RT - mydata$Predicted.RT
+          # RT and PredictedRT through (raw DIANN column `Predicted.RT`
+          # gets the dot stripped by MSstatsImport's column
+          # standardization); compute DeltaRT now that the data is in
+          # memory, then fit the isolation-forest model.
+          if (!all(c("RT", "PredictedRT") %in% colnames(mydata))) {
+            showNotification(
+              paste("Error: collected DIANN data is missing RT or PredictedRT columns",
+                    "(found:", paste(colnames(mydata), collapse = ", "), ")."),
+              type = "error", duration = NULL)
+            shinybusy::remove_modal_spinner()
+            return(NULL)
+          }
+          mydata$DeltaRT <- mydata$RT - mydata$PredictedRT
           run_order <- data.table::fread(input$big_diann_run_order_file$datapath)
           mydata <- MSstatsConvert::MSstatsAnomalyScores(
             input = mydata,
@@ -953,8 +980,11 @@ getData <- function(input) {
           # converter standardizes column names. DIANNtoMSstatsFormat
           # then carries Ms1.Profile.Corr / Evidence / DeltaRT through
           # cleaning and calls MSstatsAnomalyScores internally.
+          # Use base R `[[<-` (not data.table `:=`) so this works whether
+          # `data` is a tibble (from arrow::read_parquet) or a data.table
+          # (from data.table::fread).
           if (all(c("RT", "Predicted.RT") %in% colnames(data))) {
-            data[, DeltaRT := RT - Predicted.RT]
+            data[["DeltaRT"]] <- data[["RT"]] - data[["Predicted.RT"]]
             diann_converter_args$input <- data
           } else {
             showNotification(
@@ -1311,7 +1341,7 @@ library(MSstatsPTM)\n", sep = "")
         if (isTRUE(input$big_diann_calculate_anomaly_scores)) {
           big_diann_extra <- paste0(big_diann_extra,
                                     ",\n                                    calculateAnomalyScores = TRUE",
-                                    ",\n                                    anomalyModelFeatures = c(\"Ms1ProfileCorr\", \"Evidence\", \"RT\", \"Predicted.RT\")")
+                                    ",\n                                    anomalyModelFeatures = c(\"Ms1ProfileCorr\", \"Evidence\", \"RT\", \"PredictedRT\")")
         }
 
         quantcol_arg <- if (!is.null(input$big_diann_quantification_column) &&
@@ -1348,8 +1378,10 @@ library(MSstatsPTM)\n", sep = "")
           codes = paste(codes,
                         "# Step 2 of the anomaly scoring pipeline: engineer\n",
                         "# DeltaRT from the carried-through columns, then\n",
-                        "# fit the isolation-forest model.\n",
-                        "data$DeltaRT = data$RT - data$Predicted.RT\n",
+                        "# fit the isolation-forest model. The converter\n",
+                        "# strips dots during column standardization, so\n",
+                        "# Predicted.RT becomes PredictedRT post-collect.\n",
+                        "data$DeltaRT = data$RT - data$PredictedRT\n",
                         "run_order = data.table::fread(\"insert your run order CSV filepath (Run, Order columns)\")\n",
                         "data = MSstatsConvert::MSstatsAnomalyScores(\n",
                         "  input = data,\n",
@@ -1830,7 +1862,7 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
                            summaryPlot = TRUE,
                            address = FALSE,isPlotly=TRUE)\n", sep="")
 
-    if (isTRUE(loadpage_input$calculate_anomaly_scores)) {
+    if (.anomaly_scores_enabled(loadpage_input)) {
       codes = paste(codes, "\n# Plot per-feature quality metrics (e.g. AnomalyScores) carried through from the converter\n", sep = "")
       codes = paste(codes, "MSstats::MSstatsQualityMetricsPlot(data,
                                        metric = \"AnomalyScores\",
