@@ -42,7 +42,7 @@ create_header_section <- function() {
     headerPanel("Statistical modeling and inference"),
     p("In this tab, build your statistical model in three steps:"),
     p(id = "statmodel_workflow_bullet_default",
-      "(i) Create a contrast matrix for a group comparison or set up a configuration for a response curve analysis,"),
+      "(i) Create a contrast matrix for a group comparison,"),
     shinyjs::hidden(
       p(id = "statmodel_workflow_bullet_response_curve",
         "(i) Configure the response curve analysis,")

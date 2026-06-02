@@ -563,6 +563,10 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       )
     })
 
+    observeEvent(input$proceed1, {
+      shinyjs::disable("download_msstats_format")
+    })
+
     observeEvent(get_data(), {
       req(get_data())
       shinyjs::enable("download_msstats_format")
@@ -570,10 +574,32 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
 
     output$download_msstats_format = downloadHandler(
       filename = function() {
-        paste0("MSstats_format-", Sys.Date(), ".csv")
+        data <- get_data()
+        if (inherits(data, "data.frame")) {
+          paste0("MSstats_format-", Sys.Date(), ".csv")
+        } else {
+          paste0("MSstats_format-", Sys.Date(), ".zip")
+        }
       },
       content = function(file) {
-        data.table::fwrite(get_data(), file)
+        data <- get_data()
+        if (inherits(data, "data.frame")) {
+          data.table::fwrite(data, file)
+        } else {
+          tmp_dir <- tempfile("msstats_format_")
+          dir.create(tmp_dir)
+          on.exit(unlink(tmp_dir, recursive = TRUE), add = TRUE)
+          tmp_files <- character()
+          for (nm in names(data)) {
+            tbl <- data[[nm]]
+            if (is.null(tbl)) next
+            if (NROW(tbl) == 0L) next
+            tmp_path <- file.path(tmp_dir, paste0(nm, ".csv"))
+            data.table::fwrite(tbl, tmp_path)
+            tmp_files <- c(tmp_files, tmp_path)
+          }
+          utils::zip(zipfile = file, files = tmp_files, flags = "-j")
+        }
       }
     )
 

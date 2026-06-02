@@ -22,7 +22,7 @@ qcUI <- function(id) {
         tags$link(rel = "stylesheet", type = "text/css", href = "assets/style.css"),
       ),
       headerPanel("Process and quantify data"),
-      p("Feature summarization and missing value imputation. Includes options for vizualizing summarization through data tables and multiple plots. All outputs are available to download in 'csv' format. Imputation runs only when a feature is observed in some other run AND the protein has at least one observed feature in the current run."),
+      p("Feature summarization and missing value imputation. Includes options for visualizing summarization through data tables and multiple plots. Summarized tables and processed datasets are available to download in CSV format. Imputation runs only when a feature is observed in some other run AND the protein has at least one observed feature in the current run."),
       tags$br(),
       sidebarPanel(
         # transformation
