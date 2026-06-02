@@ -43,6 +43,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Anthony Wu \email{wu.anthon@northeastern.edu}
   \item Devon Kohler \email{kohler.d@northeastern.edu}
   \item Deril Raju \email{raju.d@northeastern.edu}
   \item Maanasa Kaza \email{maanasakaza@gmail.com}
