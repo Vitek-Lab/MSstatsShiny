@@ -53,6 +53,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                             choices = c("Turnover Curve" = CONSTANTS_STATMODEL$plot_type_response_curve),
                             selected = CONSTANTS_STATMODEL$plot_type_response_curve)
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = TRUE)
+          shinyjs::hide("statmodel_contrast_header", asis = TRUE)
+          shinyjs::hide("statmodel_workflow_bullet_default", asis = TRUE)
+          shinyjs::show("statmodel_workflow_bullet_response_curve", asis = TRUE)
         } else if (template == TEMPLATES$chemoproteomics) {
           updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
                              choices = c("Create dose-response curves" = CONSTANTS_STATMODEL$comparison_mode_response_curve),
@@ -61,6 +64,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                             choices = c("Dose-Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve),
                             selected = CONSTANTS_STATMODEL$plot_type_response_curve)
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = FALSE)
+          shinyjs::hide("statmodel_contrast_header", asis = TRUE)
+          shinyjs::hide("statmodel_workflow_bullet_default", asis = TRUE)
+          shinyjs::show("statmodel_workflow_bullet_response_curve", asis = TRUE)
         } else {
           updateRadioButtons(session, NAMESPACE_STATMODEL$comparison_mode,
                              choices = c(
@@ -77,6 +83,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                               "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
                             ))
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = FALSE)
+          shinyjs::show("statmodel_contrast_header", asis = TRUE)
+          shinyjs::show("statmodel_workflow_bullet_default", asis = TRUE)
+          shinyjs::hide("statmodel_workflow_bullet_response_curve", asis = TRUE)
         }
       }, ignoreInit = FALSE)
 

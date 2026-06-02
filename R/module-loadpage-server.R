@@ -563,6 +563,20 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       )
     })
 
+    observeEvent(get_data(), {
+      req(get_data())
+      shinyjs::enable("download_msstats_format")
+    })
+
+    output$download_msstats_format = downloadHandler(
+      filename = function() {
+        paste0("MSstats_format-", Sys.Date(), ".csv")
+      },
+      content = function(file) {
+        data.table::fwrite(get_data(), file)
+      }
+    )
+
 
     get_data_code = eventReactive(input$calculate, {
       getDataCode(input)
