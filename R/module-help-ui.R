@@ -80,7 +80,12 @@ helpUI <- function(id) {
             experiments should likely use a subset of features due to the very \
             large number of available features."),
         tags$li("Missing value imputation (can be MAR/MNAR depending on \
-            spectral processing tool used.):"),
+            spectral processing tool used). Imputation runs only when \
+            (a) the protein has at least one observed feature in the \
+            current run, AND (b) the missing feature is observed in at \
+            least one other run. Proteins entirely missing from a run \
+            and features never observed in the dataset are not \
+            imputed. Censoring assumptions:"),
         tags$ul(
           tags$li("Assume all NAs as censored (ie missing not at random)"),
           tags$li("Assume all intensities between 0 and 1 as censored and NAs as \

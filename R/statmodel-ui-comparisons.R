@@ -21,6 +21,7 @@ create_contrast_radio_buttons <- function(ns) {
     ns(NAMESPACE_STATMODEL$comparison_mode), 
     label = h4(
       "1. Define comparisons - contrast matrix",
+      id = "statmodel_contrast_header",
       class = "icon-wrapper",
       icon("question-circle", lib = "font-awesome"),
       div("Define what conditions you want to compare here", class = "icon-tooltip")

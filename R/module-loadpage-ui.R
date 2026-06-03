@@ -49,8 +49,15 @@ loadpageUI <- function(id) {
         # Processing options
         create_processing_options(ns),
         
-        # Action button
-        disabled(actionButton(inputId = ns("proceed1"), label = "Upload Data"))
+        # Action buttons
+        tags$div(
+          style = "display:flex; gap:8px; align-items:center;",
+          disabled(actionButton(inputId = ns("proceed1"), label = "Upload Data")),
+          shinyjs::disabled(downloadButton(
+            ns("download_msstats_format"),
+            "Download MSstats-format CSV"
+          ))
+        )
       ),
       
       column(width = 8,

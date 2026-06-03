@@ -22,7 +22,7 @@ qcUI <- function(id) {
         tags$link(rel = "stylesheet", type = "text/css", href = "assets/style.css"),
       ),
       headerPanel("Process and quantify data"),
-      p("Feature summarization and missing value imputation. Includes options for vizualizing summarization through data tables and multiple plots. All outputs are available to download in 'csv' format."),
+      p("Feature summarization and missing value imputation. Includes options for visualizing summarization through data tables and multiple plots. Summarized tables and processed datasets are available to download in CSV format. Imputation runs only when a feature is observed in some other run AND the protein has at least one observed feature in the current run."),
       tags$br(),
       sidebarPanel(
         # transformation
@@ -141,7 +141,7 @@ qcUI <- function(id) {
           h4("Imputation"),
           conditionalPanel(condition = "input['qc-censInt'] == 'NA' || input['qc-censInt'] == '0'",
                            checkboxInput(ns("MBi"), label=tags$div("Model based imputation",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                                                                    div("If unchecked the values set as cutoff for censored will be used", class = "icon-tooltip")),value = TRUE
+                                                                    div("Fills in missing intensities only when (a) the protein has at least one observed feature in that run, AND (b) the missing feature is observed in at least one other run. Proteins entirely missing from a run, and features never observed in the dataset, are not imputed. If unchecked, the cutoff for censored values is used instead.", class = "icon-tooltip")),value = TRUE
                            )),
           # # cutoff for censored
           # conditionalPanel(condition = "input.censInt == 'NA' || input.censInt == '0'",
