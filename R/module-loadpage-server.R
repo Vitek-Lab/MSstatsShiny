@@ -582,24 +582,31 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
         }
       },
       content = function(file) {
-        data <- get_data()
-        if (inherits(data, "data.frame")) {
-          data.table::fwrite(data, file)
-        } else {
-          tmp_dir <- tempfile("msstats_format_")
-          dir.create(tmp_dir)
-          on.exit(unlink(tmp_dir, recursive = TRUE), add = TRUE)
-          tmp_files <- character()
-          for (nm in names(data)) {
-            tbl <- data[[nm]]
-            if (is.null(tbl)) next
-            if (NROW(tbl) == 0L) next
-            tmp_path <- file.path(tmp_dir, paste0(nm, ".csv"))
-            data.table::fwrite(tbl, tmp_path)
-            tmp_files <- c(tmp_files, tmp_path)
+        tryCatch({
+          data <- get_data()
+          if (inherits(data, "data.frame")) {
+            data.table::fwrite(data, file)
+          } else {
+            tmp_dir <- tempfile("msstats_format_")
+            dir.create(tmp_dir)
+            on.exit(unlink(tmp_dir, recursive = TRUE), add = TRUE)
+            tmp_files <- character()
+            for (nm in names(data)) {
+              tbl <- data[[nm]]
+              if (is.null(tbl)) next
+              if (NROW(tbl) == 0L) next
+              tmp_path <- file.path(tmp_dir, paste0(nm, ".csv"))
+              data.table::fwrite(tbl, tmp_path)
+              tmp_files <- c(tmp_files, tmp_path)
+            }
+            if (length(tmp_files) == 0L) {
+              stop("No non-empty tables available to export.")
+            }
+            utils::zip(zipfile = file, files = tmp_files, flags = "-j")
           }
-          utils::zip(zipfile = file, files = tmp_files, flags = "-j")
-        }
+        }, error = function(e) {
+          writeLines(paste("Failed to export MSstats format:", conditionMessage(e)), file)
+        })
       }
     )
 
