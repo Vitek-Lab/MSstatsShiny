@@ -77,7 +77,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                              ),
                              selected = character(0))
           updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-                            choices = default_template_plot_type_choices())
+                            choices = default_template_plot_type_choices(
+                              include_qq = !isTRUE(loadpage_input()$BIO == "PTM")
+                            ))
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = FALSE)
           shinyjs::show("statmodel_contrast_header", asis = TRUE)
           shinyjs::show("statmodel_workflow_bullet_default", asis = TRUE)

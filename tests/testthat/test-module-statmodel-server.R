@@ -691,6 +691,26 @@ test_that("default_template_plot_type_choices defaults to no-Heatmap when n_comp
                    MSstatsShiny:::default_template_plot_type_choices(0))
 })
 
+test_that("default_template_plot_type_choices omits QQ Plot when include_qq = FALSE", {
+  for (n in c(0, 1, 2)) {
+    choices <- MSstatsShiny:::default_template_plot_type_choices(n, include_qq = FALSE)
+    expect_false("QQ Plot" %in% names(choices),
+                 info = paste("n =", n, "include_qq = FALSE"))
+    expect_true("Volcano Plot" %in% names(choices), info = paste("n =", n))
+    expect_true("Comparison Plot" %in% names(choices), info = paste("n =", n))
+  }
+  expect_false("QQ Plot" %in% names(
+    MSstatsShiny:::default_template_plot_type_choices(2, include_qq = FALSE)))
+})
+
+test_that("default_template_plot_type_choices includes QQ Plot when include_qq = TRUE", {
+  for (n in c(0, 1, 2)) {
+    choices <- MSstatsShiny:::default_template_plot_type_choices(n, include_qq = TRUE)
+    expect_true("QQ Plot" %in% names(choices),
+                info = paste("n =", n, "include_qq = TRUE"))
+  }
+})
+
 test_that("zip_and_copy_plot creates a valid zip from PDF files", {
   # Create a real temp PDF to zip
   temp_pdf <- tempfile("test_plot_", fileext = ".pdf")

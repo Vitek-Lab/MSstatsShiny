@@ -21,8 +21,10 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
     if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) return()
 
     n_comparisons <- length(rownames())
+    include_qq <- !isTRUE(loadpage_input()$BIO == "PTM")
     updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-                      choices = default_template_plot_type_choices(n_comparisons))
+                      choices = default_template_plot_type_choices(n_comparisons,
+                                                                   include_qq = include_qq))
   })
   
   output[[NAMESPACE_STATMODEL$visualization_which_protein]] = renderUI({
@@ -157,19 +159,23 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
 }
 #' Default-template plot-type choices for the visualization dropdown
 #' @param n_comparisons number of comparisons currently in the contrast matrix
+#' @param include_qq if FALSE, omit "QQ Plot" (PTM data lacks the required
+#'   FittedModel field for `groupComparisonQCPlots`).
 #' @return named character vector suitable for `selectInput(choices = ...)`
 #' @noRd
-default_template_plot_type_choices <- function(n_comparisons = 0) {
-  if (isTRUE(n_comparisons >= 2)) {
+default_template_plot_type_choices <- function(n_comparisons = 0, include_qq = TRUE) {
+  choices <- if (isTRUE(n_comparisons >= 2)) {
     c("Volcano Plot"    = CONSTANTS_STATMODEL$plot_type_volcano_plot,
       "Heatmap"         = CONSTANTS_STATMODEL$plot_type_heatmap,
-      "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot,
-      "QQ Plot"         = CONSTANTS_STATMODEL$plot_type_qq_plot)
+      "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot)
   } else {
     c("Volcano Plot"    = CONSTANTS_STATMODEL$plot_type_volcano_plot,
-      "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot,
-      "QQ Plot"         = CONSTANTS_STATMODEL$plot_type_qq_plot)
+      "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot)
   }
+  if (isTRUE(include_qq)) {
+    choices <- c(choices, "QQ Plot" = CONSTANTS_STATMODEL$plot_type_qq_plot)
+  }
+  choices
 }
 
 #' Get filename for plot download based on plot type
@@ -318,13 +324,15 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
             } else if (plot_type == CONSTANTS_STATMODEL$plot_type_qq_plot) {
               qq_file <- file.path(temp_dir, "Ex_QQPlot.pdf")
               pdf(qq_file, width = 10, height = 10)
-              MSstats::groupComparisonQCPlots(
-                data          = data_comparison(),
-                type          = "QQPlots",
-                which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
-                address       = FALSE
+              tryCatch(
+                MSstats::groupComparisonQCPlots(
+                  data          = data_comparison(),
+                  type          = "QQPlots",
+                  which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
+                  address       = FALSE
+                ),
+                finally = dev.off()
               )
-              dev.off()
             } else {
               groupComparisonPlots(
                 data = data_comparison()$ComparisonResult,
