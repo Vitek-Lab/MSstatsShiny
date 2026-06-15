@@ -57,7 +57,8 @@ CONSTANTS_STATMODEL = list(
   plot_type_volcano_plot = "VolcanoPlot", # VolcanoPlot
   plot_type_heatmap = "Heatmap", # Heatmap
   plot_type_comparison_plot = "ComparisonPlot", # ComparisonPlot
-  plot_type_response_curve = "ResponseCurve" # ResponseCurve
+  plot_type_response_curve = "ResponseCurve", # ResponseCurve
+  plot_type_qq_plot = "QQPlots" # QQPlots — matches MSstats::groupComparisonQCPlots(type = "QQPlots")
 )
 
 NAMESPACE_EXPDES = list(

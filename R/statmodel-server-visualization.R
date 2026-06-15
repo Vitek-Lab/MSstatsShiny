@@ -20,22 +20,9 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
     mode <- input[[NAMESPACE_STATMODEL$comparison_mode]]
     if (mode == CONSTANTS_STATMODEL$comparison_mode_response_curve) return()
 
-    comparison_names <- rownames()
-    n_comparisons <- length(comparison_names)
-
-    choices <- c(
-      "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot,
-      "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
-    )
-    if (n_comparisons >= 2) {
-      choices <- c(
-        "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot,
-        "Heatmap" = CONSTANTS_STATMODEL$plot_type_heatmap,
-        "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
-      )
-    }
+    n_comparisons <- length(rownames())
     updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-                      choices = choices)
+                      choices = default_template_plot_type_choices(n_comparisons))
   })
   
   output[[NAMESPACE_STATMODEL$visualization_which_protein]] = renderUI({
@@ -55,6 +42,8 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
       create_heatmap_options(ns)
     } else if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
       create_response_curve_options(ns, template = if (!is.null(app_template)) app_template() else NULL)
+    } else if (plot_type == CONSTANTS_STATMODEL$plot_type_qq_plot) {
+      create_qq_plot_options(ns)
     } else {
       NULL
     }
@@ -166,12 +155,32 @@ create_group_comparison_plot = function(input, loadpage_input, data_comparison) 
     NULL
   })
 }
+#' Default-template plot-type choices for the visualization dropdown
+#' @param n_comparisons number of comparisons currently in the contrast matrix
+#' @return named character vector suitable for `selectInput(choices = ...)`
+#' @noRd
+default_template_plot_type_choices <- function(n_comparisons = 0) {
+  if (isTRUE(n_comparisons >= 2)) {
+    c("Volcano Plot"    = CONSTANTS_STATMODEL$plot_type_volcano_plot,
+      "Heatmap"         = CONSTANTS_STATMODEL$plot_type_heatmap,
+      "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot,
+      "QQ Plot"         = CONSTANTS_STATMODEL$plot_type_qq_plot)
+  } else {
+    c("Volcano Plot"    = CONSTANTS_STATMODEL$plot_type_volcano_plot,
+      "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot,
+      "QQ Plot"         = CONSTANTS_STATMODEL$plot_type_qq_plot)
+  }
+}
+
 #' Get filename for plot download based on plot type
 #' @param plot_type the current plot type string
 #' @return filename string ending in .zip
+#' @noRd
 get_download_plot_filename <- function(plot_type) {
   if (plot_type == CONSTANTS_STATMODEL$plot_type_response_curve) {
     paste("ResponseCurvePlot-", Sys.Date(), ".zip", sep = "")
+  } else if (plot_type == CONSTANTS_STATMODEL$plot_type_qq_plot) {
+    paste("QQPlot-", Sys.Date(), ".zip", sep = "")
   } else {
     paste("SummaryPlot-", Sys.Date(), ".zip", sep = "")
   }
@@ -301,11 +310,21 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 FCcutoff = fold_change_cutoff,
                 logBase.pvalue = as.integer(input[[NAMESPACE_STATMODEL$visualization_logp_base]]),
                 ProteinName = TRUE,
-                which.Comparison = if (plot_type == 
+                which.Comparison = if (plot_type ==
                                        CONSTANTS_STATMODEL$plot_type_heatmap) "all"
                                    else input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
                 address = address_prefix
               )
+            } else if (plot_type == CONSTANTS_STATMODEL$plot_type_qq_plot) {
+              qq_file <- file.path(temp_dir, "Ex_QQPlot.pdf")
+              pdf(qq_file, width = 10, height = 10)
+              MSstats::groupComparisonQCPlots(
+                data          = data_comparison(),
+                type          = "QQPlots",
+                which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
+                address       = FALSE
+              )
+              dev.off()
             } else {
               groupComparisonPlots(
                 data = data_comparison()$ComparisonResult,
@@ -316,7 +335,7 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 ProteinName = TRUE,
                 numProtein = input[[NAMESPACE_STATMODEL$visualization_heatmap_number_proteins]],
                 clustering = input[[NAMESPACE_STATMODEL$visualization_heatmap_cluster_option]],
-                which.Comparison = if (plot_type == 
+                which.Comparison = if (plot_type ==
                                        CONSTANTS_STATMODEL$plot_type_heatmap) "all"
                                    else input[[NAMESPACE_STATMODEL$visualization_which_comparison]],
                 which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],

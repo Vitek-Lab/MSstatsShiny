@@ -33,6 +33,14 @@ test_that("Correct elements are present in create_comparison_plot_options", {
               info = "Which protein namespace should be present")
 })
 
+test_that("Correct elements are present in create_qq_plot_options", {
+  ns <- NS("test_module")
+  result <- create_qq_plot_options(ns)
+  ui_html <- htmltools::renderTags(result)$html
+  expect_true(grepl(NAMESPACE_STATMODEL$visualization_which_protein, ui_html),
+              info = "Which protein namespace should be present for QQ plot")
+})
+
 test_that("Correct elements are present in create_volcano_plot_options", {
   ns <- NS("test_module")
   result <- create_volcano_plot_options(ns)
@@ -55,5 +63,6 @@ test_that("All possible options in create_plot_type_selector", {
               info = "Heatmap option should be present")
   expect_true(grepl("Comparison Plot", ui_html),
               info = "Comparison Plot should be present")
-  
+  expect_true(grepl("QQ Plot", ui_html),
+              info = "QQ Plot option should be present")
 })
