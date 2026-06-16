@@ -126,11 +126,18 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
     codes = paste(codes, "model = MSstats::groupComparison(contrast.matrix, summarized)\n", sep = "")
   }
   
+  plot_type = input[[NAMESPACE_STATMODEL$visualization_plot_type]]
+
   if (loadpage_input$BIO == "PTM") {
     codes = paste(codes, "groupComparisonPlotsPTM(data=model,
                                type=\"Enter VolcanoPlot, Heatmap, or ComparisonPlot\",
                                which.Comparison=\"all\",
                                which.PTM=\"all\",
+                               address=\"\")\n", sep = "")
+  } else if (!is.null(plot_type) && plot_type == CONSTANTS_STATMODEL$plot_type_qq_plot) {
+    codes = paste(codes, "MSstats::groupComparisonQCPlots(data=model,
+                               type=\"QQPlots\",
+                               which.Protein=\"Enter a single protein name\",
                                address=\"\")\n", sep = "")
   } else {
     codes = paste(codes, "groupComparisonPlots(data=model$ComparisonResult,

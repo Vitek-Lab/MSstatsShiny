@@ -77,10 +77,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                              ),
                              selected = character(0))
           updateSelectInput(session, NAMESPACE_STATMODEL$visualization_plot_type,
-                            choices = c(
-                              "Volcano Plot"    = CONSTANTS_STATMODEL$plot_type_volcano_plot,
-                              "Heatmap"         = CONSTANTS_STATMODEL$plot_type_heatmap,
-                              "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot
+                            choices = default_template_plot_type_choices(
+                              include_qq = !isTRUE(loadpage_input()$BIO == "PTM")
                             ))
           updateCheckboxInput(session, NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend, value = FALSE)
           shinyjs::show("statmodel_contrast_header", asis = TRUE)
@@ -524,9 +522,26 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               )
             }
           })
-          
+
+        } else if (input[[NAMESPACE_STATMODEL$visualization_plot_type]] ==
+                   CONSTANTS_STATMODEL$plot_type_qq_plot) {
+          output_plot = renderPlot({
+            req(input[[NAMESPACE_STATMODEL$visualization_which_protein]])
+            show_modal_spinner()
+            tryCatch({
+              MSstats::groupComparisonQCPlots(
+                data = data_comparison(),
+                type = "QQPlots",
+                which.Protein = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
+                address = FALSE
+              )
+            }, error = function(e) {
+              showNotification(conditionMessage(e), type = "error", duration = 8)
+              NULL
+            }, finally = { remove_modal_spinner() })
+          })
         } else {
-          output_plot = renderPlotly({ 
+          output_plot = renderPlotly({
             create_group_comparison_plot(
               input, loadpage_input(), data_comparison()
             )

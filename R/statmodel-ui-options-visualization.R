@@ -19,13 +19,14 @@ create_visualization_section <- function(ns) {
 create_plot_type_selector <- function(ns) {
   fluidRow(
     selectInput(
-      ns(NAMESPACE_STATMODEL$visualization_plot_type), 
-      label = h4("3. Visualization - select plot type"), 
+      ns(NAMESPACE_STATMODEL$visualization_plot_type),
+      label = h4("3. Visualization - select plot type"),
       c(
-        "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot, 
-        "Heatmap" = CONSTANTS_STATMODEL$plot_type_heatmap, 
+        "Volcano Plot" = CONSTANTS_STATMODEL$plot_type_volcano_plot,
+        "Heatmap" = CONSTANTS_STATMODEL$plot_type_heatmap,
         "Comparison Plot" = CONSTANTS_STATMODEL$plot_type_comparison_plot,
-        "Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve
+        "Response Curve" = CONSTANTS_STATMODEL$plot_type_response_curve,
+        "QQ Plot" = CONSTANTS_STATMODEL$plot_type_qq_plot
       )
     )
   )
@@ -58,6 +59,13 @@ create_volcano_plot_options <- function(ns) {
 #' Create comparison plot specific options
 #' @noRd
 create_comparison_plot_options <- function(ns) {
+  tagList(
+    uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_protein))
+  )
+}
+#' Create QQ plot specific options
+#' @noRd
+create_qq_plot_options <- function(ns) {
   tagList(
     uiOutput(ns(NAMESPACE_STATMODEL$visualization_which_protein))
   )
