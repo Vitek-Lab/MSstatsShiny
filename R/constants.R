@@ -61,6 +61,34 @@ CONSTANTS_STATMODEL = list(
   plot_type_qq_plot = "QQPlots" # QQPlots — matches MSstats::groupComparisonQCPlots(type = "QQPlots")
 )
 
+NAMESPACE_LOADPAGE = list(
+  # Cross-module public IDs (read from outside the loadpage module).
+  bio = "BIO",
+  dda_dia = "DDA_DIA",
+  filetype = "filetype",
+  proceed1 = "proceed1",
+  # DIANN-cluster IDs migrated to server-side show/hide in Phase 1.
+  big_file_diann = "big_file_diann",
+  big_diann_calculate_anomaly_scores = "big_diann_calculate_anomaly_scores",
+  big_diann_run_order_file = "big_diann_run_order_file",
+  diann_2plus = "diann_2plus",
+  intensity_column = "intensity_column",
+  q_val = "q_val",
+  q_cutoff = "q_cutoff",
+  mbr = "MBR",
+  diann_calculate_anomaly_scores = "diann_calculate_anomaly_scores",
+  diann_run_order_file = "diann_run_order_file",
+  # Visibility container IDs introduced by the Phase 1 migration.
+  diann_lf_options_panel = "diann_lf_options_panel",
+  diann_intensity_column_panel = "diann_intensity_column_panel",
+  qval_filter_panel = "qval_filter_panel",
+  qval_cutoff_panel = "qval_cutoff_panel",
+  qval_mbr_panel = "qval_mbr_panel",
+  diann_anomaly_panel = "diann_anomaly_panel",
+  diann_anomaly_run_order_panel = "diann_anomaly_run_order_panel",
+  big_diann_anomaly_run_order_panel = "big_diann_anomaly_run_order_panel"
+)
+
 NAMESPACE_EXPDES = list(
   sidebar_controls = "sidebar_controls",
   protein_select = "protein_select",

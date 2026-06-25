@@ -18,6 +18,9 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
 
     condition_metadata <- reactiveVal(NULL)
 
+    # DIANN-cluster visibility: observers replace the JS conditionalPanels
+    register_diann_visibility_observers(input, session)
+
     # == shinyFiles LOGIC FOR LOCAL FILE BROWSER =================================
     # Define volumes for the file selection.
     if (!is_web_server) {

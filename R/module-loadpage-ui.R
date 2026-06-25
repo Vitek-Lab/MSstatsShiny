@@ -407,16 +407,21 @@ create_diann_large_annotation_ui <- function(ns, calculate_anomaly_def = FALSE) 
                     div("Carries Ms1ProfileCorr, Evidence, RT, and Predicted.RT through the out-of-memory steps, then engineers DeltaRT = RT - Predicted.RT in-memory after collect and fits MSstatsConvert::MSstatsAnomalyScores on c(Ms1ProfileCorr, Evidence, DeltaRT). Requires a run order CSV.",
                         class = "icon-tooltip")),
                   value = calculate_anomaly_def),
-    conditionalPanel(
-      condition = sprintf("input['%s']", ns("big_diann_calculate_anomaly_scores")),
-      fileInput(ns("big_diann_run_order_file"),
+    # Big-file-path anomaly run-order fileInput (visibility driven)
+    # server-side. Kept inside this helper (called from the diann_options_ui
+    # renderUI) so the fileInput is mounted whenever the parent big-file UI
+    # is. The matching observer in register_diann_visibility_observers
+    # toggles it on `big_diann_calculate_anomaly_scores`.
+    shinyjs::hidden(div(
+      id = ns(NAMESPACE_LOADPAGE$big_diann_anomaly_run_order_panel),
+      fileInput(ns(NAMESPACE_LOADPAGE$big_diann_run_order_file),
                 label = h5("Upload Run Order File",
                            class = "icon-wrapper",
                            icon("question-circle", lib = "font-awesome"),
                            div("CSV with two columns: 'Run' (sequence name matching the converter output) and 'Order' (chronological run number, e.g. 1, 2, 3...).",
                                class = "icon-tooltip")),
                 multiple = FALSE, accept = c(".csv"))
-    )
+    ))
   )
 }
 
@@ -774,20 +779,21 @@ create_label_free_options <- function(ns) {
       create_quality_filtering_options(ns)
     ),
     
-    # DIANN specific options
-    conditionalPanel(
-      condition = "input['loadpage-filetype'] == 'diann' && input['loadpage-DDA_DIA'] == 'LType' && !input['loadpage-big_file_diann']",
-      checkboxInput(ns("diann_2plus"), "DIANN 2.0+", value = FALSE),
-      conditionalPanel(
-        condition = "!input['loadpage-diann_2plus']",
-        textInput(ns("intensity_column"),
+    # DIANN specific options — visibility driven server-side
+    # (R/loadpage-server-rendering.R::register_diann_visibility_observers).
+    shinyjs::hidden(div(
+      id = ns(NAMESPACE_LOADPAGE$diann_lf_options_panel),
+      checkboxInput(ns(NAMESPACE_LOADPAGE$diann_2plus), "DIANN 2.0+", value = FALSE),
+      shinyjs::hidden(div(
+        id = ns(NAMESPACE_LOADPAGE$diann_intensity_column_panel),
+        textInput(ns(NAMESPACE_LOADPAGE$intensity_column),
                   h5("Intensity Column Name", class = "icon-wrapper",
                      icon("question-circle", lib = "font-awesome"),
                      div("Enter the column name containing intensity values for DIANN versions prior to 2.0", class = "icon-tooltip")),
                   value = "FragmentQuantCorrected")
-      ),
+      )),
       uiOutput(ns("diann_turnover_ui"))
-    )
+    ))
   )
 }
 
@@ -795,18 +801,22 @@ create_label_free_options <- function(ns) {
 #' @noRd
 create_quality_filtering_options <- function(ns) {
   tagList(
-    conditionalPanel(
-      condition = "input['loadpage-filetype'] == 'sky' || input['loadpage-filetype'] == 'spec'|| (input['loadpage-filetype'] == 'diann' && !input['loadpage-big_file_diann'])",
-      checkboxInput(ns("q_val"), "Filter with Q-value"),
-      conditionalPanel(
-        condition = "input['loadpage-q_val']",
-        conditionalPanel(
-          condition = "input['loadpage-filetype'] == 'diann'",
-          checkboxInput(ns("MBR"), "MBR Enabled", value = FALSE)
-        ),
-        numericInput(ns("q_cutoff"), "Q-value cutoff", 0.01, 0, 1, 0.01)
-      )
-    ),
+    # Q-value filter (Skyline / Spectronaut / DIANN regular) — visibility
+    # driven server-side. MBR is a DIANN-only sub-checkbox inside the cutoff
+    # block. State must persist across visibility flips, so we use nested
+    # hidden divs and observers, not renderUI.
+    shinyjs::hidden(div(
+      id = ns(NAMESPACE_LOADPAGE$qval_filter_panel),
+      checkboxInput(ns(NAMESPACE_LOADPAGE$q_val), "Filter with Q-value"),
+      shinyjs::hidden(div(
+        id = ns(NAMESPACE_LOADPAGE$qval_cutoff_panel),
+        shinyjs::hidden(div(
+          id = ns(NAMESPACE_LOADPAGE$qval_mbr_panel),
+          checkboxInput(ns(NAMESPACE_LOADPAGE$mbr), "MBR Enabled", value = FALSE)
+        )),
+        numericInput(ns(NAMESPACE_LOADPAGE$q_cutoff), "Q-value cutoff", 0.01, 0, 1, 0.01)
+      ))
+    )),
     
     conditionalPanel(
       condition = "input['loadpage-filetype'] == 'spec'",
@@ -838,9 +848,12 @@ create_quality_filtering_options <- function(ns) {
     # DIANNtoMSstatsFormat when calculateAnomalyScores = TRUE) can do
     # temporal feature engineering on Ms1ProfileCorr, Evidence, and
     # DeltaRT.
-    conditionalPanel(
-      condition = "input['loadpage-filetype'] == 'diann' && !input['loadpage-big_file_diann']",
-      checkboxInput(ns("diann_calculate_anomaly_scores"),
+    # DIANN regular-path anomaly scoring — visibility driven server-side.
+    # The run-order fileInput must stay mounted across checkbox toggles or
+    # the uploaded file would be lost.
+    shinyjs::hidden(div(
+      id = ns(NAMESPACE_LOADPAGE$diann_anomaly_panel),
+      checkboxInput(ns(NAMESPACE_LOADPAGE$diann_calculate_anomaly_scores),
                     label = tags$span(
                       "Calculate Anomaly Scores",
                       class = "icon-wrapper",
@@ -849,15 +862,15 @@ create_quality_filtering_options <- function(ns) {
                           class = "icon-tooltip")
                     ),
                     value = FALSE),
-      conditionalPanel(
-        condition = "input['loadpage-diann_calculate_anomaly_scores']",
-        fileInput(ns("diann_run_order_file"),
+      shinyjs::hidden(div(
+        id = ns(NAMESPACE_LOADPAGE$diann_anomaly_run_order_panel),
+        fileInput(ns(NAMESPACE_LOADPAGE$diann_run_order_file),
                   label = h5("Upload Run Order File", class = "icon-wrapper",
                              icon("question-circle", lib = "font-awesome"),
                              div("CSV with two columns: 'Run' (sequence name matching the DIANN report's Run column) and 'Order' (chronological run number, e.g. 1, 2, 3...).", class = "icon-tooltip")),
                   multiple = FALSE, accept = c(".csv"))
-      )
-    ),
+      ))
+    )),
     
     conditionalPanel(
       condition = "input['loadpage-filetype'] == 'open'",
