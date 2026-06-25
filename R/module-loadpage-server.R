@@ -10,7 +10,13 @@
 #'         `local_big_file_path` / `local_big_diann_path` reactives that the
 #'         proceed-validation helper consumes, so it must remain co-located
 #'         with the module's reactive scope),
-#'   \item the five helper registrations in order,
+#'   \item the six helper registrations in order
+#'         (`register_loadpage_preview`,
+#'         `register_loadpage_visibility_observers`,
+#'         `register_loadpage_converter_ui`,
+#'         `register_loadpage_proceed_validation`,
+#'         `register_loadpage_data_loaders`,
+#'         `register_loadpage_summary`),
 #'   \item the final public `return(list(input, getData,
 #'         getConditionMetadata))`.
 #' }
@@ -78,7 +84,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
       local_big_diann_path <- reactive({ NULL })
     }
 
-    # == HELPER REGISTRATION (5 helpers, all in R/loadpage-server-*.R) =========
+    # == HELPER REGISTRATION (6 helpers, all in R/loadpage-server-*.R) =========
     #
     # Order matters only insofar as Shiny reactivity is set up at module-mount
     # time. We follow the file's original top-to-bottom layout: preview ->
