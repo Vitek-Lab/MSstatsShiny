@@ -78,7 +78,13 @@ NAMESPACE_LOADPAGE = list(
   mbr = "MBR",
   diann_calculate_anomaly_scores = "diann_calculate_anomaly_scores",
   diann_run_order_file = "diann_run_order_file",
-  # Visibility container IDs introduced by the Phase 1 migration.
+  # Driver IDs introduced (i.e. centralized) in Phase 2.
+  big_file_spec = "big_file_spec",
+  label_free_type = "LabelFreeType",
+  calculate_anomaly_scores = "calculate_anomaly_scores",
+  m_score = "m_score",
+  which_proteinid = "which.proteinid",
+  # Phase 1 container IDs (visibility divs).
   diann_lf_options_panel = "diann_lf_options_panel",
   diann_intensity_column_panel = "diann_intensity_column_panel",
   qval_filter_panel = "qval_filter_panel",
@@ -86,7 +92,32 @@ NAMESPACE_LOADPAGE = list(
   qval_mbr_panel = "qval_mbr_panel",
   diann_anomaly_panel = "diann_anomaly_panel",
   diann_anomaly_run_order_panel = "diann_anomaly_run_order_panel",
-  big_diann_anomaly_run_order_panel = "big_diann_anomaly_run_order_panel"
+  big_diann_anomaly_run_order_panel = "big_diann_anomaly_run_order_panel",
+  # Phase 2 container IDs (visibility divs introduced by the broader sweep).
+  sample_dda_description_panel = "sample_dda_description_panel",
+  sample_dia_description_panel = "sample_dia_description_panel",
+  sample_srm_prm_description_panel = "sample_srm_prm_description_panel",
+  label_free_type_selection_panel = "label_free_type_selection_panel",
+  standard_quant_upload_panel = "standard_quant_upload_panel",
+  standard_annot_upload_panel = "standard_annot_upload_panel",
+  msstats_regular_upload_panel = "msstats_regular_upload_panel",
+  msstats_ptm_upload_panel = "msstats_ptm_upload_panel",
+  skyline_upload_panel = "skyline_upload_panel",
+  ptm_fragpipe_upload_panel = "ptm_fragpipe_upload_panel",
+  maxquant_upload_panel = "maxquant_upload_panel",
+  ptm_uploads_panel = "ptm_uploads_panel",
+  ptm_maxquant_pgroup_panel = "ptm_maxquant_pgroup_panel",
+  ptm_metamorpheus_extras_panel = "ptm_metamorpheus_extras_panel",
+  ptm_fasta_id_column_panel = "ptm_fasta_id_column_panel",
+  ptm_mod_id_maxq_panel = "ptm_mod_id_maxq_panel",
+  ptm_mod_id_pd_panel = "ptm_mod_id_pd_panel",
+  ptm_mod_id_spec_panel = "ptm_mod_id_spec_panel",
+  dia_umpire_upload_panel = "dia_umpire_upload_panel",
+  label_free_options_panel = "label_free_options_panel",
+  openswath_mscore_panel = "openswath_mscore_panel",
+  openswath_mscore_cutoff_panel = "openswath_mscore_cutoff_panel",
+  # Phase 2 renderUI slot — the TMT which.proteinid duplicate-ns()-id case.
+  tmt_options_ui = "tmt_options_ui"
 )
 
 NAMESPACE_EXPDES = list(
