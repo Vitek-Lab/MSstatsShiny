@@ -1,21 +1,4 @@
-# ============================================================================
-# Loadpage — preview data + DIANN auto-detection + Metamorpheus mod-ID UI
-# ============================================================================
-#
-# Extracted from R/module-loadpage-server.R by the Phase 2 server split.
-# Pure cut-and-paste: no behavior change, no reactivity timing change, no
-# input-ID renames. Owns:
-#   - `preview_data` reactiveVal (first 100 rows of the selected file)
-#   - `last_detected_diann_format` reactiveVal
-#   - `main_data_file` reactive (filetype → fileInput reactive)
-#   - the preview-fetch observer
-#   - the DIANN 2.0+ auto-toggle observer
-#   - the manual-override mismatch warning observeEvent
-#   - `output$mod_id_meta_ui` renderUI (depends on preview_data)
-#   - `output$mod_id_meta_other_input` renderUI
-#
-# Returns the `preview_data` reactive (invisibly) so future helpers can read
-# it if needed.
+# Loadpage preview cluster: first-100-row preview, DIANN version auto-detection, and the Metamorpheus modification-ID UI.
 
 
 #' Register the loadpage preview cluster.

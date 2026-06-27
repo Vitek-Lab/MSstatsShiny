@@ -91,7 +91,7 @@ create_header_content <- function() {
 #' Create conditional descriptions for sample datasets
 #' Visibility is driven server-side by
 #' `register_loadpage_visibility_observers` (see
-#' `R/loadpage-server-rendering.R`); each description sits in a hidden div
+#' `R/loadpage-server-converter-options-panel.R`); each description sits in a hidden div
 #' that the observer toggles on `filetype == 'sample' && LabelFreeType == <mode>`.
 #' @noRd
 create_sample_dataset_descriptions <- function(ns) {
@@ -770,7 +770,7 @@ create_processing_options <- function(ns) {
 #' exclusive `conditionalPanel`s with different defaults (PD ->
 #' "Protein.Accessions", MaxQuant -> "Proteins"). Mounting both as hidden
 #' divs would collide on a single ns() id. The single
-#' `output[[tmt_options_ui]]` renderUI in R/loadpage-server-rendering.R
+#' `output[[tmt_options_ui]]` renderUI in R/loadpage-server-converter-options-panel.R
 #' replaces both panels — it emits one textInput with the converter-
 #' appropriate default on first build and carries the user's typed value
 #' across filetype flips via isolate().
@@ -804,7 +804,7 @@ create_label_free_options <- function(ns) {
     )),
 
     # DIANN specific options — visibility driven server-side
-    # (R/loadpage-server-rendering.R::register_loadpage_visibility_observers).
+    # (R/loadpage-server-converter-options-panel.R::register_loadpage_visibility_observers).
     shinyjs::hidden(div(
       id = ns(NAMESPACE_LOADPAGE$diann_lf_options_panel),
       checkboxInput(ns(NAMESPACE_LOADPAGE$diann_2plus), "DIANN 2.0+", value = FALSE),
@@ -854,7 +854,7 @@ create_quality_filtering_options <- function(ns) {
     # cannot survive a rebuild. Today's `conditionalPanel` keeps the static
     # tree at `display:none` whenever the big-file path is active, leaving
     # only the renderUI'd big-file copy mounted — which is what we want.
-    # See R/loadpage-server-rendering.R for the broader carveout note.
+    # See R/loadpage-server-converter-options-panel.R for the broader carveout note.
     conditionalPanel(
       condition = "input['loadpage-filetype'] == 'spec'",
       checkboxInput(ns("calculate_anomaly_scores"),

@@ -1,45 +1,8 @@
-# ============================================================================
-# Loadpage — server-side visibility predicates and observer registration
-# ============================================================================
-#
-# Phase 1 (DIANN cluster) and Phase 2 (the rest) of the loadpage refactor that
-# moved conditional UI off `conditionalPanel` and onto server-side
-# `shinyjs::show/hide`. All container divs in `R/module-loadpage-ui.R` are
-# mounted unconditionally via `shinyjs::hidden(div(id = ns(...), ...))`;
-# `register_loadpage_visibility_observers` below installs one
-# `observe({ shinyjs::toggle(...) })` per container, driven by a pure
-# predicate.
-#
-# Why show/hide (the default), not renderUI:
-#   - panels contain inputs whose values must persist across visibility flips,
-#   - `R/utils.R::getData` / `getDataCode` read many of those input IDs by
-#     literal string at `input$proceed1`, and would see NULL on a destroyed-
-#     and-rebuilt input.
-#
-# The one renderUI exception is the TMT `which.proteinid` text field: two
-# pre-existing `conditionalPanel`s both declared `ns("which.proteinid")` with
-# different defaults (one for PD, one for MaxQuant). Mounting both as hidden
-# divs would deterministically collide on a single ns() id. The exception is
-# implemented as `output[[tmt_options_ui]] <- renderUI({...})` below; the
-# rebuild always preserves the user's current value via `isolate()` and only
-# falls back to the converter-appropriate default on the very first build
-# (when no user value exists yet).
-#
-# Two `conditionalPanel`s are intentionally NOT migrated and remain in the UI
-# file (Spectronaut regular-path anomaly checkbox + nested run-order
-# fileInput, see the carveout comments in `R/module-loadpage-ui.R`). They
-# share `ns("calculate_anomaly_scores")` / `ns("run_order_file")` with the
-# big-file Spectronaut helper that the pre-existing
-# `output$spectronaut_options_ui` renderUI emits, and routing them to
-# renderUI would lose the user's uploaded run-order CSV (fileInput state
-# cannot be re-seeded on rebuild).
-#
-# All helpers are internal (`@noRd`); predicates are pure (no Shiny
-# reactivity) so they can be exercised with truth-table tests.
+# Loadpage converter-options panel: pure visibility predicates + their server-side show/hide observers, the TMT which.proteinid renderUI, and the Spectronaut/DIANN converter renderUIs.
 
 
 # ----------------------------------------------------------------------------
-# Phase 1 predicates (DIANN cluster). Unchanged from the Phase 1 commit.
+# DIANN-cluster visibility predicates.
 # ----------------------------------------------------------------------------
 
 #' @noRd
@@ -88,9 +51,8 @@ loadpage_show_big_diann_anomaly_run_order <- function(big_diann_calculate_anomal
 
 
 # ----------------------------------------------------------------------------
-# Phase 2 predicates (everything else). Each mirrors a previous
-# `conditionalPanel(condition = "...")` JS expression including the full
-# ancestor chain for nested cases.
+# Visibility predicates for the remaining converter and upload panels. Each
+# encodes the full ancestor chain so a nested panel hides when an ancestor does.
 # ----------------------------------------------------------------------------
 
 #' Sample dataset description (parameterized for DDA / DIA / SRM_PRM).
@@ -137,9 +99,9 @@ loadpage_show_msstats_regular_upload <- function(filetype, bio, dda_dia) {
     !isTRUE(dda_dia == "TMT")
 }
 
-#' Pre-formatted MSstatsPTM CSV upload — PTM path only. (The original JS
-#' condition had a redundant `|| (BIO=='PTM' && DDA_DIA=='TMT')` clause that
-#' was tautologically true whenever `BIO=='PTM'`; it collapses away here.)
+#' Pre-formatted MSstatsPTM CSV upload — PTM path only. (A
+#' `|| (BIO=='PTM' && DDA_DIA=='TMT')` term would be redundant — tautological
+#' whenever `BIO=='PTM'` — so the predicate omits it.)
 #' @noRd
 loadpage_show_msstats_ptm_upload <- function(filetype, bio) {
   isTRUE(filetype == "msstats") && isTRUE(bio == "PTM")
@@ -163,8 +125,8 @@ loadpage_show_maxquant_upload <- function(filetype, bio, dda_dia) {
 }
 
 #' Shared PTM uploads block (PTM Input / Annot / FASTA / Unmod Protein).
-#' Original JS had a redundant `|| (BIO=='PTM' && DDA_DIA=='TMT')` term —
-#' collapses to `BIO=='PTM' && filetype ∈ ...`.
+#' A `|| (BIO=='PTM' && DDA_DIA=='TMT')` term would be redundant (tautological
+#' whenever `BIO=='PTM'`), so the predicate is `BIO=='PTM' && filetype ∈ ...`.
 #' @noRd
 loadpage_show_ptm_uploads <- function(filetype, bio) {
   isTRUE(bio == "PTM") &&
@@ -314,18 +276,22 @@ loadpage_seed_proteinid <- function(incoming_filetype,
 # Unified registration helper.
 # ----------------------------------------------------------------------------
 
-#' Register every loadpage visibility observer (Phase 1 + Phase 2) plus the
-#' single TMT `which.proteinid` renderUI exception.
+#' Register every loadpage visibility observer plus the single TMT
+#' `which.proteinid` renderUI exception. Call once from `loadpageServer`'s
+#' `moduleServer` scope.
 #'
-#' Replaces Phase 1's `register_diann_visibility_observers`. Call once from
-#' `loadpageServer`'s `moduleServer` scope.
+#' Panels are shown/hidden with `shinyjs` rather than rebuilt with `renderUI`:
+#' `getData` / `getDataCode` read input IDs by literal string, so a `renderUI`
+#' rebuild would destroy a hidden input and feed `getData` NULL at proceed
+#' time, and would also reset values the user typed and drop uploaded files.
+#' show/hide keeps the inputs mounted so their state is preserved.
 #'
 #' @param input   the Shiny module's `input` object
 #' @param output  the Shiny module's `output` object (for the TMT renderUI)
 #' @param session the Shiny module's `session` (for `session$ns`)
 #' @noRd
 register_loadpage_visibility_observers <- function(input, output, session) {
-  # --- Phase 1: DIANN cluster ------------------------------------------------
+  # --- DIANN cluster ---------------------------------------------------------
   observe({
     shinyjs::toggle(
       NAMESPACE_LOADPAGE$diann_lf_options_panel,
@@ -396,7 +362,7 @@ register_loadpage_visibility_observers <- function(input, output, session) {
     )
   })
 
-  # --- Phase 2: sample-dataset descriptions + LabelFreeType picker ----------
+  # --- Sample-dataset descriptions + LabelFreeType picker -------------------
   observe({
     shinyjs::toggle(
       NAMESPACE_LOADPAGE$sample_dda_description_panel,
@@ -438,7 +404,7 @@ register_loadpage_visibility_observers <- function(input, output, session) {
     )
   })
 
-  # --- Phase 2: non-PTM converter uploads ------------------------------------
+  # --- Non-PTM converter uploads ---------------------------------------------
   observe({
     shinyjs::toggle(
       NAMESPACE_LOADPAGE$standard_quant_upload_panel,
@@ -507,7 +473,7 @@ register_loadpage_visibility_observers <- function(input, output, session) {
     )
   })
 
-  # --- Phase 2: PTM converter cluster ---------------------------------------
+  # --- PTM converter cluster -------------------------------------------------
   observe({
     shinyjs::toggle(
       NAMESPACE_LOADPAGE$ptm_uploads_panel,
@@ -572,7 +538,7 @@ register_loadpage_visibility_observers <- function(input, output, session) {
     )
   })
 
-  # --- Phase 2: DIA-Umpire + label-free options + OpenSWATH M-score ---------
+  # --- DIA-Umpire + label-free options + OpenSWATH M-score -------------------
   observe({
     shinyjs::toggle(
       NAMESPACE_LOADPAGE$dia_umpire_upload_panel,
@@ -610,7 +576,7 @@ register_loadpage_visibility_observers <- function(input, output, session) {
     )
   })
 
-  # --- Phase 2: TMT which.proteinid renderUI (the duplicate-ns()-id case) ----
+  # --- TMT which.proteinid renderUI (the duplicate-ns()-id case) -------------
   #
   # Two `conditionalPanel`s previously declared the same ns("which.proteinid")
   # with different defaults (PD: "Protein.Accessions", MaxQuant: "Proteins").
@@ -654,27 +620,11 @@ register_loadpage_visibility_observers <- function(input, output, session) {
 }
 
 
-# ============================================================================
-# Pre-Phase-1 converter renderUIs + file-type availability observer.
-#
-# Moved from R/module-loadpage-server.R by the Phase 2 server split. Pure
-# cut-and-paste: no behavior change, no reactivity timing change. These
-# renderUIs were in the orchestrator before; they're co-located here with
-# the other UI-rendering helpers for navigability. Reads `is_web_server`
-# and `app_template` from the outer module, so the registration helper
-# below takes them as args.
-#
-# Includes the file-type availability observer (the radio-disable +
-# `runjs` opacity block, originally at module-loadpage-server.R:347-400).
-# It is UI state, not predicate-driven visibility, so it stays a plain
-# observer with no corresponding `loadpage_show_*` predicate.
-# ============================================================================
+# Spectronaut/DIANN converter renderUIs + the file-type availability observer (radio-disable + opacity; UI state, so no `loadpage_show_*` predicate).
 
 
-#' Register the pre-existing Spectronaut/DIANN converter renderUIs + the
-#' Metamorpheus mod-ID renderUI's wrappers were moved into
-#' `register_loadpage_preview` since they depend on the preview reactive.
-#' What stays here is everything else that doesn't need preview_data.
+#' Register the Spectronaut and DIANN converter renderUIs and the file-type
+#' availability observer.
 #'
 #' @param input          the Shiny module's `input` object
 #' @param output         the Shiny module's `output` object
@@ -850,8 +800,7 @@ register_loadpage_converter_ui <- function(input, output, session,
   # File-type availability — disable converter radios that don't fit the
   # current (BIO, DDA_DIA) combo, and dim them via the `runjs` opacity hack.
   # UI state only, not predicate-driven visibility (no `loadpage_show_*`
-  # predicate). Moved from module-loadpage-server.R verbatim except for the
-  # debug `print()` lines that the original carried.
+  # predicate).
   observe({
     if ((input$BIO == "Protein" || input$BIO == "Peptide") && input$DDA_DIA == "LType") {
       runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")

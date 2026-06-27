@@ -1,22 +1,4 @@
-# ============================================================================
-# Loadpage — data-loading reactives + download MSstats handler + summaries
-# ============================================================================
-#
-# Extracted from R/module-loadpage-server.R by the Phase 2 server split.
-# Pure cut-and-paste: no behavior change, no reactivity timing change, no
-# input-ID renames. Owns:
-#   - 11 single-file wrapper reactives (`get_annot`, `get_annot1/2/3`,
-#     `get_evidence`, `get_evidence2`, `get_global`, `get_proteinGroups`,
-#     `get_proteinGroups2`, `get_FragSummary`, `get_peptideSummary`,
-#     `get_protSummary`, `get_maxq_ptm_sites`)
-#   - the lynchpin `get_data` eventReactive (triggered on `proceed1`)
-#   - the download_msstats_format downloadHandler + its enable/disable
-#     observers
-#   - `get_data_code` (triggered on `calculate`)
-#   - `get_summary1`, `get_summary2` (triggered on `proceed1`)
-#
-# Returns a named list of reactives the summary helper and the orchestrator
-# (for the public return value) read.
+# Loadpage data-loading reactives + the MSstats-format download handler.
 
 
 #' Register the loadpage data-loading reactives + download handler.
@@ -24,10 +6,9 @@
 #' @param input   the Shiny module's `input` object
 #' @param output  the Shiny module's `output` object
 #' @param session the Shiny module's `session`
-#' @return        named list with `get_data`, `get_annot`, `get_summary1`,
-#'                `get_summary2`, `get_data_code` (and the other single-file
-#'                wrappers if the orchestrator or any future helper needs
-#'                them)
+#' @return        named list with `get_data`, `get_annot`, `get_data_code`
+#'                (and the other single-file wrappers if the orchestrator or
+#'                any future helper needs them)
 #' @noRd
 register_loadpage_data_loaders <- function(input, output, session) {
 
@@ -147,14 +128,6 @@ register_loadpage_data_loaders <- function(input, output, session) {
     getDataCode(input)
   })
 
-  get_summary1 <- eventReactive(input$proceed1, {
-    getSummary1(input, get_data(), get_annot())
-  })
-
-  get_summary2 <- eventReactive(input$proceed1, {
-    getSummary2(input, get_data())
-  })
-
   list(
     get_annot = get_annot,
     get_annot1 = get_annot1,
@@ -170,8 +143,6 @@ register_loadpage_data_loaders <- function(input, output, session) {
     get_protSummary = get_protSummary,
     get_maxq_ptm_sites = get_maxq_ptm_sites,
     get_data = get_data,
-    get_data_code = get_data_code,
-    get_summary1 = get_summary1,
-    get_summary2 = get_summary2
+    get_data_code = get_data_code
   )
 }

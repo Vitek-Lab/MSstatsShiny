@@ -1,14 +1,4 @@
-# ============================================================================
-# Loadpage — `proceed1` button enable/disable cascade
-# ============================================================================
-#
-# Extracted from R/module-loadpage-server.R by the Phase 2 server split.
-# Pure cut-and-paste: the deeply nested `observe()` block that gates the
-# Upload Data button against the active (BIO, DDA_DIA, filetype, file-upload
-# state) combination is preserved verbatim. The two big-file path reactives
-# (`local_big_file_path`, `local_big_diann_path`) originate in the
-# shinyFiles block — they stay in the orchestrator and are passed in as
-# function arguments here.
+# Loadpage `proceed1` (Upload Data) button enable/disable cascade.
 
 
 #' Register the `proceed1` enable cascade.

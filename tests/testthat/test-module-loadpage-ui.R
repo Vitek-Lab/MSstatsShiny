@@ -585,7 +585,7 @@ test_that("DIANN big-file gating now lives in the server predicate, not a JS con
     grepl("loadpage-big_file_diann", html_output, fixed = TRUE),
     info = paste("Static UI should no longer encode a `big_file_diann` JS",
                  "condition string; gating moved to server predicates in",
-                 "R/loadpage-server-rendering.R")
+                 "R/loadpage-server-converter-options-panel.R")
   )
 })
 

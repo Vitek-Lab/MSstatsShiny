@@ -62,12 +62,10 @@ CONSTANTS_STATMODEL = list(
 )
 
 NAMESPACE_LOADPAGE = list(
-  # Cross-module public IDs (read from outside the loadpage module).
   bio = "BIO",
   dda_dia = "DDA_DIA",
   filetype = "filetype",
   proceed1 = "proceed1",
-  # DIANN-cluster IDs migrated to server-side show/hide in Phase 1.
   big_file_diann = "big_file_diann",
   big_diann_calculate_anomaly_scores = "big_diann_calculate_anomaly_scores",
   big_diann_run_order_file = "big_diann_run_order_file",
@@ -78,13 +76,11 @@ NAMESPACE_LOADPAGE = list(
   mbr = "MBR",
   diann_calculate_anomaly_scores = "diann_calculate_anomaly_scores",
   diann_run_order_file = "diann_run_order_file",
-  # Driver IDs introduced (i.e. centralized) in Phase 2.
   big_file_spec = "big_file_spec",
   label_free_type = "LabelFreeType",
   calculate_anomaly_scores = "calculate_anomaly_scores",
   m_score = "m_score",
   which_proteinid = "which.proteinid",
-  # Phase 1 container IDs (visibility divs).
   diann_lf_options_panel = "diann_lf_options_panel",
   diann_intensity_column_panel = "diann_intensity_column_panel",
   qval_filter_panel = "qval_filter_panel",
@@ -93,7 +89,6 @@ NAMESPACE_LOADPAGE = list(
   diann_anomaly_panel = "diann_anomaly_panel",
   diann_anomaly_run_order_panel = "diann_anomaly_run_order_panel",
   big_diann_anomaly_run_order_panel = "big_diann_anomaly_run_order_panel",
-  # Phase 2 container IDs (visibility divs introduced by the broader sweep).
   sample_dda_description_panel = "sample_dda_description_panel",
   sample_dia_description_panel = "sample_dia_description_panel",
   sample_srm_prm_description_panel = "sample_srm_prm_description_panel",
@@ -116,7 +111,6 @@ NAMESPACE_LOADPAGE = list(
   label_free_options_panel = "label_free_options_panel",
   openswath_mscore_panel = "openswath_mscore_panel",
   openswath_mscore_cutoff_panel = "openswath_mscore_cutoff_panel",
-  # Phase 2 renderUI slot — the TMT which.proteinid duplicate-ns()-id case.
   tmt_options_ui = "tmt_options_ui"
 )
 

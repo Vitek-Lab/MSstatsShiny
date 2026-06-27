@@ -1,21 +1,4 @@
-# ============================================================================
-# Loadpage — condition_metadata DT editor + post-`proceed1` onclick handler
-# ============================================================================
-#
-# Extracted from R/module-loadpage-server.R by the Phase 2 server split.
-# Pure cut-and-paste. Owns:
-#   - the condition_metadata DT cell-edit observeEvent
-#   - `output$condition_metadata_table` renderDT
-#   - the `onclick("proceed1", { ... })` block (post-proceed setup,
-#     condition_metadata initialization per template, summary outputs, and
-#     the nested `onclick("proceed2", ...)` that flips the parent tabset)
-#
-# The orchestrator owns the `condition_metadata` reactiveVal because the
-# summary helper and the rest of the page (via the public return value)
-# both share it. It is passed in as `condition_metadata` below. The
-# data-loading reactives the summary helper reads
-# (`get_data`, `get_annot`, `get_summary1`, `get_summary2`) come in via
-# `data_reactives` from `register_loadpage_data_loaders()`.
+# Loadpage condition-metadata DT editor + the post-`proceed1` summary outputs and experimental-design summary statistics (number of conditions, number of replicates, etc.).
 
 
 #' Register the loadpage post-`proceed1` summary cluster.
@@ -27,8 +10,7 @@
 #'                           switch in `onclick("proceed2")`)
 #' @param app_template       reactive (or NULL) returning the active template
 #' @param data_reactives     named list from `register_loadpage_data_loaders`;
-#'                           the helper consumes `get_data`, `get_annot`,
-#'                           `get_summary1`, `get_summary2`
+#'                           the helper consumes `get_data`, `get_annot`
 #' @param condition_metadata `reactiveVal` owned by the orchestrator
 #' @noRd
 register_loadpage_summary <- function(input, output, session, parent_session,
@@ -38,8 +20,14 @@ register_loadpage_summary <- function(input, output, session, parent_session,
 
   get_data    <- data_reactives$get_data
   get_annot   <- data_reactives$get_annot
-  get_summary1 <- data_reactives$get_summary1
-  get_summary2 <- data_reactives$get_summary2
+
+  get_summary1 <- eventReactive(input$proceed1, {
+    getSummary1(input, get_data(), get_annot())
+  })
+
+  get_summary2 <- eventReactive(input$proceed1, {
+    getSummary2(input, get_data())
+  })
 
   # Handle edits to the condition metadata DT table
   observeEvent(input$condition_metadata_table_cell_edit, {
