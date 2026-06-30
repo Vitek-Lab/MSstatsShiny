@@ -18,18 +18,6 @@ loadpage_show_diann_intensity_column <- function(diann_2plus) {
 }
 
 #' @noRd
-loadpage_show_qval_filter <- function(filetype, big_file_diann) {
-  isTRUE(filetype == "sky") ||
-    isTRUE(filetype == "spec") ||
-    (isTRUE(filetype == "diann") && !isTRUE(big_file_diann))
-}
-
-#' @noRd
-loadpage_show_qval_cutoff <- function(q_val) {
-  isTRUE(q_val)
-}
-
-#' @noRd
 loadpage_show_diann_mbr <- function(q_val, filetype) {
   isTRUE(q_val) && isTRUE(filetype == "diann")
 }
@@ -51,20 +39,40 @@ loadpage_show_big_diann_anomaly_run_order <- function(big_diann_calculate_anomal
 
 
 # ----------------------------------------------------------------------------
+# Shared / cross-converter visibility predicates. These gate panels shown under
+# more than one converter — e.g. the q-value filter applies to Skyline,
+# Spectronaut, and small-file DIANN — so they live here rather than under any
+# single converter's section.
+# ----------------------------------------------------------------------------
+
+#' @noRd
+loadpage_show_qval_filter <- function(filetype, big_file_diann) {
+  isTRUE(filetype == "sky") ||
+    isTRUE(filetype == "spec") ||
+    (isTRUE(filetype == "diann") && !isTRUE(big_file_diann))
+}
+
+#' @noRd
+loadpage_show_qval_cutoff <- function(q_val) {
+  isTRUE(q_val)
+}
+
+
+# ----------------------------------------------------------------------------
 # Visibility predicates for the remaining converter and upload panels. Each
 # encodes the full ancestor chain so a nested panel hides when an ancestor does.
 # ----------------------------------------------------------------------------
 
 #' Sample dataset description (parameterized for DDA / DIA / SRM_PRM).
 #' @noRd
-loadpage_show_sample_dataset_description <- function(filetype, label_free_type, mode) {
-  isTRUE(filetype == "sample") && isTRUE(label_free_type == mode)
+loadpage_show_sample_dataset_description <- function(filetype, label_free_type, label_free_mode) {
+  isTRUE(filetype == "sample") && isTRUE(label_free_type == label_free_mode)
 }
 
 #' The LabelFreeType radio (DDA / DIA / SRM_PRM picker) is itself shown only
 #' for the sample-dataset label-free workflow.
 #' @noRd
-loadpage_show_label_free_type_selection <- function(bio, filetype, dda_dia) {
+loadpage_show_sample_dataset_label_free_type_selector <- function(bio, filetype, dda_dia) {
   !isTRUE(bio == "PTM") &&
     isTRUE(filetype == "sample") &&
     isTRUE(dda_dia == "LType")
@@ -93,7 +101,7 @@ loadpage_show_standard_annot_upload <- function(filetype, bio, big_file_spec, bi
 
 #' Pre-formatted MSstats CSV upload — label-free path only.
 #' @noRd
-loadpage_show_msstats_regular_upload <- function(filetype, bio, dda_dia) {
+loadpage_show_msstats_label_free_upload <- function(filetype, bio, dda_dia) {
   isTRUE(filetype == "msstats") &&
     !isTRUE(bio == "PTM") &&
     !isTRUE(dda_dia == "TMT")
@@ -396,7 +404,7 @@ register_loadpage_visibility_observers <- function(input, output, session) {
   observe({
     shinyjs::toggle(
       NAMESPACE_LOADPAGE$label_free_type_selection_panel,
-      condition = loadpage_show_label_free_type_selection(
+      condition = loadpage_show_sample_dataset_label_free_type_selector(
         input[[NAMESPACE_LOADPAGE$bio]],
         input[[NAMESPACE_LOADPAGE$filetype]],
         input[[NAMESPACE_LOADPAGE$dda_dia]]
@@ -428,7 +436,7 @@ register_loadpage_visibility_observers <- function(input, output, session) {
   observe({
     shinyjs::toggle(
       NAMESPACE_LOADPAGE$msstats_regular_upload_panel,
-      condition = loadpage_show_msstats_regular_upload(
+      condition = loadpage_show_msstats_label_free_upload(
         input[[NAMESPACE_LOADPAGE$filetype]],
         input[[NAMESPACE_LOADPAGE$bio]],
         input[[NAMESPACE_LOADPAGE$dda_dia]]

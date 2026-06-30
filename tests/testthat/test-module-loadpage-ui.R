@@ -309,7 +309,7 @@ test_that("create_label_free_type_selection wraps the LabelFreeType radio in a h
   # Phase 2: the conditionalPanel was replaced with
   # `shinyjs::hidden(div(id = ns(NAMESPACE_LOADPAGE$label_free_type_selection_panel), ...))`.
   # The BIO / filetype / DDA_DIA gating is now in
-  # `loadpage_show_label_free_type_selection()` (server-side).
+  # `loadpage_show_sample_dataset_label_free_type_selector()` (server-side).
   selection <- create_label_free_type_selection(NS("test"))
   selection_html <- as.character(selection)
 

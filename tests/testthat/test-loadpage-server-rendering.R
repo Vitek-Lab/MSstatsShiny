@@ -134,9 +134,9 @@ test_that("loadpage_show_sample_dataset_description matches one mode at a time",
   }
 })
 
-test_that("loadpage_show_label_free_type_selection requires non-PTM + sample + LType", {
-  expect_true(MSstatsShiny:::loadpage_show_label_free_type_selection("Protein", "sample", "LType"))
-  expect_true(MSstatsShiny:::loadpage_show_label_free_type_selection("Peptide", "sample", "LType"))
+test_that("loadpage_show_sample_dataset_label_free_type_selector requires non-PTM + sample + LType", {
+  expect_true(MSstatsShiny:::loadpage_show_sample_dataset_label_free_type_selector("Protein", "sample", "LType"))
+  expect_true(MSstatsShiny:::loadpage_show_sample_dataset_label_free_type_selector("Peptide", "sample", "LType"))
 
   # NULL bio behaves like "not PTM" by design — the original JS condition
   # `input['loadpage-BIO'] != 'PTM'` is TRUE for unset BIO (in JS,
@@ -144,11 +144,11 @@ test_that("loadpage_show_label_free_type_selection requires non-PTM + sample + L
   # the LabelFreeType selector at startup once `filetype=='sample'` and
   # `DDA_DIA=='LType'` were selected even if BIO was still untouched. The
   # predicate mirrors that behavior; do not regress it.
-  expect_true(MSstatsShiny:::loadpage_show_label_free_type_selection(NULL, "sample", "LType"))
+  expect_true(MSstatsShiny:::loadpage_show_sample_dataset_label_free_type_selector(NULL, "sample", "LType"))
 
-  expect_false(MSstatsShiny:::loadpage_show_label_free_type_selection("PTM", "sample", "LType"))
-  expect_false(MSstatsShiny:::loadpage_show_label_free_type_selection("Protein", "diann", "LType"))
-  expect_false(MSstatsShiny:::loadpage_show_label_free_type_selection("Protein", "sample", "TMT"))
+  expect_false(MSstatsShiny:::loadpage_show_sample_dataset_label_free_type_selector("PTM", "sample", "LType"))
+  expect_false(MSstatsShiny:::loadpage_show_sample_dataset_label_free_type_selector("Protein", "diann", "LType"))
+  expect_false(MSstatsShiny:::loadpage_show_sample_dataset_label_free_type_selector("Protein", "sample", "TMT"))
 })
 
 test_that("loadpage_show_standard_quant_upload covers non-PTM converters only", {
@@ -183,12 +183,12 @@ test_that("loadpage_show_standard_annot_upload — Spectronaut/DIANN gated by bi
   expect_false(MSstatsShiny:::loadpage_show_standard_annot_upload(NULL,     "Protein", FALSE, FALSE))
 })
 
-test_that("loadpage_show_msstats_regular_upload is non-PTM label-free only", {
-  expect_true(MSstatsShiny:::loadpage_show_msstats_regular_upload("msstats", "Protein", "LType"))
-  expect_true(MSstatsShiny:::loadpage_show_msstats_regular_upload("msstats", "Peptide", "LType"))
-  expect_false(MSstatsShiny:::loadpage_show_msstats_regular_upload("msstats", "Protein", "TMT"))
-  expect_false(MSstatsShiny:::loadpage_show_msstats_regular_upload("msstats", "PTM",     "LType"))
-  expect_false(MSstatsShiny:::loadpage_show_msstats_regular_upload("diann",   "Protein", "LType"))
+test_that("loadpage_show_msstats_label_free_upload is non-PTM label-free only", {
+  expect_true(MSstatsShiny:::loadpage_show_msstats_label_free_upload("msstats", "Protein", "LType"))
+  expect_true(MSstatsShiny:::loadpage_show_msstats_label_free_upload("msstats", "Peptide", "LType"))
+  expect_false(MSstatsShiny:::loadpage_show_msstats_label_free_upload("msstats", "Protein", "TMT"))
+  expect_false(MSstatsShiny:::loadpage_show_msstats_label_free_upload("msstats", "PTM",     "LType"))
+  expect_false(MSstatsShiny:::loadpage_show_msstats_label_free_upload("diann",   "Protein", "LType"))
 })
 
 test_that("loadpage_show_msstats_ptm_upload is PTM only (collapsed TMT clause)", {
