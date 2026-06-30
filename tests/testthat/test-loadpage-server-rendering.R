@@ -451,6 +451,27 @@ test_that("loadpage_seed_proteinid: full acceptance-test sequence (PD <-> MaxQua
 
 
 # ----------------------------------------------------------------------------
+# Post-proceed1 summary-table predicates (BIO-driven). NULL bio behaves like
+# "not PTM" — mirroring the original `input['loadpage-BIO'] !== 'PTM'` JS — so
+# the non-PTM summary shows and the PTM summary hides when BIO is unset.
+# ----------------------------------------------------------------------------
+
+test_that("loadpage_show_nonptm_summary is TRUE for non-PTM (incl. NULL), FALSE for PTM", {
+  expect_true(MSstatsShiny:::loadpage_show_nonptm_summary("Protein"))
+  expect_true(MSstatsShiny:::loadpage_show_nonptm_summary("Peptide"))
+  expect_true(MSstatsShiny:::loadpage_show_nonptm_summary(NULL))
+  expect_false(MSstatsShiny:::loadpage_show_nonptm_summary("PTM"))
+})
+
+test_that("loadpage_show_ptm_summary is TRUE only for PTM (NULL -> FALSE)", {
+  expect_true(MSstatsShiny:::loadpage_show_ptm_summary("PTM"))
+  expect_false(MSstatsShiny:::loadpage_show_ptm_summary("Protein"))
+  expect_false(MSstatsShiny:::loadpage_show_ptm_summary("Peptide"))
+  expect_false(MSstatsShiny:::loadpage_show_ptm_summary(NULL))
+})
+
+
+# ----------------------------------------------------------------------------
 # Phase 2 namespace assertions — every new container/driver id matches the
 # literal string `R/utils.R` (or the UI ns(...) wrappers) read.
 # ----------------------------------------------------------------------------
@@ -490,6 +511,9 @@ test_that("NAMESPACE_LOADPAGE — Phase 2 container IDs match their UI div IDs",
   expect_equal(NAMESPACE_LOADPAGE$label_free_options_panel,        "label_free_options_panel")
   expect_equal(NAMESPACE_LOADPAGE$openswath_mscore_panel,          "openswath_mscore_panel")
   expect_equal(NAMESPACE_LOADPAGE$openswath_mscore_cutoff_panel,   "openswath_mscore_cutoff_panel")
+  # Post-proceed1 summary tables
+  expect_equal(NAMESPACE_LOADPAGE$summary_nonptm_panel,            "summary_nonptm_panel")
+  expect_equal(NAMESPACE_LOADPAGE$summary_ptm_panel,               "summary_ptm_panel")
   # TMT renderUI slot
   expect_equal(NAMESPACE_LOADPAGE$tmt_options_ui,                  "tmt_options_ui")
 })

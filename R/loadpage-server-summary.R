@@ -203,17 +203,17 @@ register_loadpage_summary <- function(input, output, session, parent_session,
         h4("Summary of dataset"),
         tableOutput(ns("summary2")),
         tags$br(),
-        conditionalPanel(condition = "input['loadpage-BIO'] !== 'PTM'",
+        shinyjs::hidden(div(id = ns(NAMESPACE_LOADPAGE$summary_nonptm_panel),
                          h4("Top 6 rows of the dataset"),
                          div(style = "overflow-x: auto;", tableOutput(ns("summary")))
-        ),
-        conditionalPanel(condition = "input['loadpage-BIO'] == 'PTM'",
+        )),
+        shinyjs::hidden(div(id = ns(NAMESPACE_LOADPAGE$summary_ptm_panel),
                          h4("Top 6 rows of the PTM dataset"),
                          div(style = "overflow-x: auto;", tableOutput(ns("summary_ptm"))),
                          tags$br(),
                          h4("Top 6 rows of the unmodified protein dataset"),
                          div(style = "overflow-x: auto;", tableOutput(ns("summary_prot")))
-        )
+        ))
       )
     })
 

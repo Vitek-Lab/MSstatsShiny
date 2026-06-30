@@ -111,6 +111,8 @@ NAMESPACE_LOADPAGE = list(
   label_free_options_panel = "label_free_options_panel",
   openswath_mscore_panel = "openswath_mscore_panel",
   openswath_mscore_cutoff_panel = "openswath_mscore_cutoff_panel",
+  summary_nonptm_panel = "summary_nonptm_panel",
+  summary_ptm_panel = "summary_ptm_panel",
   tmt_options_ui = "tmt_options_ui"
 )
 

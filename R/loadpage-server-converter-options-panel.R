@@ -281,6 +281,25 @@ loadpage_seed_proteinid <- function(incoming_filetype,
 
 
 # ----------------------------------------------------------------------------
+# Post-proceed1 summary-table visibility predicates (BIO-driven). These gate
+# the dataset-preview panels rendered after `proceed1`: the standard summary for
+# non-PTM data, and the PTM + unmodified-protein summaries for PTM data. NULL
+# bio reads as non-PTM, mirroring the original `input['loadpage-BIO'] !== 'PTM'`
+# JS condition.
+# ----------------------------------------------------------------------------
+
+#' @noRd
+loadpage_show_nonptm_summary <- function(bio) {
+  !isTRUE(bio == "PTM")
+}
+
+#' @noRd
+loadpage_show_ptm_summary <- function(bio) {
+  isTRUE(bio == "PTM")
+}
+
+
+# ----------------------------------------------------------------------------
 # Unified registration helper.
 # ----------------------------------------------------------------------------
 
@@ -580,6 +599,34 @@ register_loadpage_visibility_observers <- function(input, output, session) {
       condition = loadpage_show_openswath_mscore_cutoff(
         input[[NAMESPACE_LOADPAGE$filetype]],
         input[[NAMESPACE_LOADPAGE$m_score]]
+      )
+    )
+  })
+
+  # --- Post-proceed1 summary tables (BIO-driven) -----------------------------
+  # Unlike the static converter panels above, these two divs are emitted by the
+  # `summary_tables` renderUI in `register_loadpage_summary`, which (re)builds
+  # only when `proceed1` fires — so they do not exist at the app's first flush.
+  # Each observer therefore also takes a dependency on `proceed1`, so it
+  # re-fires once the renderUI has (re)mounted the divs and applies the correct
+  # initial visibility. (Shiny applies output values before custom messages
+  # within a response, so the toggle lands after the divs are inserted.) BIO is
+  # read the same way as the other BIO-driven predicates.
+  observe({
+    input[[NAMESPACE_LOADPAGE$proceed1]]
+    shinyjs::toggle(
+      NAMESPACE_LOADPAGE$summary_nonptm_panel,
+      condition = loadpage_show_nonptm_summary(
+        input[[NAMESPACE_LOADPAGE$bio]]
+      )
+    )
+  })
+  observe({
+    input[[NAMESPACE_LOADPAGE$proceed1]]
+    shinyjs::toggle(
+      NAMESPACE_LOADPAGE$summary_ptm_panel,
+      condition = loadpage_show_ptm_summary(
+        input[[NAMESPACE_LOADPAGE$bio]]
       )
     )
   })
