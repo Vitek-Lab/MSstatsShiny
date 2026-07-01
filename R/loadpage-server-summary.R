@@ -118,26 +118,6 @@ register_loadpage_summary <- function(input, output, session, parent_session,
       data_summary <- describe(data1)
     })
 
-    output$template <- downloadHandler(
-      filename = "extdata/templateannotation.csv",
-
-      content = function(file) {
-        file.copy("extdata/templateannotation.csv", file)
-      },
-      contentType = "csv"
-    )
-
-    output$template1 <- downloadHandler(
-      filename = function() {
-        paste("extdata/templateevidence", "txt", sep = ".")
-      },
-
-      content = function(file) {
-        file.copy("extdata/templateevidence.txt", file)
-      },
-      contentType = "txt"
-    )
-
     output$summary <- renderTable(
       {
         head(get_data())

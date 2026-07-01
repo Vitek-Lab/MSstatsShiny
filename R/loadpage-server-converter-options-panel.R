@@ -22,21 +22,6 @@ loadpage_show_diann_mbr <- function(q_val, filetype) {
   isTRUE(q_val) && isTRUE(filetype == "diann")
 }
 
-#' @noRd
-loadpage_show_diann_anomaly <- function(filetype, big_file_diann) {
-  isTRUE(filetype == "diann") && !isTRUE(big_file_diann)
-}
-
-#' @noRd
-loadpage_show_diann_anomaly_run_order <- function(diann_calculate_anomaly_scores) {
-  isTRUE(diann_calculate_anomaly_scores)
-}
-
-#' @noRd
-loadpage_show_big_diann_anomaly_run_order <- function(big_diann_calculate_anomaly_scores) {
-  isTRUE(big_diann_calculate_anomaly_scores)
-}
-
 
 # ----------------------------------------------------------------------------
 # Shared / cross-converter visibility predicates. These gate panels shown under
@@ -360,31 +345,6 @@ register_loadpage_visibility_observers <- function(input, output, session) {
       condition = loadpage_show_diann_mbr(
         input[[NAMESPACE_LOADPAGE$q_val]],
         input[[NAMESPACE_LOADPAGE$filetype]]
-      )
-    )
-  })
-  observe({
-    shinyjs::toggle(
-      NAMESPACE_LOADPAGE$diann_anomaly_panel,
-      condition = loadpage_show_diann_anomaly(
-        input[[NAMESPACE_LOADPAGE$filetype]],
-        input[[NAMESPACE_LOADPAGE$big_file_diann]]
-      )
-    )
-  })
-  observe({
-    shinyjs::toggle(
-      NAMESPACE_LOADPAGE$diann_anomaly_run_order_panel,
-      condition = loadpage_show_diann_anomaly_run_order(
-        input[[NAMESPACE_LOADPAGE$diann_calculate_anomaly_scores]]
-      )
-    )
-  })
-  observe({
-    shinyjs::toggle(
-      NAMESPACE_LOADPAGE$big_diann_anomaly_run_order_panel,
-      condition = loadpage_show_big_diann_anomaly_run_order(
-        input[[NAMESPACE_LOADPAGE$big_diann_calculate_anomaly_scores]]
       )
     )
   })
@@ -855,15 +815,28 @@ register_loadpage_converter_ui <- function(input, output, session,
   # Spectronaut regular-path anomaly UI (renderUI, not show/hide): mounts only
   # when the regular Spectronaut path is active, so its `calculate_anomaly_scores`
   # / `run_order_file` ids never coexist with the big-file copy emitted by
-  # `spectronaut_options_ui` above. The checkbox state is seeded (isolated) so it
-  # survives rebuilds; the run-order fileInput is rebuilt fresh on a converter
-  # switch / big_file toggle (accepted tradeoff — the file is tiny, re-uploaded).
+  # `spectronaut_options_ui` above. Reads the checkbox NON-isolated so the
+  # renderUI re-runs on toggle and emits the run-order fileInput only when
+  # ticked; the fileInput is rebuilt fresh (upload dropped) on any rebuild —
+  # converter switch, big_file toggle, or checkbox toggle (accepted tradeoff).
   output$spectronaut_anomaly_ui <- renderUI({
     req(input$filetype == 'spec', !isTRUE(input$big_file_spec))
-    calculate_anomaly_def <- isolate(
-      if (is.null(input$calculate_anomaly_scores)) FALSE else input$calculate_anomaly_scores
+    create_spectronaut_anomaly_ui(
+      session$ns, isTRUE(input$calculate_anomaly_scores)
     )
-    create_spectronaut_anomaly_ui(session$ns, calculate_anomaly_def)
+  })
+
+  # DIANN regular-path anomaly UI (renderUI, migrated from Phase 1 show/hide for
+  # consistency with the Spectronaut regular path). DIANN's regular ids
+  # (diann_*) differ from the big-file ids (big_diann_*), so there is no
+  # collision — this migration is purely for uniformity. Same pattern: reads the
+  # checkbox NON-isolated so the run-order fileInput is emitted when ticked and
+  # dropped on any rebuild.
+  output$diann_anomaly_ui <- renderUI({
+    req(input$filetype == 'diann', !isTRUE(input$big_file_diann))
+    create_diann_anomaly_ui(
+      session$ns, isTRUE(input$diann_calculate_anomaly_scores)
+    )
   })
 
   # File-type availability — disable converter radios that don't fit the

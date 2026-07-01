@@ -66,28 +66,6 @@ test_that("loadpage_show_diann_mbr requires both q_val and diann", {
   expect_false(MSstatsShiny:::loadpage_show_diann_mbr(TRUE, NULL))
 })
 
-test_that("loadpage_show_diann_anomaly is TRUE for diann + small-file only", {
-  expect_true(MSstatsShiny:::loadpage_show_diann_anomaly("diann", FALSE))
-  expect_true(MSstatsShiny:::loadpage_show_diann_anomaly("diann", NULL))
-
-  expect_false(MSstatsShiny:::loadpage_show_diann_anomaly("diann", TRUE))
-  expect_false(MSstatsShiny:::loadpage_show_diann_anomaly("sky", FALSE))
-  expect_false(MSstatsShiny:::loadpage_show_diann_anomaly("spec", FALSE))
-  expect_false(MSstatsShiny:::loadpage_show_diann_anomaly(NULL, FALSE))
-})
-
-test_that("loadpage_show_diann_anomaly_run_order is the anomaly checkbox", {
-  expect_true(MSstatsShiny:::loadpage_show_diann_anomaly_run_order(TRUE))
-  expect_false(MSstatsShiny:::loadpage_show_diann_anomaly_run_order(FALSE))
-  expect_false(MSstatsShiny:::loadpage_show_diann_anomaly_run_order(NULL))
-})
-
-test_that("loadpage_show_big_diann_anomaly_run_order is the big-file anomaly checkbox", {
-  expect_true(MSstatsShiny:::loadpage_show_big_diann_anomaly_run_order(TRUE))
-  expect_false(MSstatsShiny:::loadpage_show_big_diann_anomaly_run_order(FALSE))
-  expect_false(MSstatsShiny:::loadpage_show_big_diann_anomaly_run_order(NULL))
-})
-
 test_that("NAMESPACE_LOADPAGE retains literal string values (no renames in Phase 1)", {
   expect_equal(NAMESPACE_LOADPAGE$bio, "BIO")
   expect_equal(NAMESPACE_LOADPAGE$dda_dia, "DDA_DIA")

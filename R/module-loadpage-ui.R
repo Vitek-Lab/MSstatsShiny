@@ -410,13 +410,11 @@ create_diann_large_annotation_ui <- function(ns, calculate_anomaly_def = FALSE) 
                     div("Carries Ms1ProfileCorr, Evidence, RT, and Predicted.RT through the out-of-memory steps, then engineers DeltaRT = RT - Predicted.RT in-memory after collect and fits MSstatsConvert::MSstatsAnomalyScores on c(Ms1ProfileCorr, Evidence, DeltaRT). Requires a run order CSV.",
                         class = "icon-tooltip")),
                   value = calculate_anomaly_def),
-    # Big-file-path anomaly run-order fileInput (visibility driven)
-    # server-side. Kept inside this helper (called from the diann_options_ui
-    # renderUI) so the fileInput is mounted whenever the parent big-file UI
-    # is. The matching observer in register_loadpage_visibility_observers
-    # toggles it on `big_diann_calculate_anomaly_scores`.
-    shinyjs::hidden(div(
-      id = ns(NAMESPACE_LOADPAGE$big_diann_anomaly_run_order_panel),
+    # Big-file-path anomaly run-order fileInput, emitted by this helper (called
+    # from the diann_options_ui renderUI) only when the checkbox is ticked —
+    # the same renderUI-gated pattern as the other three anomaly spots. The
+    # upload is dropped on a big_file / converter / checkbox toggle (accepted).
+    if (isTRUE(calculate_anomaly_def)) {
       fileInput(ns(NAMESPACE_LOADPAGE$big_diann_run_order_file),
                 label = h5("Upload Run Order File",
                            class = "icon-wrapper",
@@ -424,7 +422,7 @@ create_diann_large_annotation_ui <- function(ns, calculate_anomaly_def = FALSE) 
                            div("CSV with two columns: 'Run' (sequence name matching the converter output) and 'Order' (chronological run number, e.g. 1, 2, 3...).",
                                class = "icon-tooltip")),
                 multiple = FALSE, accept = c(".csv"))
-    ))
+    }
   )
 }
 
@@ -504,8 +502,8 @@ create_spectronaut_large_bottom_ui <- function(ns, max_feature_def = 20, unique_
 #' regular Spectronaut path emits from `output$spectronaut_anomaly_ui`. Both
 #' copies are renderUI-gated on mutually exclusive `big_file_spec` states, so
 #' they never coexist in the DOM and the shared ns() ids never collide. The
-#' nested run-order `conditionalPanel` keeps the fileInput mounted across
-#' checkbox toggles so its upload survives toggling the box.
+#' run-order fileInput is emitted only when the checkbox is ticked (no
+#' conditionalPanel), so its upload is dropped on any rebuild or checkbox toggle.
 #'
 #' @noRd
 create_spectronaut_large_annotation_ui <- function(ns, calculate_anomaly_def = FALSE) {
@@ -526,10 +524,9 @@ create_spectronaut_large_annotation_ui <- function(ns, calculate_anomaly_def = F
                     div("Runs the same anomaly scoring pipeline as the regular Spectronaut path: the converter carries FG.ShapeQualityScore (MS2)/(MS1) and EGDeltaRT through the out-of-memory steps, then MSstatsConvert::MSstatsAnomalyScores fits the isolation-forest model on the collected data and adds an AnomalyScores column. Requires a run order CSV.",
                         class = "icon-tooltip")),
                   value = calculate_anomaly_def),
-    # Nested run-order fileInput uses a client-side conditionalPanel (not a
-    # server re-render) so the uploaded file survives toggling the checkbox.
-    conditionalPanel(
-      condition = sprintf("input['%s']", ns("calculate_anomaly_scores")),
+    # Run-order fileInput emitted only when the checkbox is ticked (renderUI-
+    # gated, no conditionalPanel); the upload is dropped on any rebuild.
+    if (isTRUE(calculate_anomaly_def)) {
       fileInput(ns("run_order_file"),
                 label = h5("Upload Run Order File",
                            class = "icon-wrapper",
@@ -537,7 +534,37 @@ create_spectronaut_large_annotation_ui <- function(ns, calculate_anomaly_def = F
                            div("CSV with two columns: 'Run' (sequence name matching the converter output) and 'Order' (chronological run number, e.g. 1, 2, 3...).",
                                class = "icon-tooltip")),
                 multiple = FALSE, accept = c(".csv"))
-    )
+    }
+  )
+}
+
+#' Create the DIANN regular-path anomaly UI: the Calculate Anomaly Scores
+#' checkbox and, when it is ticked, the nested run-order fileInput. Emitted by
+#' `output$diann_anomaly_ui` (renderUI) so it mounts only on the regular DIANN
+#' path (filetype == 'diann' && !big_file_diann) — the same renderUI-gated
+#' pattern as `create_spectronaut_anomaly_ui`. The run-order upload is dropped
+#' on a converter switch, big_file toggle, or checkbox toggle (accepted
+#' tradeoff). Uses the `diann_*` ns() ids (distinct from the big-file
+#' `big_diann_*` ids), so there is no cross-path collision.
+#' @noRd
+create_diann_anomaly_ui <- function(ns, calculate_anomaly_def = FALSE) {
+  tagList(
+    checkboxInput(ns(NAMESPACE_LOADPAGE$diann_calculate_anomaly_scores),
+                  label = tags$span(
+                    "Calculate Anomaly Scores",
+                    class = "icon-wrapper",
+                    icon("question-circle", lib = "font-awesome"),
+                    div("Engineers DeltaRT = RT - Predicted.RT in the raw DIANN report, then calls MSstatsConvert::MSstatsAnomalyScores via DIANNtoMSstatsFormat with quality_metrics c(Ms1ProfileCorr, Evidence, DeltaRT) and temporal directions c(mean_decrease, mean_decrease, dispersion_increase). Requires a run order CSV.",
+                        class = "icon-tooltip")
+                  ),
+                  value = calculate_anomaly_def),
+    if (isTRUE(calculate_anomaly_def)) {
+      fileInput(ns(NAMESPACE_LOADPAGE$diann_run_order_file),
+                label = h5("Upload Run Order File", class = "icon-wrapper",
+                           icon("question-circle", lib = "font-awesome"),
+                           div("CSV with two columns: 'Run' (sequence name matching the DIANN report's Run column) and 'Order' (chronological run number, e.g. 1, 2, 3...).", class = "icon-tooltip")),
+                multiple = FALSE, accept = c(".csv"))
+    }
   )
 }
 
@@ -547,9 +574,9 @@ create_spectronaut_large_annotation_ui <- function(ns, calculate_anomaly_def = F
 #' path (filetype == 'spec' && !big_file_spec); the big-file copy comes from
 #' `create_spectronaut_large_annotation_ui`. renderUI gating keeps the two from
 #' coexisting, so their shared `ns("calculate_anomaly_scores")` /
-#' `ns("run_order_file")` ids never collide. The nested fileInput is a
-#' `conditionalPanel` so its upload survives toggling the checkbox; the upload
-#' is dropped only on a converter switch / big_file toggle (accepted tradeoff).
+#' `ns("run_order_file")` ids never collide. The run-order fileInput is emitted
+#' only when the checkbox is ticked (no conditionalPanel), so its upload is
+#' dropped on a converter switch, big_file toggle, or checkbox toggle (accepted).
 #' @noRd
 create_spectronaut_anomaly_ui <- function(ns, calculate_anomaly_def = FALSE) {
   tagList(
@@ -562,14 +589,13 @@ create_spectronaut_anomaly_ui <- function(ns, calculate_anomaly_def = FALSE) {
                         class = "icon-tooltip")
                   ),
                   value = calculate_anomaly_def),
-    conditionalPanel(
-      condition = sprintf("input['%s']", ns("calculate_anomaly_scores")),
+    if (isTRUE(calculate_anomaly_def)) {
       fileInput(ns("run_order_file"),
                 label = h5("Upload Run Order File", class = "icon-wrapper",
                            icon("question-circle", lib = "font-awesome"),
                            div("The run order file should be a CSV with two columns: 'Run' and 'Order'. 'Run' contains the sequence name, and 'Order' contains the chronological run number (e.g., 1, 2, 3...).", class = "icon-tooltip")),
                 multiple = FALSE, accept = c(".csv"))
-    )
+    }
   )
 }
 
@@ -868,38 +894,12 @@ create_quality_filtering_options <- function(ns) {
     # `ns("run_order_file")` ids never collide.
     uiOutput(ns("spectronaut_anomaly_ui")),
 
-    # DIANN anomaly scoring (regular path).
-    #
-    # DIANN reports do not ship a DeltaRT column; it's engineered as
-    # RT - Predicted.RT before the converter runs. The user supplies a
-    # run-order CSV (same shape as the Spectronaut path) so
-    # MSstatsConvert::MSstatsAnomalyScores (invoked internally by
-    # DIANNtoMSstatsFormat when calculateAnomalyScores = TRUE) can do
-    # temporal feature engineering on Ms1ProfileCorr, Evidence, and
-    # DeltaRT.
-    # DIANN regular-path anomaly scoring — visibility driven server-side.
-    # The run-order fileInput must stay mounted across checkbox toggles or
-    # the uploaded file would be lost.
-    shinyjs::hidden(div(
-      id = ns(NAMESPACE_LOADPAGE$diann_anomaly_panel),
-      checkboxInput(ns(NAMESPACE_LOADPAGE$diann_calculate_anomaly_scores),
-                    label = tags$span(
-                      "Calculate Anomaly Scores",
-                      class = "icon-wrapper",
-                      icon("question-circle", lib = "font-awesome"),
-                      div("Engineers DeltaRT = RT - Predicted.RT in the raw DIANN report, then calls MSstatsConvert::MSstatsAnomalyScores via DIANNtoMSstatsFormat with quality_metrics c(Ms1ProfileCorr, Evidence, DeltaRT) and temporal directions c(mean_decrease, mean_decrease, dispersion_increase). Requires a run order CSV.",
-                          class = "icon-tooltip")
-                    ),
-                    value = FALSE),
-      shinyjs::hidden(div(
-        id = ns(NAMESPACE_LOADPAGE$diann_anomaly_run_order_panel),
-        fileInput(ns(NAMESPACE_LOADPAGE$diann_run_order_file),
-                  label = h5("Upload Run Order File", class = "icon-wrapper",
-                             icon("question-circle", lib = "font-awesome"),
-                             div("CSV with two columns: 'Run' (sequence name matching the DIANN report's Run column) and 'Order' (chronological run number, e.g. 1, 2, 3...).", class = "icon-tooltip")),
-                  multiple = FALSE, accept = c(".csv"))
-      ))
-    )),
+    # DIANN regular-path anomaly scoring. Emitted server-side by
+    # `output$diann_anomaly_ui` (renderUI) so it mounts only on the regular
+    # DIANN path (filetype == 'diann' && !big_file_diann) — the same renderUI
+    # pattern as the Spectronaut regular anomaly UI above. The run-order
+    # fileInput is emitted by the renderUI when the checkbox is ticked.
+    uiOutput(ns("diann_anomaly_ui")),
     
     # OpenSWATH M-score filter — visibility driven server-side. The nested
     # cutoff numeric must stay mounted across `m_score` toggles to preserve

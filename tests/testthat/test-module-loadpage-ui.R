@@ -103,9 +103,7 @@ test_that("loadpageUI mounts hidden visibility containers for migrated workflows
     "test-diann_intensity_column_panel",
     "test-qval_filter_panel",
     "test-qval_cutoff_panel",
-    "test-qval_mbr_panel",
-    "test-diann_anomaly_panel",
-    "test-diann_anomaly_run_order_panel"
+    "test-qval_mbr_panel"
   )
   for (id in expected_panel_ids) {
     expect_true(
@@ -160,26 +158,58 @@ test_that("Spectronaut regular-path anomaly UI is a server-rendered slot, not a 
                info = "regular-path anomaly conditionalPanel should be gone")
 })
 
-test_that("create_spectronaut_anomaly_ui emits the checkbox + nested run-order fileInput with unchanged ids", {
-  ui <- create_spectronaut_anomaly_ui(NS("test"))
-  html <- as.character(ui)
-
-  # Ids are the SAME literals the big-file helper uses — renderUI mounting (not
-  # renaming) is what avoids the duplicate-ns()-id collision, so they must NOT
-  # change.
+test_that("create_spectronaut_anomaly_ui emits the checkbox and (only when ticked) the run-order fileInput", {
+  # Default (unticked): checkbox present, run-order fileInput ABSENT. The
+  # fileInput is emitted by the renderUI only when the checkbox is ticked (no
+  # conditionalPanel) — that renderUI gating is what keeps the regular and
+  # big-file copies (same ns() ids) from coexisting in the DOM.
+  html <- as.character(create_spectronaut_anomaly_ui(NS("test")))
   expect_true(grepl("test-calculate_anomaly_scores", html, fixed = TRUE))
   expect_true(grepl("Calculate Anomaly Scores", html, fixed = TRUE))
-  expect_true(grepl("test-run_order_file", html, fixed = TRUE))
-  # The run-order fileInput is nested in a conditionalPanel gated on the
-  # checkbox. The condition is namespace-aware (sprintf with ns(...)), so under
-  # NS("test") the prefix is "test-", not "loadpage-".
-  expect_true(grepl("input[&#39;test-calculate_anomaly_scores&#39;]",
-                    html, fixed = TRUE))
-  # The checkbox state seeds from the argument (the renderUI passes the
-  # isolated input value so it survives rebuilds).
-  expect_true(grepl("checked",
-                    as.character(create_spectronaut_anomaly_ui(NS("test"), TRUE)),
-                    fixed = TRUE))
+  expect_false(grepl("test-run_order_file", html, fixed = TRUE),
+               info = "run-order fileInput must be absent when the checkbox is unticked")
+  expect_false(grepl("data-display-if", html, fixed = TRUE),
+               info = "no conditionalPanel — the nesting is renderUI-gated now")
+
+  # Ticked: checkbox pre-checked (seed) + run-order fileInput present. Ids are
+  # the SAME literals the big-file helper uses (no rename).
+  checked <- as.character(create_spectronaut_anomaly_ui(NS("test"), TRUE))
+  expect_true(grepl("test-run_order_file", checked, fixed = TRUE))
+  expect_true(grepl("checked", checked, fixed = TRUE))
+})
+
+test_that("create_diann_anomaly_ui emits the checkbox and (only when ticked) the run-order fileInput", {
+  # DIANN regular path, migrated from Phase 1 show/hide to the same renderUI-
+  # gated pattern as the Spectronaut regular helper. Uses the diann_* ids
+  # (unchanged, distinct from the big-file big_diann_* ids).
+  html <- as.character(create_diann_anomaly_ui(NS("test")))
+  expect_true(grepl("test-diann_calculate_anomaly_scores", html, fixed = TRUE))
+  expect_true(grepl("Calculate Anomaly Scores", html, fixed = TRUE))
+  expect_false(grepl("test-diann_run_order_file", html, fixed = TRUE),
+               info = "run-order fileInput must be absent when the checkbox is unticked")
+  expect_false(grepl("data-display-if", html, fixed = TRUE),
+               info = "no conditionalPanel — the nesting is renderUI-gated now")
+
+  checked <- as.character(create_diann_anomaly_ui(NS("test"), TRUE))
+  expect_true(grepl("test-diann_run_order_file", checked, fixed = TRUE))
+  expect_true(grepl("checked", checked, fixed = TRUE))
+})
+
+test_that("create_spectronaut_large_annotation_ui gates the run-order fileInput on the checkbox (renderUI, no conditionalPanel)", {
+  # Big-file Spectronaut path: the run-order fileInput is emitted only when the
+  # checkbox is ticked (was a conditionalPanel before). Shares the regular
+  # path's ns() ids; renderUI mounting on mutually exclusive big_file_spec keeps
+  # them from colliding.
+  html <- as.character(create_spectronaut_large_annotation_ui(NS("test")))
+  expect_true(grepl("test-big_spec_annotation", html, fixed = TRUE))
+  expect_true(grepl("test-calculate_anomaly_scores", html, fixed = TRUE))
+  expect_false(grepl("test-run_order_file", html, fixed = TRUE),
+               info = "run-order fileInput must be absent when the checkbox is unticked")
+  expect_false(grepl("data-display-if", html, fixed = TRUE),
+               info = "no conditionalPanel — the nesting is renderUI-gated now")
+
+  checked <- as.character(create_spectronaut_large_annotation_ui(NS("test"), TRUE))
+  expect_true(grepl("test-run_order_file", checked, fixed = TRUE))
 })
 
 test_that("loadpageUI properly handles file input elements and validation", {
@@ -459,9 +489,14 @@ test_that("create_quality_filtering_options creates filtering controls", {
   expect_true(grepl("Q-value cutoff", options_html))
   expect_true(grepl("M-score cutoff", options_html))
   expect_true(grepl("MBR Enabled", options_html))
-  # Regular DIANN anomaly scoring controls (parallel to Spectronaut's).
-  expect_true(grepl("test-diann_calculate_anomaly_scores", options_html))
-  expect_true(grepl("test-diann_run_order_file", options_html))
+  # DIANN regular-path anomaly UI is now a server-rendered slot (renderUI),
+  # parallel to Spectronaut's — the inputs are emitted server-side, not static.
+  expect_true(grepl('id="test-diann_anomaly_ui"', options_html, fixed = TRUE),
+              info = "diann_anomaly_ui renderUI slot missing")
+  expect_false(grepl("test-diann_calculate_anomaly_scores", options_html, fixed = TRUE),
+               info = "diann_calculate_anomaly_scores must be server-rendered, not static")
+  expect_false(grepl("test-diann_run_order_file", options_html, fixed = TRUE),
+               info = "diann_run_order_file must be server-rendered, not static")
 })
 
 # Test order preservation in main selection controls
@@ -570,32 +605,35 @@ test_that("DIANN large-file helper functions create correct UI elements", {
   expect_true(grepl("Backend", bottom_html))
   expect_true(grepl("arrow", bottom_html))
 
-  # Annotation + anomaly UI
+  # Annotation + anomaly UI. The run-order fileInput is now renderUI-gated on
+  # the checkbox (no show/hide panel): absent by default, present only when
+  # calculate_anomaly_def = TRUE.
   annot_ui <- create_diann_large_annotation_ui(NS("test"))
   annot_html <- as.character(annot_ui)
   expect_true(grepl("Annotation file", annot_html))
   expect_true(grepl("test-big_diann_annotation", annot_html))
   expect_true(grepl("Calculate Anomaly Scores", annot_html))
   expect_true(grepl("test-big_diann_calculate_anomaly_scores", annot_html))
-  expect_true(grepl("test-big_diann_run_order_file", annot_html))
+  expect_false(grepl("test-big_diann_run_order_file", annot_html, fixed = TRUE),
+               info = "run-order fileInput must be absent when the checkbox is unticked")
+  annot_html_checked <- as.character(create_diann_large_annotation_ui(NS("test"), TRUE))
+  expect_true(grepl("test-big_diann_run_order_file", annot_html_checked, fixed = TRUE),
+              info = "run-order fileInput must appear when calculate_anomaly_def = TRUE")
 })
 
 test_that("DIANN big-file gating now lives in the server predicate, not a JS condition", {
-  # Phase 1 migrated `loadpage_show_qval_filter` and
-  # `loadpage_show_diann_anomaly` (both AND-include `!big_file_diann`); Phase 2
-  # migrated `loadpage_show_standard_annot_upload` (same big-file gate for the
-  # DIANN branch). After both phases, the JS-encoded `loadpage-big_file_diann`
-  # condition string is no longer emitted statically — the gating is enforced
-  # by the corresponding server `observe({ shinyjs::toggle(..., condition = ...) })`
-  # blocks. What we DO want to assert statically is that the gated containers
-  # are present (mounted hidden) so the observers have something to toggle,
-  # and that the JS condition string is in fact gone.
+  # The DIANN big-file gate (`!big_file_diann`) lives in server-side visibility
+  # code, not a JS `conditionalPanel` condition: `loadpage_show_qval_filter` /
+  # `loadpage_show_standard_annot_upload` drive show/hide panels, and the DIANN
+  # regular-path anomaly UI is now a renderUI slot (`diann_anomaly_ui`). So the
+  # JS-encoded `loadpage-big_file_diann` string is not emitted statically. We
+  # assert the gated containers / slots are present and the JS string is gone.
   result <- loadpageUI("test")
   html_output <- as.character(result)
 
   for (panel_id in c("test-standard_annot_upload_panel",
                      "test-qval_filter_panel",
-                     "test-diann_anomaly_panel")) {
+                     "test-diann_anomaly_ui")) {
     expect_true(
       grepl(paste0('id="', panel_id, '"'), html_output, fixed = TRUE),
       info = paste("Big-file-gated panel container missing:", panel_id)
