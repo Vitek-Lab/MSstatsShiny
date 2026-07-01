@@ -48,10 +48,22 @@ loadpage_show_qval_cutoff <- function(q_val) {
 # encodes the full ancestor chain so a nested panel hides when an ancestor does.
 # ----------------------------------------------------------------------------
 
-#' Sample dataset description (parameterized for DDA / DIA / SRM_PRM).
+#' Sample dataset description (parameterized for DDA / DIA / SRM_PRM). Composes
+#' on the picker's full ancestor condition
+#' (`loadpage_show_sample_dataset_label_free_type_selector`, i.e.
+#' `BIO != 'PTM' && filetype == 'sample' && DDA_DIA == 'LType'`) AND a matching
+#' LabelFreeType, so a description can never outlive the picker: when BIO becomes
+#' PTM or DDA_DIA leaves LType the picker hides and the description hides too.
+#' @param filetype        the active `input$filetype`
+#' @param label_free_type the active `input$LabelFreeType`
+#' @param label_free_mode this description's mode ("DDA" / "DIA" / "SRM_PRM")
+#' @param bio             the active `input$BIO` (picker ancestor gate)
+#' @param dda_dia         the active `input$DDA_DIA` (picker ancestor gate)
 #' @noRd
-loadpage_show_sample_dataset_description <- function(filetype, label_free_type, label_free_mode) {
-  isTRUE(filetype == "sample") && isTRUE(label_free_type == label_free_mode)
+loadpage_show_sample_dataset_description <- function(filetype, label_free_type,
+                                                     label_free_mode, bio, dda_dia) {
+  loadpage_show_sample_dataset_label_free_type_selector(bio, filetype, dda_dia) &&
+    isTRUE(label_free_type == label_free_mode)
 }
 
 #' The LabelFreeType radio (DDA / DIA / SRM_PRM picker) is itself shown only
@@ -356,7 +368,9 @@ register_loadpage_visibility_observers <- function(input, output, session) {
       condition = loadpage_show_sample_dataset_description(
         input[[NAMESPACE_LOADPAGE$filetype]],
         input[[NAMESPACE_LOADPAGE$label_free_type]],
-        "DDA"
+        "DDA",
+        input[[NAMESPACE_LOADPAGE$bio]],
+        input[[NAMESPACE_LOADPAGE$dda_dia]]
       )
     )
   })
@@ -366,7 +380,9 @@ register_loadpage_visibility_observers <- function(input, output, session) {
       condition = loadpage_show_sample_dataset_description(
         input[[NAMESPACE_LOADPAGE$filetype]],
         input[[NAMESPACE_LOADPAGE$label_free_type]],
-        "DIA"
+        "DIA",
+        input[[NAMESPACE_LOADPAGE$bio]],
+        input[[NAMESPACE_LOADPAGE$dda_dia]]
       )
     )
   })
@@ -376,7 +392,9 @@ register_loadpage_visibility_observers <- function(input, output, session) {
       condition = loadpage_show_sample_dataset_description(
         input[[NAMESPACE_LOADPAGE$filetype]],
         input[[NAMESPACE_LOADPAGE$label_free_type]],
-        "SRM_PRM"
+        "SRM_PRM",
+        input[[NAMESPACE_LOADPAGE$bio]],
+        input[[NAMESPACE_LOADPAGE$dda_dia]]
       )
     )
   })

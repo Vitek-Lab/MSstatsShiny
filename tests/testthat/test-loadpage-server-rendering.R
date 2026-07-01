@@ -92,24 +92,46 @@ test_that("NAMESPACE_LOADPAGE retains literal string values (no renames in Phase
 # ============================================================================
 
 test_that("loadpage_show_sample_dataset_description matches one mode at a time", {
+  # All cases below hold the picker VISIBLE (bio = "Protein", dda_dia = "LType")
+  # so they isolate the filetype/LabelFreeType logic; the picker-hidden orphan
+  # case is covered by the regression test below.
   for (mode in c("DDA", "DIA", "SRM_PRM")) {
     # Active mode positive
-    expect_true(MSstatsShiny:::loadpage_show_sample_dataset_description("sample", mode, mode),
+    expect_true(MSstatsShiny:::loadpage_show_sample_dataset_description("sample", mode, mode, "Protein", "LType"),
                 info = paste("active mode", mode))
     # Wrong filetype always FALSE
     for (ft in c("diann", "sky", "spec", "maxq", "msstats", NULL)) {
-      expect_false(MSstatsShiny:::loadpage_show_sample_dataset_description(ft, mode, mode),
+      expect_false(MSstatsShiny:::loadpage_show_sample_dataset_description(ft, mode, mode, "Protein", "LType"),
                    info = paste("ft", ft %||% "NULL", "mode", mode))
     }
     # Wrong LabelFreeType FALSE
     other_modes <- setdiff(c("DDA", "DIA", "SRM_PRM"), mode)
     for (other in other_modes) {
-      expect_false(MSstatsShiny:::loadpage_show_sample_dataset_description("sample", other, mode),
+      expect_false(MSstatsShiny:::loadpage_show_sample_dataset_description("sample", other, mode, "Protein", "LType"),
                    info = paste("target", mode, "actual", other))
     }
     # NULL LabelFreeType FALSE
-    expect_false(MSstatsShiny:::loadpage_show_sample_dataset_description("sample", NULL, mode))
+    expect_false(MSstatsShiny:::loadpage_show_sample_dataset_description("sample", NULL, mode, "Protein", "LType"))
   }
+})
+
+test_that("loadpage_show_sample_dataset_description hides with the picker (orphaned-description regression)", {
+  # CodeRabbit orphan: filetype stays 'sample' and a LabelFreeType value is
+  # still selected, but the picker hides because BIO == 'PTM' or DDA_DIA leaves
+  # 'LType'. The description MUST hide with the picker — it now composes on
+  # loadpage_show_sample_dataset_label_free_type_selector, so a visible
+  # description implies a visible picker by construction.
+
+  # Positive control: picker visible -> description shows.
+  expect_true(MSstatsShiny:::loadpage_show_sample_dataset_description(
+    "sample", "DDA", "DDA", "Protein", "LType"))
+
+  # BIO flipped to PTM -> picker hidden -> description hidden (was the orphan).
+  expect_false(MSstatsShiny:::loadpage_show_sample_dataset_description(
+    "sample", "DDA", "DDA", "PTM", "LType"))
+  # DDA_DIA left LType (e.g. TMT) -> picker hidden -> description hidden.
+  expect_false(MSstatsShiny:::loadpage_show_sample_dataset_description(
+    "sample", "DDA", "DDA", "Protein", "TMT"))
 })
 
 test_that("loadpage_show_sample_dataset_label_free_type_selector requires non-PTM + sample + LType", {
