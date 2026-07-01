@@ -252,8 +252,7 @@ create_msstats_uploads <- function(ns) {
       fileInput(ns('msstatsdata'), "", multiple = FALSE, accept = NULL)
     )),
 
-    # PTM MSstats format. (The original JS condition had a redundant TMT
-    # clause that collapsed to `BIO=='PTM'`; the server predicate folds it.)
+    # PTM MSstats format.
     shinyjs::hidden(div(
       id = ns(NAMESPACE_LOADPAGE$msstats_ptm_upload_panel),
       h4("4. Upload PTM data in MSstats Format"),
@@ -499,17 +498,14 @@ create_spectronaut_large_bottom_ui <- function(ns, max_feature_def = 20, unique_
 
 #' Create Spectronaut large file annotation override + anomaly UI
 #'
-#' Note: this helper is invoked from `output$spectronaut_options_ui`
-#' (server-side renderUI) only when `big_file_spec == TRUE` and
-#' `is_web_server == FALSE`. It re-declares `ns("calculate_anomaly_scores")`
-#' and `ns("run_order_file")` — the same ns() ids declared statically in
-#' `create_quality_filtering_options` for the Spectronaut REGULAR path.
-#' The regular-path pair is the documented Phase 2 carveout (stays as
-#' `conditionalPanel`, see the comment in `create_quality_filtering_options`):
-#' migrating either side to a permanently-mounted hidden div would create a
-#' duplicate-ns()-id collision, and renderUI is ruled out because
-#' `run_order_file` is a fileInput whose uploaded value cannot survive a
-#' rebuild. The big-file conditionalPanel below stays for the same reason.
+#' Invoked from `output$spectronaut_options_ui` (server-side renderUI) only
+#' when `big_file_spec == TRUE` and `is_web_server == FALSE`. It declares
+#' `ns("calculate_anomaly_scores")` / `ns("run_order_file")` — the same ids the
+#' regular Spectronaut path emits from `output$spectronaut_anomaly_ui`. Both
+#' copies are renderUI-gated on mutually exclusive `big_file_spec` states, so
+#' they never coexist in the DOM and the shared ns() ids never collide. The
+#' nested run-order `conditionalPanel` keeps the fileInput mounted across
+#' checkbox toggles so its upload survives toggling the box.
 #'
 #' @noRd
 create_spectronaut_large_annotation_ui <- function(ns, calculate_anomaly_def = FALSE) {
@@ -530,8 +526,8 @@ create_spectronaut_large_annotation_ui <- function(ns, calculate_anomaly_def = F
                     div("Runs the same anomaly scoring pipeline as the regular Spectronaut path: the converter carries FG.ShapeQualityScore (MS2)/(MS1) and EGDeltaRT through the out-of-memory steps, then MSstatsConvert::MSstatsAnomalyScores fits the isolation-forest model on the collected data and adds an AnomalyScores column. Requires a run order CSV.",
                         class = "icon-tooltip")),
                   value = calculate_anomaly_def),
-    # CARVEOUT (big-file side): same duplicate-ns() rationale as the
-    # regular-path carveout below. Stays as conditionalPanel.
+    # Nested run-order fileInput uses a client-side conditionalPanel (not a
+    # server re-render) so the uploaded file survives toggling the checkbox.
     conditionalPanel(
       condition = sprintf("input['%s']", ns("calculate_anomaly_scores")),
       fileInput(ns("run_order_file"),
@@ -540,6 +536,38 @@ create_spectronaut_large_annotation_ui <- function(ns, calculate_anomaly_def = F
                            icon("question-circle", lib = "font-awesome"),
                            div("CSV with two columns: 'Run' (sequence name matching the converter output) and 'Order' (chronological run number, e.g. 1, 2, 3...).",
                                class = "icon-tooltip")),
+                multiple = FALSE, accept = c(".csv"))
+    )
+  )
+}
+
+#' Create the Spectronaut regular-path anomaly UI: the Calculate Anomaly Scores
+#' checkbox + its nested run-order fileInput. Emitted by
+#' `output$spectronaut_anomaly_ui` (renderUI) so it mounts only on the regular
+#' path (filetype == 'spec' && !big_file_spec); the big-file copy comes from
+#' `create_spectronaut_large_annotation_ui`. renderUI gating keeps the two from
+#' coexisting, so their shared `ns("calculate_anomaly_scores")` /
+#' `ns("run_order_file")` ids never collide. The nested fileInput is a
+#' `conditionalPanel` so its upload survives toggling the checkbox; the upload
+#' is dropped only on a converter switch / big_file toggle (accepted tradeoff).
+#' @noRd
+create_spectronaut_anomaly_ui <- function(ns, calculate_anomaly_def = FALSE) {
+  tagList(
+    checkboxInput(ns("calculate_anomaly_scores"),
+                  label = tags$span(
+                    "Calculate Anomaly Scores",
+                    class = "icon-wrapper",
+                    icon("question-circle", lib = "font-awesome"),
+                    div("Calculate anomaly scores for each feature based on a random forest model. This requires a CSV file containing the order of your MS runs.",
+                        class = "icon-tooltip")
+                  ),
+                  value = calculate_anomaly_def),
+    conditionalPanel(
+      condition = sprintf("input['%s']", ns("calculate_anomaly_scores")),
+      fileInput(ns("run_order_file"),
+                label = h5("Upload Run Order File", class = "icon-wrapper",
+                           icon("question-circle", lib = "font-awesome"),
+                           div("The run order file should be a CSV with two columns: 'Run' and 'Order'. 'Run' contains the sequence name, and 'Order' contains the chronological run number (e.g., 1, 2, 3...).", class = "icon-tooltip")),
                 multiple = FALSE, accept = c(".csv"))
     )
   )
@@ -780,17 +808,6 @@ create_tmt_options <- function(ns) {
 }
 
 #' Create label-free processing options (visibility driven server-side).
-#'
-#' The inner `create_quality_filtering_options(ns)` helper still contains
-#' two `conditionalPanel`s for the Spectronaut regular-path anomaly
-#' checkbox + nested run-order fileInput. Those are NOT migrated to
-#' show/hide because they share `ns("calculate_anomaly_scores")` /
-#' `ns("run_order_file")` with the big-file Spectronaut helper that
-#' `output$spectronaut_options_ui` emits. Mounting both as hidden divs
-#' would collide on a duplicate ns() id; routing to renderUI would lose
-#' the user's uploaded run-order CSV (fileInput state cannot be re-seeded
-#' on rebuild). See the matching comment in
-#' `create_quality_filtering_options` below.
 #' @noRd
 create_label_free_options <- function(ns) {
   tagList(
@@ -842,41 +859,14 @@ create_quality_filtering_options <- function(ns) {
       ))
     )),
     
-    # === Spectronaut regular-path anomaly checkbox + nested run-order ===
-    # CARVEOUT: these two `conditionalPanel`s are intentionally NOT migrated
-    # to server-side show/hide. `ns("calculate_anomaly_scores")` and
-    # `ns("run_order_file")` are ALSO declared by the big-file Spectronaut
-    # helper (`create_spectronaut_large_annotation_ui`) that
-    # `output$spectronaut_options_ui` emits when `big_file_spec == TRUE`.
-    # Migrating them to a permanently-mounted hidden div would create a
-    # duplicate-ns()-id collision with the big-file path. renderUI is also
-    # ruled out because `run_order_file` is a fileInput whose uploaded value
-    # cannot survive a rebuild. Today's `conditionalPanel` keeps the static
-    # tree at `display:none` whenever the big-file path is active, leaving
-    # only the renderUI'd big-file copy mounted — which is what we want.
-    # See R/loadpage-server-converter-options-panel.R for the broader carveout note.
-    conditionalPanel(
-      condition = "input['loadpage-filetype'] == 'spec'",
-      checkboxInput(ns("calculate_anomaly_scores"),
-                    label = tags$span(
-                      "Calculate Anomaly Scores",
-                      class = "icon-wrapper",
-                      icon("question-circle", lib = "font-awesome"),
-                      div("Calculate anomaly scores for each feature based on a random forest model. This requires a CSV file containing the order of your MS runs.",
-                          class = "icon-tooltip")
-                    ),
-                    value = FALSE),
-      # CARVEOUT (nested): same reason — `ns("run_order_file")` collides with
-      # the big-file copy. Stay as conditionalPanel.
-      conditionalPanel(
-        condition = "input['loadpage-calculate_anomaly_scores']",
-        fileInput(ns("run_order_file"),
-                  label = h5("Upload Run Order File", class = "icon-wrapper",
-                             icon("question-circle", lib = "font-awesome"),
-                             div("The run order file should be a CSV with two columns: 'Run' and 'Order'. 'Run' contains the sequence name, and 'Order' contains the chronological run number (e.g., 1, 2, 3...).", class = "icon-tooltip")),
-                  multiple = FALSE, accept = c(".csv"))
-      )
-    ),
+    # Spectronaut regular-path anomaly scoring (Calculate Anomaly Scores
+    # checkbox + nested run-order fileInput). Emitted server-side by
+    # `output$spectronaut_anomaly_ui` so it mounts only on the regular path
+    # (filetype == 'spec' && !big_file_spec); the big-file path emits its own
+    # copy from `output$spectronaut_options_ui`. renderUI keeps the two copies
+    # from coexisting, so their shared `ns("calculate_anomaly_scores")` /
+    # `ns("run_order_file")` ids never collide.
+    uiOutput(ns("spectronaut_anomaly_ui")),
 
     # DIANN anomaly scoring (regular path).
     #

@@ -852,6 +852,20 @@ register_loadpage_converter_ui <- function(input, output, session,
     }
   })
 
+  # Spectronaut regular-path anomaly UI (renderUI, not show/hide): mounts only
+  # when the regular Spectronaut path is active, so its `calculate_anomaly_scores`
+  # / `run_order_file` ids never coexist with the big-file copy emitted by
+  # `spectronaut_options_ui` above. The checkbox state is seeded (isolated) so it
+  # survives rebuilds; the run-order fileInput is rebuilt fresh on a converter
+  # switch / big_file toggle (accepted tradeoff — the file is tiny, re-uploaded).
+  output$spectronaut_anomaly_ui <- renderUI({
+    req(input$filetype == 'spec', !isTRUE(input$big_file_spec))
+    calculate_anomaly_def <- isolate(
+      if (is.null(input$calculate_anomaly_scores)) FALSE else input$calculate_anomaly_scores
+    )
+    create_spectronaut_anomaly_ui(session$ns, calculate_anomaly_def)
+  })
+
   # File-type availability — disable converter radios that don't fit the
   # current (BIO, DDA_DIA) combo, and dim them via the `runjs` opacity hack.
   # UI state only, not predicate-driven visibility (no `loadpage_show_*`

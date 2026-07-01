@@ -134,32 +134,52 @@ test_that("loadpageUI exposes the TMT renderUI slot in place of duplicate-id pan
                             "the duplicate-ns()-id collision Phase 2 fixed."))
 })
 
-test_that("Spectronaut anomaly carveout panels remain as conditionalPanels", {
-  # `calculate_anomaly_scores` and `run_order_file` are intentionally NOT
-  # migrated — they are also declared in the big-file Spectronaut helper
-  # emitted by `output$spectronaut_options_ui`. Mounting the regular-path
-  # copies as hidden divs would create a duplicate-ns()-id collision; routing
-  # them to renderUI would lose the user's uploaded run-order CSV (fileInput
-  # state cannot be re-seeded on rebuild). The two carveout conditionalPanels
-  # MUST remain in the static UI. See `create_quality_filtering_options` and
-  # `create_spectronaut_large_annotation_ui` for the matching code comments.
+test_that("Spectronaut regular-path anomaly UI is a server-rendered slot, not a static conditionalPanel", {
+  # `calculate_anomaly_scores` + `run_order_file` are also declared by the
+  # big-file Spectronaut helper (`create_spectronaut_large_annotation_ui`,
+  # emitted by `output$spectronaut_options_ui`). To keep the two copies from
+  # colliding on a shared ns() id, the regular path now emits them from
+  # `output$spectronaut_anomaly_ui` (renderUI), which mounts only on the
+  # regular path (filetype == 'spec' && !big_file_spec). The static
+  # quality-filtering options therefore expose only the renderUI slot.
   options <- create_quality_filtering_options(NS("test"))
   options_html <- as.character(options)
 
-  # Outer carveout: filetype == 'spec'
-  expect_true(grepl("input[&#39;loadpage-filetype&#39;] == &#39;spec&#39;",
-                    options_html, fixed = TRUE),
-              info = "Spectronaut regular-path anomaly conditionalPanel must remain")
-  # Nested carveout: calculate_anomaly_scores
-  expect_true(grepl("input[&#39;loadpage-calculate_anomaly_scores&#39;]",
-                    options_html, fixed = TRUE),
-              info = "Spectronaut anomaly run-order nested conditionalPanel must remain")
-  # And the two carveout inputs MUST still be declared (with the same ns()
-  # ids the big-file helper uses — the documented collision pair).
-  expect_true(grepl("test-calculate_anomaly_scores", options_html, fixed = TRUE),
-              info = "calculate_anomaly_scores checkbox missing from carveout panel")
-  expect_true(grepl("test-run_order_file", options_html, fixed = TRUE),
-              info = "run_order_file fileInput missing from carveout panel")
+  # The renderUI slot is present...
+  expect_true(grepl('id="test-spectronaut_anomaly_ui"', options_html, fixed = TRUE),
+              info = "spectronaut_anomaly_ui renderUI slot missing")
+  # ...and the regular-path anomaly inputs are NOT mounted statically (they are
+  # emitted server-side), so there is no duplicate-ns()-id with the big-file copy.
+  expect_false(grepl("test-calculate_anomaly_scores", options_html, fixed = TRUE),
+               info = "calculate_anomaly_scores must be server-rendered, not static")
+  expect_false(grepl("test-run_order_file", options_html, fixed = TRUE),
+               info = "run_order_file must be server-rendered, not static")
+  # The old regular-path anomaly conditionalPanel JS condition must be gone.
+  expect_false(grepl("input[&#39;loadpage-filetype&#39;] == &#39;spec&#39;",
+                     options_html, fixed = TRUE),
+               info = "regular-path anomaly conditionalPanel should be gone")
+})
+
+test_that("create_spectronaut_anomaly_ui emits the checkbox + nested run-order fileInput with unchanged ids", {
+  ui <- create_spectronaut_anomaly_ui(NS("test"))
+  html <- as.character(ui)
+
+  # Ids are the SAME literals the big-file helper uses — renderUI mounting (not
+  # renaming) is what avoids the duplicate-ns()-id collision, so they must NOT
+  # change.
+  expect_true(grepl("test-calculate_anomaly_scores", html, fixed = TRUE))
+  expect_true(grepl("Calculate Anomaly Scores", html, fixed = TRUE))
+  expect_true(grepl("test-run_order_file", html, fixed = TRUE))
+  # The run-order fileInput is nested in a conditionalPanel gated on the
+  # checkbox. The condition is namespace-aware (sprintf with ns(...)), so under
+  # NS("test") the prefix is "test-", not "loadpage-".
+  expect_true(grepl("input[&#39;test-calculate_anomaly_scores&#39;]",
+                    html, fixed = TRUE))
+  # The checkbox state seeds from the argument (the renderUI passes the
+  # isolated input value so it survives rebuilds).
+  expect_true(grepl("checked",
+                    as.character(create_spectronaut_anomaly_ui(NS("test"), TRUE)),
+                    fixed = TRUE))
 })
 
 test_that("loadpageUI properly handles file input elements and validation", {
