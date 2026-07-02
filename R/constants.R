@@ -170,5 +170,6 @@ NAMESPACE_EXPDES = list(
   protein_select = "protein_select",
   rep_range = "rep_range",
   run_simulation = "run_simulation",
+  result_plot = "result_plot",
   download_future = "download_future"
 )
