@@ -1,34 +1,55 @@
 #' Loadpage Server module for data selection and upload server.
 #'
-#' This function sets up the loadpage server where it consists of several,
-#' options for users to select and upload files.
+#' This function sets up the loadpage server where it consists of several
+#' options for users to select and upload files. After the Phase 2 split,
+#' the orchestrator below keeps only:
+#'
+#' \itemize{
+#'   \item the module signature and `condition_metadata` reactiveVal,
+#'   \item the shinyFiles browser block (it produces the
+#'         `local_big_file_path` / `local_big_diann_path` reactives that the
+#'         proceed-validation helper consumes, so it must remain co-located
+#'         with the module's reactive scope),
+#'   \item the six helper registrations in order
+#'         (`register_loadpage_preview`,
+#'         `register_loadpage_visibility_observers`,
+#'         `register_loadpage_converter_ui`,
+#'         `register_loadpage_proceed_validation`,
+#'         `register_loadpage_data_loaders`,
+#'         `register_loadpage_summary`),
+#'   \item the final public `return(list(input, getData,
+#'         getConditionMetadata))`.
+#' }
+#'
+#' Each helper lives in its own file (`R/loadpage-server-*.R`); see those
+#' files for the moved code blocks.
 #'
 #' @param id namespace prefix for the module
 #' @param parent_session session of the main calling module
 #' @param is_web_server boolean indicating if the app is running on a web server
+#' @param app_template reactive (or NULL) returning the selected template
 #'
 #' @return input object with user selected options
 #'
 #' @export
 #' @examples
 #' NA
-#' 
+#'
 loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_template = NULL) {
   moduleServer(id, function(input, output, session) {
 
     condition_metadata <- reactiveVal(NULL)
 
-    # == shinyFiles LOGIC FOR LOCAL FILE BROWSER =================================
-    # Define volumes for the file selection.
+    # == shinyFiles LOGIC FOR LOCAL FILE BROWSER ===============================
+    # Stays in the orchestrator because the two `local_big_*_path` reactives
+    # it produces are consumed by `register_loadpage_proceed_validation()`
+    # below; lifting them into a helper would require an extra round-trip.
     if (!is_web_server) {
       volumes <- shinyFiles::getVolumes()()
 
-      # Server-side logic for the shinyFiles buttons (Spectronaut + DIANN)
-      shinyFiles::shinyFileChoose(input, "big_file_browse", roots = volumes, session = session)
+      shinyFiles::shinyFileChoose(input, "big_file_browse",  roots = volumes, session = session)
       shinyFiles::shinyFileChoose(input, "big_diann_browse", roots = volumes, session = session)
 
-      # Reactive to parse and store the full file information (path, name, etc.)
-      # This is efficient because parseFilePaths is only called once.
       local_file_info <- reactive({
         req(is.list(input$big_file_browse))
         shinyFiles::parseFilePaths(volumes, input$big_file_browse)
@@ -39,7 +60,6 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
         shinyFiles::parseFilePaths(volumes, input$big_diann_browse)
       })
 
-      # Reactive to get just the full datapath, for use in backend processing.
       local_big_file_path <- reactive({
         path_info <- local_file_info()
         if (nrow(path_info) > 0) path_info$datapath else NULL
@@ -50,7 +70,6 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
         if (nrow(path_info) > 0) path_info$datapath else NULL
       })
 
-      # Render just the filename for user feedback in the UI.
       output$specdata_big_path <- renderPrint({
         req(nrow(local_file_info()) > 0)
         cat(local_file_info()$name)
@@ -60,765 +79,48 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
         req(nrow(local_diann_file_info()) > 0)
         cat(local_diann_file_info()$name)
       })
-    }
-    else {
-      local_big_file_path <- reactive({ NULL })
+    } else {
+      local_big_file_path  <- reactive({ NULL })
       local_big_diann_path <- reactive({ NULL })
     }
 
-    # ============ PREVIEW DATA: Read first 100 rows on file upload ============
-    preview_data <- reactiveVal(NULL)
+    # == HELPER REGISTRATION (6 helpers, all in R/loadpage-server-*.R) =========
+    #
+    # Order matters only insofar as Shiny reactivity is set up at module-mount
+    # time. We follow the file's original top-to-bottom layout: preview ->
+    # visibility -> converter UI -> proceed validation -> data loaders ->
+    # summary. The visibility + converter helpers are independent of the
+    # data-loaders' return value; only the summary helper consumes it.
 
-    # Determine the main data file based on current selections
-    # TODO: Add preview mappings for remaining PTM file types (PD, spec, sky, maxq)
-    # once preview-based UI features are extended beyond Metamorpheus.
-    main_data_file <- reactive({
-      req(input$filetype)
-      if (input$BIO == "PTM") {
-        switch(input$filetype,
-          "meta" = input$ptm_input,
-          # TODO: "maxq" = input$ptm_input,
-          # TODO: "PD" = input$ptm_input,
-          # TODO: "spec" = input$ptm_input,
-          # TODO: "sky" = input$ptm_input,
-          # TODO: "phil" = input$ptmdata,
-          # TODO: "msstats" = input$msstatsptmdata,
-          NULL
-        )
-      } else {
-        switch(input$filetype,
-          # TODO: Map remaining non-PTM file types when preview features are needed
-          "prog" =, "PD" =, "open" =, "openms" =, "spmin" =, "phil" =, "meta" = input$data,
-          "msstats" = input$msstatsdata,
-          "sky" = input$skylinedata,
-          "spec" = input$specdata,
-          "diann" = input$dianndata,
-          "maxq" = input$evidence,
-          NULL
-        )
-      }
-    })
+    register_loadpage_preview(input, output, session)
 
-    # Read first 100 rows for preview-based UI features.
-    # Supported: Metamorpheus PTM (modification ID dropdown), DIANN (version auto-detection).
-    # TODO: Extend to other input formats (Spectronaut, MaxQuant) as needed.
-    observe({
-      should_preview <- (isTRUE(input$filetype == "meta") && isTRUE(input$BIO == "PTM")) ||
-                       (isTRUE(input$filetype == "diann") && isTRUE(input$BIO != "PTM"))
-      if (should_preview) {
-        file_info <- main_data_file()
-        if (!is.null(file_info)) {
-          # Reset DIANN detection tracker so a new file re-triggers the notification
-          last_detected_diann_format(NULL)
-          preview <- .read_preview(file_info$datapath, file_info$name)
-          if (is.null(preview)) {
-            showNotification("Could not preview file. Please verify the file format.",
-                             type = "warning", duration = 5)
-          }
-          preview_data(preview)
-        } else {
-          preview_data(NULL)
-        }
-      } else {
-        preview_data(NULL)
-      }
-    })
+    register_loadpage_visibility_observers(input, output, session)
 
-    # Track last detected DIANN format to avoid redundant notifications
-    last_detected_diann_format <- reactiveVal(NULL)
-
-    # Auto-toggle DIANN 2.0+ checkbox based on detected file format
-    observe({
-      req(input$filetype == "diann", input$BIO != "PTM")
-      preview <- preview_data()
-      if (is.null(preview)) return()
-
-      is_2plus <- .is_diann_2plus(preview)
-      previous <- last_detected_diann_format()
-      # Only update and notify when the detected state actually changes
-      if (is.null(previous) || previous != is_2plus) {
-        updateCheckboxInput(session, "diann_2plus", value = is_2plus)
-        if (is_2plus) {
-          showNotification("Detected DIANN 2.0+ format (per-fragment columns).",
-                           type = "message", duration = 5)
-        } else {
-          showNotification("Detected DIANN 1.x format (legacy fragment column).",
-                           type = "message", duration = 5)
-        }
-        last_detected_diann_format(is_2plus)
-      }
-    })
-
-    # Warn user if they manually set DIANN 2.0+ checkbox to a value that conflicts with detected format
-    observeEvent(input$diann_2plus, {
-      req(input$filetype == "diann", input$BIO != "PTM")
-      preview <- preview_data()
-      if (is.null(preview)) return()
-      detected_2plus <- .is_diann_2plus(preview)
-      if (isTRUE(input$diann_2plus) != detected_2plus) {
-        showNotification(
-          paste0("Warning: You've ",
-                 if (isTRUE(input$diann_2plus)) "checked" else "unchecked",
-                 " DIANN 2.0+, but the uploaded file appears to be ",
-                 if (detected_2plus) "DIANN 2.0+ format" else "DIANN 1.x format",
-                 ". This mismatch may cause upload to fail."),
-          type = "warning", duration = 10)
-      }
-    }, ignoreInit = TRUE)
-
-    # ========= METAMORPHEUS PTM: Dynamic modification ID dropdown =========
-    output$mod_id_meta_ui <- renderUI({
-      ns <- session$ns
-      req(input$filetype == "meta", input$BIO == "PTM")
-      mods <- .extract_mod_ids_from_preview(preview_data())
-      create_meta_mod_id_selector(ns, mods)
-    })
-
-    # Show manual text input when "Other" is selected (replaces conditionalPanel)
-    output$mod_id_meta_other_input <- renderUI({
-      req(input$mod_id_meta_select == "__other__")
-      textInput(session$ns("mod_id_meta_custom"),
-                label = h5("Enter modification ID (e.g. [Common Biological:Phosphorylation on S])"),
-                value = "")
-    })
-    
-    output$spectronaut_header_ui <- renderUI({
-      req(input$filetype == 'spec', input$BIO != 'PTM')
-      create_spectronaut_header()
-    })
-    
-    output$spectronaut_file_selection_ui <- renderUI({
-      req(input$filetype == 'spec', input$BIO != 'PTM')
-      
-      ui_elements <- tagList()
-      
-      if (!is_web_server) {
-        ui_elements <- tagList(ui_elements, create_spectronaut_mode_selector(session$ns, isTRUE(input$big_file_spec)))
-        
-        if (isTRUE(input$big_file_spec)) {
-          ui_elements <- tagList(ui_elements, create_spectronaut_large_file_ui(session$ns))
-        } else {
-          ui_elements <- tagList(ui_elements, create_spectronaut_standard_ui(session$ns))
-        }
-      } else {
-        ui_elements <- tagList(ui_elements, create_spectronaut_standard_ui(session$ns))
-      }
-      
-      ui_elements
-    })
-    
-    output$spectronaut_intensity_ui <- renderUI({
-      req(input$filetype == 'spec', input$BIO != 'PTM')
-
-      default_intensity <- if (!is.null(app_template) &&
-                               app_template() == TEMPLATES$protein_turnover) {
-        "FG.MS1Quantity"
-      } else {
-        "F.NormalizedPeakArea"
-      }
-
-      textInput(session$ns("spec_intensity_col"),
-                label = h5("Intensity column",
-                           class = "icon-wrapper",
-                           icon("question-circle", lib = "font-awesome"),
-                           div("Spectronaut export column to use as the intensity measure (e.g. F.NormalizedPeakArea, F.PeakArea, FG.MS1Quantity). Leave at the default unless you have a specific reason to override it.",
-                               class = "icon-tooltip")),
-                value = default_intensity)
-    })
-
-    output$spectronaut_turnover_ui <- renderUI({
-      req(input$filetype == 'spec', input$BIO != 'PTM')
-      req(!is.null(app_template) && app_template() == TEMPLATES$protein_turnover)
-
-      ns <- session$ns
-      tagList(
-        tags$hr(),
-        h4("Protein Turnover Options"),
-        textInput(ns("spec_peptide_seq_col"),
-                  "Peptide sequence column",
-                  value = "FG.LabeledSequence"),
-        textInput(ns("spec_heavy_labels"),
-                  "Heavy labels (comma-separated)",
-                  value = "L[Leu6]")
-      )
-    })
-
-    output$diann_turnover_ui <- renderUI({
-      req(input$filetype == 'diann', input$DDA_DIA == 'LType')
-      req(!is.null(app_template) && app_template() == TEMPLATES$protein_turnover)
-
-      ns <- session$ns
-      textInput(ns("diann_labeled_aa"),
-                h5("SILAC-labeled amino acids", class = "icon-wrapper",
-                   icon("question-circle", lib = "font-awesome"),
-                   div("Comma-separated single-letter codes of SILAC-labeled amino acids (e.g. K for lysine, or K,R for lysine and arginine).", class = "icon-tooltip")),
-                value = "K")
-    })
-
-    output$diann_header_ui <- renderUI({
-      req(input$filetype == 'diann', input$BIO != 'PTM')
-      create_diann_header()
-    })
-
-    output$diann_file_selection_ui <- renderUI({
-      req(input$filetype == 'diann', input$BIO != 'PTM')
-
-      ui_elements <- tagList()
-
-      if (!is_web_server) {
-        ui_elements <- tagList(ui_elements, create_diann_mode_selector(session$ns, isTRUE(input$big_file_diann)))
-
-        if (isTRUE(input$big_file_diann)) {
-          ui_elements <- tagList(ui_elements, create_diann_large_file_ui(session$ns))
-        } else {
-          ui_elements <- tagList(ui_elements, create_diann_standard_ui(session$ns))
-        }
-      } else {
-        ui_elements <- tagList(ui_elements, create_diann_standard_ui(session$ns))
-      }
-
-      ui_elements
-    })
-
-    output$diann_options_ui <- renderUI({
-      req(input$filetype == 'diann', input$BIO != 'PTM')
-
-      if (!is_web_server && isTRUE(input$big_file_diann)) {
-        mbr_def <- if (is.null(input$big_diann_MBR)) TRUE else input$big_diann_MBR
-        quantcol_def <- if (is.null(input$big_diann_quantification_column) ||
-                            !nzchar(input$big_diann_quantification_column)) {
-          "FragmentQuantCorrected"
-        } else {
-          input$big_diann_quantification_column
-        }
-        global_qv_def <- if (is.null(input$big_diann_global_qvalue_cutoff)) 0.01 else input$big_diann_global_qvalue_cutoff
-        qv_def <- if (is.null(input$big_diann_qvalue_cutoff)) 0.01 else input$big_diann_qvalue_cutoff
-        pg_qv_def <- if (is.null(input$big_diann_pg_qvalue_cutoff)) 0.01 else input$big_diann_pg_qvalue_cutoff
-
-        max_feature_def <- if (is.null(input$big_diann_max_feature_count)) 100 else input$big_diann_max_feature_count
-        unique_peps_def <- if (is.null(input$big_diann_filter_unique_peptides)) FALSE else input$big_diann_filter_unique_peptides
-        agg_psms_def <- if (is.null(input$big_diann_aggregate_psms)) FALSE else input$big_diann_aggregate_psms
-        few_obs_def <- if (is.null(input$big_diann_filter_few_obs)) FALSE else input$big_diann_filter_few_obs
-        backend_def <- if (is.null(input$big_diann_backend) || !nzchar(input$big_diann_backend)) "arrow" else input$big_diann_backend
-        calculate_anomaly_def <- if (is.null(input$big_diann_calculate_anomaly_scores)) FALSE else input$big_diann_calculate_anomaly_scores
-
-        tagList(
-          create_diann_large_filter_options(session$ns, mbr_def, quantcol_def,
-                                            global_qv_def, qv_def, pg_qv_def),
-          create_diann_large_bottom_ui(session$ns, max_feature_def,
-                                       unique_peps_def, agg_psms_def, few_obs_def,
-                                       backend_def),
-          create_diann_large_annotation_ui(session$ns, calculate_anomaly_def)
-        )
-      } else {
-        NULL
-      }
-    })
-
-    output$spectronaut_options_ui <- renderUI({
-      req(input$filetype == 'spec', input$BIO != 'PTM')
-
-      if (!is_web_server && isTRUE(input$big_file_spec)) {
-        qval_def <- if (is.null(input$filter_by_qvalue)) TRUE else input$filter_by_qvalue
-        excluded_def <- if (is.null(input$filter_by_excluded)) FALSE else input$filter_by_excluded
-        identified_def <- if (is.null(input$filter_by_identified)) FALSE else input$filter_by_identified
-        cutoff_def <- if (is.null(input$qvalue_cutoff)) 0.01 else input$qvalue_cutoff
-        
-        max_feature_def <- if (is.null(input$max_feature_count)) 20 else input$max_feature_count
-        unique_peps_def <- if (is.null(input$filter_unique_peptides)) FALSE else input$filter_unique_peptides
-        agg_psms_def <- if (is.null(input$aggregate_psms)) FALSE else input$aggregate_psms
-        few_obs_def <- if (is.null(input$filter_few_obs)) FALSE else input$filter_few_obs
-        calculate_anomaly_def <- if (is.null(input$calculate_anomaly_scores)) FALSE else input$calculate_anomaly_scores
-
-        tagList(
-          create_spectronaut_large_filter_options(session$ns, excluded_def, identified_def, qval_def),
-          if (qval_def) create_spectronaut_qvalue_cutoff_ui(session$ns, cutoff_def),
-          create_spectronaut_large_bottom_ui(session$ns, max_feature_def, unique_peps_def, agg_psms_def, few_obs_def),
-          create_spectronaut_large_annotation_ui(session$ns, calculate_anomaly_def)
-        )
-      } else {
-        NULL
-      }
-    })
-    
-    # toggle ui (DDA DIA SRM)
-    observe({
-      print("bio")
-      
-      print(input$BIO)
-      if((input$BIO == "Protein" || input$BIO == "Peptide") && input$DDA_DIA == "LType"){
-        runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-        enable("filetype")
-        disable(selector = "[type=radio][value=spmin]")
-        runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
-        
-      } else if ((input$BIO == "Protein" || input$BIO == "Peptide") && input$DDA_DIA == "TMT"){
-        runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-        enable("filetype")
-        disable(selector = "[type=radio][value=sky]")
-        disable(selector = "[type=radio][value=prog]")
-        disable(selector = "[type=radio][value=spec]")
-        disable(selector = "[type=radio][value=open]")
-        disable(selector = "[type=radio][value=ump]")
-        disable(selector = "[type=radio][value=diann]")
-        disable(selector = "[type=radio][value=meta]")
-        runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })")
-        
-      } else if (input$BIO == "PTM" && input$DDA_DIA == "LType"){
-        runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-        enable("filetype")
-        # disable(selector = "[type=radio][value=sky]")
-        disable(selector = "[type=radio][value=prog]")
-        disable(selector = "[type=radio][value=PD]")
-        disable(selector = "[type=radio][value=openms]")
-        disable(selector = "[type=radio][value=spmin]")
-        disable(selector = "[type=radio][value=open]")
-        disable(selector = "[type=radio][value=ump]")
-        disable(selector = "[type=radio][value=phil]")
-        disable(selector = "[type=radio][value=diann]")
-
-        runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })") 
-      }else if (input$BIO == "PTM" && input$DDA_DIA == "TMT"){
-        runjs("$('[type=radio][name=loadpage-filetype]:disabled').parent().parent().parent().find('div.radio').css('opacity', 1)")
-        enable("filetype")
-        disable(selector = "[type=radio][value=prog]")
-        disable(selector = "[type=radio][value=openms]")
-        disable(selector = "[type=radio][value=spec]")
-        disable(selector = "[type=radio][value=open]")
-        disable(selector = "[type=radio][value=ump]")
-        disable(selector = "[type=radio][value=spmin]")
-        disable(selector = "[type=radio][value=diann]")
-        disable(selector = "[type=radio][value=sky]")
-        disable(selector = "[type=radio][value=meta]")
-        
-        runjs("$.each($('[type=radio][name=loadpage-filetype]:disabled'), function(_, e){ $(e).parent().parent().css('opacity', 0.4) })") 
-      }
-     
-    })
-
-    # observeEvent(input$filetype,{
-    #   enable("proceed1")
-    # })
-
-    observe({
-      disable("proceed1")
-      if(((input$BIO == "Protein") || (input$BIO == "Peptide"))) {
-        if(input$DDA_DIA == "LType") {
-          if ((!is.null(input$filetype) && length(input$filetype) > 0)) {
-            if (input$filetype == "sample") {
-              if(!is.null(input$LabelFreeType)) {
-                enable("proceed1")
-              }
-            } else if (input$filetype == "msstats") {
-              if(!is.null(input$msstatsdata)) {
-                enable("proceed1")
-              }
-            } else if (input$filetype == "sky") {
-              if(!is.null(input$skylinedata)) {
-                enable("proceed1")
-              }
-            } else if (input$filetype == "maxq") {
-              if(!is.null(input$evidence) && !is.null(input$pGroup)) { # && !is.null(input$annot1)
-                enable("proceed1")
-              }
-            } else if (input$filetype == "prog" || input$filetype == "PD" || input$filetype == "open" || input$filetype == "phil" || input$filetype == "meta") {
-              if(!is.null(input$data)) {
-                enable("proceed1")
-              }
-            } else if (input$filetype == "openms") {
-              if(!is.null(input$data)) {
-                enable("proceed1")
-              }
-            } else if (input$filetype == "spec") {
-              spec_regular_file_ok <- !isTRUE(input$big_file_spec) && !is.null(input$specdata)
-              spec_big_file_ok <- isTRUE(input$big_file_spec) && length(local_big_file_path()) > 0
-              if(spec_regular_file_ok || spec_big_file_ok) {
-                enable("proceed1")
-              }
-            } else if (input$filetype == "ump") {
-              if(!is.null(input$fragSummary) && !is.null(input$peptideSummary) && !is.null(input$protSummary)) {  #&& !is.null(input$annot2)
-                enable("proceed1")
-              }
-            } else if (input$filetype == "diann") {
-              diann_regular_file_ok <- !isTRUE(input$big_file_diann) && !is.null(input$dianndata)
-              diann_big_file_ok <- isTRUE(input$big_file_diann) && length(local_big_diann_path()) > 0
-              if(diann_regular_file_ok || diann_big_file_ok) {
-                enable("proceed1")
-              }
-            }
-          }
-        } else if (input$DDA_DIA == "TMT") {
-          if ((!is.null(input$filetype) && length(input$filetype) > 0)) {
-            if(input$filetype == "sample" || input$filetype == "msstats") {
-              enable("proceed1")
-            }
-            if (input$filetype == "maxq") {
-              if(!is.null(input$evidence) && !is.null(input$pGroup)) { # && !is.null(input$annot1)
-                enable("proceed1")
-              }
-            } else if (input$filetype == "PD") {
-              if(!is.null(input$data)) {
-                enable("proceed1")
-              }
-            } else if (input$filetype == "openms") {
-              if(!is.null(input$data)) {
-                enable("proceed1")
-              }
-            } else if (input$filetype == "spmin" || input$filetype == "phil") {
-              if(!is.null(input$data)) {
-                enable("proceed1")
-              }
-            }
-          }
-        }
-
-      }
-      else if ((input$BIO == "PTM")) {
-        if (input$DDA_DIA == "LType" || input$DDA_DIA == "TMT") {
-          if ((!is.null(input$filetype) && length(input$filetype) > 0)) {
-            if (input$filetype == "sample") {
-              enable("proceed1")
-            } else if (input$filetype == "msstats") {
-              if(!is.null(input$msstatsptmdata)) {
-                enable("proceed1")
-              }
-            } else if (input$filetype == "sky" || input$filetype == "maxq" || input$filetype == "spec" || input$filetype == "PD" || input$filetype == "meta") {
-              if(!is.null(input$ptm_input) && !is.null(input$fasta)) { # && !is.null(input$ptm_annot)
-                enable("proceed1")
-              }
-            }
-            else if (input$filetype == "phil") {
-              if(!is.null(input$ptmdata)) { # && !is.null(input$annotation)
-                enable("proceed1")
-              }
-            }
-          }
-        }
-      }
-    })
-
-    get_annot = eventReactive(input$proceed1, {
-      getAnnot(input)
-    })
-
-
-    get_annot1 = reactive({
-      getAnnot1(input)
-    })
-
-    get_annot2 = reactive({
-      getAnnot2(input)
-    })
-
-    get_annot3 = reactive({
-      getAnnot3(input)
-    })
-
-    get_evidence = reactive({
-      getEvidence(input)
-    })
-
-    get_evidence2 = reactive({
-      getEvidence2(input)
-    })
-
-    get_global = reactive({
-      getGlobal(input)
-    })
-
-    get_proteinGroups = reactive({
-      getProteinGroups(input)
-    })
-
-    get_proteinGroups2 = reactive({
-      getProteinGroups2(input)
-    })
-
-    get_FragSummary = reactive({
-      getFragSummary(input)
-    })
-
-    get_peptideSummary = reactive({
-      getPeptideSummary(input)
-    })
-
-    get_protSummary = reactive({
-      getProtSummary(input)
-    })
-
-    get_maxq_ptm_sites = reactive({
-      getMaxqPtmSites(input)
-    })
-
-    get_data = eventReactive(input$proceed1, {
-      tryCatch(
-        getData(input),
-        error = function(e) {
-          tryCatch(remove_modal_spinner(), error = function(e2) NULL)
-          showNotification(
-            paste("Failed to load data:", conditionMessage(e)),
-            type = "error", duration = 12)
-          NULL
-        }
-      )
-    })
-
-    observeEvent(input$proceed1, {
-      shinyjs::disable("download_msstats_format")
-    })
-
-    observeEvent(get_data(), {
-      req(get_data())
-      shinyjs::enable("download_msstats_format")
-    })
-
-    output$download_msstats_format = downloadHandler(
-      filename = function() {
-        data <- get_data()
-        if (inherits(data, "data.frame")) {
-          paste0("MSstats_format-", Sys.Date(), ".csv")
-        } else {
-          paste0("MSstats_format-", Sys.Date(), ".zip")
-        }
-      },
-      content = function(file) {
-        tryCatch({
-          data <- get_data()
-          if (inherits(data, "data.frame")) {
-            data.table::fwrite(data, file)
-          } else {
-            tmp_dir <- tempfile("msstats_format_")
-            dir.create(tmp_dir)
-            on.exit(unlink(tmp_dir, recursive = TRUE), add = TRUE)
-            tmp_files <- character()
-            for (nm in names(data)) {
-              tbl <- data[[nm]]
-              if (is.null(tbl)) next
-              if (NROW(tbl) == 0L) next
-              tmp_path <- file.path(tmp_dir, paste0(nm, ".csv"))
-              data.table::fwrite(tbl, tmp_path)
-              tmp_files <- c(tmp_files, tmp_path)
-            }
-            if (length(tmp_files) == 0L) {
-              stop("No non-empty tables available to export.")
-            }
-            utils::zip(zipfile = file, files = tmp_files, flags = "-j")
-          }
-        }, error = function(e) {
-          writeLines(paste("Failed to export MSstats format:", conditionMessage(e)), file)
-        })
-      }
+    register_loadpage_converter_ui(
+      input, output, session,
+      is_web_server = is_web_server,
+      app_template  = app_template
     )
 
-
-    get_data_code = eventReactive(input$calculate, {
-      getDataCode(input)
-    })
-
-    get_summary1 = eventReactive(input$proceed1, {
-      getSummary1(input,get_data(),get_annot())
-    })
-
-    get_summary2 = eventReactive(input$proceed1, {
-      getSummary2(input,get_data())
-    })
-
-    # Handle edits to the condition metadata DT table
-    observeEvent(input$condition_metadata_table_cell_edit, {
-      info <- input$condition_metadata_table_cell_edit
-      current <- condition_metadata()
-      if (is.null(current)) return()
-      if (info$col == 1) {
-        value_col <- if ("TimeVal" %in% colnames(current)) "TimeVal" else "DoseVal"
-        current[[value_col]][info$row] <- info$value
-        condition_metadata(current)
-      } else if (info$col == 2 && "DrugName" %in% colnames(current)) {
-        current[["DrugName"]][info$row] <- as.character(info$value)
-        condition_metadata(current)
-      } else if (info$col == 3 && "DoseUnit" %in% colnames(current)) {
-        current[["DoseUnit"]][info$row] <- as.character(info$value)
-        condition_metadata(current)
-      }
-    })
-
-    # Render the editable condition metadata table
-    output$condition_metadata_table <- DT::renderDT({
-      req(!is.null(condition_metadata()))
-      meta <- condition_metadata()
-      caption_text <- "Click any cell to edit. Cells showing '?' could not be 
-      parsed and must be filled in before running analysis."
-      DT::datatable(
-        meta,
-        editable = list(target = "cell", disable = list(columns = c(0))),
-        rownames = FALSE,
-        selection = "none",
-        options = list(dom = 't', paging = FALSE),
-        caption = caption_text
-      )
-    })
-
-    onclick("proceed1", {
-      get_data()
-      get_annot()
-      shinyjs::show("summary_tables")
-
-      condition_metadata(NULL)
-      # Initialize condition metadata for protein turnover and chemoproteomics templates
-      if (!is.null(app_template) && app_template() == TEMPLATES$protein_turnover) {
-        tryCatch({
-          data <- get_data()
-          if (!is.null(data) && "Condition" %in% colnames(data)) {
-            conditions <- unique(as.character(data$Condition))
-            time_vals <- as.character(autofill_condition_value(conditions))
-            time_vals[is.na(time_vals) | time_vals == "NA"] <- "?"
-            meta_df <- data.frame(Condition = conditions,
-                                  TimeVal = time_vals,
-                                  stringsAsFactors = FALSE)
-            condition_metadata(meta_df)
-          }
-        }, error = function(e) {})
-      } else if (!is.null(app_template) && app_template() == TEMPLATES$chemoproteomics) {
-        tryCatch({
-          data <- get_data()
-          if (!is.null(data) && "Condition" %in% colnames(data)) {
-            conditions <- unique(as.character(data$Condition))
-            is_ctrl <- grepl("^(dmso|control|vehicle)$", tolower(trimws(conditions)))
-            parsed_drug <- parse_drug_name_from_conditions(conditions)
-            dose_vals <- as.character(autofill_condition_value(conditions))
-            dose_vals[is.na(dose_vals) | dose_vals == "NA"] <- "?"
-            meta_df <- data.frame(Condition = conditions,
-                                  DoseVal = dose_vals,
-                                  DrugName = ifelse(is_ctrl, conditions, parsed_drug),
-                                  DoseUnit = parse_dose_unit_from_conditions(conditions),
-                                  stringsAsFactors = FALSE)
-            condition_metadata(meta_df)
-          }
-        }, error = function(e) {
-            condition_metadata(NULL)
-            showNotification(
-                paste("Could not initialize condition metadata:", conditionMessage(e)),
-                type = "warning",
-                duration = 6
-            )
-        })
-      }
-
-      ### outputs ###
-      get_summary = reactive({
-        if(is.null(get_data())) {
-          return(NULL)
-        }
-        data1 = get_data()
-        data_summary = describe(data1)
-      })
-
-      output$template = downloadHandler(
-        filename = "extdata/templateannotation.csv",
-
-        content = function(file) {
-          file.copy("extdata/templateannotation.csv", file)
-        },
-        contentType = "csv"
-      )
-
-      output$template1 = downloadHandler(
-        filename = function() {
-          paste("extdata/templateevidence", "txt", sep = ".")
-        },
-
-        content = function(file) {
-          file.copy("extdata/templateevidence.txt", file)
-        },
-        contentType = "txt"
-      )
-
-      output$summary = renderTable(
-        {
-          head(get_data())
-        }, bordered = TRUE
-      )
-      output$summary_ptm = renderTable(
-        {
-          head(get_data()$PTM)
-        }, bordered = TRUE
-      )
-      output$summary_prot = renderTable(
-        {
-          head(get_data()$PROTEIN)
-        }, bordered = TRUE
-      )
-
-
-      output$summary1 =  renderTable(
-        {
-          req(get_data())
-          get_summary1()
-
-        }, colnames = FALSE, bordered = TRUE
-      )
-
-      output$summary2 =  renderTable(
-        {
-          req(get_data())
-          get_summary2()
-
-        }, colnames = FALSE, bordered = TRUE, align='lr'
-      )
-
-      onclick("proceed2", {
-        updateTabsetPanel(session = parent_session, inputId = "tablist",
-                          selected = "DataProcessing")
-      })
-      output$summary_tables = renderUI({
-        ns <- session$ns
-        is_turnover <- !is.null(app_template) && app_template() == TEMPLATES$protein_turnover
-        is_chemo   <- !is.null(app_template) && app_template() == TEMPLATES$chemoproteomics
-        tagList(
-          tags$head(
-            tags$style(HTML('#loadpage-proceed2{background-color:orange}'))
-          ),
-          actionButton(inputId = ns("proceed2"), label = "Next step"),
-          if (is_turnover) tagList(
-            tags$hr(),
-            h4("Condition time points"),
-            p("Time values are auto-filled from condition names. Correct any values as needed before running the analysis."),
-            DT::dataTableOutput(ns("condition_metadata_table")),
-            tags$br()
-          ) else if (is_chemo) tagList(
-            tags$hr(),
-            h4("Condition doses"),
-            p("Dose values are auto-filled from condition names. Correct any values as needed before running the analysis."),
-            DT::dataTableOutput(ns("condition_metadata_table")),
-            tags$br()
-          ),
-          h4("Summary of experimental design"),
-          tableOutput(ns('summary1')),
-          tags$br(),
-          h4("Summary of dataset"),
-          tableOutput(ns("summary2")),
-          tags$br(),
-          conditionalPanel(condition = "input['loadpage-BIO'] !== 'PTM'",
-                           h4("Top 6 rows of the dataset"),
-                           div(style = "overflow-x: auto;", tableOutput(ns("summary")))
-          ),
-          conditionalPanel(condition = "input['loadpage-BIO'] == 'PTM'",
-                           h4("Top 6 rows of the PTM dataset"),
-                           div(style = "overflow-x: auto;", tableOutput(ns("summary_ptm"))),
-                           tags$br(),
-                           h4("Top 6 rows of the unmodified protein dataset"),
-                           div(style = "overflow-x: auto;", tableOutput(ns("summary_prot")))
-          )
-        )
-      })
-
-    })
-    return(
-      list(
-        input = input,
-        getData = get_data,
-        getConditionMetadata = condition_metadata
-      )
+    register_loadpage_proceed_validation(
+      input, session,
+      local_big_file_path  = local_big_file_path,
+      local_big_diann_path = local_big_diann_path
     )
+
+    data_reactives <- register_loadpage_data_loaders(input, output, session)
+
+    register_loadpage_summary(
+      input, output, session, parent_session,
+      app_template       = app_template,
+      data_reactives     = data_reactives,
+      condition_metadata = condition_metadata
+    )
+
+    return(list(
+      input = input,
+      getData = data_reactives$get_data,
+      getConditionMetadata = condition_metadata
+    ))
   })
-
 }

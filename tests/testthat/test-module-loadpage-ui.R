@@ -60,25 +60,156 @@ test_that("loadpageUI contains all required radio button choices", {
   }
 })
 
-test_that("loadpageUI includes required conditional panels for different workflows", {
-  # Test that key conditional panels exist for different analysis types
+test_that("loadpageUI mounts hidden visibility containers for migrated workflows", {
+  # The Phase 1 + Phase 2 refactor moved conditional UI off `conditionalPanel`
+  # and onto server-side `shinyjs::show/hide`. Each migrated panel is now
+  # wrapped in `shinyjs::hidden(div(id = ns(NAMESPACE_LOADPAGE$<panel>), ...))`,
+  # so the static UI contains the namespaced container divs (mounted, hidden)
+  # in place of the old JS condition strings. The driver inputs / file inputs
+  # inside live alongside, ready for the server's toggle observers.
   result <- loadpageUI("test")
   html_output <- as.character(result)
-  
-  # Check for conditional panel conditions that handle different workflows
-  # Note: HTML entities encode single quotes as &#39;
-  expected_conditions <- c(
-    "input[&#39;loadpage-filetype&#39;] == &#39;sample&#39;",     # Sample data panels
-    "input[&#39;loadpage-BIO&#39;] != &#39;PTM&#39;",             # Non-PTM workflows
-    "input[&#39;loadpage-filetype&#39;] == &#39;maxq&#39;",       # MaxQuant workflow
-    "input[&#39;loadpage-DDA_DIA&#39;] == &#39;TMT&#39;",         # TMT labeling
-    "input[&#39;loadpage-filetype&#39;] == &#39;sky&#39;"        # Skyline workflow
+
+  expected_panel_ids <- c(
+    # Sample dataset descriptions (Phase 2 — 3 mutually exclusive panels)
+    "test-sample_dda_description_panel",
+    "test-sample_dia_description_panel",
+    "test-sample_srm_prm_description_panel",
+    # LabelFreeType selector (Phase 2)
+    "test-label_free_type_selection_panel",
+    # Non-PTM uploads (Phase 2)
+    "test-standard_quant_upload_panel",
+    "test-standard_annot_upload_panel",
+    "test-msstats_regular_upload_panel",
+    "test-skyline_upload_panel",
+    "test-maxquant_upload_panel",
+    "test-dia_umpire_upload_panel",
+    # PTM cluster (Phase 2)
+    "test-msstats_ptm_upload_panel",
+    "test-ptm_fragpipe_upload_panel",
+    "test-ptm_uploads_panel",
+    "test-ptm_maxquant_pgroup_panel",
+    "test-ptm_metamorpheus_extras_panel",
+    "test-ptm_fasta_id_column_panel",
+    "test-ptm_mod_id_maxq_panel",
+    "test-ptm_mod_id_pd_panel",
+    "test-ptm_mod_id_spec_panel",
+    # Label-free options + OpenSWATH (Phase 2)
+    "test-label_free_options_panel",
+    "test-openswath_mscore_panel",
+    "test-openswath_mscore_cutoff_panel",
+    # Phase 1 DIANN panels (already mounted as hidden divs)
+    "test-diann_lf_options_panel",
+    "test-diann_intensity_column_panel",
+    "test-qval_filter_panel",
+    "test-qval_cutoff_panel",
+    "test-qval_mbr_panel"
   )
-  
-  for(condition in expected_conditions) {
-    expect_true(grepl(condition, html_output, fixed = TRUE),
-                info = paste("Missing conditional panel for:", condition))
+  for (id in expected_panel_ids) {
+    expect_true(
+      grepl(paste0('id="', id, '"'), html_output, fixed = TRUE),
+      info = paste("Missing hidden visibility container div id:", id)
+    )
   }
+})
+
+test_that("loadpageUI exposes the TMT renderUI slot in place of duplicate-id panels", {
+  # The two pre-existing TMT `conditionalPanel`s both declared
+  # `ns("which.proteinid")` with different per-converter defaults — mounting
+  # both as hidden divs would collide on a single ns() id. Phase 2 consolidated
+  # them into a single `output[[tmt_options_ui]]` renderUI; the static UI
+  # exposes a `uiOutput(ns("tmt_options_ui"))` slot instead.
+  result <- loadpageUI("test")
+  html_output <- as.character(result)
+  expect_true(grepl('id="test-tmt_options_ui"', html_output, fixed = TRUE),
+              info = "TMT options uiOutput slot not found in rendered UI")
+  # And the static UI must NOT contain the literal `which.proteinid` input
+  # node, since it is rendered server-side now.
+  expect_false(grepl('id="test-which.proteinid"', html_output, fixed = TRUE),
+               info = paste("Static UI must not mount a `which.proteinid` input;",
+                            "it is emitted server-side via the tmt_options_ui",
+                            "renderUI. A static occurrence would re-introduce",
+                            "the duplicate-ns()-id collision Phase 2 fixed."))
+})
+
+test_that("Spectronaut regular-path anomaly UI is a server-rendered slot, not a static conditionalPanel", {
+  # `calculate_anomaly_scores` + `run_order_file` are also declared by the
+  # big-file Spectronaut helper (`create_spectronaut_large_annotation_ui`,
+  # emitted by `output$spectronaut_options_ui`). To keep the two copies from
+  # colliding on a shared ns() id, the regular path now emits them from
+  # `output$spectronaut_anomaly_ui` (renderUI), which mounts only on the
+  # regular path (filetype == 'spec' && !big_file_spec). The static
+  # quality-filtering options therefore expose only the renderUI slot.
+  options <- create_quality_filtering_options(NS("test"))
+  options_html <- as.character(options)
+
+  # The renderUI slot is present...
+  expect_true(grepl('id="test-spectronaut_anomaly_ui"', options_html, fixed = TRUE),
+              info = "spectronaut_anomaly_ui renderUI slot missing")
+  # ...and the regular-path anomaly inputs are NOT mounted statically (they are
+  # emitted server-side), so there is no duplicate-ns()-id with the big-file copy.
+  expect_false(grepl("test-calculate_anomaly_scores", options_html, fixed = TRUE),
+               info = "calculate_anomaly_scores must be server-rendered, not static")
+  expect_false(grepl("test-run_order_file", options_html, fixed = TRUE),
+               info = "run_order_file must be server-rendered, not static")
+  # The old regular-path anomaly conditionalPanel JS condition must be gone.
+  expect_false(grepl("input[&#39;loadpage-filetype&#39;] == &#39;spec&#39;",
+                     options_html, fixed = TRUE),
+               info = "regular-path anomaly conditionalPanel should be gone")
+})
+
+test_that("create_spectronaut_anomaly_ui emits the checkbox and (only when ticked) the run-order fileInput", {
+  # Default (unticked): checkbox present, run-order fileInput ABSENT. The
+  # fileInput is emitted by the renderUI only when the checkbox is ticked (no
+  # conditionalPanel) — that renderUI gating is what keeps the regular and
+  # big-file copies (same ns() ids) from coexisting in the DOM.
+  html <- as.character(create_spectronaut_anomaly_ui(NS("test")))
+  expect_true(grepl("test-calculate_anomaly_scores", html, fixed = TRUE))
+  expect_true(grepl("Calculate Anomaly Scores", html, fixed = TRUE))
+  expect_false(grepl("test-run_order_file", html, fixed = TRUE),
+               info = "run-order fileInput must be absent when the checkbox is unticked")
+  expect_false(grepl("data-display-if", html, fixed = TRUE),
+               info = "no conditionalPanel — the nesting is renderUI-gated now")
+
+  # Ticked: checkbox pre-checked (seed) + run-order fileInput present. Ids are
+  # the SAME literals the big-file helper uses (no rename).
+  checked <- as.character(create_spectronaut_anomaly_ui(NS("test"), TRUE))
+  expect_true(grepl("test-run_order_file", checked, fixed = TRUE))
+  expect_true(grepl("checked", checked, fixed = TRUE))
+})
+
+test_that("create_diann_anomaly_ui emits the checkbox and (only when ticked) the run-order fileInput", {
+  # DIANN regular path, migrated from Phase 1 show/hide to the same renderUI-
+  # gated pattern as the Spectronaut regular helper. Uses the diann_* ids
+  # (unchanged, distinct from the big-file big_diann_* ids).
+  html <- as.character(create_diann_anomaly_ui(NS("test")))
+  expect_true(grepl("test-diann_calculate_anomaly_scores", html, fixed = TRUE))
+  expect_true(grepl("Calculate Anomaly Scores", html, fixed = TRUE))
+  expect_false(grepl("test-diann_run_order_file", html, fixed = TRUE),
+               info = "run-order fileInput must be absent when the checkbox is unticked")
+  expect_false(grepl("data-display-if", html, fixed = TRUE),
+               info = "no conditionalPanel — the nesting is renderUI-gated now")
+
+  checked <- as.character(create_diann_anomaly_ui(NS("test"), TRUE))
+  expect_true(grepl("test-diann_run_order_file", checked, fixed = TRUE))
+  expect_true(grepl("checked", checked, fixed = TRUE))
+})
+
+test_that("create_spectronaut_large_annotation_ui gates the run-order fileInput on the checkbox (renderUI, no conditionalPanel)", {
+  # Big-file Spectronaut path: the run-order fileInput is emitted only when the
+  # checkbox is ticked (was a conditionalPanel before). Shares the regular
+  # path's ns() ids; renderUI mounting on mutually exclusive big_file_spec keeps
+  # them from colliding.
+  html <- as.character(create_spectronaut_large_annotation_ui(NS("test")))
+  expect_true(grepl("test-big_spec_annotation", html, fixed = TRUE))
+  expect_true(grepl("test-calculate_anomaly_scores", html, fixed = TRUE))
+  expect_false(grepl("test-run_order_file", html, fixed = TRUE),
+               info = "run-order fileInput must be absent when the checkbox is unticked")
+  expect_false(grepl("data-display-if", html, fixed = TRUE),
+               info = "no conditionalPanel — the nesting is renderUI-gated now")
+
+  checked <- as.character(create_spectronaut_large_annotation_ui(NS("test"), TRUE))
+  expect_true(grepl("test-run_order_file", checked, fixed = TRUE))
 })
 
 test_that("loadpageUI properly handles file input elements and validation", {
@@ -132,19 +263,34 @@ test_that("create_header_content includes required elements", {
 })
 
 # Tests for create_sample_dataset_descriptions()
-test_that("create_sample_dataset_descriptions creates conditional panels", {
-  descriptions <- create_sample_dataset_descriptions()
+test_that("create_sample_dataset_descriptions creates hidden divs with namespaced container IDs", {
+  # Phase 2: the helper now requires `ns` and returns three hidden divs (not
+  # conditionalPanels). Visibility is toggled server-side by
+  # `register_loadpage_visibility_observers` on the
+  # `filetype == 'sample' && LabelFreeType == <mode>` predicate.
+  descriptions <- create_sample_dataset_descriptions(NS("test"))
   descriptions_html <- as.character(descriptions)
-  
-  # Check for conditional panels
-  expect_true(grepl("shiny-panel-conditional", descriptions_html))
-  
-  # Check for specific dataset references
+
+  # Three hidden container divs, one per LabelFreeType mode
+  expect_true(grepl('id="test-sample_dda_description_panel"',
+                    descriptions_html, fixed = TRUE),
+              info = "DDA description hidden container missing")
+  expect_true(grepl('id="test-sample_dia_description_panel"',
+                    descriptions_html, fixed = TRUE),
+              info = "DIA description hidden container missing")
+  expect_true(grepl('id="test-sample_srm_prm_description_panel"',
+                    descriptions_html, fixed = TRUE),
+              info = "SRM/PRM description hidden container missing")
+
+  # And none of them should still be conditionalPanels.
+  expect_false(grepl("shiny-panel-conditional", descriptions_html, fixed = TRUE),
+               info = paste("Sample-dataset descriptions must be hidden divs,",
+                            "not conditionalPanels"))
+
+  # The publication content must be preserved verbatim
   expect_true(grepl("DDA acquisition", descriptions_html))
   expect_true(grepl("DIA acquisition", descriptions_html))
   expect_true(grepl("SRM/PRM acquisition", descriptions_html))
-  
-  # Check for publication links
   expect_true(grepl("Choi, M. et al", descriptions_html))
   expect_true(grepl("Selevsek, N. et al", descriptions_html))
   expect_true(grepl("Picotti, P. et al", descriptions_html))
@@ -209,35 +355,48 @@ test_that("create_main_selection_controls creates proper radio buttons", {
 })
 
 # Tests for create_label_free_type_selection()
-test_that("create_label_free_type_selection creates conditional panel", {
+test_that("create_label_free_type_selection wraps the LabelFreeType radio in a hidden container", {
+  # Phase 2: the conditionalPanel was replaced with
+  # `shinyjs::hidden(div(id = ns(NAMESPACE_LOADPAGE$label_free_type_selection_panel), ...))`.
+  # The BIO / filetype / DDA_DIA gating is now in
+  # `loadpage_show_sample_dataset_label_free_type_selector()` (server-side).
   selection <- create_label_free_type_selection(NS("test"))
   selection_html <- as.character(selection)
-  
-  expect_true(grepl("shiny-panel-conditional", selection_html))
+
+  expect_true(grepl('id="test-label_free_type_selection_panel"', selection_html, fixed = TRUE),
+              info = "Hidden container div missing")
+  expect_false(grepl("shiny-panel-conditional", selection_html, fixed = TRUE),
+               info = "LabelFreeType selector should no longer be a conditionalPanel")
+  # Contents preserved
   expect_true(grepl("Type of Label-Free type", selection_html))
   expect_true(grepl("DDA", selection_html))
   expect_true(grepl("DIA", selection_html))
   expect_true(grepl("SRM/PRM", selection_html))
-  
-  # Check conditional logic
-  expect_true(grepl("loadpage-BIO", selection_html))
-  expect_true(grepl("loadpage-filetype", selection_html))
+  # The LabelFreeType radio input ID must remain literal (no renames).
+  expect_true(grepl("test-LabelFreeType", selection_html, fixed = TRUE),
+              info = paste("LabelFreeType radio input ID missing or renamed;",
+                           "Phase 2 explicitly forbids input-ID renames"))
 })
 
 # Tests for create_standard_uploads()
-test_that("create_standard_uploads creates file input with conditions", {
+test_that("create_standard_uploads wraps the data fileInput in a hidden container", {
+  # Phase 2: the conditionalPanel JS condition is gone; the panel is now a
+  # hidden div with the data fileInput mounted inside. The list of converter
+  # filetypes that should show this panel is encoded in
+  # `loadpage_show_standard_quant_upload()` (truth-tabled in
+  # test-loadpage-server-rendering.R).
   uploads <- create_standard_uploads(NS("test"))
   uploads_html <- as.character(uploads)
-  
+
+  expect_true(grepl('id="test-standard_quant_upload_panel"', uploads_html, fixed = TRUE),
+              info = "Hidden container div missing")
+  expect_false(grepl("shiny-panel-conditional", uploads_html, fixed = TRUE),
+               info = "Standard quant upload should no longer be a conditionalPanel")
+  # Contents preserved — header text + the fileInput
   expect_true(grepl("Upload quantification dataset", uploads_html))
   expect_true(grepl("shiny-input-file", uploads_html))
-  expect_true(grepl("test-data", uploads_html))
-  
-  # Check conditional logic for multiple file types
-  expect_true(grepl("loadpage-filetype", uploads_html))
-  expect_true(grepl("prog", uploads_html))
-  expect_true(grepl("PD", uploads_html))
-  expect_true(grepl("phil", uploads_html))
+  expect_true(grepl("test-data", uploads_html, fixed = TRUE),
+              info = "`data` fileInput input ID missing or renamed")
 })
 
 # Tests for create_msstats_uploads()
@@ -330,9 +489,14 @@ test_that("create_quality_filtering_options creates filtering controls", {
   expect_true(grepl("Q-value cutoff", options_html))
   expect_true(grepl("M-score cutoff", options_html))
   expect_true(grepl("MBR Enabled", options_html))
-  # Regular DIANN anomaly scoring controls (parallel to Spectronaut's).
-  expect_true(grepl("test-diann_calculate_anomaly_scores", options_html))
-  expect_true(grepl("test-diann_run_order_file", options_html))
+  # DIANN regular-path anomaly UI is now a server-rendered slot (renderUI),
+  # parallel to Spectronaut's — the inputs are emitted server-side, not static.
+  expect_true(grepl('id="test-diann_anomaly_ui"', options_html, fixed = TRUE),
+              info = "diann_anomaly_ui renderUI slot missing")
+  expect_false(grepl("test-diann_calculate_anomaly_scores", options_html, fixed = TRUE),
+               info = "diann_calculate_anomaly_scores must be server-rendered, not static")
+  expect_false(grepl("test-diann_run_order_file", options_html, fixed = TRUE),
+               info = "diann_run_order_file must be server-rendered, not static")
 })
 
 # Test order preservation in main selection controls
@@ -441,23 +605,46 @@ test_that("DIANN large-file helper functions create correct UI elements", {
   expect_true(grepl("Backend", bottom_html))
   expect_true(grepl("arrow", bottom_html))
 
-  # Annotation + anomaly UI
+  # Annotation + anomaly UI. The run-order fileInput is now renderUI-gated on
+  # the checkbox (no show/hide panel): absent by default, present only when
+  # calculate_anomaly_def = TRUE.
   annot_ui <- create_diann_large_annotation_ui(NS("test"))
   annot_html <- as.character(annot_ui)
   expect_true(grepl("Annotation file", annot_html))
   expect_true(grepl("test-big_diann_annotation", annot_html))
   expect_true(grepl("Calculate Anomaly Scores", annot_html))
   expect_true(grepl("test-big_diann_calculate_anomaly_scores", annot_html))
-  expect_true(grepl("test-big_diann_run_order_file", annot_html))
+  expect_false(grepl("test-big_diann_run_order_file", annot_html, fixed = TRUE),
+               info = "run-order fileInput must be absent when the checkbox is unticked")
+  annot_html_checked <- as.character(create_diann_large_annotation_ui(NS("test"), TRUE))
+  expect_true(grepl("test-big_diann_run_order_file", annot_html_checked, fixed = TRUE),
+              info = "run-order fileInput must appear when calculate_anomaly_def = TRUE")
 })
 
-test_that("DIANN regular-path condition strings hide controls in big-file mode", {
+test_that("DIANN big-file gating now lives in the server predicate, not a JS condition", {
+  # The DIANN big-file gate (`!big_file_diann`) lives in server-side visibility
+  # code, not a JS `conditionalPanel` condition: `loadpage_show_qval_filter` /
+  # `loadpage_show_standard_annot_upload` drive show/hide panels, and the DIANN
+  # regular-path anomaly UI is now a renderUI slot (`diann_anomaly_ui`). So the
+  # JS-encoded `loadpage-big_file_diann` string is not emitted statically. We
+  # assert the gated containers / slots are present and the JS string is gone.
   result <- loadpageUI("test")
   html_output <- as.character(result)
 
-  # Annotation upload is gated on !big_file_diann for DIANN
-  expect_true(grepl("loadpage-big_file_diann", html_output, fixed = TRUE),
-              info = "DIANN large-file gating condition is missing from rendered UI")
+  for (panel_id in c("test-standard_annot_upload_panel",
+                     "test-qval_filter_panel",
+                     "test-diann_anomaly_ui")) {
+    expect_true(
+      grepl(paste0('id="', panel_id, '"'), html_output, fixed = TRUE),
+      info = paste("Big-file-gated panel container missing:", panel_id)
+    )
+  }
+  expect_false(
+    grepl("loadpage-big_file_diann", html_output, fixed = TRUE),
+    info = paste("Static UI should no longer encode a `big_file_diann` JS",
+                 "condition string; gating moved to server predicates in",
+                 "R/loadpage-server-converter-options-panel.R")
+  )
 })
 
 test_that("Spectronaut helper functions create correct UI elements", {
