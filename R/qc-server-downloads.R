@@ -8,36 +8,27 @@ register_qc_downloads <- function(input, output, session, loadpage_input, prepro
   observeEvent(input$run,{
 
     if(loadpage_input()$BIO=="PTM"){
-      enable("prepr_csv_ptm")
-      enable("summ_csv_ptm")
-      enable("prepr_csv_prot")
-      enable("summ_csv_prot")
+      enable("prep_feature_level_data_csv_ptm")
+      enable("prep_protein_level_data_csv_ptm")
+      enable("prep_feature_level_data_csv_global_proteome")
+      enable("prep_protein_level_data_csv_global_proteome")
     } else {
-      enable("prepr_csv")
-      enable("summ_csv")
+      enable("prep_feature_level_data_csv")
+      enable("prep_protein_level_data_csv")
     }
 
   })
 
-  output$prepr_csv = downloadHandler(
+  output$prep_feature_level_data_csv = downloadHandler(
     filename = function() {
       paste("Feature_level_data-", Sys.Date(), ".csv", sep="")
     },
     content = function(file) {
-      if(loadpage_input()$DDA_DIA=='TMT'){
-
-        write.csv(preprocess_data()$FeatureLevelData, file, row.names = FALSE)
-
-      }
-      else{
-
-        write.csv(preprocess_data()$FeatureLevelData, file, row.names = FALSE)
-      }
-
+      write.csv(preprocess_data()$FeatureLevelData, file, row.names = FALSE)
     }
   )
 
-  output$prepr_csv_ptm = downloadHandler(
+  output$prep_feature_level_data_csv_ptm = downloadHandler(
     filename = function() {
       paste("PTM_Feature_level_data-", Sys.Date(), ".csv", sep="")
     },
@@ -46,7 +37,7 @@ register_qc_downloads <- function(input, output, session, loadpage_input, prepro
     }
   )
 
-  output$prepr_csv_prot = downloadHandler(
+  output$prep_feature_level_data_csv_global_proteome = downloadHandler(
     filename = function() {
       paste("Protein_Feature_level_data-", Sys.Date(), ".csv", sep="")
     },
@@ -55,7 +46,7 @@ register_qc_downloads <- function(input, output, session, loadpage_input, prepro
     }
   )
 
-  output$summ_csv = downloadHandler(
+  output$prep_protein_level_data_csv = downloadHandler(
     filename = function() {
       paste("Protein_level_data-", Sys.Date(), ".csv", sep="")
     },
@@ -64,7 +55,7 @@ register_qc_downloads <- function(input, output, session, loadpage_input, prepro
     }
   )
 
-  output$summ_csv_ptm = downloadHandler(
+  output$prep_protein_level_data_csv_ptm = downloadHandler(
     filename = function() {
       paste("PTM_level_data-", Sys.Date(), ".csv", sep="")
     },
@@ -73,7 +64,7 @@ register_qc_downloads <- function(input, output, session, loadpage_input, prepro
     }
   )
 
-  output$summ_csv_prot = downloadHandler(
+  output$prep_protein_level_data_csv_global_proteome = downloadHandler(
     filename = function() {
       paste("Protein_level_data-", Sys.Date(), ".csv", sep="")
     },

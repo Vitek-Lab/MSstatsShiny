@@ -6,10 +6,10 @@
 register_qc_summary <- function(input, output, session, loadpage_input,
                                 preprocess_data, app_template) {
 
-  abundant = reactiveValues()
+  abundance_table_reactive_values = reactiveValues()
 
   observeEvent(loadpage_input()$proceed1, {
-    abundant$results = NULL
+    abundance_table_reactive_values$results = NULL
   })
 
   abundance = eventReactive(input$update_results, {
@@ -21,13 +21,13 @@ register_qc_summary <- function(input, output, session, loadpage_input,
       setnames(temp$PTM$ProteinLevelData,
                c("Abundance", "Condition", "BioReplicate"),
                c("LogIntensities", "GROUP", "SUBJECT"))
-      abundant$results = quantification(temp$PTM,
+      abundance_table_reactive_values$results = quantification(temp$PTM,
                                         type = input$typequant,
                                         format = input$format,
                                         use_log_file = FALSE)
     } else if (loadpage_input()$BIO == "PTM" && loadpage_input()$DDA_DIA != "TMT"){
       temp = copy(preprocess_data())
-      abundant$results =quantification(temp$PTM,
+      abundance_table_reactive_values$results =quantification(temp$PTM,
                                        type = input$typequant,
                                        format = input$format,
                                        use_log_file = FALSE)
@@ -37,29 +37,29 @@ register_qc_summary <- function(input, output, session, loadpage_input,
       setnames(temp$ProteinLevelData,
                c("Abundance", "Condition", "BioReplicate"),
                c("LogIntensities", "GROUP", "SUBJECT"))
-      abundant$results = quantification(temp,
+      abundance_table_reactive_values$results = quantification(temp,
                                         type = input$typequant,
                                         format = input$format,
                                         use_log_file = FALSE)
     } else if (!is.null(app_template) && !is.null(app_template()) &&
                app_template() == TEMPLATES$protein_turnover) {
       # TODO: Refactor quantification function to handle LABEL column
-      abundant$results <- preprocess_data()$ProteinLevelData
+      abundance_table_reactive_values$results <- preprocess_data()$ProteinLevelData
     } else{
       temp = copy(preprocess_data())
-      abundant$results =quantification(temp,
+      abundance_table_reactive_values$results =quantification(temp,
                                        type = input$typequant,
                                        format = input$format,
                                        use_log_file = FALSE)
     }
 
-    return(abundant$results)
+    return(abundance_table_reactive_values$results)
   })
 
   output$abundance = renderUI({
     ns <- session$ns
     req(abundance())
-    if (is.null(abundant$results)) {
+    if (is.null(abundance_table_reactive_values$results)) {
       tagList(
         tags$br())
     } else {

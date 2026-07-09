@@ -6,7 +6,7 @@
 register_qc_turnover <- function(input, output, session, app_template, get_data,
                                  get_condition_metadata, preprocess_data) {
 
-  output$turnover_ratios_sidebar <- renderUI({
+  output$tracer_constants_sidebar <- renderUI({
     req(!is.null(app_template) && !is.null(app_template()) &&
           app_template() == TEMPLATES$protein_turnover)
     req(get_data())

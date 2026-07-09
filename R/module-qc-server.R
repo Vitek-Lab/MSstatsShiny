@@ -22,11 +22,7 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
   # ---- Core summarization reactives ----
 
   preprocess_data = eventReactive(input$run, {
-
-   qc_input <- reactive({
-      input
-    })
-    preprocessData(qc_input(),loadpage_input(),get_data())
+    preprocessData(input, loadpage_input(), get_data())
   })
 
   # For protein turnover, re-level GROUP factor using TimeVal ordering from loadpage
@@ -49,13 +45,6 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
       }
     }
     data
-  })
-
-  preprocess_data_code <- eventReactive(input$calculate, {
-    qc_input <- reactive({
-      input
-    })
-    preprocessDataCode(qc_input(),loadpage_input())
   })
 
   # ---- Run caption and "Next step" navigation to the statistical model page ----
@@ -83,11 +72,6 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
   })
 
   onclick("proceed6", {
-    updateTabsetPanel(session = parent_session, inputId = "tablist", selected = "StatsModel")
-  })
-
-  # not used
-  observeEvent(input$proceed4, {
     updateTabsetPanel(session = parent_session, inputId = "tablist", selected = "StatsModel")
   })
 

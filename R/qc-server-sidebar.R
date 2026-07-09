@@ -179,13 +179,13 @@ register_qc_visibility_observers <- function(input, session, loadpage_input, app
   observe({
     shinyjs::toggle(
       NAMESPACE_QC$profileplot_options_panel,
-      condition = qc_show_profileplot_options(input[[NAMESPACE_QC$type1]])
+      condition = qc_show_profileplot_options(input[[NAMESPACE_QC$qc_page_plot_type]])
     )
   })
   observe({
     shinyjs::toggle(
       NAMESPACE_QC$qualitymetrics_options_panel,
-      condition = qc_show_qualitymetrics_options(input[[NAMESPACE_QC$type1]])
+      condition = qc_show_qualitymetrics_options(input[[NAMESPACE_QC$qc_page_plot_type]])
     )
   })
 
@@ -254,10 +254,6 @@ register_qc_visibility_observers <- function(input, session, loadpage_input, app
   observe ({
     shinyjs::toggleState("maxQC", input$null == FALSE)
   })
-
-  observe ({
-    toggleState("n_feat", input$all_feat == FALSE)
-  })
 }
 
 # ----------------------------------------------------------------------------
@@ -291,24 +287,17 @@ register_qc_sidebar_options <- function(input, output, session, loadpage_input, 
   output$features = renderUI({
     ns <- session$ns
     req(get_data())
-    max_feat = reactive({
-      ## Old code for only 20 features. Meena thought this should be all uniques
-      ## TODO: Need to fix this bc hard to be specific with slider.
-      # if (nrow(unique(get_data()[1])) < 20) {
-      #   m_feat = nrow(unique(get_data()[1]))
-      # }
-      # else
-      # {
-      #   m_feat = 20
-      #   }
-
-      if (loadpage_input()$BIO =="PTM"){
-        m_feat = nrow(unique(get_data()$PTM[1]))
-      } else {
-        m_feat = nrow(unique(get_data()[1]))
-      }
-
-      return(m_feat)
+    max_feat <- reactive({
+      df <- if (loadpage_input()$BIO == "PTM") as.data.frame(get_data()$PTM)
+            else                                as.data.frame(get_data())
+      feat_cols <- c("PeptideSequence", "PrecursorCharge", "FragmentIon", "ProductCharge")
+      if (!all(c("ProteinName", feat_cols) %in% names(df))) return(100)   # fallback
+      feature <- do.call(paste, c(df[feat_cols], sep = "_"))
+      counts  <- tapply(feature, df$ProteinName, function(x) length(unique(x)))
+      # Fragment-level converters (e.g. DIANN) can produce hundreds of
+      # features per protein; cap the slider at 100 for usability. topN
+      # caps naturally when N exceeds a protein's available features.
+      min(max(counts, na.rm = TRUE), 100)
     })
     sliderInput(ns("n_feat"), "Number of top features to use", 1,
                 as.numeric(max_feat()), 1)
@@ -333,7 +322,7 @@ register_qc_sidebar_options <- function(input, output, session, loadpage_input, 
     radioButtons(
       ns("summaryMethod"),
       label = h4(
-        "6. Summarization",
+        "Summarization",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
         div(tooltip_text, class = "icon-tooltip")

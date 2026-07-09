@@ -105,7 +105,7 @@ qcUI <- function(id) {
 
           # features
 
-          #h4("3. Used features"),
+          #h4("Used features"),
           radioButtons(ns("features_used"),
                        label = h4("Feature subset",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
                                   div("What features to use in \
@@ -114,7 +114,6 @@ qcUI <- function(id) {
                        c("Use all features" = "all", "Use top N features" = "topN",
                          "Remove uninformative features & outliers" = "highQuality")),
           #),
-          #checkboxInput("all_feat", "Use all features", value = TRUE),
           shinyjs::hidden(div(
             id = ns(NAMESPACE_QC$features_topn_panel),
             uiOutput(ns("features"))
@@ -176,7 +175,7 @@ qcUI <- function(id) {
         )),
 
         tags$hr(),
-        uiOutput(ns("turnover_ratios_sidebar")),
+        uiOutput(ns("tracer_constants_sidebar")),
         actionButton(ns("run"), "Run protein summarization"),
         width = 3
       ),
@@ -226,11 +225,10 @@ qcUI <- function(id) {
                               id = ns(NAMESPACE_QC$qualitymetrics_options_panel),
                               uiOutput(ns("qualityMetricSelector"))
                             )),
-                            uiOutput(ns("Which")),
+                            uiOutput(ns("which_protein_for_data_process_plots_ui")),
                             tags$br()
                           ),
                           uiOutput(ns("showplot")),
-                          # disabled(downloadButton(ns("saveplot"), "Save this plot"))
                  ),
                  tabPanel("Turnover Ratios",
                           uiOutput(ns("turnover_ratios_panel"))
@@ -246,17 +244,17 @@ qcUI <- function(id) {
                           # Non-PTM feature/protein CSV downloads
                           shinyjs::hidden(div(
                             id = ns(NAMESPACE_QC$nonptm_downloads_panel),
-                            disabled(downloadButton(ns("prepr_csv"),"Download .csv of feature level data")),
-                            disabled(downloadButton(ns("summ_csv"),"Download .csv of protein level data"))
+                            disabled(downloadButton(ns("prep_feature_level_data_csv"),"Download .csv of feature level data")),
+                            disabled(downloadButton(ns("prep_protein_level_data_csv"),"Download .csv of protein level data"))
                           )),
                           # PTM and unmodified-protein CSV downloads
                           shinyjs::hidden(div(
                             id = ns(NAMESPACE_QC$ptm_downloads_panel),
-                            disabled(downloadButton(ns("prepr_csv_ptm"),"Download .csv of PTM feature level data")),
-                            disabled(downloadButton(ns("summ_csv_ptm"),"Download .csv of PTM level data")),
+                            disabled(downloadButton(ns("prep_feature_level_data_csv_ptm"),"Download .csv of PTM feature level data")),
+                            disabled(downloadButton(ns("prep_protein_level_data_csv_ptm"),"Download .csv of PTM level data")),
                             tags$br(),
-                            disabled(downloadButton(ns("prepr_csv_prot"),"Download .csv of unmod protein feature level data")),
-                            disabled(downloadButton(ns("summ_csv_prot"),"Download .csv of protein level data"))
+                            disabled(downloadButton(ns("prep_feature_level_data_csv_global_proteome"),"Download .csv of unmod protein feature level data")),
+                            disabled(downloadButton(ns("prep_protein_level_data_csv_global_proteome"),"Download .csv of protein level data"))
                           ))
                  )
                )
