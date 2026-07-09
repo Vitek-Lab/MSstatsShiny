@@ -142,6 +142,7 @@ register_qc_plots <- function(input, output, session, loadpage_input, get_data,
         isPlotly      = TRUE
       ))
     }
+    req(!is.null(input$summ))
     if (input$summ == FALSE) {
       output = callDataProcessPlots(input$which_protein_for_data_process_plots, FALSE, TRUE)
     }
