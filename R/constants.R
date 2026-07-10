@@ -113,6 +113,58 @@ NAMESPACE_LOADPAGE = list(
   tmt_options_ui = "tmt_options_ui"
 )
 
+NAMESPACE_QC = list(
+  # Sidebar processing-option input ids
+  global_norm = "global_norm",
+  log = "log",
+  summarization = "summarization",
+  null = "null",
+  max_qc = "maxQC",
+  norm = "norm",
+  standards = "standards",
+  names = "names",
+  reference_norm = "reference_norm",
+  remove_norm_channel = "remove_norm_channel",
+  features_used = "features_used",
+  n_feat = "n_feat",
+  cens_int = "censInt",
+  null1 = "null1",
+  max_qc_censored = "maxQC1",
+  mbi = "MBi",
+  remove50 = "remove50",
+  summary_method = "summaryMethod",
+  # Summarized-results, plot and download-tab input ids
+  typequant = "typequant",
+  format = "format",
+  summ = "summ",
+  fname = "fname",
+  qc_page_plot_type = "qc_page_plot_type",
+  which_protein_for_data_process_plots = "which_protein_for_data_process_plots",
+  quality_metric = "quality_metric",
+  qm_protein = "qm_protein",
+  run = "run",
+  update_results = "update_results",
+  proceed6 = "proceed6",
+  # Server-toggled sidebar visibility containers
+  global_norm_panel = "global_norm_panel",
+  log_section = "log_section",
+  summarization_panel = "summarization_panel",
+  maxqc_msstats_panel = "maxqc_msstats_panel",
+  norm_panel = "norm_panel",
+  standards_panel = "standards_panel",
+  standards_type_section = "standards_type_section",
+  reference_norm_panel = "reference_norm_panel",
+  lf_options_panel = "lf_options_panel",
+  features_topn_panel = "features_topn_panel",
+  censoring_section = "censoring_section",
+  mbi_panel = "mbi_panel",
+  # Server-toggled plot-tab and download-tab visibility containers
+  profileplot_options_panel = "profileplot_options_panel",
+  qualitymetrics_options_panel = "qualitymetrics_options_panel",
+  nonptm_downloads_panel = "nonptm_downloads_panel",
+  ptm_downloads_panel = "ptm_downloads_panel"
+)
+
 NAMESPACE_EXPDES = list(
   sidebar_controls = "sidebar_controls",
   protein_select = "protein_select",
