@@ -1,6 +1,41 @@
 library(testthat)
 library(mockery)
 
+test_that("metabolomics_preview_view renames/drops for display without mutating input", {
+  input_dt = data.table::data.table(
+    ProteinName      = c("Glucose", "Alanine"),
+    PeptideSequence  = c("feature_1", "feature_2"),
+    PrecursorCharge  = NA_integer_,
+    FragmentIon      = NA_character_,
+    ProductCharge    = NA_integer_,
+    IsotopeLabelType = c("L", "L"),
+    Condition        = c("ctrl", "case"),
+    BioReplicate     = c(1, 2),
+    Run              = c("run_1", "run_2"),
+    Intensity        = c(100, 200)
+  )
+  before = colnames(input_dt)
+
+  view = MSstatsShiny:::metabolomics_preview_view(input_dt)
+
+  # ProteinName -> Metabolite, PeptideSequence -> Feature, charge/label columns
+  # dropped. Column order follows the input (standard MSstats order has
+  # Condition before BioReplicate), so assert the set rather than the sequence.
+  expect_setequal(colnames(view),
+                  c("Metabolite", "Feature", "BioReplicate",
+                    "Condition", "Run", "Intensity"))
+  expect_false(any(c("PrecursorCharge", "FragmentIon", "ProductCharge",
+                     "IsotopeLabelType") %in% colnames(view)))
+  expect_true(all(c("Metabolite", "Feature") %in% colnames(view)))
+
+  # Mutation guard: the input data.table is untouched (no by-reference edits).
+  expect_identical(colnames(input_dt), before)
+  expect_true(all(c("ProteinName", "PeptideSequence", "PrecursorCharge",
+                    "FragmentIon", "ProductCharge", "IsotopeLabelType")
+                  %in% colnames(input_dt)))
+  expect_s3_class(input_dt, "data.table")
+})
+
 test_that(".anomaly_scores_enabled ORs all three loadpage checkboxes", {
   # Spectronaut
   expect_true(MSstatsShiny:::.anomaly_scores_enabled(

@@ -177,6 +177,14 @@ loadpage_show_dia_umpire_upload <- function(filetype) {
   isTRUE(filetype == "ump")
 }
 
+#' Show the MZmine upload panel (metabolomics converter). Gated on the converter
+#' (filetype == "mzmine"), matching the other converter-upload panels, not on
+#' the template.
+#' @noRd
+loadpage_show_mzmine_upload <- function(filetype) {
+  isTRUE(filetype == "mzmine")
+}
+
 #' Label-free options block (`unique_peptides`, `remove`). Suppressed for
 #' the sample-data and big-file workflows.
 #' @noRd
@@ -296,6 +304,19 @@ loadpage_show_ptm_summary <- function(bio) {
 }
 
 
+#' Build the "Type of File" header. Numbered "3. " except under the metabolomics
+#' template (where the hidden "1."/"2." sections would leave a lone number).
+#' Pure, so the number/tooltip behavior is unit-testable directly.
+#' @noRd
+loadpage_filetype_header <- function(template) {
+  prefix = if (isTRUE(template == TEMPLATES$metabolomics)) "" else "3. "
+  h4(paste0(prefix, "Type of File"), class = "icon-wrapper",
+     icon("question-circle", lib = "font-awesome"),
+     div("Choose the spectral processing tool used to process your data",
+         class = "icon-tooltip"))
+}
+
+
 # ----------------------------------------------------------------------------
 # Unified registration helper.
 # ----------------------------------------------------------------------------
@@ -314,7 +335,54 @@ loadpage_show_ptm_summary <- function(bio) {
 #' @param output  the Shiny module's `output` object (for the TMT renderUI)
 #' @param session the Shiny module's `session` (for `session$ns`)
 #' @noRd
-register_loadpage_visibility_observers <- function(input, output, session) {
+register_loadpage_visibility_observers <- function(input, output, session, app_template = NULL) {
+  # --- Metabolomics template -------------------------------------------------
+  # Hide the biological-question and label-type radios under the metabolomics
+  # template, restrict the file-type radio to MZmine, and reset BIO/DDA_DIA to
+  # Protein/LType. Metabolomics data IS label-free non-PTM, so resetting at
+  # template selection makes every downstream consumer (getData, the summary
+  # tables, tab visibility) see the correct state instead of a stale BIO/DDA_DIA
+  # value carried over from a prior template.
+  observe({
+    metab = !is.null(app_template) && app_template() == TEMPLATES$metabolomics
+    shinyjs::toggle("BIO",     condition = !metab)
+    shinyjs::toggle("DDA_DIA", condition = !metab)
+    # Also hide the divider that follows the selection block, so under
+    # metabolomics a single divider (the one after the hidden label-free panel)
+    # remains above the upload sections instead of two adjacent hr lines.
+    shinyjs::toggle("main_selection_divider", condition = !metab)
+    if (metab) {
+      updateRadioButtons(session, "BIO",     selected = "Protein")
+      updateRadioButtons(session, "DDA_DIA", selected = "LType")
+    }
+  })
+
+  # The "Type of File" header drops its "3." under the metabolomics template,
+  # where the hidden "1."/"2." sections would otherwise leave it a lone number;
+  # every other template keeps the original numbered "3. Type of File" header.
+  output$filetype_header = renderUI({
+    loadpage_filetype_header(if (!is.null(app_template)) app_template() else NULL)
+  })
+  if (!is.null(app_template)) {
+    observeEvent(app_template(), {
+      if (app_template() == TEMPLATES$metabolomics) {
+        updateRadioButtons(session, "filetype",
+                           choices = c("MZmine" = "mzmine"), selected = "mzmine")
+      } else {
+        updateRadioButtons(session, "filetype",
+                           choices = LOADPAGE_FILETYPE_CHOICES, selected = character(0))
+      }
+    })
+  }
+  # MZmine upload panel: gated on the converter (filetype == "mzmine"), matching
+  # the other converter-upload panels, not on the template.
+  observe({
+    shinyjs::toggle(
+      NAMESPACE_LOADPAGE$mzmine_upload_panel,
+      condition = loadpage_show_mzmine_upload(input[[NAMESPACE_LOADPAGE$filetype]])
+    )
+  })
+
   # --- DIANN cluster ---------------------------------------------------------
   observe({
     shinyjs::toggle(

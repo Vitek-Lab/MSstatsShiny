@@ -118,9 +118,11 @@ register_loadpage_summary <- function(input, output, session, parent_session,
       data_summary <- describe(data1)
     })
 
-    output$summary <- renderTable(
+    output$summary = renderTable(
       {
-        head(get_data())
+        d = get_data()
+        if (!is.null(app_template) && app_template() == TEMPLATES$metabolomics)
+          head(metabolomics_preview_view(d)) else head(d)
       }, bordered = TRUE
     )
     output$summary_ptm <- renderTable(

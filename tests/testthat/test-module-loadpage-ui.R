@@ -1,15 +1,29 @@
 test_that("loadpageUI returns a valid tagList with fluidPage structure", {
   # Test basic function execution and structure
   result <- loadpageUI("test")
-  
+
   # Should return a tagList
   expect_s3_class(result, "shiny.tag.list")
-  
+
   result_html = as.character(result)
   expect_true(grepl("div", result_html))
-  
+
   # Should not be NULL or empty
   expect_true(length(result) > 0)
+})
+
+test_that("metabolomics template is registered and appears in the picker choices", {
+  expect_equal(TEMPLATES$metabolomics, "metabolomics")
+  expect_equal(TEMPLATE_LABELS$metabolomics,
+               "Metabolite Differential Abundance Analysis")
+
+  # The home picker builds its choices from the constants via
+  # setNames(unlist(TEMPLATES), unlist(TEMPLATE_LABELS)).
+  choices = setNames(unlist(TEMPLATES, use.names = FALSE),
+                     unlist(TEMPLATE_LABELS, use.names = FALSE))
+  expect_true("metabolomics" %in% choices)
+  expect_equal(names(choices)[choices == "metabolomics"],
+               "Metabolite Differential Abundance Analysis")
 })
 
 test_that("loadpageUI generates correct namespaced input IDs", {
@@ -341,7 +355,9 @@ test_that("create_main_selection_controls creates proper radio buttons", {
   expect_true(grepl("TMT", controls_html))
   
   # Check for file type options
-  expect_true(grepl("Type of File", controls_html))
+  # The Type-of-File header is rendered server-side (uiOutput placeholder);
+  # its text/number/tooltip are covered by the loadpage_filetype_header test.
+  expect_true(grepl("filetype_header", controls_html))
   expect_true(grepl("MSstats Format", controls_html))
   expect_true(grepl("Skyline", controls_html))
   expect_true(grepl("MaxQuant", controls_html))
@@ -507,7 +523,7 @@ test_that("main selection controls maintain proper order", {
   # Find positions of each section
   bio_pos <- regexpr("Biological Question", controls_html)
   label_pos <- regexpr("Label Type", controls_html)
-  file_pos <- regexpr("Type of File", controls_html)
+  file_pos <- regexpr("filetype_header", controls_html)
   
   # Verify correct order
   expect_true(bio_pos < label_pos)
@@ -516,7 +532,7 @@ test_that("main selection controls maintain proper order", {
   # Verify numbered headings are in order
   expect_true(grepl("1\\. Biological Question", controls_html))
   expect_true(grepl("2\\. Label Type", controls_html))
-  expect_true(grepl("3\\. Type of File", controls_html))
+  # "3. Type of File" is server-rendered; see the loadpage_filetype_header test.
 })
 
 # Test tooltip content is preserved
@@ -527,11 +543,33 @@ test_that("tooltips contain proper explanatory text", {
   # Check for tooltip explanations
   expect_true(grepl("Select the biological question of interest", controls_html))
   expect_true(grepl("Label-free will process all label-free acquisitions", controls_html))
-  expect_true(grepl("Choose the spectral processing tool used", controls_html))
+  # The file-type tooltip is server-rendered; see the loadpage_filetype_header test.
   
   # Check for icon-wrapper and icon-tooltip classes
   expect_true(grepl("icon-wrapper", controls_html))
   expect_true(grepl("icon-tooltip", controls_html))
+})
+
+# The Type-of-File header renders server-side (uiOutput -> output$filetype_header)
+# via loadpage_filetype_header(); verify its number/tooltip behavior here.
+test_that("loadpage_filetype_header numbers the header except under metabolomics", {
+  # Non-metabolomics templates: numbered "3. Type of File" with the tooltip.
+  default_html <- as.character(
+    MSstatsShiny:::loadpage_filetype_header(TEMPLATES$default))
+  expect_true(grepl("3\\. Type of File", default_html))
+  expect_true(grepl("Choose the spectral processing tool used", default_html))
+  expect_true(grepl("icon-tooltip", default_html))
+
+  # NULL template (before any selection) is also numbered.
+  expect_true(grepl("3\\. Type of File",
+                    as.character(MSstatsShiny:::loadpage_filetype_header(NULL))))
+
+  # Metabolomics: no number, still reads "Type of File", tooltip preserved.
+  metab_html <- as.character(
+    MSstatsShiny:::loadpage_filetype_header(TEMPLATES$metabolomics))
+  expect_true(grepl("Type of File", metab_html))
+  expect_false(grepl("3\\. Type of File", metab_html))
+  expect_true(grepl("Choose the spectral processing tool used", metab_html))
 })
 
 # Test file input configurations

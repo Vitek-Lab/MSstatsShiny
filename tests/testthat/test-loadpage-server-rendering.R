@@ -56,6 +56,15 @@ test_that("loadpage_show_qval_cutoff is the q_val checkbox", {
   expect_false(MSstatsShiny:::loadpage_show_qval_cutoff(NULL))
 })
 
+test_that("loadpage_show_mzmine_upload is TRUE only for the mzmine converter", {
+  expect_true(MSstatsShiny:::loadpage_show_mzmine_upload("mzmine"))
+
+  expect_false(MSstatsShiny:::loadpage_show_mzmine_upload("diann"))
+  expect_false(MSstatsShiny:::loadpage_show_mzmine_upload("sky"))
+  expect_false(MSstatsShiny:::loadpage_show_mzmine_upload("sample"))
+  expect_false(MSstatsShiny:::loadpage_show_mzmine_upload(NULL))
+})
+
 test_that("loadpage_show_diann_mbr requires both q_val and diann", {
   expect_true(MSstatsShiny:::loadpage_show_diann_mbr(TRUE, "diann"))
 

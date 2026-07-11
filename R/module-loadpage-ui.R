@@ -36,8 +36,8 @@ loadpageUI <- function(id) {
         # Main selection controls
         create_main_selection_controls(ns),
         
-        tags$hr(),
-        
+        tags$hr(id = ns("main_selection_divider")),
+
         # Label-free type selection
         create_label_free_type_selection(ns),
         
@@ -136,7 +136,7 @@ create_main_selection_controls <- function(ns) {
   tagList(
     # Biological Question
     radioButtons(ns("BIO"),
-                 label = h4("1. Biological Question", class = "icon-wrapper", 
+                 label = h4("1. Biological Question", class = "icon-wrapper",
                              icon("question-circle", lib = "font-awesome"),
                              div("Select the biological question of interest.", class = "icon-tooltip")),
                  c("Protein"="Protein", "Peptide"="Peptide","PTM"="PTM")
@@ -144,7 +144,7 @@ create_main_selection_controls <- function(ns) {
     
     # Label Type
     radioButtons(ns("DDA_DIA"),
-                 label = h4("2. Label Type", class = "icon-wrapper", 
+                 label = h4("2. Label Type", class = "icon-wrapper",
                              icon("question-circle", lib = "font-awesome"),
                              div("Label-free will process all label-free acquisitions including DDA/DIA/SRM/PRM.", class = "icon-tooltip")),
                  c("Label-Free"="LType", "TMT"="TMT")
@@ -152,17 +152,8 @@ create_main_selection_controls <- function(ns) {
     
     # File Type
     radioButtons(ns("filetype"),
-                 label = h4("3. Type of File", class = "icon-wrapper", 
-                             icon("question-circle", lib = "font-awesome"),
-                             div("Choose the spectral processing tool used to process your data", class = "icon-tooltip")),
-                 choices = c("Example dataset" = "sample",
-                             "MSstats Format" = "msstats",
-                             "Skyline" = "sky", "MaxQuant" = "maxq",
-                             "Progenesis" = "prog", "Proteome Discoverer" = "PD",
-                             "OpenMS" = "openms", "Spectronaut" = "spec",
-                             "OpenSWATH" = "open", "DIA-Umpire" = "ump",
-                             "SpectroMine" = "spmin", "FragPipe" = "phil", "DIANN"="diann",
-                             "Metamorpheus" = "meta"),
+                 label = uiOutput(ns("filetype_header")),
+                 choices = LOADPAGE_FILETYPE_CHOICES,
                  selected = character(0)
     )
   )
@@ -214,6 +205,9 @@ create_file_upload_sections <- function(ns) {
     # DIA-Umpire uploads
     create_ump_uploads(ns),
     
+    # MZmine uploads (metabolomics)
+    create_mzmine_uploads(ns),
+
     # Standard annotation uploads
     create_standard_annotation_uploads(ns)
   )
@@ -272,6 +266,18 @@ create_skyline_uploads <- function(ns) {
     id = ns(NAMESPACE_LOADPAGE$skyline_upload_panel),
     h4("4. Upload MSstats report from Skyline"),
     fileInput(ns('skylinedata'), "", multiple = FALSE, accept = NULL)
+  ))
+}
+
+#' Create MZmine file uploads (metabolomics; visibility driven server-side).
+#' @noRd
+create_mzmine_uploads <- function(ns) {
+  shinyjs::hidden(div(
+    id = ns(NAMESPACE_LOADPAGE$mzmine_upload_panel),
+    fileInput(ns("mzmine_input"),       "MZmine feature quant table"),
+    fileInput(ns("mzmine_annotation"),  "Annotation file"),
+    fileInput(ns("mzmine_annotations"), "MZmine compound annotations"),
+    fileInput(ns("sirius_annotations"), "SIRIUS annotations (optional, recommended)")
   ))
 }
 
