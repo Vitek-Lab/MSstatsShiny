@@ -214,7 +214,7 @@ zip_and_copy_plot <- function(pdf_files, dest_file) {
 
 #' @importFrom ggplot2 ggsave
 #' @importFrom utils zip
-create_download_plot_handler <- function(output, input, contrast, preprocess_data, data_comparison, loadpage_input, app_template = reactive(TEMPLATES$default), condition_metadata = reactive(NULL)) {
+create_download_plot_handler <- function(output, input, contrast, preprocess_data, data_comparison, loadpage_input, app_template = reactive(TEMPLATES$default), turnover_ratios = reactive(NULL), condition_metadata = reactive(NULL)) {
   output[[NAMESPACE_STATMODEL$visualization_download_plot_results]] <- downloadHandler(
     filename = function() {
       get_download_plot_filename(input[[NAMESPACE_STATMODEL$visualization_plot_type]])

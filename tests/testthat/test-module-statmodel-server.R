@@ -781,8 +781,8 @@ test_that("create_download_plot_handler is invoked with all 6 arguments", {
     {
       expect_true(handler_called,
                   info = "create_download_plot_handler should be called during server init")
-      expect_equal(length(handler_args), 8,
-                   info = "create_download_plot_handler should receive 6 arguments")
+      expect_equal(length(handler_args), 9,
+                   info = "create_download_plot_handler should receive 9 arguments")
     }
   )
 })
