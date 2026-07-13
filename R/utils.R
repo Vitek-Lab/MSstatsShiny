@@ -322,15 +322,26 @@ getData <- function(input) {
   # early return also skips the BIO == "Peptide" post-processing that would
   # otherwise overwrite the metabolite names.
   if (input$filetype == "mzmine") {
-    mzmine_in    = data.table::fread(input$mzmine_input$datapath)
-    annot        = data.table::fread(input$mzmine_annotation$datapath)
-    mzmine_annot = data.table::fread(input$mzmine_annotations$datapath)
-    sirius_annot = if (!is.null(input$sirius_annotations))
-                     data.table::fread(input$sirius_annotations$datapath) else NULL
-    mydata = MSstatsConvert::MZMinetoMSstatsFormat(
-      input = mzmine_in, annotation = annot,
-      mzmine_annotations = mzmine_annot, sirius_annotations = sirius_annot,
-      use_log_file = FALSE)
+    mydata = tryCatch({
+      mzmine_in    = data.table::fread(input$mzmine_input$datapath)
+      annot        = data.table::fread(input$mzmine_annotation$datapath)
+      mzmine_annot = data.table::fread(input$mzmine_annotations$datapath)
+      sirius_annot = if (!is.null(input$sirius_annotations))
+                       data.table::fread(input$sirius_annotations$datapath) else NULL
+      MSstatsConvert::MZMinetoMSstatsFormat(
+        input = mzmine_in, annotation = annot,
+        mzmine_annotations = mzmine_annot, sirius_annotations = sirius_annot,
+        use_log_file = FALSE)
+    },
+    error = function(e) {
+      remove_modal_spinner()
+      showNotification(
+        paste("Failed to process MZmine data. Please check your input files:",
+              conditionMessage(e)),
+        type = "error", duration = 10)
+      return(NULL)
+    })
+    if (is.null(mydata)) return(NULL)
     remove_modal_spinner()
     return(mydata)
   }

@@ -36,7 +36,7 @@ loadpageUI <- function(id) {
         # Main selection controls
         create_main_selection_controls(ns),
         
-        tags$hr(id = ns("main_selection_divider")),
+        tags$hr(id = ns(NAMESPACE_LOADPAGE$main_selection_divider)),
 
         # Label-free type selection
         create_label_free_type_selection(ns),

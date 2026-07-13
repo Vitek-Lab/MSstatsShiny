@@ -113,7 +113,8 @@ NAMESPACE_LOADPAGE = list(
   summary_nonptm_panel = "summary_nonptm_panel",
   summary_ptm_panel = "summary_ptm_panel",
   tmt_options_ui = "tmt_options_ui",
-  mzmine_upload_panel = "mzmine_upload_panel"
+  mzmine_upload_panel = "mzmine_upload_panel",
+  main_selection_divider = "main_selection_divider"
 )
 
 # File-type choices for the loadpage converter radio.

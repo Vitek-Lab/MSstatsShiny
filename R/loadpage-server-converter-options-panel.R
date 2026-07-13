@@ -345,15 +345,15 @@ register_loadpage_visibility_observers <- function(input, output, session, app_t
   # value carried over from a prior template.
   observe({
     metab = !is.null(app_template) && app_template() == TEMPLATES$metabolomics
-    shinyjs::toggle("BIO",     condition = !metab)
-    shinyjs::toggle("DDA_DIA", condition = !metab)
+    shinyjs::toggle(NAMESPACE_LOADPAGE$bio,     condition = !metab)
+    shinyjs::toggle(NAMESPACE_LOADPAGE$dda_dia, condition = !metab)
     # Also hide the divider that follows the selection block, so under
     # metabolomics a single divider (the one after the hidden label-free panel)
     # remains above the upload sections instead of two adjacent hr lines.
-    shinyjs::toggle("main_selection_divider", condition = !metab)
+    shinyjs::toggle(NAMESPACE_LOADPAGE$main_selection_divider, condition = !metab)
     if (metab) {
-      updateRadioButtons(session, "BIO",     selected = "Protein")
-      updateRadioButtons(session, "DDA_DIA", selected = "LType")
+      updateRadioButtons(session, NAMESPACE_LOADPAGE$bio,     selected = "Protein")
+      updateRadioButtons(session, NAMESPACE_LOADPAGE$dda_dia, selected = "LType")
     }
   })
 
@@ -366,10 +366,10 @@ register_loadpage_visibility_observers <- function(input, output, session, app_t
   if (!is.null(app_template)) {
     observeEvent(app_template(), {
       if (app_template() == TEMPLATES$metabolomics) {
-        updateRadioButtons(session, "filetype",
+        updateRadioButtons(session, NAMESPACE_LOADPAGE$filetype,
                            choices = c("MZmine" = "mzmine"), selected = "mzmine")
       } else {
-        updateRadioButtons(session, "filetype",
+        updateRadioButtons(session, NAMESPACE_LOADPAGE$filetype,
                            choices = LOADPAGE_FILETYPE_CHOICES, selected = character(0))
       }
     })

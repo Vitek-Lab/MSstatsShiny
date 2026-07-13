@@ -580,6 +580,18 @@ test_that("file inputs have proper accept attributes", {
   expect_true(grepl('accept=.*csv', annot_html))
 })
 
+test_that("create_mzmine_uploads renders the hidden panel and its four input ids", {
+  uploads_html <- as.character(create_mzmine_uploads(NS("test")))
+
+  # Hidden panel container (NAMESPACE_LOADPAGE$mzmine_upload_panel).
+  expect_true(grepl('id="test-mzmine_upload_panel"', uploads_html, fixed = TRUE))
+  # The four namespaced file-input ids that getData()/proceed validation read.
+  expect_true(grepl('id="test-mzmine_input"', uploads_html, fixed = TRUE))
+  expect_true(grepl('id="test-mzmine_annotation"', uploads_html, fixed = TRUE))
+  expect_true(grepl('id="test-mzmine_annotations"', uploads_html, fixed = TRUE))
+  expect_true(grepl('id="test-sirius_annotations"', uploads_html, fixed = TRUE))
+})
+
 # Tests for Spectronaut specific UI components
 test_that("create_spectronaut_uploads creates UI outputs", {
   uploads <- create_spectronaut_uploads(NS("test"))

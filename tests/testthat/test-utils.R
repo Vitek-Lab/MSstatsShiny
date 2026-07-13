@@ -28,6 +28,11 @@ test_that("metabolomics_preview_view renames/drops for display without mutating 
                      "IsotopeLabelType") %in% colnames(view)))
   expect_true(all(c("Metabolite", "Feature") %in% colnames(view)))
 
+  # The view is a plain data.frame by design (as.data.frame decouples it from
+  # the input data.table); it is intentionally NOT a data.table.
+  expect_s3_class(view, "data.frame")
+  expect_false(inherits(view, "data.table"))
+
   # Mutation guard: the input data.table is untouched (no by-reference edits).
   expect_identical(colnames(input_dt), before)
   expect_true(all(c("ProteinName", "PeptideSequence", "PrecursorCharge",
