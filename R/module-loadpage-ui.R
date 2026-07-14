@@ -19,8 +19,8 @@ loadpageUI <- function(id) {
       useShinyjs(),
       headerPanel(list("Upload data")),
       
-      # Header content
-      create_header_content(),
+      # Header content (template-aware: proteomics default vs metabolomics text)
+      uiOutput(ns("upload_description")),
       
       tags$br(),
       
@@ -85,6 +85,22 @@ create_header_content <- function() {
         target="_blank")),
     p("Note: files must be in CSV/TSV format, or Parquet (.parquet/.pq) for DIANN 2.0+ inputs, and under 250 MB when using msstatsshiny.com. When running the app locally, Spectronaut and DIANN reports above this limit can be processed via 'Large file mode' (out-of-memory streaming through MSstatsBig)."),
     p("Some users may have trouble uploading files while using the application via Google Chrome. If the 'Browse...' button does not work please try a different web browser.")
+  )
+}
+
+#' Create the metabolomics upload description (MZmine / MSstats-format inputs).
+#'
+#' The metabolomics branch of `output$upload_description`; factored out as a
+#' pure builder (mirroring `create_header_content`) so its text is unit-testable.
+#' @noRd
+create_metabolomics_header_content <- function() {
+  tagList(
+    p("To run the metabolomics pipeline, upload your MZmine feature quant",
+      "table and an annotation file, plus MZmine compound annotations and",
+      "(recommended) SIRIUS structure annotations. The output of this step",
+      "is your data in MSstats format."),
+    p("Note: files must be in CSV/TSV format and under 250 MB when using",
+      "msstatsshiny.com.")
   )
 }
 
@@ -274,10 +290,26 @@ create_skyline_uploads <- function(ns) {
 create_mzmine_uploads <- function(ns) {
   shinyjs::hidden(div(
     id = ns(NAMESPACE_LOADPAGE$mzmine_upload_panel),
-    fileInput(ns("mzmine_input"),       "MZmine feature quant table"),
-    fileInput(ns("mzmine_annotation"),  "Annotation file"),
-    fileInput(ns("mzmine_annotations"), "MZmine compound annotations"),
-    fileInput(ns("sirius_annotations"), "SIRIUS annotations (optional, recommended)")
+    fileInput(ns("mzmine_input"),
+              h5("MZmine feature quant table", class = "icon-wrapper",
+                 icon("question-circle", lib = "font-awesome"),
+                 div("The feature intensity table exported from MZmine (features x samples).",
+                     class = "icon-tooltip"))),
+    fileInput(ns("mzmine_annotation"),
+              h5("Annotation file", class = "icon-wrapper",
+                 icon("question-circle", lib = "font-awesome"),
+                 div("Maps each run/sample to its condition and bioreplicate.",
+                     class = "icon-tooltip"))),
+    fileInput(ns("mzmine_annotations"),
+              h5("MZmine compound annotations", class = "icon-wrapper",
+                 icon("question-circle", lib = "font-awesome"),
+                 div("MZmine's feature-to-compound identifications.",
+                     class = "icon-tooltip"))),
+    fileInput(ns("sirius_annotations"),
+              h5("SIRIUS annotations (optional, recommended)", class = "icon-wrapper",
+                 icon("question-circle", lib = "font-awesome"),
+                 div("Optional SIRIUS structure identifications; recommended to improve compound naming.",
+                     class = "icon-tooltip")))
   ))
 }
 

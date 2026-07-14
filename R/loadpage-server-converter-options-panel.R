@@ -363,11 +363,22 @@ register_loadpage_visibility_observers <- function(input, output, session, app_t
   output$filetype_header = renderUI({
     loadpage_filetype_header(if (!is.null(app_template)) app_template() else NULL)
   })
+
+  # Upload-area description: metabolomics-specific guidance under that template,
+  # the default proteomics guidance (create_header_content) otherwise.
+  output$upload_description = renderUI({
+    if (!is.null(app_template) && app_template() == TEMPLATES$metabolomics) {
+      create_metabolomics_header_content()
+    } else {
+      create_header_content()
+    }
+  })
   if (!is.null(app_template)) {
     observeEvent(app_template(), {
       if (app_template() == TEMPLATES$metabolomics) {
         updateRadioButtons(session, NAMESPACE_LOADPAGE$filetype,
-                           choices = c("MZmine" = "mzmine"), selected = "mzmine")
+                           choices = LOADPAGE_METABOLOMICS_FILETYPE_CHOICES,
+                           selected = "mzmine")
       } else {
         updateRadioButtons(session, NAMESPACE_LOADPAGE$filetype,
                            choices = LOADPAGE_FILETYPE_CHOICES, selected = character(0))
@@ -628,7 +639,10 @@ register_loadpage_visibility_observers <- function(input, output, session, app_t
         input[[NAMESPACE_LOADPAGE$dda_dia]],
         input[[NAMESPACE_LOADPAGE$big_file_spec]],
         input[[NAMESPACE_LOADPAGE$big_file_diann]]
-      )
+      ) &&
+        # Pre-processing options (unique peptides / remove 1-feature proteins)
+        # do not apply to metabolites; hide the whole block under metabolomics.
+        !(!is.null(app_template) && app_template() == TEMPLATES$metabolomics)
     )
   })
   observe({
@@ -649,33 +663,12 @@ register_loadpage_visibility_observers <- function(input, output, session, app_t
     )
   })
 
-  # --- Post-proceed1 summary tables (BIO-driven) -----------------------------
-  # Unlike the static converter panels above, these two divs are emitted by the
-  # `summary_tables` renderUI in `register_loadpage_summary`, which (re)builds
-  # only when `proceed1` fires — so they do not exist at the app's first flush.
-  # Each observer therefore also takes a dependency on `proceed1`, so it
-  # re-fires once the renderUI has (re)mounted the divs and applies the correct
-  # initial visibility. (Shiny applies output values before custom messages
-  # within a response, so the toggle lands after the divs are inserted.) BIO is
-  # read the same way as the other BIO-driven predicates.
-  observe({
-    input[[NAMESPACE_LOADPAGE$proceed1]]
-    shinyjs::toggle(
-      NAMESPACE_LOADPAGE$summary_nonptm_panel,
-      condition = loadpage_show_nonptm_summary(
-        input[[NAMESPACE_LOADPAGE$bio]]
-      )
-    )
-  })
-  observe({
-    input[[NAMESPACE_LOADPAGE$proceed1]]
-    shinyjs::toggle(
-      NAMESPACE_LOADPAGE$summary_ptm_panel,
-      condition = loadpage_show_ptm_summary(
-        input[[NAMESPACE_LOADPAGE$bio]]
-      )
-    )
-  })
+  # The post-proceed1 "Top 6 rows" preview panels (non-PTM vs PTM) are
+  # display-only tables. Their visibility is decided at render time inside the
+  # `summary_tables` renderUI in `register_loadpage_summary`, via
+  # loadpage_show_nonptm_summary / loadpage_show_ptm_summary (below), NOT by a
+  # shinyjs::toggle observer here: those divs are (re)built by that renderUI on
+  # each `proceed1`, and a toggle raced the re-insertion and left them hidden.
 
   # --- TMT which.proteinid renderUI (the duplicate-ns()-id case) -------------
   #

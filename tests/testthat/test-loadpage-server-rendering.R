@@ -65,6 +65,15 @@ test_that("loadpage_show_mzmine_upload is TRUE only for the mzmine converter", {
   expect_false(MSstatsShiny:::loadpage_show_mzmine_upload(NULL))
 })
 
+test_that("LOADPAGE_METABOLOMICS_FILETYPE_CHOICES offers MZmine and MSstats Format", {
+  expect_equal(LOADPAGE_METABOLOMICS_FILETYPE_CHOICES,
+               c("MZmine" = "mzmine", "MSstats Format" = "msstats"))
+  expect_equal(names(LOADPAGE_METABOLOMICS_FILETYPE_CHOICES),
+               c("MZmine", "MSstats Format"))
+  expect_true(all(c("mzmine", "msstats") %in%
+                    LOADPAGE_METABOLOMICS_FILETYPE_CHOICES))
+})
+
 test_that("loadpage_show_diann_mbr requires both q_val and diann", {
   expect_true(MSstatsShiny:::loadpage_show_diann_mbr(TRUE, "diann"))
 

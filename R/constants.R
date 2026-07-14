@@ -127,6 +127,12 @@ LOADPAGE_FILETYPE_CHOICES = c("Example dataset" = "sample",
                               "SpectroMine" = "spmin", "FragPipe" = "phil", "DIANN"="diann",
                               "Metamorpheus" = "meta")
 
+# File-type choices under the metabolomics template: the MZmine converter or a
+# pre-formatted MSstats table. Kept as a constant so the restrict observer and
+# its test share one source of truth.
+LOADPAGE_METABOLOMICS_FILETYPE_CHOICES = c("MZmine" = "mzmine",
+                                           "MSstats Format" = "msstats")
+
 NAMESPACE_QC = list(
   # Sidebar processing-option input ids
   global_norm = "global_norm",

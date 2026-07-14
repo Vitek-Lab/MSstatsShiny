@@ -1,6 +1,31 @@
 # Loadpage condition-metadata DT editor + the post-`proceed1` summary outputs and experimental-design summary statistics (number of conditions, number of replicates, etc.).
 
 
+#' Relabel the dataset-summary rows for the metabolomics template.
+#'
+#' `getSummary2()` returns a 2-column (label, value) frame with proteomics
+#' wording. For metabolomics data (`ProteinName` = metabolite, `PeptideSequence`
+#' = feature, charge columns NA) two rows are redundant: the distinct-`FEATURES`
+#' count equals the distinct-feature count, and features-per-peptide is always
+#' `1 - 1`. Drop those two, then rename the survivors. Drop must precede the
+#' rename: renaming "Number of Peptides" to "Number of Features" first would
+#' collide with the "Number of Features" row that needs to be dropped.
+#' @noRd
+metabolomics_summary2_view <- function(summary2) {
+  labels = as.character(summary2[[1]])
+  keep = !(labels %in% c("Number of Features", "Number of Features/Peptide"))
+  summary2 = summary2[keep, , drop = FALSE]
+  relabel = c("Number of Proteins"         = "Number of Metabolites",
+              "Number of Peptides"         = "Number of Features",
+              "Number of Peptides/Protein" = "Number of Features/Metabolite")
+  labels = as.character(summary2[[1]])
+  hit = labels %in% names(relabel)
+  labels[hit] = relabel[labels[hit]]
+  summary2[[1]] = labels
+  summary2
+}
+
+
 #' Register the loadpage post-`proceed1` summary cluster.
 #'
 #' @param input              the Shiny module's `input` object
@@ -110,14 +135,6 @@ register_loadpage_summary <- function(input, output, session, parent_session,
     }
 
     ### outputs ###
-    get_summary <- reactive({
-      if (is.null(get_data())) {
-        return(NULL)
-      }
-      data1 <- get_data()
-      data_summary <- describe(data1)
-    })
-
     output$summary = renderTable(
       {
         d = get_data()
@@ -148,8 +165,9 @@ register_loadpage_summary <- function(input, output, session, parent_session,
     output$summary2 <- renderTable(
       {
         req(get_data())
-        get_summary2()
-
+        s = get_summary2()
+        if (!is.null(app_template) && app_template() == TEMPLATES$metabolomics)
+          metabolomics_summary2_view(s) else s
       }, colnames = FALSE, bordered = TRUE, align = 'lr'
     )
 
@@ -185,17 +203,26 @@ register_loadpage_summary <- function(input, output, session, parent_session,
         h4("Summary of dataset"),
         tableOutput(ns("summary2")),
         tags$br(),
-        shinyjs::hidden(div(id = ns(NAMESPACE_LOADPAGE$summary_nonptm_panel),
-                         h4("Top 6 rows of the dataset"),
-                         div(style = "overflow-x: auto;", tableOutput(ns("summary")))
-        )),
-        shinyjs::hidden(div(id = ns(NAMESPACE_LOADPAGE$summary_ptm_panel),
-                         h4("Top 6 rows of the PTM dataset"),
-                         div(style = "overflow-x: auto;", tableOutput(ns("summary_ptm"))),
-                         tags$br(),
-                         h4("Top 6 rows of the unmodified protein dataset"),
-                         div(style = "overflow-x: auto;", tableOutput(ns("summary_prot")))
-        ))
+        # Data preview (display-only, no inputs): render the correct table(s)
+        # here, visibly, chosen by BIO. Built in the renderUI rather than mounted
+        # hidden and revealed by a shinyjs::toggle observer: that observer raced
+        # the renderUI re-inserting the hidden div and left the panel hidden,
+        # dropping the preview (regression vs the pre-refactor conditionalPanel).
+        # Metabolomics resets BIO to a non-PTM value, so it takes the non-PTM
+        # branch, where output$summary already swaps in metabolomics_preview_view.
+        if (loadpage_show_nonptm_summary(input[[NAMESPACE_LOADPAGE$bio]]))
+          div(id = ns(NAMESPACE_LOADPAGE$summary_nonptm_panel),
+              h4("Top 6 rows of the dataset"),
+              div(style = "overflow-x: auto;", tableOutput(ns("summary")))
+          ),
+        if (loadpage_show_ptm_summary(input[[NAMESPACE_LOADPAGE$bio]]))
+          div(id = ns(NAMESPACE_LOADPAGE$summary_ptm_panel),
+              h4("Top 6 rows of the PTM dataset"),
+              div(style = "overflow-x: auto;", tableOutput(ns("summary_ptm"))),
+              tags$br(),
+              h4("Top 6 rows of the unmodified protein dataset"),
+              div(style = "overflow-x: auto;", tableOutput(ns("summary_prot")))
+          )
       )
     })
 
