@@ -119,8 +119,8 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
                        remove_empty_channel = TRUE
                        )\n", sep = "")
   } else if (loadpage_input$BIO == "PTM") {
-    dt = if ((loadpage_input$BIO == "PTM" & loadpage_input$DDA_DIA == "TMT") | 
-             loadpage_input$filetype == 'phil') "TMT" else "LabelFree"
+    dt = if ((isTRUE(loadpage_input$BIO == "PTM") & isTRUE(loadpage_input$DDA_DIA == "TMT")) |
+             isTRUE(loadpage_input$filetype == 'phil')) "TMT" else "LabelFree"
     
     codes = paste(codes, "\n# Model-based comparison\n", sep = "")
     codes = paste(codes, "model = MSstatsPTM::groupComparisonPTM(summarized, '",

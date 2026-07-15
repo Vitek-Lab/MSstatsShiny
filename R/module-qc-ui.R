@@ -198,6 +198,19 @@ qcUI <- function(id) {
                h3(textOutput(ns("caption"), container = span)),
 
                tabsetPanel(id = ns("qc_tabs"),
+                 tabPanel("Data Upload",
+                          wellPanel(
+                            h4("Upload pre-processed data"),
+                            p("Bring FeatureLevelData and ProteinLevelData that were summarized in a previous session or an external pipeline. When both files are uploaded and the load page has not been used, the statistical analysis page uses them directly, skipping load-page conversion and summarization."),
+                            fileInput(ns("upload_feature_level"), "Upload FeatureLevelData (CSV)", accept = ".csv"),
+                            fileInput(ns("upload_protein_level"), "Upload ProteinLevelData (CSV)", accept = ".csv"),
+                            p(tags$strong("Required columns (names must match exactly, case-sensitive):")),
+                            tags$ul(
+                              tags$li(tags$strong("FeatureLevelData: "), "PROTEIN, PEPTIDE, FEATURE, RUN, GROUP, LABEL, INTENSITY"),
+                              tags$li(tags$strong("ProteinLevelData: "), "Protein, GROUP, RUN, LogIntensities")
+                            )
+                          )
+                 ),
                  tabPanel("Summarized Results",
                           wellPanel(
                             fluidRow(

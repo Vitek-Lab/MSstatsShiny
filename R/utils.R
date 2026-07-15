@@ -1939,7 +1939,7 @@ dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix,input_
   print("+++++++++ In Data Comparison +++++++++")
   # input_data = preprocessData(qc_input,loadpage_input,get_data())
   contrast.matrix = matrix
-  if (loadpage_input$BIO == "PTM" & ((loadpage_input$BIO == "PTM" & loadpage_input$DDA_DIA == "TMT" ) | loadpage_input$filetype=='phil')){
+  if (isTRUE(loadpage_input$BIO == "PTM") & ((isTRUE(loadpage_input$BIO == "PTM") & isTRUE(loadpage_input$DDA_DIA == "TMT")) | isTRUE(loadpage_input$filetype=='phil'))){
     model_ptm = MSstatsShiny::tmt_model(input_data$PTM, statmodel_input, contrast.matrix)
     model_protein = MSstatsShiny::tmt_model(input_data$PROTEIN, statmodel_input, contrast.matrix)
     model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
@@ -1948,7 +1948,7 @@ dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix,input_
                  'PROTEIN.Model' = model_protein$ComparisonResult,
                  'ADJUSTED.Model' = model_adj)
 
-  } else if(loadpage_input$BIO == "PTM" & (loadpage_input$BIO == "PTM" & loadpage_input$DDA_DIA != "TMT" )){
+  } else if(isTRUE(loadpage_input$BIO == "PTM") & (isTRUE(loadpage_input$BIO == "PTM") & isTRUE(loadpage_input$DDA_DIA != "TMT"))){
     model_ptm = MSstatsShiny::lf_model(input_data$PTM, contrast.matrix)
     model_protein = MSstatsShiny::lf_model(input_data$PROTEIN, contrast.matrix)
     model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
@@ -1957,7 +1957,7 @@ dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix,input_
                  'PROTEIN.Model' = model_protein$ComparisonResult,
                  'ADJUSTED.Model' = model_adj)
 
-  } else if(loadpage_input$DDA_DIA=="TMT"){
+  } else if(isTRUE(loadpage_input$DDA_DIA=="TMT")){
     model = MSstatsShiny::tmt_model(input_data, statmodel_input, contrast.matrix)
   }
   else{
