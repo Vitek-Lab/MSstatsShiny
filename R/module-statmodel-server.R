@@ -111,7 +111,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
         tryCatch({ rownames(matrix_build()) }, error = function(e) {})
       })
       
-      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list, contrast, app_template, condition_metadata)
+      render_group_comparison_plot_inputs(output, session, Rownames, get_data, input, loadpage_input, condition_list, contrast, app_template, condition_metadata, preprocess_data)
 
       output[[NAMESPACE_STATMODEL$comparisons_exclude_conditions]] <- renderUI({
         req(input[[NAMESPACE_STATMODEL$comparison_mode]] ==

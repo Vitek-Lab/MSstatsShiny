@@ -59,11 +59,54 @@ test_that("qc_uploads_complete needs both feature and protein tables (default/ch
   expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$chemoproteomics, FALSE, TRUE, FALSE))
 })
 
-test_that("qc_uploads_complete turnover branch is currently a two-file stub", {
-  # Commit 2 will fold in uploaded ratios / metadata; for now it mirrors the
-  # default rule and ignores has_turnover.
+test_that("qc_uploads_complete turnover needs protein + ratios (feature optional)", {
+  # Turnover consumes the uploaded ratios table directly; FeatureLevelData is not
+  # used on the response-curve path, so protein + ratios is sufficient.
+  expect_true(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, FALSE, TRUE, TRUE))
   expect_true(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, TRUE, TRUE, TRUE))
-  expect_true(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, TRUE, TRUE, FALSE))
+
+  # Missing ratios or protein leaves it incomplete; feature alone is not enough.
+  expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, TRUE, TRUE, FALSE))
   expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, TRUE, FALSE, TRUE))
-  expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, FALSE, TRUE, TRUE))
+  expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, TRUE, FALSE, FALSE))
+})
+
+test_that("qc_required_mapping_columns is template-specific", {
+  expect_equal(MSstatsShiny:::qc_required_mapping_columns(TEMPLATES$protein_turnover),
+               c("GROUP", "TimeVal"))
+  expect_equal(MSstatsShiny:::qc_required_mapping_columns(TEMPLATES$chemoproteomics),
+               c("GROUP", "DoseVal"))
+  expect_equal(MSstatsShiny:::qc_required_mapping_columns(TEMPLATES$default), character(0))
+  expect_equal(MSstatsShiny:::qc_required_mapping_columns(NULL), character(0))
+})
+
+test_that("qc_required_ratios_columns matches the turnover-ratios fit inputs", {
+  expect_equal(MSstatsShiny:::qc_required_ratios_columns(),
+               c("Protein", "TimeVal", "H_frac", "L_frac"))
+})
+
+test_that("qc_mapping_to_condition_metadata renames GROUP to Condition (turnover)", {
+  parsed = data.frame(GROUP = c("0hr", "1hr"), TimeVal = c(0, 1),
+                      stringsAsFactors = FALSE)
+  out = MSstatsShiny:::qc_mapping_to_condition_metadata(parsed, TEMPLATES$protein_turnover)
+  expect_equal(colnames(out), c("Condition", "TimeVal"))
+  expect_equal(out$Condition, c("0hr", "1hr"))
+  expect_type(out$Condition, "character")
+  expect_type(out$TimeVal, "character")
+})
+
+test_that("qc_mapping_to_condition_metadata keeps optional chemo columns when present", {
+  # DoseUnit / DrugName are passed through only when present in the CSV.
+  bare = data.frame(GROUP = c("DMSO", "Drug_10nM"), DoseVal = c(0, 10),
+                    stringsAsFactors = FALSE)
+  out_bare = MSstatsShiny:::qc_mapping_to_condition_metadata(bare, TEMPLATES$chemoproteomics)
+  expect_equal(colnames(out_bare), c("Condition", "DoseVal"))
+  expect_type(out_bare$DoseVal, "character")
+
+  full = data.frame(GROUP = c("DMSO", "Drug_10nM"), DoseVal = c(0, 10),
+                    DoseUnit = c("nM", "nM"), DrugName = c("DMSO", "Drug"),
+                    stringsAsFactors = FALSE)
+  out_full = MSstatsShiny:::qc_mapping_to_condition_metadata(full, TEMPLATES$chemoproteomics)
+  expect_equal(colnames(out_full), c("Condition", "DoseVal", "DoseUnit", "DrugName"))
+  expect_type(out_full$DrugName, "character")
 })

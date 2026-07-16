@@ -87,13 +87,14 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
                                           get_condition_metadata, preprocess_data)
 
   data_upload = register_qc_data_upload(input, output, session, loadpage_input,
-                                        app_template, get_data, preprocess_data)
+                                        app_template, get_data, preprocess_data,
+                                        get_condition_metadata, turnover_ratios)
 
   return(
     list(
       input = input,
       preprocessData = data_upload$effective_preprocess_data,
-      turnoverRatios = turnover_ratios
+      turnoverRatios = data_upload$effective_turnover_ratios
     )
   )
 }
