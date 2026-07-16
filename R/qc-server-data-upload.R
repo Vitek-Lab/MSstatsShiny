@@ -333,8 +333,9 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
   # Move a user off the tab before hiding it so they are not stranded on a
   # hidden pane.
 
-  observeEvent(get_data(), {
-    if (is.null(get_data())) {
+  observeEvent(tryCatch(get_data(), error = function(e) NULL), {
+    loaded = tryCatch(get_data(), error = function(e) NULL)
+    if (is.null(loaded)) {
       showTab(inputId = "qc_tabs", target = "Data Upload", session = session)
     } else {
       updateTabsetPanel(session = session, inputId = "qc_tabs", selected = "Summarized Results")

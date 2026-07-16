@@ -89,7 +89,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
 
       # UI visibility
       observe({
-        if (isTRUE(loadpage_input()$DDA_DIA == "TMT") | isTRUE(loadpage_input()$BIO == "PTM")) {
+        if (isTRUE(loadpage_input()$DDA_DIA == "TMT") || isTRUE(loadpage_input()$BIO == "PTM")) {
           hide("Design")
         } else {
           shinyjs::show("Design")

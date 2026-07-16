@@ -47,20 +47,30 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     data
   })
 
-  # ---- Run caption and "Next step" navigation to the statistical model page ----
+  # ---- Turnover ratios + Data Upload (registered early so the navigation below
+  #      can key off the effective, upload-aware data) ----
 
-  cap = eventReactive(input$run, {
-    text_output = "Protein abundance have been estimated, use the tabs below to download and plot the results."
+  turnover_ratios <- register_qc_turnover(input, output, session, app_template, get_data,
+                                          get_condition_metadata, preprocess_data)
+
+  data_upload = register_qc_data_upload(input, output, session, loadpage_input,
+                                        app_template, get_data, preprocess_data,
+                                        get_condition_metadata, turnover_ratios)
+
+  # ---- Run caption and "Next step" navigation to the statistical model page ----
+  # Keyed on the effective (computed OR uploaded) data so upload users, who never
+  # fire input$run, still get the caption and the Next-step button.
+
+  cap = eventReactive(data_upload$effective_preprocess_data(), {
+    text_output = "Data is ready. Click 'Next step' to continue to statistical modeling."
   })
 
-  observeEvent(input$run, {
+  observeEvent(data_upload$effective_preprocess_data(), {
     output$submit.button = renderUI({
       ns <- session$ns
       actionButton(inputId = ns("proceed6"),label = "Next step")
     })
-
-
-    })
+  }, ignoreNULL = TRUE)
 
   output$caption = renderText({
     cap()
@@ -83,12 +93,6 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
                     preprocess_data, ordered_preprocess_data)
   register_qc_summary(input, output, session, loadpage_input, preprocess_data, app_template)
   register_qc_downloads(input, output, session, loadpage_input, preprocess_data)
-  turnover_ratios <- register_qc_turnover(input, output, session, app_template, get_data,
-                                          get_condition_metadata, preprocess_data)
-
-  data_upload = register_qc_data_upload(input, output, session, loadpage_input,
-                                        app_template, get_data, preprocess_data,
-                                        get_condition_metadata, turnover_ratios)
 
   return(
     list(
