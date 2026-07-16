@@ -311,6 +311,11 @@ test_that("loadpage_show_label_free_options excludes sample + big-file paths", {
   # big-file DIANN excluded; small-file allowed
   expect_false(MSstatsShiny:::loadpage_show_label_free_options("diann", "LType", FALSE, TRUE))
   expect_true(MSstatsShiny:::loadpage_show_label_free_options("diann", "LType", FALSE, FALSE))
+  # metabolomics template suppresses the block (exclusion moved into the predicate)
+  expect_false(MSstatsShiny:::loadpage_show_label_free_options(
+    "sky", "LType", FALSE, FALSE, TEMPLATES$metabolomics))
+  expect_true(MSstatsShiny:::loadpage_show_label_free_options(
+    "sky", "LType", FALSE, FALSE, TEMPLATES$default))
 })
 
 test_that("loadpage_show_openswath_mscore is filetype == 'open'", {

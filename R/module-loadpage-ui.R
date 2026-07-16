@@ -152,7 +152,7 @@ create_main_selection_controls <- function(ns) {
   tagList(
     # Biological Question
     radioButtons(ns("BIO"),
-                 label = h4("1. Biological Question", class = "icon-wrapper",
+                 label = h4("Biological Question", class = "icon-wrapper",
                              icon("question-circle", lib = "font-awesome"),
                              div("Select the biological question of interest.", class = "icon-tooltip")),
                  c("Protein"="Protein", "Peptide"="Peptide","PTM"="PTM")
@@ -160,7 +160,7 @@ create_main_selection_controls <- function(ns) {
     
     # Label Type
     radioButtons(ns("DDA_DIA"),
-                 label = h4("2. Label Type", class = "icon-wrapper",
+                 label = h4("Label Type", class = "icon-wrapper",
                              icon("question-circle", lib = "font-awesome"),
                              div("Label-free will process all label-free acquisitions including DDA/DIA/SRM/PRM.", class = "icon-tooltip")),
                  c("Label-Free"="LType", "TMT"="TMT")
@@ -168,7 +168,9 @@ create_main_selection_controls <- function(ns) {
     
     # File Type
     radioButtons(ns("filetype"),
-                 label = uiOutput(ns("filetype_header")),
+                 label = h4("Type of File", class = "icon-wrapper",
+                             icon("question-circle", lib = "font-awesome"),
+                             div("Choose the spectral processing tool used to process your data", class = "icon-tooltip")),
                  choices = LOADPAGE_FILETYPE_CHOICES,
                  selected = character(0)
     )
@@ -181,7 +183,7 @@ create_label_free_type_selection <- function(ns) {
   shinyjs::hidden(div(
     id = ns(NAMESPACE_LOADPAGE$label_free_type_selection_panel),
     radioButtons(ns(NAMESPACE_LOADPAGE$label_free_type),
-                 label = h4("4. Type of Label-Free type", class = "icon-wrapper",
+                 label = h4("Type of Label-Free type", class = "icon-wrapper",
                              icon("question-circle", lib = "font-awesome"),
                              div("Choose the spectral processing tool used to process your data", class = "icon-tooltip")),
                  choices = c("DDA" = "DDA", "DIA" ="DIA", "SRM/PRM" ="SRM_PRM"),
@@ -234,7 +236,7 @@ create_file_upload_sections <- function(ns) {
 create_standard_uploads <- function(ns) {
   shinyjs::hidden(div(
     id = ns(NAMESPACE_LOADPAGE$standard_quant_upload_panel),
-    h4("4. Upload quantification dataset"),
+    h4("Upload quantification dataset"),
     fileInput(ns('data'), "", multiple = FALSE, accept = NULL)
   ))
 }
@@ -244,7 +246,7 @@ create_standard_uploads <- function(ns) {
 create_standard_annotation_uploads <- function(ns) {
   shinyjs::hidden(div(
     id = ns(NAMESPACE_LOADPAGE$standard_annot_upload_panel),
-    h4("5. Upload annotation File", class = "icon-wrapper",
+    h4("Upload annotation File", class = "icon-wrapper",
        icon("question-circle", lib = "font-awesome"),
        div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.", class = "icon-tooltip")),
     fileInput(ns('annot'), "", multiple = FALSE, accept = c(".csv"))
@@ -258,17 +260,17 @@ create_msstats_uploads <- function(ns) {
     # Regular MSstats format
     shinyjs::hidden(div(
       id = ns(NAMESPACE_LOADPAGE$msstats_regular_upload_panel),
-      h4("4. Upload data in MSstats Format"),
+      h4("Upload data in MSstats Format"),
       fileInput(ns('msstatsdata'), "", multiple = FALSE, accept = NULL)
     )),
 
     # PTM MSstats format.
     shinyjs::hidden(div(
       id = ns(NAMESPACE_LOADPAGE$msstats_ptm_upload_panel),
-      h4("4. Upload PTM data in MSstats Format"),
+      h4("Upload PTM data in MSstats Format"),
       fileInput(ns('msstatsptmdata'), "", multiple = FALSE, accept = NULL),
 
-      h4("5. (Optional) Upload unmodified data in MSstats Format"),
+      h4("(Optional) Upload unmodified data in MSstats Format"),
       fileInput(ns('unmod'), "", multiple = FALSE, accept = NULL),
       tags$br()
     ))
@@ -280,7 +282,7 @@ create_msstats_uploads <- function(ns) {
 create_skyline_uploads <- function(ns) {
   shinyjs::hidden(div(
     id = ns(NAMESPACE_LOADPAGE$skyline_upload_panel),
-    h4("4. Upload MSstats report from Skyline"),
+    h4("Upload MSstats report from Skyline"),
     fileInput(ns('skylinedata'), "", multiple = FALSE, accept = NULL)
   ))
 }
@@ -330,7 +332,7 @@ create_diann_uploads <- function(ns) {
 #' Create DIANN header
 #' @noRd
 create_diann_header <- function() {
-  h4("4. Upload MSstats report from DIANN")
+  h4("Upload MSstats report from DIANN")
 }
 
 #' Create DIANN mode selector (Local only)
@@ -479,7 +481,7 @@ create_spectronaut_uploads <- function(ns) {
 #' Create Spectronaut header
 #' @noRd
 create_spectronaut_header <- function() {
-  h4("4. Upload MSstats scheme output from Spectronaut")
+  h4("Upload MSstats scheme output from Spectronaut")
 }
 
 #' Create Spectronaut mode selector (Local only)
@@ -642,16 +644,16 @@ create_spectronaut_anomaly_ui <- function(ns, calculate_anomaly_def = FALSE) {
 create_ptm_fragpipe_uploads <- function(ns) {
   shinyjs::hidden(div(
     id = ns(NAMESPACE_LOADPAGE$ptm_fragpipe_upload_panel),
-    h4("4. Upload PTM msstats dataset"),
+    h4("Upload PTM msstats dataset"),
     fileInput(ns('ptmdata'), "", multiple = FALSE, accept = NULL),
 
-    h4("5. Upload PTM annotation file"),
+    h4("Upload PTM annotation file"),
     fileInput(ns('annotation'), "", multiple = FALSE, accept = c(".csv")),
 
-    h4("6. Upload global profiling msstats dataset (optional)"),
+    h4("Upload global profiling msstats dataset (optional)"),
     fileInput(ns('globaldata'), "", multiple = FALSE, accept = NULL),
 
-    h4("7. Upload global profiling annotation file (optional)"),
+    h4("Upload global profiling annotation file (optional)"),
     fileInput(ns('globalannotation'), "", multiple = FALSE, accept = c(".csv")),
 
     h4("Select the options for pre-processing"),
@@ -680,13 +682,13 @@ create_ptm_fragpipe_uploads <- function(ns) {
 create_maxquant_uploads <- function(ns) {
   shinyjs::hidden(div(
     id = ns(NAMESPACE_LOADPAGE$maxquant_upload_panel),
-    h4("4. Upload evidence.txt File"),
+    h4("Upload evidence.txt File"),
     fileInput(ns('evidence'), "", multiple = FALSE, accept = NULL),
 
-    h4("5. Upload proteinGroups.txt File"),
+    h4("Upload proteinGroups.txt File"),
     fileInput(ns('pGroup'), "", multiple = FALSE, accept = NULL),
 
-    h4("6. Upload annotation File", class = "icon-wrapper",
+    h4("Upload annotation File", class = "icon-wrapper",
        icon("question-circle", lib = "font-awesome"),
        div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.", class = "icon-tooltip")),
     fileInput(ns('annot1'), "", multiple = FALSE, accept = c(".csv"))
@@ -736,34 +738,34 @@ create_ptm_uploads <- function(ns) {
   tagList(
     shinyjs::hidden(div(
       id = ns(NAMESPACE_LOADPAGE$ptm_uploads_panel),
-      h4("4. Upload PTM Input File"),
+      h4("Upload PTM Input File"),
       fileInput(ns('ptm_input'), "", multiple = FALSE, accept = NULL),
 
-      h4("5. Upload annotation File", class = "icon-wrapper",
+      h4("Upload annotation File", class = "icon-wrapper",
          icon("question-circle", lib = "font-awesome"),
          div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.", class = "icon-tooltip")),
       fileInput(ns('ptm_annot'), "", multiple = FALSE, accept = c(".csv")),
 
-      h4("6. Upload fasta File", class = "icon-wrapper",
+      h4("Upload fasta File", class = "icon-wrapper",
          icon("question-circle", lib = "font-awesome"),
          div("Upload FASTA file. This file allows us to identify where in the protein sequence a modification occurs.", class = "icon-tooltip")),
       fileInput(ns('fasta'), "", multiple = FALSE),
 
-      h4("7. (Recommended) Upload Unmodified Protein Input File"),
+      h4("(Recommended) Upload Unmodified Protein Input File"),
       fileInput(ns('ptm_protein_input'), "", multiple = FALSE, accept = NULL)
     )),
 
     # MaxQuant specific PTM
     shinyjs::hidden(div(
       id = ns(NAMESPACE_LOADPAGE$ptm_maxquant_pgroup_panel),
-      h4("8. (Optional) Upload Unmodified Protein proteinGroups.txt File"),
+      h4("(Optional) Upload Unmodified Protein proteinGroups.txt File"),
       fileInput(ns('ptm_pgroup'), "", multiple = FALSE, accept = NULL)
     )),
 
     # Metamorpheus specific PTM
     shinyjs::hidden(div(
       id = ns(NAMESPACE_LOADPAGE$ptm_metamorpheus_extras_panel),
-      h4("8. (Recommended) Upload Unmodified Protein Annotation File"),
+      h4("(Recommended) Upload Unmodified Protein Annotation File"),
       fileInput(
         ns("ptm_protein_annot"),
         "",
@@ -826,16 +828,16 @@ create_ptm_modification_labels <- function(ns) {
 create_ump_uploads <- function(ns) {
   shinyjs::hidden(div(
     id = ns(NAMESPACE_LOADPAGE$dia_umpire_upload_panel),
-    h4("4. Upload FragSummary.xls File"),
+    h4("Upload FragSummary.xls File"),
     fileInput(ns('fragSummary'), "", multiple = FALSE, accept = NULL),
 
-    h4("5. Upload PeptideSummary.xls File"),
+    h4("Upload PeptideSummary.xls File"),
     fileInput(ns('peptideSummary'), "", multiple = FALSE, accept = NULL),
 
-    h4("6. Upload ProtSummary.xls File"),
+    h4("Upload ProtSummary.xls File"),
     fileInput(ns('protSummary'), "", multiple = FALSE, accept = NULL),
 
-    h4("7. Upload Annotation File", class = "icon-wrapper",
+    h4("Upload Annotation File", class = "icon-wrapper",
        icon("question-circle", lib = "font-awesome"),
        div("Upload manually created annotation file. This file maps MS runs to experiment metadata (i.e. conditions, bioreplicates). Please see Help tab for information on creating this file.", class = "icon-tooltip")),
     fileInput(ns('annot2'), "", multiple = FALSE, accept = c(".csv"))

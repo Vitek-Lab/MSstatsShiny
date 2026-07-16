@@ -203,13 +203,6 @@ register_loadpage_summary <- function(input, output, session, parent_session,
         h4("Summary of dataset"),
         tableOutput(ns("summary2")),
         tags$br(),
-        # Data preview (display-only, no inputs): render the correct table(s)
-        # here, visibly, chosen by BIO. Built in the renderUI rather than mounted
-        # hidden and revealed by a shinyjs::toggle observer: that observer raced
-        # the renderUI re-inserting the hidden div and left the panel hidden,
-        # dropping the preview (regression vs the pre-refactor conditionalPanel).
-        # Metabolomics resets BIO to a non-PTM value, so it takes the non-PTM
-        # branch, where output$summary already swaps in metabolomics_preview_view.
         if (loadpage_show_nonptm_summary(input[[NAMESPACE_LOADPAGE$bio]]))
           div(id = ns(NAMESPACE_LOADPAGE$summary_nonptm_panel),
               h4("Top 6 rows of the dataset"),

@@ -185,15 +185,18 @@ loadpage_show_mzmine_upload <- function(filetype) {
   isTRUE(filetype == "mzmine")
 }
 
-#' Label-free options block (`unique_peptides`, `remove`). Suppressed for
-#' the sample-data and big-file workflows.
+#' Label-free options block (`unique_peptides`, `remove`). Suppressed for the
+#' sample-data and big-file workflows, and for the metabolomics template
+#' (pre-processing options do not apply to metabolites).
 #' @noRd
-loadpage_show_label_free_options <- function(filetype, dda_dia, big_file_spec, big_file_diann) {
+loadpage_show_label_free_options <- function(filetype, dda_dia, big_file_spec,
+                                             big_file_diann, app_template = NULL) {
   if (is.null(filetype) || !nzchar(filetype)) return(FALSE)
   isTRUE(dda_dia == "LType") &&
     !isTRUE(filetype == "sample") &&
     !(isTRUE(filetype == "spec")  && isTRUE(big_file_spec))  &&
-    !(isTRUE(filetype == "diann") && isTRUE(big_file_diann))
+    !(isTRUE(filetype == "diann") && isTRUE(big_file_diann)) &&
+    !isTRUE(app_template == TEMPLATES$metabolomics)
 }
 
 #' OpenSWATH M-score filter section (parent of `mscore_cutoff`).
@@ -304,19 +307,6 @@ loadpage_show_ptm_summary <- function(bio) {
 }
 
 
-#' Build the "Type of File" header. Numbered "3. " except under the metabolomics
-#' template (where the hidden "1."/"2." sections would leave a lone number).
-#' Pure, so the number/tooltip behavior is unit-testable directly.
-#' @noRd
-loadpage_filetype_header <- function(template) {
-  prefix = if (isTRUE(template == TEMPLATES$metabolomics)) "" else "3. "
-  h4(paste0(prefix, "Type of File"), class = "icon-wrapper",
-     icon("question-circle", lib = "font-awesome"),
-     div("Choose the spectral processing tool used to process your data",
-         class = "icon-tooltip"))
-}
-
-
 # ----------------------------------------------------------------------------
 # Unified registration helper.
 # ----------------------------------------------------------------------------
@@ -357,13 +347,6 @@ register_loadpage_visibility_observers <- function(input, output, session, app_t
     }
   })
 
-  # The "Type of File" header drops its "3." under the metabolomics template,
-  # where the hidden "1."/"2." sections would otherwise leave it a lone number;
-  # every other template keeps the original numbered "3. Type of File" header.
-  output$filetype_header = renderUI({
-    loadpage_filetype_header(if (!is.null(app_template)) app_template() else NULL)
-  })
-
   # Upload-area description: metabolomics-specific guidance under that template,
   # the default proteomics guidance (create_header_content) otherwise.
   output$upload_description = renderUI({
@@ -373,6 +356,7 @@ register_loadpage_visibility_observers <- function(input, output, session, app_t
       create_header_content()
     }
   })
+
   if (!is.null(app_template)) {
     observeEvent(app_template(), {
       if (app_template() == TEMPLATES$metabolomics) {
@@ -638,11 +622,9 @@ register_loadpage_visibility_observers <- function(input, output, session, app_t
         input[[NAMESPACE_LOADPAGE$filetype]],
         input[[NAMESPACE_LOADPAGE$dda_dia]],
         input[[NAMESPACE_LOADPAGE$big_file_spec]],
-        input[[NAMESPACE_LOADPAGE$big_file_diann]]
-      ) &&
-        # Pre-processing options (unique peptides / remove 1-feature proteins)
-        # do not apply to metabolites; hide the whole block under metabolomics.
-        !(!is.null(app_template) && app_template() == TEMPLATES$metabolomics)
+        input[[NAMESPACE_LOADPAGE$big_file_diann]],
+        if (!is.null(app_template)) app_template() else NULL
+      )
     )
   })
   observe({
@@ -662,13 +644,6 @@ register_loadpage_visibility_observers <- function(input, output, session, app_t
       )
     )
   })
-
-  # The post-proceed1 "Top 6 rows" preview panels (non-PTM vs PTM) are
-  # display-only tables. Their visibility is decided at render time inside the
-  # `summary_tables` renderUI in `register_loadpage_summary`, via
-  # loadpage_show_nonptm_summary / loadpage_show_ptm_summary (below), NOT by a
-  # shinyjs::toggle observer here: those divs are (re)built by that renderUI on
-  # each `proceed1`, and a toggle raced the re-insertion and left them hidden.
 
   # --- TMT which.proteinid renderUI (the duplicate-ns()-id case) -------------
   #
