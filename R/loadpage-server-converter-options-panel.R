@@ -177,15 +177,26 @@ loadpage_show_dia_umpire_upload <- function(filetype) {
   isTRUE(filetype == "ump")
 }
 
-#' Label-free options block (`unique_peptides`, `remove`). Suppressed for
-#' the sample-data and big-file workflows.
+#' Show the MZmine upload panel (metabolomics converter). Gated on the converter
+#' (filetype == "mzmine"), matching the other converter-upload panels, not on
+#' the template.
 #' @noRd
-loadpage_show_label_free_options <- function(filetype, dda_dia, big_file_spec, big_file_diann) {
+loadpage_show_mzmine_upload <- function(filetype) {
+  isTRUE(filetype == "mzmine")
+}
+
+#' Label-free options block (`unique_peptides`, `remove`). Suppressed for the
+#' sample-data and big-file workflows, and for the metabolomics template
+#' (pre-processing options do not apply to metabolites).
+#' @noRd
+loadpage_show_label_free_options <- function(filetype, dda_dia, big_file_spec,
+                                             big_file_diann, app_template = NULL) {
   if (is.null(filetype) || !nzchar(filetype)) return(FALSE)
   isTRUE(dda_dia == "LType") &&
     !isTRUE(filetype == "sample") &&
     !(isTRUE(filetype == "spec")  && isTRUE(big_file_spec))  &&
-    !(isTRUE(filetype == "diann") && isTRUE(big_file_diann))
+    !(isTRUE(filetype == "diann") && isTRUE(big_file_diann)) &&
+    !isTRUE(app_template == TEMPLATES$metabolomics)
 }
 
 #' OpenSWATH M-score filter section (parent of `mscore_cutoff`).
@@ -314,7 +325,59 @@ loadpage_show_ptm_summary <- function(bio) {
 #' @param output  the Shiny module's `output` object (for the TMT renderUI)
 #' @param session the Shiny module's `session` (for `session$ns`)
 #' @noRd
-register_loadpage_visibility_observers <- function(input, output, session) {
+register_loadpage_visibility_observers <- function(input, output, session, app_template = NULL) {
+  # --- Metabolomics template -------------------------------------------------
+  # Hide the biological-question and label-type radios under the metabolomics
+  # template, restrict the file-type radio to MZmine, and reset BIO/DDA_DIA to
+  # Protein/LType. Metabolomics data IS label-free non-PTM, so resetting at
+  # template selection makes every downstream consumer (getData, the summary
+  # tables, tab visibility) see the correct state instead of a stale BIO/DDA_DIA
+  # value carried over from a prior template.
+  observe({
+    metab = !is.null(app_template) && app_template() == TEMPLATES$metabolomics
+    shinyjs::toggle(NAMESPACE_LOADPAGE$bio,     condition = !metab)
+    shinyjs::toggle(NAMESPACE_LOADPAGE$dda_dia, condition = !metab)
+    # Also hide the divider that follows the selection block, so under
+    # metabolomics a single divider (the one after the hidden label-free panel)
+    # remains above the upload sections instead of two adjacent hr lines.
+    shinyjs::toggle(NAMESPACE_LOADPAGE$main_selection_divider, condition = !metab)
+    if (metab) {
+      updateRadioButtons(session, NAMESPACE_LOADPAGE$bio,     selected = "Protein")
+      updateRadioButtons(session, NAMESPACE_LOADPAGE$dda_dia, selected = "LType")
+    }
+  })
+
+  # Upload-area description: metabolomics-specific guidance under that template,
+  # the default proteomics guidance (create_header_content) otherwise.
+  output$upload_description = renderUI({
+    if (!is.null(app_template) && app_template() == TEMPLATES$metabolomics) {
+      create_metabolomics_header_content()
+    } else {
+      create_header_content()
+    }
+  })
+
+  if (!is.null(app_template)) {
+    observeEvent(app_template(), {
+      if (app_template() == TEMPLATES$metabolomics) {
+        updateRadioButtons(session, NAMESPACE_LOADPAGE$filetype,
+                           choices = LOADPAGE_METABOLOMICS_FILETYPE_CHOICES,
+                           selected = "mzmine")
+      } else {
+        updateRadioButtons(session, NAMESPACE_LOADPAGE$filetype,
+                           choices = LOADPAGE_FILETYPE_CHOICES, selected = character(0))
+      }
+    })
+  }
+  # MZmine upload panel: gated on the converter (filetype == "mzmine"), matching
+  # the other converter-upload panels, not on the template.
+  observe({
+    shinyjs::toggle(
+      NAMESPACE_LOADPAGE$mzmine_upload_panel,
+      condition = loadpage_show_mzmine_upload(input[[NAMESPACE_LOADPAGE$filetype]])
+    )
+  })
+
   # --- DIANN cluster ---------------------------------------------------------
   observe({
     shinyjs::toggle(
@@ -559,7 +622,8 @@ register_loadpage_visibility_observers <- function(input, output, session) {
         input[[NAMESPACE_LOADPAGE$filetype]],
         input[[NAMESPACE_LOADPAGE$dda_dia]],
         input[[NAMESPACE_LOADPAGE$big_file_spec]],
-        input[[NAMESPACE_LOADPAGE$big_file_diann]]
+        input[[NAMESPACE_LOADPAGE$big_file_diann]],
+        if (!is.null(app_template)) app_template() else NULL
       )
     )
   })
@@ -577,34 +641,6 @@ register_loadpage_visibility_observers <- function(input, output, session) {
       condition = loadpage_show_openswath_mscore_cutoff(
         input[[NAMESPACE_LOADPAGE$filetype]],
         input[[NAMESPACE_LOADPAGE$m_score]]
-      )
-    )
-  })
-
-  # --- Post-proceed1 summary tables (BIO-driven) -----------------------------
-  # Unlike the static converter panels above, these two divs are emitted by the
-  # `summary_tables` renderUI in `register_loadpage_summary`, which (re)builds
-  # only when `proceed1` fires — so they do not exist at the app's first flush.
-  # Each observer therefore also takes a dependency on `proceed1`, so it
-  # re-fires once the renderUI has (re)mounted the divs and applies the correct
-  # initial visibility. (Shiny applies output values before custom messages
-  # within a response, so the toggle lands after the divs are inserted.) BIO is
-  # read the same way as the other BIO-driven predicates.
-  observe({
-    input[[NAMESPACE_LOADPAGE$proceed1]]
-    shinyjs::toggle(
-      NAMESPACE_LOADPAGE$summary_nonptm_panel,
-      condition = loadpage_show_nonptm_summary(
-        input[[NAMESPACE_LOADPAGE$bio]]
-      )
-    )
-  })
-  observe({
-    input[[NAMESPACE_LOADPAGE$proceed1]]
-    shinyjs::toggle(
-      NAMESPACE_LOADPAGE$summary_ptm_panel,
-      condition = loadpage_show_ptm_summary(
-        input[[NAMESPACE_LOADPAGE$bio]]
       )
     )
   })

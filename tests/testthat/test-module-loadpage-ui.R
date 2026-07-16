@@ -1,15 +1,29 @@
 test_that("loadpageUI returns a valid tagList with fluidPage structure", {
   # Test basic function execution and structure
   result <- loadpageUI("test")
-  
+
   # Should return a tagList
   expect_s3_class(result, "shiny.tag.list")
-  
+
   result_html = as.character(result)
   expect_true(grepl("div", result_html))
-  
+
   # Should not be NULL or empty
   expect_true(length(result) > 0)
+})
+
+test_that("metabolomics template is registered and appears in the picker choices", {
+  expect_equal(TEMPLATES$metabolomics, "metabolomics")
+  expect_equal(TEMPLATE_LABELS$metabolomics,
+               "Metabolite Differential Abundance Analysis")
+
+  # The home picker builds its choices from the constants via
+  # setNames(unlist(TEMPLATES), unlist(TEMPLATE_LABELS)).
+  choices = setNames(unlist(TEMPLATES, use.names = FALSE),
+                     unlist(TEMPLATE_LABELS, use.names = FALSE))
+  expect_true("metabolomics" %in% choices)
+  expect_equal(names(choices)[choices == "metabolomics"],
+               "Metabolite Differential Abundance Analysis")
 })
 
 test_that("loadpageUI generates correct namespaced input IDs", {
@@ -225,13 +239,12 @@ test_that("loadpageUI properly handles file input elements and validation", {
   expect_true(grepl("proceed1", html_output),
               "Upload button not found")
   
-  # Should include help text and external links
-  expect_true(grepl("User Guide", html_output),
-              "Help documentation links not found")
-  
-  # Should include file size warnings
-  expect_true(grepl("250 MB", html_output),
-              "File size limit warning not found")
+  # The upload description renders server-side now (output$upload_description
+  # fills this uiOutput slot; see STEP 3). The static UI carries only the
+  # placeholder; the "User Guide" / "250 MB" text is asserted directly against
+  # create_header_content() below.
+  expect_true(grepl('id="test-upload_description"', html_output, fixed = TRUE),
+              "Upload-description uiOutput slot not found")
 })
 
 # Test suite for loadpage UI module
@@ -260,6 +273,21 @@ test_that("create_header_content includes required elements", {
   expect_true(grepl("msstats.org", header_html))
   expect_true(grepl("bioconductor.org", header_html))
   expect_true(grepl('target="_blank"', header_html))
+})
+
+# Tests for create_metabolomics_header_content()
+test_that("create_metabolomics_header_content includes metabolomics-specific text", {
+  header <- create_metabolomics_header_content()
+  header_html <- as.character(header)
+
+  # The metabolomics renderUI branch (output$upload_description) renders this.
+  expect_true(grepl("metabolomics pipeline", header_html))
+  expect_true(grepl("MZmine feature quant", header_html))
+  expect_true(grepl("SIRIUS", header_html))
+  expect_true(grepl("MSstats format", header_html))
+  # Keeps the CSV/TSV + size note.
+  expect_true(grepl("CSV/TSV", header_html))
+  expect_true(grepl("250 MB", header_html))
 })
 
 # Tests for create_sample_dataset_descriptions()
@@ -341,6 +369,7 @@ test_that("create_main_selection_controls creates proper radio buttons", {
   expect_true(grepl("TMT", controls_html))
   
   # Check for file type options
+  # The "Type of File" header is a static h4 (no template-dependent numbering).
   expect_true(grepl("Type of File", controls_html))
   expect_true(grepl("MSstats Format", controls_html))
   expect_true(grepl("Skyline", controls_html))
@@ -508,15 +537,15 @@ test_that("main selection controls maintain proper order", {
   bio_pos <- regexpr("Biological Question", controls_html)
   label_pos <- regexpr("Label Type", controls_html)
   file_pos <- regexpr("Type of File", controls_html)
-  
+
   # Verify correct order
   expect_true(bio_pos < label_pos)
   expect_true(label_pos < file_pos)
-  
-  # Verify numbered headings are in order
-  expect_true(grepl("1\\. Biological Question", controls_html))
-  expect_true(grepl("2\\. Label Type", controls_html))
-  expect_true(grepl("3\\. Type of File", controls_html))
+
+  # Headers are present (section numbering was removed per review).
+  expect_true(grepl("Biological Question", controls_html))
+  expect_true(grepl("Label Type", controls_html))
+  expect_true(grepl("Type of File", controls_html))
 })
 
 # Test tooltip content is preserved
@@ -540,6 +569,24 @@ test_that("file inputs have proper accept attributes", {
   annot_input <- create_standard_annotation_uploads(NS("test"))
   annot_html <- as.character(annot_input)
   expect_true(grepl('accept=.*csv', annot_html))
+})
+
+test_that("create_mzmine_uploads renders the hidden panel, four input ids, and tooltips", {
+  uploads_html <- as.character(create_mzmine_uploads(NS("test")))
+
+  # Hidden panel container (NAMESPACE_LOADPAGE$mzmine_upload_panel).
+  expect_true(grepl('id="test-mzmine_upload_panel"', uploads_html, fixed = TRUE))
+  # The four namespaced file-input ids that getData()/proceed validation read.
+  expect_true(grepl('id="test-mzmine_input"', uploads_html, fixed = TRUE))
+  expect_true(grepl('id="test-mzmine_annotation"', uploads_html, fixed = TRUE))
+  expect_true(grepl('id="test-mzmine_annotations"', uploads_html, fixed = TRUE))
+  expect_true(grepl('id="test-sirius_annotations"', uploads_html, fixed = TRUE))
+
+  # Fields carry help tooltips (icon-wrapper + icon-tooltip markup) and the
+  # visible label text survives being wrapped in the h5 tooltip container.
+  expect_true(grepl("icon-tooltip", uploads_html, fixed = TRUE))
+  expect_true(grepl("MZmine feature quant table", uploads_html, fixed = TRUE))
+  expect_true(grepl("SIRIUS structure identifications", uploads_html, fixed = TRUE))
 })
 
 # Tests for Spectronaut specific UI components

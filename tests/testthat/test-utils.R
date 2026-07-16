@@ -1,6 +1,82 @@
 library(testthat)
 library(mockery)
 
+test_that("metabolomics_preview_view renames/drops for display without mutating input", {
+  input_dt = data.table::data.table(
+    ProteinName      = c("Glucose", "Alanine"),
+    PeptideSequence  = c("feature_1", "feature_2"),
+    PrecursorCharge  = NA_integer_,
+    FragmentIon      = NA_character_,
+    ProductCharge    = NA_integer_,
+    IsotopeLabelType = c("L", "L"),
+    Condition        = c("ctrl", "case"),
+    BioReplicate     = c(1, 2),
+    Run              = c("run_1", "run_2"),
+    Intensity        = c(100, 200)
+  )
+  before = colnames(input_dt)
+
+  view = MSstatsShiny:::metabolomics_preview_view(input_dt)
+
+  # ProteinName -> Metabolite, PeptideSequence -> Feature, charge/label columns
+  # dropped. Column order follows the input (standard MSstats order has
+  # Condition before BioReplicate), so assert the set rather than the sequence.
+  expect_setequal(colnames(view),
+                  c("Metabolite", "Feature", "BioReplicate",
+                    "Condition", "Run", "Intensity"))
+  expect_false(any(c("PrecursorCharge", "FragmentIon", "ProductCharge",
+                     "IsotopeLabelType") %in% colnames(view)))
+  expect_true(all(c("Metabolite", "Feature") %in% colnames(view)))
+
+  # The view is a plain data.frame by design (as.data.frame decouples it from
+  # the input data.table); it is intentionally NOT a data.table.
+  expect_s3_class(view, "data.frame")
+  expect_false(inherits(view, "data.table"))
+
+  # Mutation guard: the input data.table is untouched (no by-reference edits).
+  expect_identical(colnames(input_dt), before)
+  expect_true(all(c("ProteinName", "PeptideSequence", "PrecursorCharge",
+                    "FragmentIon", "ProductCharge", "IsotopeLabelType")
+                  %in% colnames(input_dt)))
+  expect_s3_class(input_dt, "data.table")
+})
+
+test_that("metabolomics_summary2_view relabels metabolite rows and drops the redundant ones", {
+  # Mimic getSummary2()'s non-PTM output: a 2-column (label, value) frame in the
+  # order getSummary2 emits. Rows 2 ("Number of Peptides") and 3 ("Number of
+  # Features") hold the SAME value for real metabolomics data; they are given
+  # distinct values here so the assertions pin the drop-before-rename ordering.
+  summary2 = data.frame(
+    label = c("Number of Proteins", "Number of Peptides", "Number of Features",
+              "Number of Peptides/Protein", "Number of Features/Peptide",
+              "Intensity Range"),
+    value = c("142", "318", "999", "1 - 6", "1 - 1", "8200 - 51000000"),
+    stringsAsFactors = FALSE
+  )
+  colnames(summary2) = c("", "")   # getSummary2 blanks both column names
+
+  view = MSstatsShiny:::metabolomics_summary2_view(summary2)
+
+  # Exactly the four metabolite rows, in the original order.
+  expect_equal(as.character(view[[1]]),
+               c("Number of Metabolites", "Number of Features",
+                 "Number of Features/Metabolite", "Intensity Range"))
+
+  # Drop-before-rename: "Number of Features" survives with the old
+  # "Number of Peptides" value (318, row 2). A rename-first implementation would
+  # have produced two "Number of Features" rows and dropped both.
+  expect_equal(view[[2]][view[[1]] == "Number of Features"], "318")
+  expect_equal(view[[2]][view[[1]] == "Number of Metabolites"], "142")
+  expect_equal(view[[2]][view[[1]] == "Number of Features/Metabolite"], "1 - 6")
+  expect_equal(view[[2]][view[[1]] == "Intensity Range"], "8200 - 51000000")
+
+  # The redundant distinct-FEATURES count (999) and the always-1-1 ratio
+  # are both gone.
+  expect_false("999" %in% as.character(view[[2]]))
+  expect_false("1 - 1" %in% as.character(view[[2]]))
+  expect_equal(nrow(view), 4L)
+})
+
 test_that(".anomaly_scores_enabled ORs all three loadpage checkboxes", {
   # Spectronaut
   expect_true(MSstatsShiny:::.anomaly_scores_enabled(

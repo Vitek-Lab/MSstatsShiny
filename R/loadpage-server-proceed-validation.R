@@ -18,7 +18,16 @@ register_loadpage_proceed_validation <- function(input, session,
                                                   local_big_diann_path) {
   observe({
     disable("proceed1")
-    if (((input$BIO == "Protein") || (input$BIO == "Peptide"))) {
+    if (isTRUE(input$filetype == "mzmine")) {
+      # Converter-gated (not template-gated), like the rest of the MZmine wiring,
+      # so it enables regardless of any stale BIO/DDA_DIA values carried over
+      # from a prior template. SIRIUS annotations stay ungated (optional).
+      if (!is.null(input$mzmine_input) &&
+          !is.null(input$mzmine_annotation) &&
+          !is.null(input$mzmine_annotations)) {
+        enable("proceed1")
+      }
+    } else if (((input$BIO == "Protein") || (input$BIO == "Peptide"))) {
       if (input$DDA_DIA == "LType") {
         if ((!is.null(input$filetype) && length(input$filetype) > 0)) {
           if (input$filetype == "sample") {

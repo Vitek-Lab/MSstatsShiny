@@ -94,7 +94,7 @@ loadpageServer <- function(id, parent_session, is_web_server = FALSE, app_templa
 
     register_loadpage_preview(input, output, session)
 
-    register_loadpage_visibility_observers(input, output, session)
+    register_loadpage_visibility_observers(input, output, session, app_template = app_template)
 
     register_loadpage_converter_ui(
       input, output, session,

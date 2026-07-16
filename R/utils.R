@@ -316,6 +316,35 @@ getData <- function(input) {
   if(is.null(input$filetype)) {
     return(NULL)
   }
+  # MZmine (metabolomics) is gated purely on the converter and handled here,
+  # before the BIO/DDA_DIA routing below, so a stale BIO/DDA_DIA carried over
+  # from a prior template cannot divert it into a PTM/TMT converter path. The
+  # early return also skips the BIO == "Peptide" post-processing that would
+  # otherwise overwrite the metabolite names.
+  if (input$filetype == "mzmine") {
+    mydata = tryCatch({
+      mzmine_in    = data.table::fread(input$mzmine_input$datapath)
+      annot        = data.table::fread(input$mzmine_annotation$datapath)
+      mzmine_annot = data.table::fread(input$mzmine_annotations$datapath)
+      sirius_annot = if (!is.null(input$sirius_annotations))
+                       data.table::fread(input$sirius_annotations$datapath) else NULL
+      MSstatsConvert::MZMinetoMSstatsFormat(
+        input = mzmine_in, annotation = annot,
+        mzmine_annotations = mzmine_annot, sirius_annotations = sirius_annot,
+        use_log_file = FALSE)
+    },
+    error = function(e) {
+      remove_modal_spinner()
+      showNotification(
+        paste("Failed to process MZmine data. Please check your input files:",
+              conditionMessage(e)),
+        type = "error", duration = 10)
+      return(NULL)
+    })
+    if (is.null(mydata)) return(NULL)
+    remove_modal_spinner()
+    return(mydata)
+  }
   if(input$filetype == 'sample') {
     if(input$BIO != "PTM" && input$DDA_DIA =='LType' && input$LabelFreeType == "SRM_PRM") {
       mydata = MSstats::DDARawData
@@ -1090,6 +1119,24 @@ getData <- function(input) {
   return(mydata)
 }
 
+#' Display-only view of MSstats-format data for the metabolomics template.
+#'
+#' Returns a COPY with metabolomics-facing column names (ProteinName ->
+#' Metabolite, PeptideSequence -> Feature) and the charge/label columns
+#' dropped. Operates on `as.data.frame(data)`, so the underlying data.table
+#' that `getData()` returns and downstream pages consume is never mutated by
+#' reference.
+#' @noRd
+metabolomics_preview_view <- function(data) {
+  d = as.data.frame(data)
+  d = d[, !(names(d) %in% c("PrecursorCharge", "FragmentIon",
+                            "ProductCharge", "IsotopeLabelType")),
+        drop = FALSE]
+  names(d)[names(d) == "ProteinName"]     = "Metabolite"
+  names(d)[names(d) == "PeptideSequence"] = "Feature"
+  d
+}
+
 getDataCode <- function(input) {
   codes = ""
   codes = paste(codes, "\n# Load Packages
@@ -1464,6 +1511,16 @@ library(MSstatsPTM)\n", sep = "")
                                        removeProtein_with1Feature = ", input$remove, ",\n\t\t\t\t       ",
                       "use_log_file = FALSE)\n", sep = "")
       }
+    }
+    else if(input$filetype == 'mzmine') {
+      codes = paste(codes, "data = data.table::fread(\"insert your MZmine feature quant table filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")\nmzmine_annotations = data.table::fread(\"insert your MZmine compound annotations filepath\")\n# Optional: set sirius_annotations = NULL if there is no SIRIUS data\nsirius_annotations = tryCatch(data.table::fread(\"insert your SIRIUS annotations filepath\"), error = function(e) NULL)\n"
+                    , sep = "")
+
+      codes = paste(codes, "data = MSstatsConvert::MZMinetoMSstatsFormat(input = data,
+                                       annotation = annot_file,
+                                       mzmine_annotations = mzmine_annotations,
+                                       sirius_annotations = sirius_annotations,
+                                       use_log_file = FALSE)\n", sep = "")
     }
     else if(input$filetype == 'open') {
 

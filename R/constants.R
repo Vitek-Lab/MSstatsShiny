@@ -1,14 +1,16 @@
 TEMPLATES = list(
   default = "default",
   chemoproteomics = "chemoproteomics",
-  protein_turnover = "protein_turnover"
+  protein_turnover = "protein_turnover",
+  metabolomics = "metabolomics"
   
 )
 
 TEMPLATE_LABELS = list(
   default = "Protein Differential Abundance Analysis",
   chemoproteomics = "Chemoproteomics",
-  protein_turnover = "Protein Turnover"
+  protein_turnover = "Protein Turnover",
+  metabolomics = "Metabolite Differential Abundance Analysis"
   
 )
 
@@ -110,8 +112,26 @@ NAMESPACE_LOADPAGE = list(
   openswath_mscore_cutoff_panel = "openswath_mscore_cutoff_panel",
   summary_nonptm_panel = "summary_nonptm_panel",
   summary_ptm_panel = "summary_ptm_panel",
-  tmt_options_ui = "tmt_options_ui"
+  tmt_options_ui = "tmt_options_ui",
+  mzmine_upload_panel = "mzmine_upload_panel",
+  main_selection_divider = "main_selection_divider"
 )
+
+# File-type choices for the loadpage converter radio.
+LOADPAGE_FILETYPE_CHOICES = c("Example dataset" = "sample",
+                              "MSstats Format" = "msstats",
+                              "Skyline" = "sky", "MaxQuant" = "maxq",
+                              "Progenesis" = "prog", "Proteome Discoverer" = "PD",
+                              "OpenMS" = "openms", "Spectronaut" = "spec",
+                              "OpenSWATH" = "open", "DIA-Umpire" = "ump",
+                              "SpectroMine" = "spmin", "FragPipe" = "phil", "DIANN"="diann",
+                              "Metamorpheus" = "meta")
+
+# File-type choices under the metabolomics template: the MZmine converter or a
+# pre-formatted MSstats table. Kept as a constant so the restrict observer and
+# its test share one source of truth.
+LOADPAGE_METABOLOMICS_FILETYPE_CHOICES = c("MZmine" = "mzmine",
+                                           "MSstats Format" = "msstats")
 
 NAMESPACE_QC = list(
   # Sidebar processing-option input ids
