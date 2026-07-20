@@ -1803,13 +1803,13 @@ preprocessData <- function(qc_input,loadpage_input,input_data ) {
   MSstatsLogsSettings(FALSE)
   ## Here we run the underlying functions for MSstats and MSstatsTMT
   ## summarization. Done so we can loop over proteins and create a progress bar
-  if(isTRUE(loadpage_input$BIO == "PTM") & ((isTRUE(loadpage_input$BIO == "PTM") & isTRUE(loadpage_input$DDA_DIA == "TMT")) | isTRUE(loadpage_input$filetype=='phil'))){
+  if (isTRUE(loadpage_input$BIO == "PTM") && (isTRUE(loadpage_input$DDA_DIA == "TMT") || isTRUE(loadpage_input$filetype == "phil"))) {
 
     preprocessed_ptm = MSstatsShiny::tmt_summarization_loop(input_data$PTM, qc_input,loadpage_input)
     preprocessed_unmod = MSstatsShiny::tmt_summarization_loop(input_data$PROTEIN, qc_input,loadpage_input)
     preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
 
-  } else if (isTRUE(loadpage_input$BIO == "PTM") & (isTRUE(loadpage_input$BIO == "PTM") & isTRUE(loadpage_input$DDA_DIA != "TMT"))){
+  } else if (isTRUE(loadpage_input$BIO == "PTM")) {
 
     preprocessed_ptm = MSstatsShiny::lf_summarization_loop(input_data$PTM, qc_input, loadpage_input)
     preprocessed_unmod = MSstatsShiny::lf_summarization_loop(input_data$PROTEIN, qc_input, loadpage_input)
@@ -1833,7 +1833,7 @@ preprocessDataCode <- function(qc_input,loadpage_input) {
   codes = getDataCode(loadpage_input)
 
   if (isTRUE(loadpage_input$BIO == "PTM")){
-    if ((isTRUE(loadpage_input$BIO == "PTM") & isTRUE(loadpage_input$DDA_DIA == "TMT")) | isTRUE(loadpage_input$filetype=='phil')){
+    if (isTRUE(loadpage_input$DDA_DIA == "TMT") || isTRUE(loadpage_input$filetype == "phil")) {
       codes = paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
       codes = paste(codes, "summarized = MSstatsPTM::dataSummarizationPTM_TMT(data,
                      method = '",qc_input$summarization,"\',\t\t\t\t
@@ -1939,7 +1939,7 @@ dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix,input_
   print("+++++++++ In Data Comparison +++++++++")
   # input_data = preprocessData(qc_input,loadpage_input,get_data())
   contrast.matrix = matrix
-  if (isTRUE(loadpage_input$BIO == "PTM") & ((isTRUE(loadpage_input$BIO == "PTM") & isTRUE(loadpage_input$DDA_DIA == "TMT")) | isTRUE(loadpage_input$filetype=='phil'))){
+  if (isTRUE(loadpage_input$BIO == "PTM") && (isTRUE(loadpage_input$DDA_DIA == "TMT") || isTRUE(loadpage_input$filetype == "phil"))) {
     model_ptm = MSstatsShiny::tmt_model(input_data$PTM, statmodel_input, contrast.matrix)
     model_protein = MSstatsShiny::tmt_model(input_data$PROTEIN, statmodel_input, contrast.matrix)
     model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
@@ -1948,7 +1948,7 @@ dataComparison <- function(statmodel_input,qc_input,loadpage_input,matrix,input_
                  'PROTEIN.Model' = model_protein$ComparisonResult,
                  'ADJUSTED.Model' = model_adj)
 
-  } else if(isTRUE(loadpage_input$BIO == "PTM") & (isTRUE(loadpage_input$BIO == "PTM") & isTRUE(loadpage_input$DDA_DIA != "TMT"))){
+  } else if (isTRUE(loadpage_input$BIO == "PTM")) {
     model_ptm = MSstatsShiny::lf_model(input_data$PTM, contrast.matrix)
     model_protein = MSstatsShiny::lf_model(input_data$PROTEIN, contrast.matrix)
     model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,

@@ -68,12 +68,11 @@ autofill_condition_value <- function(conditions) {
 #' @return Character vector of condition levels
 #' @noRd
 get_experimental_conditions = function(loadpage_input, preprocess_data) {
-  if (isTRUE(loadpage_input$BIO == "PTM") &
-      ((isTRUE(loadpage_input$BIO == "PTM") & isTRUE(loadpage_input$DDA_DIA == "TMT")) |
-       isTRUE(loadpage_input$filetype == 'phil'))) {
+  if (isTRUE(loadpage_input$BIO == "PTM") &&
+      (isTRUE(loadpage_input$DDA_DIA == "TMT") ||
+       isTRUE(loadpage_input$filetype == "phil"))) {
     levels(preprocess_data$PTM$ProteinLevelData$Condition)
-  } else if (isTRUE(loadpage_input$BIO == "PTM") &
-             (isTRUE(loadpage_input$BIO == "PTM") & isTRUE(loadpage_input$DDA_DIA != "TMT"))) {
+  } else if (isTRUE(loadpage_input$BIO == "PTM")) {
     levels(preprocess_data$PTM$ProteinLevelData$GROUP)
   } else if (isTRUE(loadpage_input$DDA_DIA == "TMT")) {
     levels(preprocess_data$ProteinLevelData$Condition)
