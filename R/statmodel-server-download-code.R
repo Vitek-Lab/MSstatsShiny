@@ -191,7 +191,7 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing) {
     "# condition has replicate runs; otherwise fall back to feature-level data.\n",
     "pld = summarized$ProteinLevelData\n",
     "samples_per_condition = tapply(pld$RUN, pld$GROUP, function(x) length(unique(x)))\n",
-    "if (any(samples_per_condition > 1)) {\n",
+    "if (any(samples_per_condition > 1, na.rm = TRUE)) {\n",
     "  turnover_ratios = calculateTurnoverRatios(\n",
     "    summarized$ProteinLevelData,\n",
     "    channel_col = \"LABEL\", heavy_label = \"H\", light_label = \"L\",\n",
