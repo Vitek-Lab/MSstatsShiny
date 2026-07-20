@@ -129,14 +129,15 @@ qcUI <- function(id) {
           # MSstatsResponse::calculatePeptideWeights.
           shinyjs::hidden(div(
             id = ns(NAMESPACE_QC$feature_weights_panel),
+            h4("Feature Weighting"),
             checkboxInput(
               ns(NAMESPACE_QC$assign_feature_weights),
-              label = h4("Assign feature weights", class = "icon-wrapper",
-                         icon("question-circle", lib = "font-awesome"),
-                         div("Compute per-peptide quality weights (coverage, \
-                          intensity, monotonicity, validity) and add them as \
-                          extra columns to the Turnover Ratios table.",
-                             class = "icon-tooltip")),
+              label = tags$div("Assign feature weights", class = "icon-wrapper",
+                               icon("question-circle", lib = "font-awesome"),
+                               div("Compute per-peptide quality weights (coverage, \
+                                intensity, monotonicity, validity) and add them as \
+                                extra columns to the Turnover Ratios table.",
+                                   class = "icon-tooltip")),
               value = FALSE
             )
           )),
