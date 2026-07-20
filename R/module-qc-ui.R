@@ -111,7 +111,6 @@ qcUI <- function(id) {
                                      features can be used.", class = "icon-tooltip")),
                          c("Use all features" = "all", "Use top N features" = "topN",
                            "Remove uninformative features & outliers" = "highQuality")),
-            #),
             shinyjs::hidden(div(
               id = ns(NAMESPACE_QC$features_topn_panel),
               uiOutput(ns("features"))
