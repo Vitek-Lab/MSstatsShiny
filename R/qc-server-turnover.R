@@ -129,7 +129,7 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
 
   output$turnover_ratios_table <- renderDataTable({
     turnover_ratios_display()
-  })
+  }, options = list(scrollX = TRUE))
 
   output$download_turnover_ratios <- downloadHandler(
     filename = function() {
