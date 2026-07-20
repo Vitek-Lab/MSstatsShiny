@@ -91,6 +91,21 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
     turnover_ratios()
   }, ignoreInit = TRUE)
 
+  # When "Assign feature weights" is checked, augment the ratios with the
+  # per-peptide quality-weight columns from calculatePeptideWeights (coverage,
+  # light-intensity, monotonicity, validity, and the combined weight). Kept in a
+  # separate reactive so toggling the checkbox updates the table and download
+  # without re-running summarization.
+  turnover_ratios_display <- reactive({
+    ratios <- turnover_ratios()
+    req(ratios)
+    if (isTRUE(input[[NAMESPACE_QC$assign_feature_weights]]) && nrow(ratios) > 0) {
+      calculatePeptideWeights(ratios)
+    } else {
+      ratios
+    }
+  })
+
   output$turnover_ratios_panel <- renderUI({
     req(!is.null(app_template) && !is.null(app_template()) &&
           app_template() == TEMPLATES$protein_turnover)
@@ -106,14 +121,14 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
   })
 
   output$turnover_ratios_table_ui <- renderUI({
-    req(turnover_ratios())
+    req(turnover_ratios_display())
     ns <- session$ns
     enable("download_turnover_ratios")
     dataTableOutput(ns("turnover_ratios_table"))
   })
 
   output$turnover_ratios_table <- renderDataTable({
-    turnover_ratios()
+    turnover_ratios_display()
   })
 
   output$download_turnover_ratios <- downloadHandler(
@@ -121,9 +136,9 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
       paste0("Turnover_Ratios-", Sys.Date(), ".csv")
     },
     content = function(file) {
-      write.csv(turnover_ratios(), file, row.names = FALSE)
+      write.csv(turnover_ratios_display(), file, row.names = FALSE)
     }
   )
 
-  turnover_ratios
+  turnover_ratios_display
 }

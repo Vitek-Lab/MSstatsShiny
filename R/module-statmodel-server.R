@@ -362,8 +362,10 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             ratios <- turnover_ratios()
             increasing <- isTRUE(input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]])
             dia_prepared <- prepare_turnover_for_dose_response(ratios, increasing = increasing)
+            turnover_weights <- if ("weight" %in% colnames(dia_prepared)) dia_prepared$weight else NULL
             response_results <- doseResponseFit(
               data      = dia_prepared,
+              weights   = turnover_weights,
               increasing    = increasing,
               transform_dose = FALSE,
               ratio_response = FALSE,
@@ -476,6 +478,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
             req(turnover_ratios())
             increasing <- isTRUE(input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]])
             dia_prepared <- prepare_turnover_for_dose_response(turnover_ratios(), add_zero_timepoint = TRUE, increasing = increasing)
+            turnover_weights <- if ("weight" %in% colnames(dia_prepared)) dia_prepared$weight else NULL
           } else {
             meta <- condition_metadata()
             req(!is.null(meta) && "DoseVal" %in% colnames(meta))
@@ -496,6 +499,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                 data = dia_prepared,
                 protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
                 drug_name = "time",
+                weights = turnover_weights,
+                show_weights = !is.null(turnover_weights),
                 ratio_response = FALSE,
                 show_ic50 = TRUE,
                 add_ci = FALSE,

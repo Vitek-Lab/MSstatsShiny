@@ -238,6 +238,7 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
               }
               increasing <- isTRUE(input[[NAMESPACE_STATMODEL$modeling_response_curve_increasing_trend]])
               dia_prepared <- prepare_turnover_for_dose_response(ratios, add_zero_timepoint = TRUE, increasing = increasing)
+              turnover_weights <- if ("weight" %in% colnames(dia_prepared)) dia_prepared$weight else NULL
             } else {
               if (isTRUE(app_template() == TEMPLATES$chemoproteomics)) {
                 meta <- tryCatch(condition_metadata(), error = function(e) NULL)
@@ -260,6 +261,8 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 data = dia_prepared,
                 protein_name = input[[NAMESPACE_STATMODEL$visualization_which_protein]],
                 drug_name = "time",
+                weights = turnover_weights,
+                show_weights = !is.null(turnover_weights),
                 ratio_response = FALSE,
                 show_ic50 = TRUE,
                 add_ci = FALSE,

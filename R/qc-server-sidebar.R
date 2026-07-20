@@ -55,6 +55,19 @@ qc_show_log_section <- function(dda_dia, bio, template) {
   qc_show_lf(dda_dia, bio) && !isTRUE(template == TEMPLATES$protein_turnover)
 }
 
+#' Show the feature-subset radio: label-free branch, but hidden for the
+#' protein-turnover template (which always summarizes on all features).
+#' @noRd
+qc_show_feature_subset <- function(dda_dia, bio, template) {
+  qc_show_lf(dda_dia, bio) && !isTRUE(template == TEMPLATES$protein_turnover)
+}
+
+#' Show the feature-weighting checkbox: protein-turnover template only.
+#' @noRd
+qc_show_feature_weights <- function(template) {
+  isTRUE(template == TEMPLATES$protein_turnover)
+}
+
 #' Show the profile-plot options (summary toggle, feature legend).
 #' @noRd
 qc_show_profileplot_options <- function(type1) {
@@ -172,6 +185,24 @@ register_qc_visibility_observers <- function(input, session, loadpage_input, app
       condition = qc_show_log_section(
         loadpage_input()$DDA_DIA, loadpage_input()$BIO, app_template()
       )
+    )
+  })
+
+  # Feature-subset radio vs feature-weighting checkbox. The turnover template
+  # summarizes on all features, so it hides the subset radio and shows the
+  # weighting checkbox instead.
+  observe({
+    shinyjs::toggle(
+      NAMESPACE_QC$feature_subset_panel,
+      condition = qc_show_feature_subset(
+        loadpage_input()$DDA_DIA, loadpage_input()$BIO, app_template()
+      )
+    )
+  })
+  observe({
+    shinyjs::toggle(
+      NAMESPACE_QC$feature_weights_panel,
+      condition = qc_show_feature_weights(app_template())
     )
   })
 

@@ -12,13 +12,36 @@ loadpageServer(id, parent_session, is_web_server = FALSE, app_template = NULL)
 \item{parent_session}{session of the main calling module}
 
 \item{is_web_server}{boolean indicating if the app is running on a web server}
+
+\item{app_template}{reactive (or NULL) returning the selected template}
 }
 \value{
 input object with user selected options
 }
 \description{
-This function sets up the loadpage server where it consists of several,
-options for users to select and upload files.
+This function sets up the loadpage server where it consists of several
+options for users to select and upload files. After the Phase 2 split,
+the orchestrator below keeps only:
+}
+\details{
+\itemize{
+\item the module signature and \code{condition_metadata} reactiveVal,
+\item the shinyFiles browser block (it produces the
+\code{local_big_file_path} / \code{local_big_diann_path} reactives that the
+proceed-validation helper consumes, so it must remain co-located
+with the module's reactive scope),
+\item the six helper registrations in order
+(\code{register_loadpage_preview},
+\code{register_loadpage_visibility_observers},
+\code{register_loadpage_converter_ui},
+\code{register_loadpage_proceed_validation},
+\code{register_loadpage_data_loaders},
+\code{register_loadpage_summary}),
+\item the final public \code{return(list(input, getData, getConditionMetadata))}.
+}
+
+Each helper lives in its own file (\verb{R/loadpage-server-*.R}); see those
+files for the moved code blocks.
 }
 \examples{
 NA

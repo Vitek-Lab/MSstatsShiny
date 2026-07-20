@@ -106,17 +106,39 @@ qcUI <- function(id) {
           # features
 
           #h4("Used features"),
-          radioButtons(ns("features_used"),
-                       label = h4("Feature subset",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                                  div("What features to use in \
-                                   summarization. All features or a subset of \
-                                   features can be used.", class = "icon-tooltip")),
-                       c("Use all features" = "all", "Use top N features" = "topN",
-                         "Remove uninformative features & outliers" = "highQuality")),
-          #),
+          # Feature subset picker: shown for every label-free workflow except the
+          # protein-turnover template, which always summarizes on all features and
+          # instead exposes the feature-weighting checkbox below.
+          div(
+            id = ns(NAMESPACE_QC$feature_subset_panel),
+            radioButtons(ns("features_used"),
+                         label = h4("Feature subset",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                    div("What features to use in \
+                                     summarization. All features or a subset of \
+                                     features can be used.", class = "icon-tooltip")),
+                         c("Use all features" = "all", "Use top N features" = "topN",
+                           "Remove uninformative features & outliers" = "highQuality")),
+            #),
+            shinyjs::hidden(div(
+              id = ns(NAMESPACE_QC$features_topn_panel),
+              uiOutput(ns("features"))
+            ))
+          ),
+          # Feature weighting: protein-turnover template only. When checked, the
+          # Turnover Ratios tab adds per-peptide quality-weight columns from
+          # MSstatsResponse::calculatePeptideWeights.
           shinyjs::hidden(div(
-            id = ns(NAMESPACE_QC$features_topn_panel),
-            uiOutput(ns("features"))
+            id = ns(NAMESPACE_QC$feature_weights_panel),
+            checkboxInput(
+              ns(NAMESPACE_QC$assign_feature_weights),
+              label = h4("Assign feature weights", class = "icon-wrapper",
+                         icon("question-circle", lib = "font-awesome"),
+                         div("Compute per-peptide quality weights (coverage, \
+                          intensity, monotonicity, validity) and add them as \
+                          extra columns to the Turnover Ratios table.",
+                             class = "icon-tooltip")),
+              value = FALSE
+            )
           )),
           #uiOutput("features"),
           tags$hr(),

@@ -235,6 +235,62 @@ test_that("prepare_turnover_for_dose_response drops NA on the selected fraction 
 })
 
 # ============================================================================
+# Tests for per-peptide weight passthrough (calculatePeptideWeights -> fit)
+# ============================================================================
+
+test_that("prepare_turnover_for_dose_response carries the weight column when present", {
+  ratios <- data.frame(
+    Protein = c("ProtA", "ProtA"),
+    TimeVal = c(1, 2),
+    H_frac  = c(0.3, 0.6),
+    L_frac  = c(0.7, 0.4),
+    weight  = c(0.5, 0.9),
+    stringsAsFactors = FALSE
+  )
+
+  result <- MSstatsShiny:::prepare_turnover_for_dose_response(ratios)
+
+  expect_true("weight" %in% colnames(result),
+              info = "weight column should be preserved for the fit's weights argument")
+  expect_equal(result$weight, c(0.5, 0.9),
+               info = "weights should stay row-aligned with the prepared data")
+})
+
+test_that("prepare_turnover_for_dose_response omits weight column when absent", {
+  ratios <- data.frame(
+    Protein = c("ProtA", "ProtA"),
+    TimeVal = c(1, 2),
+    H_frac  = c(0.3, 0.6),
+    stringsAsFactors = FALSE
+  )
+
+  result <- MSstatsShiny:::prepare_turnover_for_dose_response(ratios)
+
+  expect_false("weight" %in% colnames(result),
+               info = "no weight column should appear when the input has none")
+})
+
+test_that("prepare_turnover_for_dose_response assigns weight 1 to synthetic zero rows", {
+  ratios <- data.frame(
+    Protein = c("ProtA", "ProtA"),
+    TimeVal = c(2, 4),
+    H_frac  = c(0.3, 0.6),
+    L_frac  = c(0.7, 0.4),
+    weight  = c(0.5, 0.9),
+    stringsAsFactors = FALSE
+  )
+
+  result <- MSstatsShiny:::prepare_turnover_for_dose_response(
+    ratios, add_zero_timepoint = TRUE, increasing = TRUE
+  )
+
+  expect_false(any(is.na(result$weight)),
+               info = "synthetic zero rows must not leave NA weights that misalign the vector")
+  expect_equal(result$weight[result$dose == 0], 1,
+               info = "synthetic anchor points are fully trusted (weight 1)")
+})
+
+# ============================================================================
 # Tests for get_modeling_section_header with protein_turnover template
 # ============================================================================
 
@@ -345,6 +401,60 @@ test_that("generate_analysis_code produces turnover-specific code for protein_tu
               info = "Turnover code should set target_response = 0.5")
   expect_true(grepl("visualizeResponseProtein", result),
               info = "Turnover code should call visualizeResponseProtein")
+  expect_true(grepl("calculateTurnoverRatios", result, fixed = TRUE),
+              info = "Turnover code should recompute turnover ratios")
+})
+
+# ============================================================================
+# Tests for build_turnover_analysis_code (weighted reproducible script)
+# ============================================================================
+
+test_that("build_turnover_analysis_code includes weights when the checkbox is enabled", {
+  comp_mat <- data.frame(GROUP = c("T0h", "T4h"), TimeVal = c(0, 4),
+                         stringsAsFactors = FALSE)
+  qc_input <- list(assign_feature_weights = TRUE)
+  qc_input[[paste0("tracer_", make.names("T0h"))]] <- 1.0
+  qc_input[[paste0("tracer_", make.names("T4h"))]] <- 0.9
+
+  code <- MSstatsShiny:::build_turnover_analysis_code(qc_input, comp_mat, increasing = TRUE)
+  has <- function(p) grepl(p, code, fixed = TRUE)
+
+  expect_true(has("calculatePeptideWeights(turnover_ratios)"),
+              info = "weighted script must add the calculatePeptideWeights step")
+  expect_true(has("weights = prepared_data$weight"),
+              info = "weighted script must pass weights to doseResponseFit / visualizeResponseProtein")
+  expect_true(has("show_weights = TRUE"),
+              info = "weighted script should scale plot points by weight")
+  expect_true(has("\"weight\")"),
+              info = "weighted script must retain the weight column in prepared_data")
+  expect_true(has("\"T4h\" = 0.9"),
+              info = "tracer constants must be serialized from qc_input, keyed by condition")
+})
+
+test_that("build_turnover_analysis_code omits weighting when the checkbox is disabled", {
+  comp_mat <- data.frame(GROUP = c("T0h", "T4h"), TimeVal = c(0, 4),
+                         stringsAsFactors = FALSE)
+  qc_input <- list(assign_feature_weights = FALSE)
+
+  code <- MSstatsShiny:::build_turnover_analysis_code(qc_input, comp_mat, increasing = FALSE)
+
+  expect_false(grepl("calculatePeptideWeights", code, fixed = TRUE),
+               info = "unweighted script must not compute peptide weights")
+  expect_false(grepl("weights = prepared_data", code, fixed = TRUE),
+               info = "unweighted script must not pass a weights argument")
+  expect_true(grepl("frac_col = \"L_frac\"", code, fixed = TRUE),
+              info = "increasing = FALSE selects the degradation (L_frac) response")
+})
+
+test_that("build_turnover_analysis_code emits syntactically valid R", {
+  comp_mat <- data.frame(GROUP = c("T0h", "T4h", "T8h"), TimeVal = c(0, 4, 8),
+                         stringsAsFactors = FALSE)
+  for (flag in c(TRUE, FALSE)) {
+    code <- MSstatsShiny:::build_turnover_analysis_code(
+      list(assign_feature_weights = flag), comp_mat, increasing = TRUE
+    )
+    expect_silent(parse(text = code))
+  }
 })
 
 test_that("generate_analysis_code does not set precalculated_ratios for chemoproteomics template", {
