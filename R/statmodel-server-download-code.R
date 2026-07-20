@@ -13,6 +13,11 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
     codes = paste(codes, "\n# Set up dose response analysis\n", sep = "")
     codes = paste(codes, "library(MSstatsResponse)\n", sep = "")
 
+    if (isTRUE(app_template == TEMPLATES$protein_turnover)) {
+      codes = paste(codes, build_turnover_analysis_code(qc_input, comp_mat, increasing), sep = "")
+      return(codes)
+    }
+
     # Serialize the contrast matrix as a data frame
     codes = paste(codes, "group_metadata = data.frame(\n", sep = "")
     codes = paste(codes, "  GROUP = c(\"", paste(comp_mat$GROUP, collapse = "\",\""), "\"),\n", sep = "")
@@ -148,4 +153,121 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
   }
   
   return(codes)
+}
+
+
+#' Generate reproducible code for the protein-turnover dose-response pipeline.
+#'
+#' Mirrors the app's turnover flow: calculateTurnoverRatios (with the
+#' user-entered tracer constants), an optional calculatePeptideWeights step when
+#' "Assign feature weights" is checked, then a weighted doseResponseFit and
+#' visualizeResponseProtein. Kept as a plain string builder so it can be
+#' unit-tested without a running session.
+#'
+#' @param qc_input The QC module input list (tracer_* numerics and
+#'   assign_feature_weights checkbox live here).
+#' @param comp_mat The turnover contrast matrix (GROUP + TimeVal columns); its
+#'   GROUP column supplies the condition names the tracer constants are keyed by.
+#' @param increasing Logical passed through to the fit / visualization.
+#' @return A character scalar of R code, appended after `library(MSstatsResponse)`.
+#' @noRd
+build_turnover_analysis_code <- function(qc_input, comp_mat, increasing) {
+  conditions <- as.character(comp_mat$GROUP)
+  weighting  <- isTRUE(qc_input[[NAMESPACE_QC$assign_feature_weights]])
+
+  # Serialize the tracer constants keyed by original condition name, matching
+  # the app (calculateTurnoverRatios parses these names into timepoints).
+  tracer_vals <- vapply(conditions, function(cond) {
+    val <- qc_input[[paste0("tracer_", make.names(cond))]]
+    if (is.null(val)) 1.0 else as.numeric(val)
+  }, numeric(1))
+  tracer_pairs <- paste0("  \"", conditions, "\" = ", tracer_vals, collapse = ",\n")
+
+  code <- paste0(
+    "\n# Tracer constants entered per condition on the data-processing page\n",
+    "tracer_constants = c(\n", tracer_pairs, "\n)\n",
+
+    "\n# Calculate turnover (Heavy/Light) ratios. Use protein-level data when any\n",
+    "# condition has replicate runs; otherwise fall back to feature-level data.\n",
+    "pld = summarized$ProteinLevelData\n",
+    "samples_per_condition = tapply(pld$RUN, pld$GROUP, function(x) length(unique(x)))\n",
+    "if (any(samples_per_condition > 1, na.rm = TRUE)) {\n",
+    "  turnover_ratios = calculateTurnoverRatios(\n",
+    "    summarized$ProteinLevelData,\n",
+    "    channel_col = \"LABEL\", heavy_label = \"H\", light_label = \"L\",\n",
+    "    time_col = \"GROUP\", peptide_col = \"Protein\", protein_col = \"Protein\",\n",
+    "    intensity_col = \"LogIntensities\", run_col = \"RUN\",\n",
+    "    agg_function = max, normalize_tracer = TRUE, tracer_constants = tracer_constants)\n",
+    "} else {\n",
+    "  turnover_ratios = calculateTurnoverRatios(\n",
+    "    summarized$FeatureLevelData,\n",
+    "    channel_col = \"LABEL\", heavy_label = \"H\", light_label = \"L\",\n",
+    "    time_col = \"GROUP\", peptide_col = \"PEPTIDE\", protein_col = \"PROTEIN\",\n",
+    "    intensity_col = \"INTENSITY\", run_col = \"RUN\",\n",
+    "    agg_function = max, normalize_tracer = TRUE, tracer_constants = tracer_constants)\n",
+    "}\n"
+  )
+
+  if (weighting) {
+    code <- paste0(
+      code,
+      "\n# Assign per-peptide quality weights (coverage, intensity, monotonicity,\n",
+      "# validity). Adds a 'weight' column used to down-weight low-quality peptides.\n",
+      "turnover_ratios = calculatePeptideWeights(turnover_ratios)\n"
+    )
+  }
+
+  # Column mapping matches prepare_turnover_for_dose_response(). Real turnover
+  # designs include a 0hr baseline, so no synthetic t=0 anchor is needed here.
+  frac_col <- if (isTRUE(increasing)) "H_frac" else "L_frac"
+  target_cols <- if (weighting) {
+    "c(\"protein\", \"drug\", \"dose\", \"response\", \"BaseSequence\", \"weight\")"
+  } else {
+    "c(\"protein\", \"drug\", \"dose\", \"response\", \"BaseSequence\")"
+  }
+
+  code <- paste0(
+    code,
+    "\n# Map columns to the dose-response format\n",
+    "frac_col = \"", frac_col, "\"\n",
+    "prepared_data = turnover_ratios[!is.na(turnover_ratios[[frac_col]]), ]\n",
+    "prepared_data$protein  = as.character(prepared_data$Protein)\n",
+    "prepared_data$drug     = \"time\"\n",
+    "prepared_data$dose     = as.numeric(prepared_data$TimeVal)\n",
+    "prepared_data$response = prepared_data[[frac_col]]\n",
+    "keep_cols = intersect(", target_cols, ", colnames(prepared_data))\n",
+    "prepared_data = prepared_data[, keep_cols, drop = FALSE]\n"
+  )
+
+  weights_arg <- if (weighting) "  weights = prepared_data$weight,\n" else ""
+
+  code <- paste0(
+    code,
+    "\n# Fit turnover time-course curves\n",
+    "response_results = doseResponseFit(\n",
+    "  data = prepared_data,\n",
+    weights_arg,
+    "  increasing = ", increasing, ",\n",
+    "  transform_dose = FALSE,\n",
+    "  ratio_response = FALSE,\n",
+    "  precalculated_ratios = TRUE\n)\n",
+
+    "\n# Visualize a single protein's turnover curve\n",
+    "visualizeResponseProtein(\n",
+    "  data = prepared_data,\n",
+    "  protein_name = \"Enter protein name here\",\n",
+    "  drug_name = \"time\",\n",
+    if (weighting) "  weights = prepared_data$weight,\n  show_weights = TRUE,\n" else "",
+    "  ratio_response = FALSE,\n",
+    "  show_ic50 = TRUE,\n",
+    "  add_ci = FALSE,\n",
+    "  transform_dose = FALSE,\n",
+    "  n_samples = 1000,\n",
+    "  increasing = ", increasing, ",\n",
+    "  precalculated_ratios = TRUE,\n",
+    "  color_by = \"BaseSequence\",\n",
+    "  target_response = 0.5\n)\n"
+  )
+
+  code
 }

@@ -54,6 +54,24 @@ test_that("qc_show_features_topn needs the label-free branch AND the topN subset
   expect_false(MSstatsShiny:::qc_show_features_topn("LType", "Protein", NULL))
 })
 
+test_that("qc_show_feature_subset shows the subset radio for label-free non-turnover only", {
+  expect_true(MSstatsShiny:::qc_show_feature_subset("LType", "Protein", TEMPLATES$default))
+  expect_true(MSstatsShiny:::qc_show_feature_subset("LType", "Protein", TEMPLATES$chemoproteomics))
+
+  # Hidden for the turnover template (always summarizes on all features) and off
+  # the label-free branch entirely.
+  expect_false(MSstatsShiny:::qc_show_feature_subset("LType", "Protein", TEMPLATES$protein_turnover))
+  expect_false(MSstatsShiny:::qc_show_feature_subset("TMT", "Protein", TEMPLATES$default))
+})
+
+test_that("qc_show_feature_weights shows the weighting checkbox for the turnover template only", {
+  expect_true(MSstatsShiny:::qc_show_feature_weights(TEMPLATES$protein_turnover))
+
+  expect_false(MSstatsShiny:::qc_show_feature_weights(TEMPLATES$default))
+  expect_false(MSstatsShiny:::qc_show_feature_weights(TEMPLATES$chemoproteomics))
+  expect_false(MSstatsShiny:::qc_show_feature_weights(NULL))
+})
+
 test_that("qc_show_mbi needs the label-free branch AND a censoring assumption", {
   expect_true(MSstatsShiny:::qc_show_mbi("LType", "Protein", "NA"))
   expect_true(MSstatsShiny:::qc_show_mbi("LType", "Protein", "0"))

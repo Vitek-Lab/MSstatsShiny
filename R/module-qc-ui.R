@@ -102,21 +102,33 @@ qcUI <- function(id) {
         # Feature subset, missing-value handling, imputation and summary method: label-free branch
         shinyjs::hidden(div(
           id = ns(NAMESPACE_QC$lf_options_panel),
-
-          # features
-
-          #h4("Used features"),
-          radioButtons(ns("features_used"),
-                       label = h4("Feature subset",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                                  div("What features to use in \
-                                   summarization. All features or a subset of \
-                                   features can be used.", class = "icon-tooltip")),
-                       c("Use all features" = "all", "Use top N features" = "topN",
-                         "Remove uninformative features & outliers" = "highQuality")),
-          #),
+          div(
+            id = ns(NAMESPACE_QC$feature_subset_panel),
+            radioButtons(ns("features_used"),
+                         label = h4("Feature subset",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                    div("What features to use in \
+                                     summarization. All features or a subset of \
+                                     features can be used.", class = "icon-tooltip")),
+                         c("Use all features" = "all", "Use top N features" = "topN",
+                           "Remove uninformative features & outliers" = "highQuality")),
+            shinyjs::hidden(div(
+              id = ns(NAMESPACE_QC$features_topn_panel),
+              uiOutput(ns("features"))
+            ))
+          ),
           shinyjs::hidden(div(
-            id = ns(NAMESPACE_QC$features_topn_panel),
-            uiOutput(ns("features"))
+            id = ns(NAMESPACE_QC$feature_weights_panel),
+            h4("Feature Weighting"),
+            checkboxInput(
+              ns(NAMESPACE_QC$assign_feature_weights),
+              label = tags$div("Assign feature weights", class = "icon-wrapper",
+                               icon("question-circle", lib = "font-awesome"),
+                               div("Compute per-peptide quality weights (coverage, \
+                                intensity, monotonicity, validity) and add them as \
+                                extra columns to the Turnover Ratios table.",
+                                   class = "icon-tooltip")),
+              value = FALSE
+            )
           )),
           #uiOutput("features"),
           tags$hr(),
