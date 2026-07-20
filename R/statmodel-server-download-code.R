@@ -220,7 +220,7 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing) {
   # Column mapping matches prepare_turnover_for_dose_response(). Real turnover
   # designs include a 0hr baseline, so no synthetic t=0 anchor is needed here.
   frac_col <- if (isTRUE(increasing)) "H_frac" else "L_frac"
-  keep_cols <- if (weighting) {
+  target_cols <- if (weighting) {
     "c(\"protein\", \"drug\", \"dose\", \"response\", \"BaseSequence\", \"weight\")"
   } else {
     "c(\"protein\", \"drug\", \"dose\", \"response\", \"BaseSequence\")"
@@ -235,7 +235,8 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing) {
     "prepared_data$drug     = \"time\"\n",
     "prepared_data$dose     = as.numeric(prepared_data$TimeVal)\n",
     "prepared_data$response = prepared_data[[frac_col]]\n",
-    "prepared_data = prepared_data[, ", keep_cols, "]\n"
+    "keep_cols = intersect(", target_cols, ", colnames(prepared_data))\n",
+    "prepared_data = prepared_data[, keep_cols, drop = FALSE]\n"
   )
 
   weights_arg <- if (weighting) "  weights = prepared_data$weight,\n" else ""
