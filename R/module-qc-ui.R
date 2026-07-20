@@ -102,13 +102,6 @@ qcUI <- function(id) {
         # Feature subset, missing-value handling, imputation and summary method: label-free branch
         shinyjs::hidden(div(
           id = ns(NAMESPACE_QC$lf_options_panel),
-
-          # features
-
-          #h4("Used features"),
-          # Feature subset picker: shown for every label-free workflow except the
-          # protein-turnover template, which always summarizes on all features and
-          # instead exposes the feature-weighting checkbox below.
           div(
             id = ns(NAMESPACE_QC$feature_subset_panel),
             radioButtons(ns("features_used"),
@@ -124,9 +117,6 @@ qcUI <- function(id) {
               uiOutput(ns("features"))
             ))
           ),
-          # Feature weighting: protein-turnover template only. When checked, the
-          # Turnover Ratios tab adds per-peptide quality-weight columns from
-          # MSstatsResponse::calculatePeptideWeights.
           shinyjs::hidden(div(
             id = ns(NAMESPACE_QC$feature_weights_panel),
             h4("Feature Weighting"),

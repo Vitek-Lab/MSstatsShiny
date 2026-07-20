@@ -13,9 +13,6 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
     codes = paste(codes, "\n# Set up dose response analysis\n", sep = "")
     codes = paste(codes, "library(MSstatsResponse)\n", sep = "")
 
-    # Protein turnover reproduces a distinct pipeline: turnover-ratio
-    # calculation, optional per-peptide weighting, then a weighted fit /
-    # visualization. The generic protein-level path below does not apply.
     if (isTRUE(app_template == TEMPLATES$protein_turnover)) {
       codes = paste(codes, build_turnover_analysis_code(qc_input, comp_mat, increasing), sep = "")
       return(codes)

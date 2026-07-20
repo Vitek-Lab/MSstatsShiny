@@ -188,9 +188,6 @@ register_qc_visibility_observers <- function(input, session, loadpage_input, app
     )
   })
 
-  # Feature-subset radio vs feature-weighting checkbox. The turnover template
-  # summarizes on all features, so it hides the subset radio and shows the
-  # weighting checkbox instead.
   observe({
     shinyjs::toggle(
       NAMESPACE_QC$feature_subset_panel,

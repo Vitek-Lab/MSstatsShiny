@@ -91,11 +91,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
     turnover_ratios()
   }, ignoreInit = TRUE)
 
-  # When "Assign feature weights" is checked, augment the ratios with the
-  # per-peptide quality-weight columns from calculatePeptideWeights (coverage,
-  # light-intensity, monotonicity, validity, and the combined weight). Kept in a
-  # separate reactive so toggling the checkbox updates the table and download
-  # without re-running summarization.
   turnover_ratios_display <- reactive({
     ratios <- turnover_ratios()
     req(ratios)
