@@ -1,6 +1,103 @@
-# MSstatsShiny Tutorial
+# MSstatsShiny
 
-This repository contains the code for the R Shiny app MSstatsShiny, which utilizes MSstats, MSstatsTMT, and MSstatsPTM to analyze proteomics experiments.
+<!-- badges: start -->
+[![Bioconductor Release Build](https://bioconductor.org/shields/build/release/bioc/MSstatsShiny.svg)](https://bioconductor.org/checkResults/release/bioc-LATEST/MSstatsShiny/)
+[![Codecov test coverage](https://codecov.io/gh/Vitek-Lab/MSstatsShiny/branch/devel/graph/badge.svg)](https://codecov.io/gh/Vitek-Lab/MSstatsShiny/branch/devel)
+[![Bioconductor Downloads Rank](https://bioconductor.org/shields/downloads/release/MSstatsShiny.svg)](https://bioconductor.org/packages/stats/bioc/MSstatsShiny/)
+[![Years in Bioconductor](https://bioconductor.org/shields/years-in-bioc/MSstatsShiny.svg)](https://bioconductor.org/packages/release/bioc/html/MSstatsShiny.html#since)
+[![License: Artistic-2.0](https://img.shields.io/badge/license-Artistic--2.0-blue.svg)](https://opensource.org/licenses/Artistic-2.0)
+<!-- badges: end -->
+
+MSstatsShiny is an R-Shiny graphical user interface (GUI) that integrates the
+[MSstats](https://github.com/Vitek-Lab/MSstats),
+[MSstatsTMT](https://github.com/Vitek-Lab/MSstatsTMT), and
+[MSstatsPTM](https://github.com/Vitek-Lab/MSstatsPTM) packages into a
+point-and-click, end-to-end analysis pipeline. It is applicable to a wide
+variety of experimental designs, including label-free and TMT-based DDA, as well
+as DIA, SRM, and PRM acquisitions, and designs targeting post-translational
+modifications (PTMs). The application walks the user through data conversion,
+protein summarization, group comparison, visualization, and sample-size
+calculation. It automatically records the user's selections and builds an R
+script that reproduces the analysis, supporting fully reproducible data
+analysis without writing code.
+
+MSstatsShiny is part of the [MSstats](https://github.com/Vitek-Lab/MSstats)
+family of packages, developed and maintained by the
+[Vitek Lab](https://olga-vitek-lab.khoury.northeastern.edu/) at Northeastern
+University. A hosted version is available at
+[msstatsshiny.com](http://www.msstatsshiny.com/), and the package and its
+documentation are also available at [msstats.org](http://msstats.org).
+
+## Installation
+
+```r
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("MSstatsShiny")
+```
+
+The development version can be installed directly from this repository:
+
+```r
+BiocManager::install("Vitek-Lab/MSstatsShiny", ref = "devel")
+```
+
+Note: R >= 4.4 is required. On Windows you must also install
+[Rtools](https://cran.r-project.org/bin/windows/Rtools/). See the
+[step-by-step tutorial](#step-by-step-gui-tutorial) below for troubleshooting
+tips (e.g. `lme4` or Bioconductor release issues).
+
+## Quick Start
+
+```r
+library(MSstatsShiny)
+
+# Launch the point-and-click app locally
+launch_MSstatsShiny()
+```
+
+Alternatively, use the hosted app at [msstatsshiny.com](http://www.msstatsshiny.com/).
+The online version limits input files to 100 MB, so we recommend a local
+installation for large datasets.
+
+## Supported Tools and Experiment Types
+
+MSstatsShiny drives the same converters and statistical models as the underlying
+MSstats family of packages, exposed through the GUI:
+
+- **Acquisition types:** label-free DDA, TMT-based DDA, DIA, SRM, PRM, and PTM
+  experiments.
+- **Search tools:** the GUI accepts reports from the tools supported by
+  [MSstatsConvert](https://github.com/Vitek-Lab/MSstatsConvert) (Skyline,
+  MaxQuant, Proteome Discoverer, Spectronaut, DIA-NN, FragPipe, OpenMS/OpenSWATH,
+  and others), plus a generic MSstats-format (10-column) input.
+- **Large datasets:** larger-than-memory conversion is handled through
+  [MSstatsBig](https://github.com/Vitek-Lab/MSstatsBig).
+
+See the [step-by-step tutorial](#step-by-step-gui-tutorial) for a worked FragPipe
+DIA example, and the vignettes for the full list of options.
+
+## Documentation
+
+- [Step-by-step GUI tutorial](#step-by-step-gui-tutorial) (below) — a full worked FragPipe DIA example
+- [Package vignettes](vignettes/) — installation and usage
+- [Official website: msstats.org](http://msstats.org)
+- [Hosted application: msstatsshiny.com](http://www.msstatsshiny.com/)
+- [Bioconductor package page and reference manual](https://bioconductor.org/packages/MSstatsShiny)
+
+## Getting Help / Reporting Bugs
+
+- **Questions about usage, statistical methods, or troubleshooting:** please
+  post to the [MSstats Google Group](https://groups.google.com/forum/#!forum/msstats).
+  This is monitored by the development team and searchable, so it's the fastest
+  way to get help and to see if your question has already been answered.
+- **Bug reports and feature requests for this repository:** please open a
+  [GitHub issue](https://github.com/Vitek-Lab/MSstatsShiny/issues).
+
+---
+
+# Step-by-step GUI Tutorial
 
 This tutorial will walk through the steps on MSstatsShiny for performing differential abundance analysis for a dataset from Fragpipe. We use a case study of a DIA experiment that was analyzed using the FragPipe computational tool. The dataset originates from a clear cell renal cell carcinoma (ccRCC) study described in this [paper](https://pubmed.ncbi.nlm.nih.gov/31675502/). In the original study, researchers from the CPTAC profiled tumor (T) samples, together with normal adjacent tissue (NAT) samples from each cancer patient, indicating a paired design.
 
@@ -391,10 +488,23 @@ Switching to the `power` parameter, you can determine the power for a desired fo
 
 ![Step7B](https://raw.githubusercontent.com/Vitek-Lab/MSstatsShiny/devel/man/figures/Step7B.png)
 
-# Citation
+---
 
-To cite this application please use the corresponding publication in the journal of proteome research.
+## References
 
-## MSstatsShiny: A GUI for Versatile, Scalable, and Reproducible Statistical Analyses of Quantitative Proteomic Experiments
+If you use MSstatsShiny, please cite:
 
-Devon Kohler, Maanasa Kaza, Cristina Pasi, Ting Huang, Mateusz Staniak, Dhaval Mohandas, Eduard Sabido, Meena Choi, and Olga Vitek. Journal of Proteome Research 2023 22 (2), 551-556 DOI: 10.1021/acs.jproteome.2c00603
+1. Kohler D, Kaza M, Pasi C, Huang T, Staniak M, Mohandas D, Sabido E, Choi M,
+   Vitek O. **MSstatsShiny: A GUI for Versatile, Scalable, and Reproducible
+   Statistical Analyses of Quantitative Proteomic Experiments.**
+   *J Proteome Res*. 2023;22(2):551-556.
+   [DOI: 10.1021/acs.jproteome.2c00603](https://doi.org/10.1021/acs.jproteome.2c00603)
+
+## Funding
+
+MSstats development has been supported by the Chan Zuckerberg Initiative's
+[Essential Open Source Software for Science](https://chanzuckerberg.com/eoss/proposals/).
+
+## License
+
+MSstatsShiny is released under the [Artistic-2.0](https://opensource.org/licenses/Artistic-2.0) license.
