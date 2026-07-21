@@ -201,14 +201,15 @@ qcUI <- function(id) {
                  tabPanel("Data Upload",
                           wellPanel(
                             h4("Upload pre-processed data"),
-                            p("Bring FeatureLevelData and ProteinLevelData that were summarized in a previous session or an external pipeline. When both files are uploaded and the load page has not been used, the statistical analysis page uses them directly, skipping load-page conversion and summarization."),
+                            p("Bring FeatureLevelData and ProteinLevelData that were summarized in a previous session or an external pipeline. When the required files are uploaded and the load page has not been used, the statistical analysis page uses them directly, skipping load-page conversion and summarization."),
                             fileInput(ns("upload_feature_level"), "Upload FeatureLevelData (CSV)", accept = ".csv"),
                             fileInput(ns("upload_protein_level"), "Upload ProteinLevelData (CSV)", accept = ".csv"),
                             p(tags$strong("Required columns (names must match exactly, case-sensitive):")),
                             tags$ul(
                               tags$li(tags$strong("FeatureLevelData: "), "PROTEIN, PEPTIDE, FEATURE, RUN, GROUP, LABEL, INTENSITY"),
-                              tags$li(tags$strong("ProteinLevelData: "), "Protein, GROUP, RUN, LogIntensities")
+                              tags$li(tags$strong("ProteinLevelData: "), "Protein, GROUP, RUN, LogIntensities (add LABEL for protein turnover)")
                             ),
+                            p(tags$em("For protein turnover, FeatureLevelData is optional; upload ProteinLevelData (with LABEL), the turnover ratios, and the GROUP mapping. Other templates require both FeatureLevelData and ProteinLevelData.")),
                             # Template-gated (turnover + chemo): GROUP mapping, shown/hidden server-side
                             shinyjs::hidden(div(
                               id = ns(NAMESPACE_QC$data_upload_mapping_panel),
@@ -222,7 +223,7 @@ qcUI <- function(id) {
                               p(tags$strong("Required columns:")),
                               tags$ul(
                                 tags$li(tags$strong("Protein turnover: "), "GROUP, TimeVal"),
-                                tags$li(tags$strong("Chemoproteomics: "), "GROUP, DoseVal (optional DoseUnit, DrugName)")
+                                tags$li(tags$strong("Chemoproteomics: "), "GROUP, DoseVal, DoseUnit (uM, nM, mM, or M), DrugName")
                               )
                             )),
                             # Template-gated (turnover only): turnover ratios

@@ -11,7 +11,7 @@
 #' Required ProteinLevelData columns for an uploaded summarization table.
 #'
 #' Confirmed against MSstats::MSstatsSummarizationOutput. LABEL (heavy/light
-#' channel) is only required for the protein-turnover template; commit 2 uses it.
+#' channel) is only required for the protein-turnover template.
 #' @noRd
 qc_required_protein_columns <- function(template) {
   cols = c("Protein", "GROUP", "RUN", "LogIntensities")
@@ -40,14 +40,18 @@ qc_missing_upload_columns <- function(present_cols, required_cols) {
 
 #' Whether the uploaded set is complete enough to bypass QC summarization.
 #'
-#' Default and chemoproteomics templates require both FeatureLevelData and
-#' ProteinLevelData. Protein turnover requires ProteinLevelData plus the uploaded
-#' turnover-ratios table; FeatureLevelData is not used on the turnover
-#' response-curve path (the fit consumes the ratios table directly).
+#' Default templates require FeatureLevelData and ProteinLevelData. Chemoproteomics
+#' additionally requires a valid GROUP mapping. Protein turnover requires
+#' ProteinLevelData, the turnover-ratios table, and a valid GROUP mapping;
+#' FeatureLevelData is not used on the turnover response-curve path (the fit
+#' consumes the ratios table directly).
 #' @noRd
-qc_uploads_complete <- function(template, has_feature, has_protein, has_turnover) {
+qc_uploads_complete <- function(template, has_feature, has_protein, has_turnover,
+                                has_mapping) {
   if (!is.null(template) && template == TEMPLATES$protein_turnover) {
-    has_protein && has_turnover
+    has_protein && has_turnover && has_mapping
+  } else if (!is.null(template) && template == TEMPLATES$chemoproteomics) {
+    has_feature && has_protein && has_mapping
   } else {
     has_feature && has_protein
   }
@@ -55,14 +59,15 @@ qc_uploads_complete <- function(template, has_feature, has_protein, has_turnover
 
 #' Required GROUP mapping columns for the uploaded condition-metadata CSV.
 #'
-#' Protein turnover needs GROUP + TimeVal; chemoproteomics needs GROUP + DoseVal
-#' (DoseUnit / DrugName are optional and defaulted downstream).
+#' Protein turnover needs GROUP + TimeVal; chemoproteomics needs GROUP, DoseVal,
+#' DoseUnit, and DrugName (DoseUnit feeds the dose-to-molar conversion, so it is
+#' required rather than defaulted).
 #' @noRd
 qc_required_mapping_columns <- function(template) {
   if (!is.null(template) && template == TEMPLATES$protein_turnover) {
     c("GROUP", "TimeVal")
   } else if (!is.null(template) && template == TEMPLATES$chemoproteomics) {
-    c("GROUP", "DoseVal")
+    c("GROUP", "DoseVal", "DoseUnit", "DrugName")
   } else {
     character(0)
   }
@@ -100,6 +105,61 @@ qc_mapping_to_condition_metadata <- function(parsed, template) {
   df
 }
 
+#' Whether every dose unit is one convert_dose_to_molar recognizes.
+#'
+#' convert_dose_to_molar silently treats an unrecognized unit as molar
+#' (multiplier 1), so units are validated up front. Accepts nM, uM, mM, M
+#' (case-insensitive, surrounding whitespace ignored).
+#' @noRd
+qc_dose_units_valid <- function(units) {
+  if (is.null(units) || length(units) == 0) return(FALSE)
+  normalized = tolower(trimws(as.character(units)))
+  all(!is.na(normalized) & normalized %in% c("nm", "um", "mm", "m"))
+}
+
+#' Errors for a GROUP mapping that must have one row per ProteinLevelData GROUP.
+#'
+#' Returns a character vector of messages (empty when valid): unknown mapping
+#' groups, ProteinLevelData groups missing from the mapping, and duplicated
+#' mapping rows. Missing or duplicated groups otherwise corrupt the GROUP join.
+#' @noRd
+qc_mapping_group_errors <- function(mapping_groups, protein_groups) {
+  mapping_groups = as.character(mapping_groups)
+  protein_groups = as.character(protein_groups)
+  errors = character(0)
+  unknown = setdiff(mapping_groups, protein_groups)
+  if (length(unknown) > 0) {
+    errors = c(errors, paste0("GROUP mapping has GROUP value(s) not found in ProteinLevelData: ",
+                              paste(unknown, collapse = ", "), "."))
+  }
+  missing_groups = setdiff(protein_groups, mapping_groups)
+  if (length(missing_groups) > 0) {
+    errors = c(errors, paste0("GROUP mapping is missing row(s) for ProteinLevelData GROUP(s): ",
+                              paste(missing_groups, collapse = ", "), "."))
+  }
+  duplicated_groups = unique(mapping_groups[duplicated(mapping_groups)])
+  if (length(duplicated_groups) > 0) {
+    errors = c(errors, paste0("GROUP mapping has duplicate row(s) for GROUP(s): ",
+                              paste(duplicated_groups, collapse = ", "), "."))
+  }
+  errors
+}
+
+#' Whether every value in the named columns is numeric-coercible and finite.
+#'
+#' Returns FALSE if any column is absent or holds a blank / non-numeric /
+#' non-finite value. Rejects turnover-ratios uploads that would fail the fit
+#' silently.
+#' @noRd
+qc_values_numeric_finite <- function(df, cols) {
+  if (!all(cols %in% colnames(df))) return(FALSE)
+  for (col in cols) {
+    vals = suppressWarnings(as.numeric(df[[col]]))
+    if (any(!is.finite(vals))) return(FALSE)
+  }
+  TRUE
+}
+
 # ----------------------------------------------------------------------------
 # Server registration.
 # ----------------------------------------------------------------------------
@@ -114,6 +174,9 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
   uploaded_feature_level = reactiveVal(NULL)
   uploaded_protein_level = reactiveVal(NULL)
   uploaded_turnover_ratios = reactiveVal(NULL)
+  # TRUE only after an uploaded GROUP mapping passes every validation check;
+  # required before turnover / chemo uploads are considered ready.
+  mapping_valid = reactiveVal(FALSE)
 
   get_template = function() if (!is.null(app_template)) app_template() else NULL
 
@@ -121,7 +184,8 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
     qc_uploads_complete(get_template(),
                         !is.null(uploaded_feature_level()),
                         !is.null(uploaded_protein_level()),
-                        has_turnover = !is.null(uploaded_turnover_ratios()))
+                        has_turnover = !is.null(uploaded_turnover_ratios()),
+                        has_mapping = isTRUE(mapping_valid()))
   })
 
   # ---- Parse + validate uploaded CSVs ----
@@ -202,14 +266,16 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
   })
 
   # ---- Mapping CSV: GROUP -> time/dose, written into condition_metadata ----
-  # Turnover uses GROUP + TimeVal; chemo uses GROUP + DoseVal (+ optional
-  # DoseUnit / DrugName). GROUP is renamed to Condition so downstream turnover /
-  # chemo code consumes it unchanged.
+  # Turnover uses GROUP + TimeVal; chemo uses GROUP + DoseVal + DoseUnit +
+  # DrugName. GROUP is renamed to Condition so downstream turnover / chemo code
+  # consumes it unchanged.
 
   observeEvent(input$upload_condition_mapping, {
     file = input$upload_condition_mapping
     req(file)
     template = get_template()
+    # Clear validity on every (re-)upload; only a fully validated mapping sets it.
+    mapping_valid(FALSE)
     parsed = tryCatch(
       data.table::fread(file$datapath),
       error = function(e) {
@@ -241,8 +307,18 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
       return()
     }
 
-    # GROUP values must match the uploaded ProteinLevelData: the chemo fit merges
-    # by GROUP and silently drops non-matching rows.
+    # Chemo dose units feed convert_dose_to_molar, which silently treats an
+    # unrecognized unit as molar; reject unknown units up front.
+    if (!is.null(template) && template == TEMPLATES$chemoproteomics &&
+        !qc_dose_units_valid(parsed$DoseUnit)) {
+      showNotification(
+        "GROUP mapping DoseUnit must be one of nM, uM, mM, or M for every row.",
+        type = "error", duration = 10)
+      return()
+    }
+
+    # GROUP values must line up one-to-one with the uploaded ProteinLevelData;
+    # unknown groups, missing groups, or duplicate rows all corrupt the join.
     pld = uploaded_protein_level()
     if (is.null(pld)) {
       showNotification("Please upload ProteinLevelData before the GROUP mapping.",
@@ -253,18 +329,17 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
     if (is.null(protein_groups)) {
       protein_groups = unique(as.character(pld$GROUP))
     }
-    unmatched = setdiff(as.character(parsed$GROUP), protein_groups)
-    if (length(unmatched) > 0) {
-      showNotification(
-        paste0("GROUP mapping has GROUP value(s) not found in ProteinLevelData: ",
-               paste(unmatched, collapse = ", ")),
-        type = "error", duration = 10)
+    group_errors = qc_mapping_group_errors(parsed$GROUP, protein_groups)
+    if (length(group_errors) > 0) {
+      showNotification(paste(group_errors, collapse = " "),
+                       type = "error", duration = 10)
       return()
     }
 
     if (!is.null(get_condition_metadata)) {
       get_condition_metadata(qc_mapping_to_condition_metadata(parsed, template))
     }
+    mapping_valid(TRUE)
     showNotification("GROUP mapping uploaded.", type = "message", duration = 6)
   })
 
@@ -294,6 +369,13 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
       uploaded_turnover_ratios(NULL)
       return()
     }
+    if (!qc_values_numeric_finite(parsed, c("TimeVal", "H_frac", "L_frac"))) {
+      showNotification(
+        "Turnover Ratios TimeVal, H_frac, and L_frac must be numeric and finite for every row.",
+        type = "error", duration = 10)
+      uploaded_turnover_ratios(NULL)
+      return()
+    }
     uploaded_turnover_ratios(as.data.frame(parsed))
     if (is.null(uploaded_protein_level())) {
       showNotification(paste("Turnover Ratios uploaded. Please also upload ProteinLevelData",
@@ -317,8 +399,8 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
   })
 
   # ---- Effective turnover ratios: uploaded table when the load page was unused ----
-  # turnover_ratios (commit 1) is an eventReactive on input$run, which never fires
-  # on the upload path, so return the uploaded ratios directly when present.
+  # turnover_ratios is an eventReactive on input$run, which never fires on the
+  # upload path, so return the uploaded ratios directly when present.
 
   effective_turnover_ratios = reactive({
     loaded = tryCatch(get_data(), error = function(e) NULL)

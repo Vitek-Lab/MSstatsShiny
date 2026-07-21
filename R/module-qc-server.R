@@ -25,9 +25,23 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     preprocessData(input, loadpage_input(), get_data())
   })
 
-  # For protein turnover, re-level GROUP factor using TimeVal ordering from loadpage
+  # ---- Turnover ratios + Data Upload (registered before the QC consumers below
+  #      so the QC tabs read the effective, upload-aware data) ----
+
+  turnover_ratios <- register_qc_turnover(input, output, session, app_template, get_data,
+                                          get_condition_metadata, preprocess_data)
+
+  data_upload = register_qc_data_upload(input, output, session, loadpage_input,
+                                        app_template, get_data, preprocess_data,
+                                        get_condition_metadata, turnover_ratios)
+
+  effective_preprocess_data <- data_upload$effective_preprocess_data
+
+  # For protein turnover, re-level GROUP factor using TimeVal ordering from the
+  # condition metadata. Built from the effective (computed OR uploaded) data so
+  # the QC plots work on the upload path too.
   ordered_preprocess_data <- reactive({
-    data <- preprocess_data()
+    data <- effective_preprocess_data()
     if (is.null(data)) return(data)
     if (!is.null(get_condition_metadata) && !is.null(get_condition_metadata())) {
       meta <- get_condition_metadata()
@@ -47,25 +61,15 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     data
   })
 
-  # ---- Turnover ratios + Data Upload (registered early so the navigation below
-  #      can key off the effective, upload-aware data) ----
-
-  turnover_ratios <- register_qc_turnover(input, output, session, app_template, get_data,
-                                          get_condition_metadata, preprocess_data)
-
-  data_upload = register_qc_data_upload(input, output, session, loadpage_input,
-                                        app_template, get_data, preprocess_data,
-                                        get_condition_metadata, turnover_ratios)
-
   # ---- Run caption and "Next step" navigation to the statistical model page ----
   # Keyed on the effective (computed OR uploaded) data so upload users, who never
   # fire input$run, still get the caption and the Next-step button.
 
-  cap = eventReactive(data_upload$effective_preprocess_data(), {
+  cap = eventReactive(effective_preprocess_data(), {
     text_output = "Data is ready. Click 'Next step' to continue to statistical modeling."
   })
 
-  observeEvent(data_upload$effective_preprocess_data(), {
+  observeEvent(effective_preprocess_data(), {
     output$submit.button = renderUI({
       ns <- session$ns
       actionButton(inputId = ns("proceed6"),label = "Next step")
@@ -77,7 +81,7 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
   })
 
   enable("proceed6")
-  observeEvent(preprocess_data(),{
+  observeEvent(effective_preprocess_data(),{
     enable("proceed6")
   })
 
@@ -90,14 +94,14 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
   register_qc_visibility_observers(input, session, loadpage_input, app_template)
   register_qc_sidebar_options(input, output, session, loadpage_input, get_data, app_template)
   register_qc_plots(input, output, session, loadpage_input, get_data,
-                    preprocess_data, ordered_preprocess_data)
-  register_qc_summary(input, output, session, loadpage_input, preprocess_data, app_template)
-  register_qc_downloads(input, output, session, loadpage_input, preprocess_data)
+                    effective_preprocess_data, ordered_preprocess_data)
+  register_qc_summary(input, output, session, loadpage_input, effective_preprocess_data, app_template)
+  register_qc_downloads(input, output, session, loadpage_input, effective_preprocess_data)
 
   return(
     list(
       input = input,
-      preprocessData = data_upload$effective_preprocess_data,
+      preprocessData = effective_preprocess_data,
       turnoverRatios = data_upload$effective_turnover_ratios
     )
   )

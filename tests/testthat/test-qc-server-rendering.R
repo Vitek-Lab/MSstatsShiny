@@ -104,6 +104,26 @@ test_that("qc_show_profileplot_options and qc_show_qualitymetrics_options key of
   expect_false(MSstatsShiny:::qc_show_qualitymetrics_options(NULL))
 })
 
+test_that("qc_has_feature_level detects usable feature-level data", {
+  # Present with rows (normal run / default + chemo upload) -> TRUE.
+  ok = list(FeatureLevelData = data.frame(ABUNDANCE = c(1, 2, 3)),
+            ProteinLevelData = data.frame(Protein = "P1"))
+  expect_true(MSstatsShiny:::qc_has_feature_level(ok))
+
+  # Protein-turnover upload shape: only ProteinLevelData -> FALSE.
+  turnover = list(FeatureLevelData = NULL,
+                  ProteinLevelData = data.frame(Protein = "P1"))
+  expect_false(MSstatsShiny:::qc_has_feature_level(turnover))
+
+  # Zero-row feature data -> FALSE.
+  empty = list(FeatureLevelData = data.frame(ABUNDANCE = numeric(0)),
+               ProteinLevelData = data.frame(Protein = "P1"))
+  expect_false(MSstatsShiny:::qc_has_feature_level(empty))
+
+  # NULL data object -> FALSE, no error.
+  expect_false(MSstatsShiny:::qc_has_feature_level(NULL))
+})
+
 test_that("download panels are complementary on the PTM biological question", {
   expect_true(MSstatsShiny:::qc_show_nonptm_downloads("Protein"))
   expect_true(MSstatsShiny:::qc_show_nonptm_downloads("Peptide"))
