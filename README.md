@@ -40,7 +40,7 @@ BiocManager::install("MSstatsShiny")
 The development version can be installed directly from this repository:
 
 ```r
-BiocManager::install("Vitek-Lab/MSstatsShiny", ref = "devel")
+remotes::install_github("Vitek-Lab/MSstatsShiny")
 ```
 
 Note: R >= 4.4 is required. On Windows you must also install
