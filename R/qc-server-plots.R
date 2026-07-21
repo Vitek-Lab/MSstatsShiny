@@ -189,7 +189,7 @@ register_qc_plots <- function(input, output, session, loadpage_input, get_data,
         tags$p(paste("Profile and QC plots are not available for protein-turnover",
                      "uploads because no feature-level data was uploaded. The turnover",
                      "dose-response fit uses the uploaded ratios directly on the",
-                     "Statistical Inference page."))
+                     "Statistical Inference Page."))
       ))
     }
     output$theplot = renderPlotly(theplot())

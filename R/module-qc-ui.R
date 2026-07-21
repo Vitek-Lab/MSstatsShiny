@@ -198,10 +198,10 @@ qcUI <- function(id) {
                h3(textOutput(ns("caption"), container = span)),
 
                tabsetPanel(id = ns("qc_tabs"),
-                 tabPanel("Data Upload",
+                 tabPanel("Summarized Analyte Abundance", value = "Data Upload",
                           wellPanel(
-                            h4("Upload pre-processed data"),
-                            p("Bring FeatureLevelData and ProteinLevelData that were summarized in a previous session or an external pipeline. When the required files are uploaded and the load page has not been used, the statistical analysis page uses them directly, skipping load-page conversion and summarization."),
+                            h4("Upload summarized analyte abundance"),
+                            p("Bring FeatureLevelData and ProteinLevelData that were summarized in a previous session or an external pipeline. When the required files are uploaded and the Data Upload Page has not been used, the Statistical Inference Page uses them directly, skipping conversion and summarization on the Data Upload Page."),
                             fileInput(ns("upload_feature_level"), "Upload FeatureLevelData (CSV)", accept = ".csv"),
                             fileInput(ns("upload_protein_level"), "Upload ProteinLevelData (CSV)", accept = ".csv"),
                             p(tags$strong("Required columns (names must match exactly, case-sensitive):")),
@@ -217,7 +217,7 @@ qcUI <- function(id) {
                               h4("Condition mapping (CSV)",
                                  class = "icon-wrapper",
                                  icon("question-circle", lib = "font-awesome"),
-                                 div("Maps each experimental group to its numeric time point (protein turnover) or dose (chemoproteomics). This supplies the condition metadata the load page normally collects when you convert data there. The GROUP values in this file must exactly match the GROUP values in your uploaded ProteinLevelData.",
+                                 div("Maps each experimental group to its numeric time point (protein turnover) or dose (chemoproteomics). This supplies the condition metadata the Data Upload Page normally collects when you convert data there. The GROUP values in this file must exactly match the GROUP values in your uploaded ProteinLevelData.",
                                      class = "icon-tooltip")),
                               fileInput(ns("upload_condition_mapping"), "Upload GROUP mapping (CSV)", accept = ".csv"),
                               p(tags$strong("Required columns:")),

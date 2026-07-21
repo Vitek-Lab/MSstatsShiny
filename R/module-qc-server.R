@@ -66,7 +66,7 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
   # fire input$run, still get the caption and the Next-step button.
 
   cap = eventReactive(effective_preprocess_data(), {
-    text_output = "Data is ready. Click 'Next step' to continue to statistical modeling."
+    text_output = "Data is ready. Click 'Next step' to continue to the Statistical Inference Page."
   })
 
   observeEvent(effective_preprocess_data(), {
