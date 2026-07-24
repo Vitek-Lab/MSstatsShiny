@@ -25,9 +25,6 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     preprocessData(input, loadpage_input(), get_data())
   })
 
-  # ---- Turnover ratios + Data Upload (registered before the QC consumers below
-  #      so the QC tabs read the effective, upload-aware data) ----
-
   turnover_ratios <- register_qc_turnover(input, output, session, app_template, get_data,
                                           get_condition_metadata, preprocess_data)
 
@@ -37,9 +34,7 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
 
   effective_preprocess_data <- data_upload$effective_preprocess_data
 
-  # For protein turnover, re-level GROUP factor using TimeVal ordering from the
-  # condition metadata. Built from the effective (computed OR uploaded) data so
-  # the QC plots work on the upload path too.
+  # Re-level GROUP by TimeVal order for protein turnover.
   ordered_preprocess_data <- reactive({
     data <- effective_preprocess_data()
     if (is.null(data)) return(data)

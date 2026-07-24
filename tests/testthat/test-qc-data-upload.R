@@ -1,51 +1,48 @@
 # Truth-table tests for the QC Data Upload column-validation and
 # upload-completeness helpers (pure functions, no Shiny session required).
 
-test_that("qc_missing_upload_columns returns the required columns that are absent", {
+test_that("get_missing_upload_columns returns the required columns that are absent", {
   # All required columns present -> nothing missing.
   expect_equal(
-    MSstatsShiny:::qc_missing_upload_columns(c("A", "B", "C"), c("A", "B")),
+    MSstatsShiny:::get_missing_upload_columns(c("A", "B", "C"), c("A", "B")),
     character(0)
   )
   # Missing columns are reported in required order.
   expect_equal(
-    MSstatsShiny:::qc_missing_upload_columns(c("A", "C"), c("A", "B", "D")),
+    MSstatsShiny:::get_missing_upload_columns(c("A", "C"), c("A", "B", "D")),
     c("B", "D")
   )
   # Column order and extra present columns do not matter (name-based, not position).
   expect_equal(
-    MSstatsShiny:::qc_missing_upload_columns(c("C", "B", "A", "Z"), c("A", "B", "C")),
+    MSstatsShiny:::get_missing_upload_columns(c("C", "B", "A", "Z"), c("A", "B", "C")),
     character(0)
   )
 })
 
-test_that("qc_required_protein_columns matches the summarization output keys", {
+test_that("get_qc_required_protein_columns matches the summarization output keys", {
   expect_equal(
-    MSstatsShiny:::qc_required_protein_columns(TEMPLATES$default),
+    MSstatsShiny:::get_qc_required_protein_columns(TEMPLATES$default),
     c("Protein", "GROUP", "RUN", "LogIntensities")
   )
   expect_equal(
-    MSstatsShiny:::qc_required_protein_columns(TEMPLATES$chemoproteomics),
+    MSstatsShiny:::get_qc_required_protein_columns(TEMPLATES$chemoproteomics),
     c("Protein", "GROUP", "RUN", "LogIntensities")
   )
   # Turnover adds the heavy/light channel column.
   expect_equal(
-    MSstatsShiny:::qc_required_protein_columns(TEMPLATES$protein_turnover),
+    MSstatsShiny:::get_qc_required_protein_columns(TEMPLATES$protein_turnover),
     c("Protein", "GROUP", "RUN", "LogIntensities", "LABEL")
   )
   # A NULL template (module called without app_template) falls back to the base set.
   expect_equal(
-    MSstatsShiny:::qc_required_protein_columns(NULL),
+    MSstatsShiny:::get_qc_required_protein_columns(NULL),
     c("Protein", "GROUP", "RUN", "LogIntensities")
   )
 })
 
-test_that("qc_required_feature_columns is the MSstats feature-level key set", {
+test_that("get_qc_required_feature_columns is the MSstats feature-level key set", {
   expected = c("PROTEIN", "PEPTIDE", "FEATURE", "RUN", "GROUP", "LABEL", "INTENSITY")
-  expect_equal(MSstatsShiny:::qc_required_feature_columns(TEMPLATES$default), expected)
-  expect_equal(MSstatsShiny:::qc_required_feature_columns(TEMPLATES$chemoproteomics), expected)
-  expect_equal(MSstatsShiny:::qc_required_feature_columns(TEMPLATES$protein_turnover), expected)
-  expect_equal(MSstatsShiny:::qc_required_feature_columns(NULL), expected)
+  expect_equal(MSstatsShiny:::get_qc_required_feature_columns(), expected)
 })
 
 test_that("qc_uploads_complete needs both feature and protein tables (default)", {
@@ -67,29 +64,27 @@ test_that("qc_uploads_complete chemo needs feature + protein + valid mapping", {
   expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$chemoproteomics, FALSE, TRUE, FALSE, TRUE))
 })
 
-test_that("qc_uploads_complete turnover needs protein + ratios + mapping (feature optional)", {
-  # Turnover consumes the uploaded ratios table directly; FeatureLevelData is not
-  # used on the response-curve path, so protein + ratios + a valid mapping suffice.
-  expect_true(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, FALSE, TRUE, TRUE, TRUE))
+test_that("qc_uploads_complete turnover needs feature + protein + ratios + mapping", {
   expect_true(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, TRUE, TRUE, TRUE, TRUE))
 
-  # Missing ratios, protein, or mapping leaves it incomplete.
-  expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, TRUE, TRUE, TRUE, FALSE))
-  expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, TRUE, TRUE, FALSE, TRUE))
+  # Missing feature, protein, ratios, or mapping leaves it incomplete.
+  expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, FALSE, TRUE, TRUE, TRUE))
   expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, TRUE, FALSE, TRUE, TRUE))
+  expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, TRUE, TRUE, FALSE, TRUE))
+  expect_false(MSstatsShiny:::qc_uploads_complete(TEMPLATES$protein_turnover, TRUE, TRUE, TRUE, FALSE))
 })
 
-test_that("qc_required_mapping_columns is template-specific", {
-  expect_equal(MSstatsShiny:::qc_required_mapping_columns(TEMPLATES$protein_turnover),
+test_that("get_qc_required_mapping_columns is template-specific", {
+  expect_equal(MSstatsShiny:::get_qc_required_mapping_columns(TEMPLATES$protein_turnover),
                c("GROUP", "TimeVal"))
-  expect_equal(MSstatsShiny:::qc_required_mapping_columns(TEMPLATES$chemoproteomics),
+  expect_equal(MSstatsShiny:::get_qc_required_mapping_columns(TEMPLATES$chemoproteomics),
                c("GROUP", "DoseVal", "DoseUnit", "DrugName"))
-  expect_equal(MSstatsShiny:::qc_required_mapping_columns(TEMPLATES$default), character(0))
-  expect_equal(MSstatsShiny:::qc_required_mapping_columns(NULL), character(0))
+  expect_equal(MSstatsShiny:::get_qc_required_mapping_columns(TEMPLATES$default), character(0))
+  expect_equal(MSstatsShiny:::get_qc_required_mapping_columns(NULL), character(0))
 })
 
-test_that("qc_required_ratios_columns matches the turnover-ratios fit inputs", {
-  expect_equal(MSstatsShiny:::qc_required_ratios_columns(),
+test_that("get_qc_required_ratios_columns matches the turnover-ratios fit inputs", {
+  expect_equal(MSstatsShiny:::get_qc_required_ratios_columns(),
                c("Protein", "TimeVal", "H_frac", "L_frac"))
 })
 
@@ -172,4 +167,23 @@ test_that("qc_values_numeric_finite requires numeric, finite values in all colum
   expect_false(MSstatsShiny:::qc_values_numeric_finite(bad_na, c("TimeVal", "H_frac", "L_frac")))
   # Absent column.
   expect_false(MSstatsShiny:::qc_values_numeric_finite(ok, c("TimeVal", "Missing")))
+})
+
+test_that("qc_values_numeric_finite allows NA / blank when allow_na = TRUE", {
+  # Real missing values (NA and blank) pass for H_frac / L_frac.
+  with_na = data.frame(H_frac = c(0.1, NA, 0.3), L_frac = c("0.9", "", "0.7"),
+                       stringsAsFactors = FALSE)
+  expect_true(MSstatsShiny:::qc_values_numeric_finite(with_na, c("H_frac", "L_frac"),
+                                                      allow_na = TRUE))
+  # A typo (non-numeric, non-blank) is still rejected.
+  typo = data.frame(H_frac = c(0.1, 0.2, 0.3), L_frac = c("0.9", "abc", "0.7"),
+                    stringsAsFactors = FALSE)
+  expect_false(MSstatsShiny:::qc_values_numeric_finite(typo, c("H_frac", "L_frac"),
+                                                       allow_na = TRUE))
+  # Non-finite (Inf) is still rejected even with allow_na.
+  inf = data.frame(H_frac = c(0.1, Inf, 0.3), stringsAsFactors = FALSE)
+  expect_false(MSstatsShiny:::qc_values_numeric_finite(inf, "H_frac", allow_na = TRUE))
+  # allow_na does not relax the default: NA still fails without the flag.
+  na_default = data.frame(TimeVal = c(0, NA, 2), stringsAsFactors = FALSE)
+  expect_false(MSstatsShiny:::qc_values_numeric_finite(na_default, "TimeVal"))
 })

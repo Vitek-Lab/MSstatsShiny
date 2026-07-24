@@ -170,7 +170,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                                         stringsAsFactors = FALSE)
               } else {
                 showNotification(
-                  "Please enter time values for each condition on the data upload page.",
+                  "Please enter time values for each condition on the Data Uploading page.",
                   type = "warning", duration = 8
                 )
                 disable(NAMESPACE_STATMODEL$modeling_start)
@@ -188,7 +188,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                 )
               } else {
                 showNotification(
-                  "Please enter dose values for each condition on the data upload page.",
+                  "Please enter dose values for each condition on the Data Uploading page.",
                   type = "warning", duration = 8
                 )
                 disable(NAMESPACE_STATMODEL$modeling_start)
@@ -351,7 +351,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               check_cols <- intersect(c("DoseVal", "TimeVal", "DoseUnit"), colnames(meta))
               if (any(sapply(check_cols, function(col) "?" %in% meta[[col]]))) {
                 showNotification(
-                  "Please fill in all '?' values in the condition metadata table on the data upload page before running the analysis.",
+                  "Please fill in all '?' values in the condition metadata table on the Data Uploading page before running the analysis.",
                   type = "error", duration = 8
                 )
                 req(FALSE)

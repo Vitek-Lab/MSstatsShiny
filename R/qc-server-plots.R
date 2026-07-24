@@ -1,15 +1,6 @@
 # QC Summarization Plots tab: plot-type and protein selectors, the
 # profile/QC/quality-metric plot builders, and the plot output.
 
-#' Whether a summarized data object carries usable feature-level data.
-#'
-#' MSstats::dataProcessPlots reads FeatureLevelData (the ABUNDANCE column), which
-#' protein-turnover uploads omit, so the QC plots gate on this before plotting.
-#' @noRd
-qc_has_feature_level <- function(data) {
-  !is.null(data$FeatureLevelData) && nrow(data$FeatureLevelData) > 0
-}
-
 #' Register the QC Summarization Plots tab outputs.
 #' @noRd
 register_qc_plots <- function(input, output, session, loadpage_input, get_data,
@@ -74,15 +65,9 @@ register_qc_plots <- function(input, output, session, loadpage_input, get_data,
     if (input$qc_page_plot_type == "QualityMetricsPlot") {
       return(NULL)
     }
-    # Upload path: get_data() is NULL (load page bypassed), so fall back to the
-    # protein list from the data being analyzed. Raw get_data() uses ProteinName;
-    # summarized ProteinLevelData uses Protein.
-    protein_choices <- tryCatch(unique(get_data()$ProteinName), error = function(e) NULL)
-    if (is.null(protein_choices) || length(protein_choices) == 0) {
-      protein_choices <- tryCatch(
-        unique(as.character(preprocess_data()$ProteinLevelData$Protein)),
-        error = function(e) NULL)
-    }
+    protein_choices <- tryCatch(
+      unique(as.character(preprocess_data()$ProteinLevelData$Protein)),
+      error = function(e) NULL)
     if ((loadpage_input()$BIO!="PTM" && input$qc_page_plot_type == "QCPlot")) {
       req(length(protein_choices) > 0)
       selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
@@ -173,25 +158,6 @@ register_qc_plots <- function(input, output, session, loadpage_input, get_data,
 
   output$showplot = renderUI({
     ns<- session$ns
-    # Non-PTM/non-TMT (LF) profile/QC plots need feature-level data: MSstats
-    # dataProcessPlots reads FeatureLevelData$ABUNDANCE. Protein-turnover uploads
-    # bring only ProteinLevelData, so show a message instead of crashing. Scope to
-    # LF because PTM keeps its feature data under $PTM, so its NULL top-level
-    # FeatureLevelData is expected and must not be gated. Read the effective
-    # preprocess_data() (not ordered_preprocess_data(), which re-levels GROUP and
-    # would mutate a NULL FeatureLevelData into a malformed object).
-    is_lf <- !isTRUE(loadpage_input()$BIO == "PTM") &&
-      !isTRUE(loadpage_input()$DDA_DIA == "TMT")
-    lf_data <- tryCatch(preprocess_data(), error = function(e) NULL)
-    if (isTRUE(is_lf) && !is.null(lf_data$ProteinLevelData) &&
-        !qc_has_feature_level(lf_data)) {
-      return(tags$div(
-        tags$p(paste("Profile and QC plots are not available for protein-turnover",
-                     "uploads because no feature-level data was uploaded. The turnover",
-                     "dose-response fit uses the uploaded ratios directly on the",
-                     "Statistical Inference Page."))
-      ))
-    }
     output$theplot = renderPlotly(theplot())
     op <- div(
       style = "overflow-x: auto; width: 100%;",

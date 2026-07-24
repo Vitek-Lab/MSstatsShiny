@@ -4,8 +4,7 @@
 # stat-analysis page consumes in place of QC summarization output.
 
 # ----------------------------------------------------------------------------
-# Pure column / completeness helpers. Functions of plain vectors and booleans so
-# they can be unit-tested directly without a Shiny session.
+# Pure column / completeness helpers.
 # ----------------------------------------------------------------------------
 
 #' Required ProteinLevelData columns for an uploaded summarization table.
@@ -13,7 +12,7 @@
 #' Confirmed against MSstats::MSstatsSummarizationOutput. LABEL (heavy/light
 #' channel) is only required for the protein-turnover template.
 #' @noRd
-qc_required_protein_columns <- function(template) {
+get_qc_required_protein_columns <- function(template) {
   cols = c("Protein", "GROUP", "RUN", "LogIntensities")
   if (!is.null(template) && template == TEMPLATES$protein_turnover) {
     cols = c(cols, "LABEL")
@@ -25,31 +24,28 @@ qc_required_protein_columns <- function(template) {
 #'
 #' Confirmed against MSstats::MSstatsSummarizationOutput (PROTEIN and INTENSITY
 #' are upper-case; TRANSITION is intentionally omitted because it can be a
-#' placeholder for non-fragment workflows). Template-independent for now; the
-#' argument is kept for symmetry with qc_required_protein_columns.
+#' placeholder for non-fragment workflows).
 #' @noRd
-qc_required_feature_columns <- function(template) {
+get_qc_required_feature_columns <- function() {
   c("PROTEIN", "PEPTIDE", "FEATURE", "RUN", "GROUP", "LABEL", "INTENSITY")
 }
 
 #' Columns in `required_cols` that are absent from `present_cols`.
 #' @noRd
-qc_missing_upload_columns <- function(present_cols, required_cols) {
+get_missing_upload_columns <- function(present_cols, required_cols) {
   setdiff(required_cols, present_cols)
 }
 
 #' Whether the uploaded set is complete enough to bypass QC summarization.
 #'
-#' Default templates require FeatureLevelData and ProteinLevelData. Chemoproteomics
-#' additionally requires a valid GROUP mapping. Protein turnover requires
-#' ProteinLevelData, the turnover-ratios table, and a valid GROUP mapping;
-#' FeatureLevelData is not used on the turnover response-curve path (the fit
-#' consumes the ratios table directly).
+#' All templates require FeatureLevelData and ProteinLevelData. Chemoproteomics
+#' and protein turnover additionally require a valid GROUP mapping; protein
+#' turnover also requires the turnover-ratios table.
 #' @noRd
 qc_uploads_complete <- function(template, has_feature, has_protein, has_turnover,
                                 has_mapping) {
   if (!is.null(template) && template == TEMPLATES$protein_turnover) {
-    has_protein && has_turnover && has_mapping
+    has_feature && has_protein && has_turnover && has_mapping
   } else if (!is.null(template) && template == TEMPLATES$chemoproteomics) {
     has_feature && has_protein && has_mapping
   } else {
@@ -63,7 +59,7 @@ qc_uploads_complete <- function(template, has_feature, has_protein, has_turnover
 #' DoseUnit, and DrugName (DoseUnit feeds the dose-to-molar conversion, so it is
 #' required rather than defaulted).
 #' @noRd
-qc_required_mapping_columns <- function(template) {
+get_qc_required_mapping_columns <- function(template) {
   if (!is.null(template) && template == TEMPLATES$protein_turnover) {
     c("GROUP", "TimeVal")
   } else if (!is.null(template) && template == TEMPLATES$chemoproteomics) {
@@ -78,7 +74,7 @@ qc_required_mapping_columns <- function(template) {
 #' Matches what prepare_turnover_for_dose_response reads from the
 #' MSstatsResponse::calculateTurnoverRatios output (BaseSequence is optional).
 #' @noRd
-qc_required_ratios_columns <- function() {
+get_qc_required_ratios_columns <- function() {
   c("Protein", "TimeVal", "H_frac", "L_frac")
 }
 
@@ -147,15 +143,21 @@ qc_mapping_group_errors <- function(mapping_groups, protein_groups) {
 
 #' Whether every value in the named columns is numeric-coercible and finite.
 #'
-#' Returns FALSE if any column is absent or holds a blank / non-numeric /
-#' non-finite value. Rejects turnover-ratios uploads that would fail the fit
-#' silently.
+#' With allow_na = TRUE, NA or blank entries pass but any present value must
+#' still be finite numeric. Rejects turnover-ratios uploads that would fail the
+#' fit silently.
 #' @noRd
-qc_values_numeric_finite <- function(df, cols) {
+qc_values_numeric_finite <- function(df, cols, allow_na = FALSE) {
   if (!all(cols %in% colnames(df))) return(FALSE)
   for (col in cols) {
-    vals = suppressWarnings(as.numeric(df[[col]]))
-    if (any(!is.finite(vals))) return(FALSE)
+    raw = df[[col]]
+    coerced = suppressWarnings(as.numeric(raw))
+    if (allow_na) {
+      blank = is.na(raw) | trimws(as.character(raw)) == ""
+      if (any(!blank & !is.finite(coerced))) return(FALSE)
+    } else {
+      if (any(!is.finite(coerced))) return(FALSE)
+    }
   }
   TRUE
 }
@@ -174,8 +176,6 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
   uploaded_feature_level = reactiveVal(NULL)
   uploaded_protein_level = reactiveVal(NULL)
   uploaded_turnover_ratios = reactiveVal(NULL)
-  # TRUE only after an uploaded GROUP mapping passes every validation check;
-  # required before turnover / chemo uploads are considered ready.
   mapping_valid = reactiveVal(FALSE)
 
   get_template = function() if (!is.null(app_template)) app_template() else NULL
@@ -189,9 +189,6 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
   })
 
   # ---- Parse + validate uploaded CSVs ----
-  # fread returns a data.table by default (feedback_fread_default_type); columns
-  # are validated by name, not position. GROUP is coerced to a factor so
-  # stat-analysis can derive the condition list from levels(GROUP).
 
   observeEvent(input$upload_feature_level, {
     file = input$upload_feature_level
@@ -208,8 +205,8 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
       uploaded_feature_level(NULL)
       return()
     }
-    missing = qc_missing_upload_columns(colnames(parsed),
-                                        qc_required_feature_columns(get_template()))
+    missing = get_missing_upload_columns(colnames(parsed),
+                                        get_qc_required_feature_columns())
     if (length(missing) > 0) {
       showNotification(
         paste0("FeatureLevelData is missing required column(s): ",
@@ -242,8 +239,8 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
       uploaded_protein_level(NULL)
       return()
     }
-    missing = qc_missing_upload_columns(colnames(parsed),
-                                        qc_required_protein_columns(get_template()))
+    missing = get_missing_upload_columns(colnames(parsed),
+                                        get_qc_required_protein_columns(get_template()))
     if (length(missing) > 0) {
       showNotification(
         paste0("ProteinLevelData is missing required column(s): ",
@@ -266,15 +263,11 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
   })
 
   # ---- Mapping CSV: GROUP -> time/dose, written into condition_metadata ----
-  # Turnover uses GROUP + TimeVal; chemo uses GROUP + DoseVal + DoseUnit +
-  # DrugName. GROUP is renamed to Condition so downstream turnover / chemo code
-  # consumes it unchanged.
 
   observeEvent(input$upload_condition_mapping, {
     file = input$upload_condition_mapping
     req(file)
     template = get_template()
-    # Clear validity on every (re-)upload; only a fully validated mapping sets it.
     mapping_valid(FALSE)
     parsed = tryCatch(
       data.table::fread(file$datapath),
@@ -286,8 +279,8 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
     )
     if (is.null(parsed)) return()
 
-    missing = qc_missing_upload_columns(colnames(parsed),
-                                        qc_required_mapping_columns(template))
+    missing = get_missing_upload_columns(colnames(parsed),
+                                        get_qc_required_mapping_columns(template))
     if (length(missing) > 0) {
       showNotification(
         paste0("GROUP mapping is missing required column(s): ",
@@ -296,8 +289,6 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
       return()
     }
 
-    # Value column must be numeric-coercible: blank / non-numeric entries become
-    # NA downstream and fail the fit silently.
     value_col = if (!is.null(template) && template == TEMPLATES$protein_turnover) "TimeVal" else "DoseVal"
     if (any(is.na(suppressWarnings(as.numeric(parsed[[value_col]]))))) {
       showNotification(
@@ -307,8 +298,6 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
       return()
     }
 
-    # Chemo dose units feed convert_dose_to_molar, which silently treats an
-    # unrecognized unit as molar; reject unknown units up front.
     if (!is.null(template) && template == TEMPLATES$chemoproteomics &&
         !qc_dose_units_valid(parsed$DoseUnit)) {
       showNotification(
@@ -317,8 +306,6 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
       return()
     }
 
-    # GROUP values must line up one-to-one with the uploaded ProteinLevelData;
-    # unknown groups, missing groups, or duplicate rows all corrupt the join.
     pld = uploaded_protein_level()
     if (is.null(pld)) {
       showNotification("Please upload ProteinLevelData before the GROUP mapping.",
@@ -360,7 +347,7 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
       uploaded_turnover_ratios(NULL)
       return()
     }
-    missing = qc_missing_upload_columns(colnames(parsed), qc_required_ratios_columns())
+    missing = get_missing_upload_columns(colnames(parsed), get_qc_required_ratios_columns())
     if (length(missing) > 0) {
       showNotification(
         paste0("Turnover Ratios is missing required column(s): ",
@@ -369,9 +356,16 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
       uploaded_turnover_ratios(NULL)
       return()
     }
-    if (!qc_values_numeric_finite(parsed, c("TimeVal", "H_frac", "L_frac"))) {
+    if (!qc_values_numeric_finite(parsed, "TimeVal")) {
       showNotification(
-        "Turnover Ratios TimeVal, H_frac, and L_frac must be numeric and finite for every row.",
+        "Turnover Ratios TimeVal must be numeric and finite for every row.",
+        type = "error", duration = 10)
+      uploaded_turnover_ratios(NULL)
+      return()
+    }
+    if (!qc_values_numeric_finite(parsed, c("H_frac", "L_frac"), allow_na = TRUE)) {
+      showNotification(
+        "Turnover Ratios H_frac and L_frac must be numeric and finite, or left blank.",
         type = "error", duration = 10)
       uploaded_turnover_ratios(NULL)
       return()
@@ -385,8 +379,6 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
   })
 
   # ---- Effective preprocess: uploaded tables when the load page was not used ----
-  # Falls back to the raw preprocess_data() eventReactive whenever load-page data
-  # exists or the uploads are incomplete, so existing flows are unchanged.
 
   effective_preprocess_data = reactive({
     loaded = tryCatch(get_data(), error = function(e) NULL)

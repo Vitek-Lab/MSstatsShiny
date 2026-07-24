@@ -5,8 +5,6 @@
 #' @noRd
 register_qc_downloads <- function(input, output, session, loadpage_input, preprocess_data) {
 
-  # Keyed on the effective (computed OR uploaded) data, so downloads become
-  # clickable on the upload path where input$run never fires.
   observeEvent(preprocess_data(),{
 
     if(loadpage_input()$BIO=="PTM"){
