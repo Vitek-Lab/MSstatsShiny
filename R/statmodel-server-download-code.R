@@ -109,7 +109,15 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
   codes = paste(codes, "colnames(contrast.matrix)=c(\"", 
                 paste(colnames(comp_mat), collapse = '","'), "\")\n", sep = "")
   
-  if (loadpage_input$DDA_DIA == "TMT") {
+  if (isTRUE(loadpage_input$BIO == "PTM")) {
+    dt = if ((isTRUE(loadpage_input$BIO == "PTM") & isTRUE(loadpage_input$DDA_DIA == "TMT")) |
+             isTRUE(loadpage_input$filetype == 'phil')) "TMT" else "LabelFree"
+
+    codes = paste(codes, "\n# Model-based comparison\n", sep = "")
+    codes = paste(codes, "model = MSstatsPTM::groupComparisonPTM(summarized, '",
+                  dt, "', \t\t\t\t
+                      contrast.matrix = contrast.matrix)\n", sep = "")
+  } else if (isTRUE(loadpage_input$DDA_DIA == "TMT")) {
     codes = paste(codes, "\n# Model-based comparison\n", sep = "")
     codes = paste(codes, "model = MSstatsTMT::groupComparisonTMT(summarized,
                        contrast.matrix = contrast.matrix,
@@ -118,14 +126,6 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
                        remove_norm_channel = TRUE,
                        remove_empty_channel = TRUE
                        )\n", sep = "")
-  } else if (loadpage_input$BIO == "PTM") {
-    dt = if ((loadpage_input$BIO == "PTM" & loadpage_input$DDA_DIA == "TMT") | 
-             loadpage_input$filetype == 'phil') "TMT" else "LabelFree"
-    
-    codes = paste(codes, "\n# Model-based comparison\n", sep = "")
-    codes = paste(codes, "model = MSstatsPTM::groupComparisonPTM(summarized, '",
-                  dt, "', \t\t\t\t
-                      contrast.matrix = contrast.matrix)\n", sep = "")
   } else {
     codes = paste(codes, "\n# Model-based comparison\n", sep = "")
     codes = paste(codes, "model = MSstats::groupComparison(contrast.matrix, summarized)\n", sep = "")

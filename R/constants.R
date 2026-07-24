@@ -185,7 +185,10 @@ NAMESPACE_QC = list(
   profileplot_options_panel = "profileplot_options_panel",
   qualitymetrics_options_panel = "qualitymetrics_options_panel",
   nonptm_downloads_panel = "nonptm_downloads_panel",
-  ptm_downloads_panel = "ptm_downloads_panel"
+  ptm_downloads_panel = "ptm_downloads_panel",
+  # Data Upload tab template-gated upload panels
+  data_upload_mapping_panel = "data_upload_mapping_panel",
+  data_upload_ratios_panel = "data_upload_ratios_panel"
 )
 
 NAMESPACE_EXPDES = list(

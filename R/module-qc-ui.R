@@ -198,6 +198,42 @@ qcUI <- function(id) {
                h3(textOutput(ns("caption"), container = span)),
 
                tabsetPanel(id = ns("qc_tabs"),
+                 tabPanel("Upload Summarized Abundances", value = "Data Upload",
+                          wellPanel(
+                            h4("Upload summarized abundances"),
+                            p("Bring FeatureLevelData and ProteinLevelData that were summarized in a previous session or an external pipeline. When the required files are uploaded and the Data Uploading page has not been used, the Statistical Inference Page uses them directly, skipping conversion and summarization on the Data Uploading page."),
+                            fileInput(ns("upload_feature_level"), "Upload FeatureLevelData (CSV)", accept = ".csv"),
+                            fileInput(ns("upload_protein_level"), "Upload ProteinLevelData (CSV)", accept = ".csv"),
+                            p(tags$strong("Required columns (names must match exactly, case-sensitive):")),
+                            tags$ul(
+                              tags$li(tags$strong("FeatureLevelData: "), "PROTEIN, PEPTIDE, FEATURE, RUN, GROUP, LABEL, INTENSITY"),
+                              tags$li(tags$strong("ProteinLevelData: "), "Protein, GROUP, RUN, LogIntensities (add LABEL for protein turnover)")
+                            ),
+                            # Template-gated (turnover + chemo): GROUP mapping, shown/hidden server-side
+                            shinyjs::hidden(div(
+                              id = ns(NAMESPACE_QC$data_upload_mapping_panel),
+                              tags$hr(),
+                              h4("Condition mapping (CSV)",
+                                 class = "icon-wrapper",
+                                 icon("question-circle", lib = "font-awesome"),
+                                 div("Maps each experimental group to its numeric time point (protein turnover) or dose (chemoproteomics). This supplies the condition metadata the Data Uploading page normally collects when you convert data there. The GROUP values in this file must exactly match the GROUP values in your uploaded ProteinLevelData.",
+                                     class = "icon-tooltip")),
+                              fileInput(ns("upload_condition_mapping"), "Upload GROUP mapping (CSV)", accept = ".csv"),
+                              p(tags$strong("Required columns:")),
+                              tags$ul(
+                                tags$li(tags$strong("Protein turnover: "), "GROUP, TimeVal"),
+                                tags$li(tags$strong("Chemoproteomics: "), "GROUP, DoseVal, DoseUnit (uM, nM, mM, or M), DrugName")
+                              )
+                            )),
+                            # Template-gated (turnover only): turnover ratios
+                            shinyjs::hidden(div(
+                              id = ns(NAMESPACE_QC$data_upload_ratios_panel),
+                              tags$hr(),
+                              fileInput(ns("upload_turnover_ratios"), "Upload Turnover Ratios (CSV)", accept = ".csv"),
+                              p(tags$strong("Required columns: "), "Protein, TimeVal, H_frac, L_frac")
+                            ))
+                          )
+                 ),
                  tabPanel("Summarized Results",
                           wellPanel(
                             fluidRow(

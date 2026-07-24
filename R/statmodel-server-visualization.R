@@ -2,7 +2,7 @@
 # Visualization Options and Plotting Functions
 # ============================================================================
 
-render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list, contrast, app_template = reactive(TEMPLATES$default), condition_metadata = reactive(NULL)) {
+render_group_comparison_plot_inputs = function(output, session, rownames, get_data, input, loadpage_input, condition_list, contrast, app_template = reactive(TEMPLATES$default), condition_metadata = reactive(NULL), preprocess_data = reactive(NULL)) {
   ns = session$ns
   
   output[[NAMESPACE_STATMODEL$visualization_which_comparison]] = renderUI({
@@ -28,9 +28,12 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
   })
   
   output[[NAMESPACE_STATMODEL$visualization_which_protein]] = renderUI({
+    proteins = tryCatch(unique(as.character(preprocess_data()$ProteinLevelData$Protein)),
+                        error = function(e) NULL)
+    req(length(proteins) > 0)
     selectInput(ns(NAMESPACE_STATMODEL$visualization_which_protein),
-                label = h4("which protein to plot"), 
-                unique(get_data()$ProteinName))
+                label = h4("which protein to plot"),
+                proteins)
   })
   
   output[[NAMESPACE_STATMODEL$visualization_plot_options_conditional_panel]] = renderUI({

@@ -65,10 +65,13 @@ register_qc_plots <- function(input, output, session, loadpage_input, get_data,
     if (input$qc_page_plot_type == "QualityMetricsPlot") {
       return(NULL)
     }
+    protein_choices <- tryCatch(
+      unique(as.character(preprocess_data()$ProteinLevelData$Protein)),
+      error = function(e) NULL)
     if ((loadpage_input()$BIO!="PTM" && input$qc_page_plot_type == "QCPlot")) {
+      req(length(protein_choices) > 0)
       selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
-                     choices = c("", "ALL PROTEINS" = "allonly",
-                                 unique(get_data()$ProteinName)))
+                     choices = c("", "ALL PROTEINS" = "allonly", protein_choices))
     } else if (loadpage_input()$BIO == "PTM"){
       if (input$qc_page_plot_type == "QCPlot"){
         selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
@@ -79,8 +82,9 @@ register_qc_plots <- function(input, output, session, loadpage_input, get_data,
                        choices = c("", unique(get_data()$PTM$ProteinName)))
       }
     } else {
+      req(length(protein_choices) > 0)
       selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
-                     choices = c("", unique(get_data()$ProteinName)))
+                     choices = c("", protein_choices))
     }
   })
 

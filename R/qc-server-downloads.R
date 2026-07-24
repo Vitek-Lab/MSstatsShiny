@@ -5,7 +5,7 @@
 #' @noRd
 register_qc_downloads <- function(input, output, session, loadpage_input, preprocess_data) {
 
-  observeEvent(input$run,{
+  observeEvent(preprocess_data(),{
 
     if(loadpage_input()$BIO=="PTM"){
       enable("prep_feature_level_data_csv_ptm")
