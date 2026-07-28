@@ -79,7 +79,7 @@ server = function(input, output, session) {
   })
   
   # visualizeNetworkServer - keep callModule if not yet refactored
-  visualizeNetworkServer("network", parent_session = session, dataComparison = data_comparison)
+  visualizeNetworkServer("network", parent_session = session, dataComparison = data_comparison, app_template = app_template)
   
   observe({
     if(input$"loadpage-DDA_DIA" %in% c("TMT") && input$"loadpage-BIO" %in% c("PTM")) {
