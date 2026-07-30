@@ -277,14 +277,16 @@ export_network_html <- function(render_data, displayLabelType, file) {
 #' @param id Module ID string
 #' @param parent_session Parent Shiny session
 #' @param dataComparison Reactive expression containing comparison data
+#' @param app_template Reactive returning the selected template name (e.g. TEMPLATES$default)
 #'
 #' @return None (side effects only)
 #' 
 #' @importFrom MSstatsBioNet annotateProteinInfoFromIndra getSubnetworkFromIndra
 #' @importFrom DT renderDT datatable
-#' @importFrom shiny moduleServer updateSelectizeInput showNotification outputOptions
+#' @importFrom shiny moduleServer updateSelectizeInput showNotification outputOptions updateRadioButtons
 #' @importFrom httr POST content_type_json accept_json content status_code
-visualizeNetworkServer <- function(id, parent_session, dataComparison) {
+visualizeNetworkServer <- function(id, parent_session, dataComparison,
+                                   app_template = reactive(TEMPLATES$default)) {
   moduleServer(id, function(input, output, session) {
   
   # Output to control conditional panels
@@ -294,6 +296,71 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
       !is.null(extractComparisonResult(dataComparison)$Protein)
   })
   outputOptions(output, "hasValidDataComparison", suspendWhenHidden = FALSE)
+
+  is_metabolomics <- reactive(isTRUE(app_template() == TEMPLATES$metabolomics))
+
+  output$idTypeLabel <- renderUI({
+    if (is_metabolomics()) {
+      tags$label(
+        "Analyte ID Type:",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Select the type of analyte identifier used in your data. For metabolomics, analytes are grounded by name (e.g., glucose, citrate).",
+            class = "icon-tooltip")
+      )
+    } else {
+      tags$label(
+        "Protein ID Type:",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Select the type of protein identifier used in your data. Uniprot Mnemonic uses readable names (e.g., P53_HUMAN), while Uniprot uses alphanumeric codes (e.g., P04637).",
+            class = "icon-tooltip")
+      )
+    }
+  })
+
+  output$displayLabelHeader <- renderUI({
+    if (is_metabolomics()) {
+      tags$label(
+        "Node Label Display:",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Choose how metabolite nodes are labeled. Metabolite Name shows the identifier from your data; Grounded Name shows the standardized name resolved during annotation.",
+            class = "icon-tooltip")
+      )
+    } else {
+      tags$label(
+        "Node Label Display:",
+        class = "icon-wrapper",
+        icon("question-circle", lib = "font-awesome"),
+        div("Choose how protein nodes are labeled in the network visualization. Protein Name shows the full protein name, Gene Name shows the HGNC gene symbol.",
+            class = "icon-tooltip")
+      )
+    }
+  })
+
+  observeEvent(app_template(), {
+    if (is_metabolomics()) {
+      updateRadioButtons(session, "proteinIdType",
+                         choices = list("Metabolite Name" = "Metabolite"),
+                         selected = "Metabolite")
+      updateRadioButtons(session, "displayLabelType",
+                         choices = list("Metabolite Name" = "id",
+                                        "Standardized Name" = "entityName"),
+                         selected = "id")
+      shinyjs::hide("filter_by_ptm_site")
+    } else {
+      updateRadioButtons(session, "proteinIdType",
+                         choices = list("Uniprot Mnemonic" = "Uniprot_Mnemonic",
+                                        "Uniprot" = "Uniprot"),
+                         selected = "Uniprot")
+      updateRadioButtons(session, "displayLabelType",
+                         choices = list("Protein Name" = "id",
+                                        "Gene Name" = "entityName"),
+                         selected = "id")
+      shinyjs::show("filter_by_ptm_site")
+    }
+  }, ignoreInit = FALSE)
   
   # Reactive value to store selected proteins
   selectedProteinsReactive <- reactiveVal(character(0))
@@ -311,7 +378,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
   output$selectedProteinsTags <- renderUI({
     proteins <- selectedProteinsReactive()
     if (length(proteins) == 0) {
-      return(div(style = "color: #999; font-style: italic;", "No proteins selected"))
+      return(div(style = "color: #999; font-style: italic;", "No analytes selected"))
     }
     
     ns <- session$ns
@@ -344,7 +411,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     }
     
     # Show loading notification
-    showNotification("Searching for protein...", type = "message", duration = 2)
+    showNotification("Searching for analyte...", type = "message", duration = 2)
     
     # Call INDRA grounding API
     tryCatch({
@@ -404,7 +471,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
         }
       } else {
         proteinSearchResults(NULL)
-        showNotification("Error searching protein database", type = "error", duration = 3)
+        showNotification("Error searching Gilda grounding database", type = "error", duration = 3)
       }
     }, error = function(e) {
       proteinSearchResults(NULL)
@@ -463,7 +530,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
       selectedProteinsReactive(c(current, identifier))
       showNotification(sprintf("Added: %s", selected), type = "message", duration = 2)
     } else {
-      showNotification("Protein already selected", type = "warning", duration = 2)
+      showNotification("Analyte already selected", type = "warning", duration = 2)
     }
     
     # Clear search
@@ -477,7 +544,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison) {
     current <- selectedProteinsReactive()
     if (index > 0 && index <= length(current)) {
       selectedProteinsReactive(current[-index])
-      showNotification("Protein removed", type = "message", duration = 2)
+      showNotification("Analyte removed", type = "message", duration = 2)
     }
   })
   

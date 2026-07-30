@@ -55,14 +55,8 @@ createLabelDropdown <- function(ns) {
 
 createProteinIdRadioButtons <- function(ns) {
   div(
-    tags$label(
-      "Protein ID Type:",
-      class = "icon-wrapper",
-      icon("question-circle", lib = "font-awesome"),
-      div("Select the type of protein identifier used in your data. Uniprot Mnemonic uses readable names (e.g., P53_HUMAN), while Uniprot uses alphanumeric codes (e.g., P04637).", 
-          class = "icon-tooltip")
-    ),
-    radioButtons(ns("proteinIdType"), 
+    uiOutput(ns("idTypeLabel")),
+    radioButtons(ns("proteinIdType"),
                  label = NULL,  # Remove since we're handling it above
                  choices = list("Uniprot Mnemonic" = "Uniprot_Mnemonic", 
                                 "Uniprot" = "Uniprot"),
@@ -72,17 +66,11 @@ createProteinIdRadioButtons <- function(ns) {
 
 createDisplayLabelRadioButtons <- function(ns) {
   div(
-    tags$label(
-      "Node Label Display:",
-      class = "icon-wrapper",
-      icon("question-circle", lib = "font-awesome"),
-      div("Choose how protein nodes are labeled in the network visualization. Protein Name shows the full protein name, Gene Name shows the HGNC gene symbol.", 
-          class = "icon-tooltip")
-    ),
+    uiOutput(ns("displayLabelHeader")),
     radioButtons(ns("displayLabelType"),
                  label = NULL,  # Remove since we're handling it above
                  choices = list("Protein Name" = "id",
-                                "Gene Name" = "hgncName"),
+                                "Gene Name" = "entityName"),
                  selected = "id")
   )
 }
@@ -94,7 +82,7 @@ createParameterSliders <- function(ns) {
         "Adjusted P-Value:",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Statistical significance threshold. Only proteins with adjusted p-values below this cutoff will be included in the network.", 
+        div("Statistical significance threshold. Only analytes with adjusted p-values below this cutoff will be included in the network.",
             class = "icon-tooltip")
       ),
       sliderInput(ns("pValue"), 
@@ -106,7 +94,7 @@ createParameterSliders <- function(ns) {
         "Absolute LogFC Cutoff:",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Minimum absolute log fold change value for including proteins. Higher values focus on more dramatically changed proteins.", 
+        div("Minimum absolute log fold change value for including analytes. Higher values focus on more dramatically changed analytes.",
             class = "icon-tooltip")
       ),
       sliderInput(ns("absLogFC"),
@@ -118,7 +106,7 @@ createParameterSliders <- function(ns) {
         "INDRA Evidence Cutoff:",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Minimum number of supporting evidence lines required for including a protein regulatory relationship. Each count reflects a separate line of support, such as a sentence in a paper or an entry in a curated database, not necessarily distinct publications. Higher values increase confidence but may reduce network size.", 
+        div("Minimum number of supporting evidence lines required for including a regulatory relationship. Each count reflects a separate line of support, such as a sentence in a paper or an entry in a curated database, not necessarily distinct publications. Higher values increase confidence but may reduce network size.", 
             class = "icon-tooltip")
       ),
       sliderInput(ns("evidence"), 
@@ -178,7 +166,7 @@ createFilterDropdowns <- function(ns) {
         "INDRA Sources:",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Filter regulatory relationships by data source. Different sources use various methods to identify protein regulatory relationships (literature mining, manual curation, etc.).", 
+        div("Filter regulatory relationships by data source. Different sources use various methods to identify regulatory relationships (literature mining, manual curation, etc.).", 
             class = "icon-tooltip")
       ),
       selectInput(ns("sources"),
@@ -221,10 +209,10 @@ createFilterDropdowns <- function(ns) {
     ),
     div(
       tags$label(
-        "Force Include Proteins (optional):",
+        "Force Include Analytes (optional):",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Search for specific proteins to include in the network analysis regardless of other filtering criteria. As a hidden feature, you can also search by any biological agent, e.g. drugs, GO terms, etc!", 
+        div("Search for specific analytes to include in the network analysis regardless of other filtering criteria. As a hidden feature, you can also search by any biological agent, e.g. drugs, GO terms, etc!",
             class = "icon-tooltip")
       ),
       # Container for selected proteins
@@ -237,7 +225,7 @@ createFilterDropdowns <- function(ns) {
         style = "display: flex; gap: 10px; align-items: flex-start;",
         textInput(ns("proteinSearchInput"),
                   label = NULL,
-                  placeholder = "Type protein name or gene symbol...",
+                  placeholder = "Type analyte name or identifier...",
                   width = "70%"),
         actionButton(ns("proteinSearchButton"),
                      "Search",
@@ -273,7 +261,7 @@ createAdvancedOptionsCollapsible <- function(ns) {
                           "Filter out statements curated as incorrect",
                           class = "icon-wrapper",
                           icon("question-circle", lib = "font-awesome"),
-                          div("When checked, excludes protein regulatory relationships that have been manually curated as incorrect in the INDRA database.", 
+                          div("When checked, excludes regulatory relationships that have been manually curated as incorrect in the INDRA database.",
                               class = "icon-tooltip")
                         ), 
                         value = FALSE),
@@ -291,7 +279,7 @@ createAdvancedOptionsCollapsible <- function(ns) {
                           "Include infinite fold change",
                           class = "icon-wrapper",
                           icon("question-circle", lib = "font-awesome"),
-                          div("Enable to include proteins/PTMs with infinite log fold change (i.e. proteins that are only detected in one condition).", 
+                          div("Enable to include analytes with infinite log fold change (i.e. analytes that are only detected in one condition).",
                               class = "icon-tooltip")
                         ), 
                         value = FALSE),
@@ -300,9 +288,9 @@ createAdvancedOptionsCollapsible <- function(ns) {
                         "Direction of regulation",
                         class = "icon-wrapper",
                         icon("question-circle", lib = "font-awesome"),
-                        div("Specify the direction of regulation of differentially abundant proteins/PTMs to include in the network. 
-                            'Upregulated only' only includes up-regulated proteins/PTMs (positive log fold change), 
-                            while 'Downregulated only' only includes down-regulated proteins/PTMs (negative log fold change).", 
+                        div("Specify the direction of regulation of differentially abundant analytes to include in the network.
+                            'Upregulated only' only includes up-regulated analytes (positive log fold change),
+                            while 'Downregulated only' only includes down-regulated analytes (negative log fold change).",
                             class = "icon-tooltip")
                       ), 
                       choices = c(
@@ -403,7 +391,7 @@ createNetworkSettingsTab <- function(ns) {
            div(
              style = "text-align: center; width: 100%;",
              p(
-               "Explore your differential abundance analysis results with respect to what is known in prior literature in the form of protein regulatory networks. If your differential abundance analysis results were not obtained through MSstatsShiny, you can upload your differential abundance analysis results as a CSV file.",
+               "Explore your differential abundance analysis results with respect to what is known in prior literature in the form of regulatory networks. If your differential abundance analysis results were not obtained through MSstatsShiny, you can upload your differential abundance analysis results as a CSV file.",
                style = "margin: 0;"
              )
            ),
