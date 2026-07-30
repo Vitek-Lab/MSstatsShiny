@@ -342,11 +342,11 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison,
   observeEvent(app_template(), {
     if (is_metabolomics()) {
       updateRadioButtons(session, "proteinIdType",
-                         choices = list("Metabolite" = "Metabolite"),
+                         choices = list("Metabolite Name" = "Metabolite"),
                          selected = "Metabolite")
       updateRadioButtons(session, "displayLabelType",
                          choices = list("Metabolite Name" = "id",
-                                        "Grounded Name" = "entityName"),
+                                        "Standardized Name" = "entityName"),
                          selected = "id")
       shinyjs::hide("filter_by_ptm_site")
     } else {
@@ -471,7 +471,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison,
         }
       } else {
         proteinSearchResults(NULL)
-        showNotification("Error searching analyte database", type = "error", duration = 3)
+        showNotification("Error searching Gilda grounding database", type = "error", duration = 3)
       }
     }, error = function(e) {
       proteinSearchResults(NULL)
