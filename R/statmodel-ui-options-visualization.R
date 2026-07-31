@@ -74,7 +74,7 @@ create_qq_plot_options <- function(ns) {
 #' @noRd
 create_heatmap_options <- function(ns) {
   tagList(
-    h4("Note: Only one page will be shown in browser. To view all proteins please view this plot as a pdf. Heatmaps require at least two comparisons."),
+    h4("Note: Only one page will be shown in browser. To view all analytes please view this plot as a pdf. Heatmaps require at least two comparisons."),
     selectInput(
       ns(NAMESPACE_STATMODEL$visualization_logp_base),
       label = h5("Log transformation of adjusted p-value"),
@@ -84,7 +84,7 @@ create_heatmap_options <- function(ns) {
     create_fold_change_options(ns),
     numericInput(
       ns(NAMESPACE_STATMODEL$visualization_heatmap_number_proteins), 
-      "Number of proteins to display", 
+      "Number of analytes to display",
       100, 1, 180, 1
     ),
     selectInput(
@@ -93,12 +93,12 @@ create_heatmap_options <- function(ns) {
         "Cluster analysis",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Determines how to order proteins and comparisons. protein means, comparison means, or both", class = "icon-tooltip")
+        div("Determines how to order analytes and comparisons. analyte means, comparison means, or both", class = "icon-tooltip")
       ), 
       c(
-        "protein dendrogram" = "protein", 
+        "analyte dendrogram" = "protein",
         "comparison dendrogram" = "comparison", 
-        "protein and comparison dendrograms" = "both"
+        "analyte and comparison dendrograms" = "both"
       )
     )
   )
