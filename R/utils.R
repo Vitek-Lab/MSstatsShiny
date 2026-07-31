@@ -1146,7 +1146,7 @@ metabolomics_preview_view <- function(data) {
 #' @noRd
 rename_protein_column_for_display <- function(data, app_template) {
   d = as.data.frame(data)
-  if (!is.null(app_template) && app_template() == TEMPLATES$metabolomics)
+  if (!is.null(app_template) && isTRUE(app_template() == TEMPLATES$metabolomics))
     names(d)[names(d) == "Protein"] = "Metabolite"
   d
 }
