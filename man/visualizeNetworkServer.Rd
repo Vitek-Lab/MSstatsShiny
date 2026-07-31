@@ -4,7 +4,12 @@
 \alias{visualizeNetworkServer}
 \title{Server logic for network visualization module}
 \usage{
-visualizeNetworkServer(id, parent_session, dataComparison)
+visualizeNetworkServer(
+  id,
+  parent_session,
+  dataComparison,
+  app_template = reactive(TEMPLATES$default)
+)
 }
 \arguments{
 \item{id}{Module ID string}
@@ -12,6 +17,8 @@ visualizeNetworkServer(id, parent_session, dataComparison)
 \item{parent_session}{Parent Shiny session}
 
 \item{dataComparison}{Reactive expression containing comparison data}
+
+\item{app_template}{Reactive returning the selected template name (e.g. TEMPLATES$default)}
 }
 \value{
 None (side effects only)

@@ -67,7 +67,7 @@ register_qc_summary <- function(input, output, session, loadpage_input,
         dataTableOutput(ns("abundanceTable")) )
     }
   })
-  output$abundanceTable = renderDataTable(abundance())
+  output$abundanceTable = renderDataTable(rename_protein_column_for_display(abundance(), app_template))
 
   output$download_summary = downloadHandler(
     filename = function() {

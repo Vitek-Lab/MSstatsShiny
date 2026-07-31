@@ -1137,6 +1137,20 @@ metabolomics_preview_view <- function(data) {
   d
 }
 
+#' Display-only rename of the `Protein` column header for the metabolomics template.
+#'
+#' Returns a COPY (`as.data.frame(data)`) whose `Protein` column is renamed to
+#' `Metabolite` only under the metabolomics template. The underlying data.table
+#' is never mutated by reference, so downstream code that reads the `Protein`
+#' column by name is unaffected.
+#' @noRd
+rename_protein_column_for_display <- function(data, app_template) {
+  d = as.data.frame(data)
+  if (!is.null(app_template) && app_template() == TEMPLATES$metabolomics)
+    names(d)[names(d) == "Protein"] = "Metabolite"
+  d
+}
+
 getDataCode <- function(input) {
   codes = ""
   codes = paste(codes, "\n# Load Packages

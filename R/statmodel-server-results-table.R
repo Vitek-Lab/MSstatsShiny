@@ -2,7 +2,8 @@
 # Results Table and Download Functions
 # ============================================================================
 
-render_results_table = function(output, session, data_comparison, SignificantProteins) {
+render_results_table = function(output, session, data_comparison, SignificantProteins,
+                                app_template = reactive(TEMPLATES$default)) {
   ns = session$ns
 
   output$table_results = renderUI({
@@ -19,7 +20,9 @@ render_results_table = function(output, session, data_comparison, SignificantPro
     )
   })
 
-  output$significant = renderDataTable({ SignificantProteins() }, options = list(scrollX = TRUE))
+  output$significant = renderDataTable(
+    rename_protein_column_for_display(SignificantProteins(), app_template),
+    options = list(scrollX = TRUE))
   output$number = renderText({ nrow(SignificantProteins()) })
 }
 
