@@ -238,7 +238,7 @@ qcUI <- function(id) {
                           wellPanel(
                             fluidRow(
                               h4("Download summary of abundance",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                                 div("Model-based quantification for each condition or for each biological samples per analyte.", class = "icon-tooltip")),
+                                 div("Model-based quantification for each condition or for each biological sample per analyte.", class = "icon-tooltip")),
                               radioButtons(ns("typequant"),
                                            label = h4("Type of summarization"),
                                            c("Sample level summarization" = "Sample",

@@ -93,7 +93,7 @@ create_heatmap_options <- function(ns) {
         "Cluster analysis",
         class = "icon-wrapper",
         icon("question-circle", lib = "font-awesome"),
-        div("Determines how to order analytes and comparisons. analyte means, comparison means, or both", class = "icon-tooltip")
+        div("Determines how to order analytes and comparisons using analyte means, comparison means, or both.", class = "icon-tooltip")
       ), 
       c(
         "analyte dendrogram" = "protein",
@@ -144,7 +144,7 @@ create_fold_change_options <- function(ns) {
 create_plot_action_buttons <- function(ns) {
   tagList(
     p("Please note if you want to plot more than one Volcano Plot comparison, you must save the results as a HTML."),
-    actionButton(ns(NAMESPACE_STATMODEL$visualization_view_results), "View plot in browser (only for one comparison/protein)"),
+    actionButton(ns(NAMESPACE_STATMODEL$visualization_view_results), "View plot in browser (only for one comparison/analyte)"),
     downloadButton(ns(NAMESPACE_STATMODEL$visualization_download_plot_results), "Save plot results as Zip")
   )
 }
