@@ -458,7 +458,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       })
       
       # Results rendering
-      render_results_table(output, session, data_comparison, SignificantProteins)
+      render_results_table(output, session, data_comparison, SignificantProteins, app_template = app_template)
       render_ptm_results_tables(output, session, data_comparison, SignificantProteins)
 
       # Download handlers
