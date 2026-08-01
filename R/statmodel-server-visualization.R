@@ -32,7 +32,7 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
                         error = function(e) NULL)
     req(length(proteins) > 0)
     selectInput(ns(NAMESPACE_STATMODEL$visualization_which_protein),
-                label = h4("which protein to plot"),
+                label = h4("which analyte to plot"),
                 proteins)
   })
   

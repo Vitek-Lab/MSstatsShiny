@@ -22,7 +22,7 @@ qcUI <- function(id) {
         tags$link(rel = "stylesheet", type = "text/css", href = "assets/style.css"),
       ),
       headerPanel("Process and quantify data"),
-      p("Feature summarization and missing value imputation. Includes options for visualizing summarization through data tables and multiple plots. Summarized tables and processed datasets are available to download in CSV format. Imputation runs only when a feature is observed in some other run AND the protein has at least one observed feature in the current run."),
+      p("Feature summarization and missing value imputation. Includes options for visualizing summarization through data tables and multiple plots. Summarized tables and processed datasets are available to download in CSV format. Imputation runs only when a feature is observed in some other run AND the analyte has at least one observed feature in the current run."),
       tags$br(),
       sidebarPanel(
         # Peptide-level (global median) normalization: TMT branch
@@ -50,7 +50,7 @@ qcUI <- function(id) {
           id = ns(NAMESPACE_QC$summarization_panel),
           selectInput(ns("summarization"),
                       h4("Summarization method",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                         div("Select method to be used for protein summarization. For details on each option please see Help tab", class = "icon-tooltip")),
+                         div("Select method to be used for summarization. For details on each option please see Help tab", class = "icon-tooltip")),
                       c("MSstats" = "msstats",
                         "Tukeys median polish" = "MedianPolish",
                         "Log(Sum)" = "LogSum","Median" = "Median"),
@@ -91,8 +91,8 @@ qcUI <- function(id) {
         # Reference-channel normalization and filtering: TMT branch
         shinyjs::hidden(div(
           id = ns(NAMESPACE_QC$reference_norm_panel),
-          h4("Local protein normalization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-             div("Reference channel based normalization between MS runs on protein level data. Requires one reference channel in each MS run, annotated by 'Norm' in Condition column of annotation file", class = "icon-tooltip")),
+          h4("Local normalization",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+             div("Reference channel based normalization between MS runs on summarized data. Requires one reference channel in each MS run, annotated by 'Norm' in Condition column of annotation file", class = "icon-tooltip")),
           checkboxInput(ns("reference_norm"), "Yes", value = TRUE),
           tags$hr(),
           h4("Filtering"),
@@ -163,7 +163,7 @@ qcUI <- function(id) {
           shinyjs::hidden(div(
             id = ns(NAMESPACE_QC$mbi_panel),
             checkboxInput(ns("MBi"), label=tags$div("Model based imputation",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                                                    div("Fills in missing intensities only when (a) the protein has at least one observed feature in that run, AND (b) the missing feature is observed in at least one other run. Proteins entirely missing from a run, and features never observed in the dataset, are not imputed. If unchecked, the cutoff for censored values is used instead.", class = "icon-tooltip")),value = TRUE
+                                                    div("Fills in missing intensities only when (a) the analyte has at least one observed feature in that run, AND (b) the missing feature is observed in at least one other run. Analytes entirely missing from a run, and features never observed in the dataset, are not imputed. If unchecked, the cutoff for censored values is used instead.", class = "icon-tooltip")),value = TRUE
             )
           )),
           # # cutoff for censored
@@ -188,13 +188,13 @@ qcUI <- function(id) {
 
         tags$hr(),
         uiOutput(ns("tracer_constants_sidebar")),
-        actionButton(ns("run"), "Run protein summarization"),
+        actionButton(ns("run"), "Run summarization"),
         width = 3
       ),
       column(width = 8,
              mainPanel(
 
-               h3("Please run protein summarization in the side panel."),
+               h3("Please run summarization in the side panel."),
                h3(textOutput(ns("caption"), container = span)),
 
                tabsetPanel(id = ns("qc_tabs"),
@@ -237,8 +237,8 @@ qcUI <- function(id) {
                  tabPanel("Summarized Results",
                           wellPanel(
                             fluidRow(
-                              h4("Download summary of protein abundance",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
-                                 div("Model-based quantification for each condition or for each biological samples per protein.", class = "icon-tooltip")),
+                              h4("Download summary of abundance",class = "icon-wrapper",icon("question-circle", lib = "font-awesome"),
+                                 div("Model-based quantification for each condition or for each biological sample per analyte.", class = "icon-tooltip")),
                               radioButtons(ns("typequant"),
                                            label = h4("Type of summarization"),
                                            c("Sample level summarization" = "Sample",

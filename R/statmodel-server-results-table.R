@@ -12,11 +12,11 @@ render_results_table = function(output, session, data_comparison, SignificantPro
     tagList(
       tags$br(),
       h2("Results"),
-      h5("There are ", textOutput(ns("number"), inline = TRUE), "significant proteins"),
+      h5("There are ", textOutput(ns("number"), inline = TRUE), "significant analytes"),
       tags$br(),
       dataTableOutput(ns("significant")),
       downloadButton(ns("download_compar"), "Download all modeling results"),
-      downloadButton(ns("download_signif"), "Download significant proteins")
+      downloadButton(ns("download_signif"), "Download significant analytes")
     )
   })
 
@@ -76,12 +76,12 @@ render_ptm_results_tables = function(output, session, data_comparison, Significa
     } else {
       tagList(
         tags$br(),
-        h2("Protein Modeling Results"),
-        h5("There are ", textOutput(ns("number_prot"), inline = TRUE), "significant proteins"),
+        h2("Modeling Results"),
+        h5("There are ", textOutput(ns("number_prot"), inline = TRUE), "significant analytes"),
         tags$br(),
         dataTableOutput(ns("prot_significant")),
         downloadButton(ns("download_compar_prot"), "Download all modeling results"),
-        downloadButton(ns("download_signif_prot"), "Download significant proteins")
+        downloadButton(ns("download_signif_prot"), "Download significant analytes")
       )
     }
   })
