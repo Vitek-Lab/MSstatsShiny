@@ -96,7 +96,7 @@ create_header_content <- function() {
 create_metabolomics_header_content <- function() {
   tagList(
     p("To run the metabolomics pipeline, upload your MZmine feature quant",
-      "table and an annotation file, plus MZmine compound annotations and",
+      "table and sample metadata annotations, plus compound annotations and",
       "(recommended) SIRIUS structure annotations. The output of this step",
       "is your data in MSstats format."),
     p("Note: files must be in CSV/TSV format and under 250 MB when using",
@@ -295,22 +295,22 @@ create_mzmine_uploads <- function(ns) {
     fileInput(ns("mzmine_input"),
               h5("MZmine feature quant table", class = "icon-wrapper",
                  icon("question-circle", lib = "font-awesome"),
-                 div("The feature intensity table exported from MZmine (features x samples).",
+                 div("The feature intensity table exported from MZmine. Requires the columns row ID, row m/z and row retention time, followed by one Peak area column per sample.",
                      class = "icon-tooltip"))),
     fileInput(ns("mzmine_annotation"),
-              h5("Annotation file", class = "icon-wrapper",
+              h5("Sample metadata annotations", class = "icon-wrapper",
                  icon("question-circle", lib = "font-awesome"),
-                 div("Maps each run/sample to its condition and bioreplicate.",
+                 div("Describes the experimental design, using the columns Run, Condition and BioReplicate. Each Run should be the sample name from the quant table with the trailing Peak area dropped, so 'sampleA.mzML Peak area' becomes 'sampleA.mzML'. Spaces and dots are ignored when matching, so they do not need to be exact.",
                      class = "icon-tooltip"))),
     fileInput(ns("mzmine_annotations"),
-              h5("MZmine compound annotations", class = "icon-wrapper",
+              h5("Compound annotations", class = "icon-wrapper",
                  icon("question-circle", lib = "font-awesome"),
-                 div("MZmine's feature-to-compound identifications.",
+                 div("Links features to compound identifications. Requires the columns id, compound_name and score, with score numeric. This is the layout MZmine exports; output from other tools works if you convert it to the same columns, and annotations from several sources can be appended into one file. Features left without an identification are labelled by their mass-to-charge ratio and retention time.",
                      class = "icon-tooltip"))),
     fileInput(ns("sirius_annotations"),
               h5("SIRIUS annotations (optional, recommended)", class = "icon-wrapper",
                  icon("question-circle", lib = "font-awesome"),
-                 div("Optional SIRIUS structure identifications; recommended to improve compound naming.",
+                 div("Optional SIRIUS structure identifications; recommended because they usually name many more features than the compound annotation file alone. Only the mappingFeatureId and name columns are read.",
                      class = "icon-tooltip")))
   ))
 }
