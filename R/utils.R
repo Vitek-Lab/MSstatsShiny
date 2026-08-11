@@ -1527,7 +1527,7 @@ library(MSstatsPTM)\n", sep = "")
       }
     }
     else if(input$filetype == 'mzmine') {
-      codes = paste(codes, "data = data.table::fread(\"insert your MZmine feature quant table filepath\")\nannot_file = data.table::fread(\"insert your annotation filepath\")\nmzmine_annotations = data.table::fread(\"insert your MZmine compound annotations filepath\")\n# Optional: set sirius_annotations = NULL if there is no SIRIUS data\nsirius_annotations = tryCatch(data.table::fread(\"insert your SIRIUS annotations filepath\"), error = function(e) NULL)\n"
+      codes = paste(codes, "data = data.table::fread(\"insert your MZmine feature quant table filepath\")\nannot_file = data.table::fread(\"insert your sample metadata annotations filepath\")\nmzmine_annotations = data.table::fread(\"insert your compound annotations filepath\")\n# Optional: set sirius_annotations = NULL if there is no SIRIUS data\nsirius_annotations = tryCatch(data.table::fread(\"insert your SIRIUS annotations filepath\"), error = function(e) NULL)\n"
                     , sep = "")
 
       codes = paste(codes, "data = MSstatsConvert::MZMinetoMSstatsFormat(input = data,

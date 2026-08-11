@@ -586,6 +586,8 @@ test_that("create_mzmine_uploads renders the hidden panel, four input ids, and t
   # visible label text survives being wrapped in the h5 tooltip container.
   expect_true(grepl("icon-tooltip", uploads_html, fixed = TRUE))
   expect_true(grepl("MZmine feature quant table", uploads_html, fixed = TRUE))
+  expect_true(grepl("Sample metadata annotations", uploads_html, fixed = TRUE))
+  expect_true(grepl("Compound annotations", uploads_html, fixed = TRUE))
   expect_true(grepl("SIRIUS structure identifications", uploads_html, fixed = TRUE))
 })
 
