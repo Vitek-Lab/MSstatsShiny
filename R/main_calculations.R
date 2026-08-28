@@ -129,7 +129,9 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
 #' @export
 #' @import MSstats
 #' @import MSstatsTMT
-#' @import MSstatsConvert
+#' @rawNamespace import(MSstatsConvert, except = c(MaxQtoMSstatsTMTFormat,
+#'   OpenMStoMSstatsTMTFormat, PDtoMSstatsTMTFormat, PhilosophertoMSstatsTMTFormat,
+#'   SpectroMinetoMSstatsTMTFormat))
 #' @import data.table
 #' @importFrom shinybusy show_modal_progress_line update_modal_progress remove_modal_progress
 #' @importFrom methods new

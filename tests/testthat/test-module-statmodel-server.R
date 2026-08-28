@@ -786,3 +786,113 @@ test_that("create_download_plot_handler is invoked with all 6 arguments", {
     }
   )
 })
+# ============================================================================
+# Tracer constants: the statmodelServer -> generate_analysis_code hop
+# ============================================================================
+
+test_that("statmodelServer forwards the tracer_constants snapshot to generate_analysis_code", {
+  # The highest-value hop in the threading chain and the one the first draft of
+  # this feature left untested. A correct generator wired to nothing is exactly
+  # the original bug, so this asserts the value ARRIVES, not that the generator
+  # formats it (test-module-turnover.R covers the formatting).
+  #
+  # data_comparison_code is private to the module and only read by the download
+  # handler, so it is captured through create_download_handlers -- the same
+  # stub-the-collaborator pattern as the create_download_plot_handler test.
+  captured = new.env(parent = emptyenv())
+  captured$code_reactive = NULL
+  captured$args = NULL
+
+  mockery::stub(statmodelServer, "create_download_handlers",
+                function(output, data_comparison, SignificantProteins, data_comparison_code) {
+                  captured$code_reactive = data_comparison_code
+                })
+  mockery::stub(statmodelServer, "generate_analysis_code",
+                function(...) { captured$args = list(...); "# generated\n" })
+
+  snapshot = list(values = stats::setNames(c(1, 0.9), c("0h", "6h")),
+                  source = CONSTANTS_QC$tracer_source_upload,
+                  file = "constants.csv")
+  metadata = reactiveVal(NULL)
+
+  testServer(
+    statmodelServer,
+    args = list(
+      parent_session = MockShinySession$new(),
+      loadpage_input = reactive({
+        list(BIO = "protein", DDA_DIA = "DDA", filetype = "standard", proceed1 = 0)
+      }),
+      qc_input = reactive({ list(normalization = "equalizeMedians") }),
+      get_data = reactive({ create_mock_raw_data() }),
+      preprocess_data = reactive({ create_mock_data("DDA", "protein") }),
+      app_template = reactive(TEMPLATES$protein_turnover),
+      condition_metadata = metadata,
+      tracer_constants = reactive(snapshot)
+    ),
+    {
+      expect_false(is.null(captured$code_reactive),
+                   info = "create_download_handlers must receive the code reactive")
+
+      session$setInputs(!!NAMESPACE_STATMODEL$comparison_mode :=
+                          CONSTANTS_STATMODEL$comparison_mode_response_curve)
+      # Set only after the comparison mode, because the observer that builds the
+      # turnover contrast matrix req()s the response-curve mode.
+      metadata(data.frame(Condition = c("0h", "6h"), TimeVal = c(0, 6),
+                          stringsAsFactors = FALSE))
+      session$setInputs(!!NAMESPACE_STATMODEL$modeling_start := 1)
+
+      captured$code_reactive()
+
+      expect_equal(length(captured$args), 6,
+                   info = "generate_analysis_code must be called with the tracer snapshot appended")
+      expect_identical(captured$args[[5]], TEMPLATES$protein_turnover)
+      expect_identical(captured$args[[6]], snapshot,
+                       info = "the snapshot must arrive unwrapped and unmodified")
+    }
+  )
+})
+
+test_that("statmodelServer defaults the tracer snapshot to NULL when no reactive is supplied", {
+  # Every existing caller and test omits the argument; none of them may start
+  # failing, and the generator must see NULL (the "QC page never run" state)
+  # rather than a reactive it cannot coerce.
+  captured = new.env(parent = emptyenv())
+  captured$code_reactive = NULL
+  captured$args = NULL
+
+  mockery::stub(statmodelServer, "create_download_handlers",
+                function(output, data_comparison, SignificantProteins, data_comparison_code) {
+                  captured$code_reactive = data_comparison_code
+                })
+  mockery::stub(statmodelServer, "generate_analysis_code",
+                function(...) { captured$args = list(...); "# generated\n" })
+
+  metadata = reactiveVal(NULL)
+
+  testServer(
+    statmodelServer,
+    args = list(
+      parent_session = MockShinySession$new(),
+      loadpage_input = reactive({
+        list(BIO = "protein", DDA_DIA = "DDA", filetype = "standard", proceed1 = 0)
+      }),
+      qc_input = reactive({ list(normalization = "equalizeMedians") }),
+      get_data = reactive({ create_mock_raw_data() }),
+      preprocess_data = reactive({ create_mock_data("DDA", "protein") }),
+      app_template = reactive(TEMPLATES$protein_turnover),
+      condition_metadata = metadata
+    ),
+    {
+      session$setInputs(!!NAMESPACE_STATMODEL$comparison_mode :=
+                          CONSTANTS_STATMODEL$comparison_mode_response_curve)
+      metadata(data.frame(Condition = c("0h", "6h"), TimeVal = c(0, 6),
+                          stringsAsFactors = FALSE))
+      session$setInputs(!!NAMESPACE_STATMODEL$modeling_start := 1)
+
+      captured$code_reactive()
+
+      expect_equal(length(captured$args), 6)
+      expect_null(captured$args[[6]])
+    }
+  )
+})

@@ -1,4 +1,17 @@
-generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app_template = TEMPLATES$default) {
+#' Build the downloadable reproducible-analysis script.
+#'
+#' @param tracer_constants The tracer-constant provenance record snapshotted by
+#'   the QC page at Run: a list of `values` (named numeric, keyed by raw
+#'   condition string), `source` ("upload" / "none") and `file`. `NULL` means the
+#'   QC page was never run in this session -- a reachable state, not a defect
+#'   (plan section 0.6), because the Download-code button only requires a
+#'   contrast matrix. Trailing with a NULL default so the existing positional
+#'   call sites -- production plus nine in the tests -- stay valid (plan
+#'   Decision E).
+#' @noRd
+generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input,
+                                  app_template = TEMPLATES$default,
+                                  tracer_constants = NULL) {
   codes = preprocessDataCode(qc_input, loadpage_input)
 
   # Check if this is a response curve analysis
@@ -14,7 +27,19 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
     codes = paste(codes, "library(MSstatsResponse)\n", sep = "")
 
     if (isTRUE(app_template == TEMPLATES$protein_turnover)) {
-      codes = paste(codes, build_turnover_analysis_code(qc_input, comp_mat, increasing), sep = "")
+      # Resolved HERE rather than at the top of the function, deliberately: on
+      # every other template comp_mat is a bare matrix, where `$GROUP` throws
+      # "$ operator is invalid for atomic vectors" and would take the
+      # Download-code button out on all four templates.
+      if (is.null(tracer_constants)) {
+        tracer_constants = list(
+          values = qc_default_tracer_constants(as.character(comp_mat$GROUP)),
+          source = CONSTANTS_QC$tracer_source_not_run,
+          file   = NULL
+        )
+      }
+      codes = paste(codes, build_turnover_analysis_code(qc_input, comp_mat, increasing,
+                                                       tracer_constants), sep = "")
       return(codes)
     }
 
@@ -156,35 +181,179 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
 }
 
 
+#' The provenance comment stamped above the tracer_constants vector.
+#'
+#' Three states, not two (plan section 0.6). The one v1 of this feature would
+#' have written -- "# No tracer constants file uploaded" -- was asserted on a
+#' path where a REJECTED file had silently fallen back to all-1s, so the comment
+#' actively vouched for the wrong thing. Exactly one of the three lines is
+#' emitted, so the script says what happened rather than what was intended.
+#'
+#' The three wordings are deliberately chosen so that no one of them contains a
+#' distinguishing phrase of another. "uploaded on the data-processing page" was
+#' previously a substring of the no-upload sentence ("... was uploaded on the
+#' data-processing page"), which made any grep for the upload state -- in a test,
+#' a script, or by a user reading the file -- match the case where nothing was
+#' uploaded at all. See the mutual-exclusivity test in test-module-turnover.R.
+#' @noRd
+build_tracer_provenance_comment <- function(tracer_constants) {
+  source <- tracer_constants$source
+  if (is.null(source)) source <- CONSTANTS_QC$tracer_source_not_run
+
+  if (identical(source, CONSTANTS_QC$tracer_source_upload)) {
+    file <- tracer_constants$file
+    # encodeString, not paste0: a file name containing a newline would otherwise
+    # split the comment and leave the remainder as (invalid) code.
+    # length() rather than is.null() alone: `||` errors on a zero-length operand
+    # in current R, so a character(0) file name would take the whole script
+    # generator down instead of degrading to the generic label.
+    label <- if (length(file) != 1L || is.na(file) || !nzchar(file)) "an uploaded file"
+             else encodeString(as.character(file), quote = "\"")
+    return(paste0(
+      "# Tracer constants: uploaded on the data-processing page, from ", label, ".\n"))
+  }
+  if (identical(source, CONSTANTS_QC$tracer_source_none)) {
+    return(paste0(
+      "# Tracer constants: no file was supplied on the data-processing page, so\n",
+      "# every condition uses 1 (no tracer correction).\n"))
+  }
+  paste0(
+    "# Tracer constants: the data-processing page was not run in this session,\n",
+    "# so every condition uses 1 (no tracer correction).\n")
+}
+
+#' Serialize a double as R source that reads back as the identical double.
+#'
+#' `paste0(1/3)` emits 15 significant digits, so the constant in the downloaded
+#' script is NOT the constant the app divided by -- a reproducible script that
+#' silently reproduces something else. The shortest round-tripping form is
+#' preferred so ordinary values stay readable ("0.9", not "0.90000000000000002").
+#'
+#' The 17-digit fallback is best-effort: R's own string-to-double conversion is
+#' not always correctly rounded (verified on R 4.5.2, `as.numeric(sprintf("%.17g",
+#' 0.123456789012345678))` is 1 ULP off), so a hand-crafted double need not
+#' round-trip through any decimal form. Irrelevant in practice here, because
+#' tracer constants arrive as short decimal text in a CSV.
+#' @noRd
+format_r_double <- function(value) {
+  # suppressWarnings because as.numeric("NA") warns. Callers are expected to have
+  # rejected non-finite values already, but a warning escaping a downloadHandler
+  # is a confusing way to learn that they did not.
+  for (digits in 15:17) {
+    text <- sprintf(paste0("%.", digits, "g"), value)
+    if (identical(suppressWarnings(as.numeric(text)), value)) return(text)
+  }
+  sprintf("%.17g", value)
+}
+
 #' Generate reproducible code for the protein-turnover dose-response pipeline.
 #'
-#' Mirrors the app's turnover flow: calculateTurnoverRatios (with the
-#' user-entered tracer constants), an optional calculatePeptideWeights step when
+#' Mirrors the app's turnover flow: calculateTurnoverRatios (with the resolved
+#' tracer constants), an optional calculatePeptideWeights step when
 #' "Assign feature weights" is checked, then a weighted doseResponseFit and
 #' visualizeResponseProtein. Kept as a plain string builder so it can be
 #' unit-tested without a running session.
 #'
-#' @param qc_input The QC module input list (tracer_* numerics and
-#'   assign_feature_weights checkbox live here).
+#' @param qc_input The QC module input list (the assign_feature_weights checkbox
+#'   lives here).
 #' @param comp_mat The turnover contrast matrix (GROUP + TimeVal columns); its
 #'   GROUP column supplies the condition names the tracer constants are keyed by.
 #' @param increasing Logical passed through to the fit / visualization.
+#' @param tracer_constants Required, not defaulted (plan Decision G.2): a list of
+#'   `values` (named numeric keyed by raw condition string), `source` (one of the
+#'   CONSTANTS_QC$tracer_source_* provenance states) and `file`. Defaulting it
+#'   would reinstate the original bug -- emitting all-1s that look deliberate --
+#'   so the caller is forced to say which constants were actually used.
 #' @return A character scalar of R code, appended after `library(MSstatsResponse)`.
 #' @noRd
-build_turnover_analysis_code <- function(qc_input, comp_mat, increasing) {
+build_turnover_analysis_code <- function(qc_input, comp_mat, increasing,
+                                        tracer_constants) {
   conditions <- as.character(comp_mat$GROUP)
   weighting  <- isTRUE(qc_input[[NAMESPACE_QC$assign_feature_weights]])
 
-  # Serialize the tracer constants keyed by original condition name, matching
-  # the app (calculateTurnoverRatios parses these names into timepoints).
-  tracer_vals <- vapply(conditions, function(cond) {
-    val <- qc_input[[paste0("tracer_", make.names(cond))]]
-    if (is.null(val)) 1.0 else as.numeric(val)
-  }, numeric(1))
-  tracer_pairs <- paste0("  \"", conditions, "\" = ", tracer_vals, collapse = ",\n")
+  # The vector is no longer rebuilt from comp_mat$GROUP, so nothing structurally
+  # guarantees it covers the conditions being fitted any more. It can genuinely
+  # drift: the snapshot is taken at QC Run, while comp_mat is rebuilt from
+  # condition_metadata afterwards and its GROUP cells are editable in the
+  # contrast table. An uncovered condition would emit c(...)[["2h"]] -> NA,
+  # H_frac / NA -> NA, i.e. a script that runs to completion and fits nothing.
+  # Failing here is loud but honest; emitting a quietly wrong script is not.
+  values <- tracer_constants$values
+  if (is.null(values) || length(values) == 0 || is.null(names(values))) {
+    stop("Cannot generate reproducible code: no tracer constants are recorded ",
+         "for this turnover analysis. Run protein summarization on the ",
+         "data-processing page first.")
+  }
+  if (length(conditions) == 0) {
+    stop("Cannot generate reproducible code: the contrast matrix lists no ",
+         "experimental conditions.")
+  }
+  # A condition name that is blank cannot be written as an R argument name:
+  # `c("" = 1)` is a PARSE error ("attempt to use zero-length variable name"),
+  # so emitting it produces a script that does not even load. Verified reachable
+  # without an upload -- a blank Condition cell in the annotation reaches the
+  # all-1s default path, which runs none of the upload observer's name checks.
+  # The message names the annotation file because the metadata table disables
+  # editing on the Condition column (plan section 0.3).
+  blank_conditions <- is.na(conditions) | !nzchar(trimws(conditions))
+  if (any(blank_conditions)) {
+    stop("Cannot generate reproducible code: ", sum(blank_conditions),
+         " experimental condition(s) have a blank name. Give every condition a ",
+         "name in the annotation file and load the data again.")
+  }
+  # Keys are trimmed on both sides for the same reason
+  # qc_resolve_tracer_constants trims (plan section 0.4): a condition carried in
+  # from Excel as "0h " is not editable in the metadata table, so a strict match
+  # would be a dead end the user cannot clear.
+  #
+  # Trimming can however collapse two distinct keys onto one ("0h" and "0h "),
+  # and match() would then hand BOTH conditions the first one's value -- a wrong
+  # constant, silently. Only a repeated key carrying DIFFERING values is
+  # actually ambiguous: repeated with the same value it cannot mispair, and
+  # rejecting that would newly break the benign duplicate the all-1s default
+  # can produce. qc_resolve_tracer_constants rejects a colliding file before it
+  # can be snapshotted, so this is defence in depth rather than a live path.
+  upload_keys <- trimws(as.character(names(values)))
+  repeated <- unique(upload_keys[duplicated(upload_keys)])
+  ambiguous <- repeated[vapply(repeated, function(key) {
+    length(unique(values[upload_keys == key])) > 1L
+  }, logical(1))]
+  if (length(ambiguous) > 0) {
+    stop("Cannot generate reproducible code: the recorded tracer constants are ",
+         "ambiguous for condition(s): ", paste(ambiguous, collapse = ", "),
+         ". Re-upload the tracer constants file with one row per condition.")
+  }
+  matched <- match(trimws(conditions), upload_keys)
+  if (anyNA(matched)) {
+    stop("Cannot generate reproducible code: the recorded tracer constants do ",
+         "not cover condition(s): ",
+         paste(conditions[is.na(matched)], collapse = ", "),
+         ". Re-run protein summarization on the data-processing page so the ",
+         "constants match the current conditions.")
+  }
+  # is.finite, not anyNA: Inf passes an NA check and emits a literal `Inf` into
+  # the script, where H_frac / Inf is 0 and every L_frac becomes 1 -- a script
+  # that runs to completion and reports total turnover everywhere. Verified.
+  tracer_vals <- suppressWarnings(as.numeric(values[matched]))
+  if (!all(is.finite(tracer_vals))) {
+    bad <- !is.finite(tracer_vals)
+    stop("Cannot generate reproducible code: the recorded tracer constant for ",
+         "condition(s) ", paste(conditions[bad], collapse = ", "),
+         " is not a finite number.")
+  }
+
+  # Keyed by the RAW condition name, matching the app: calculateTurnoverRatios
+  # re-keys the vector with parse_timepoint(names(x)), so make.names()-style
+  # sanitization here would change which constant a condition receives.
+  # encodeString(quote = "\"") rather than paste0-ing quotes (plan Decision J):
+  # a condition containing a quote or a backslash otherwise produces a script
+  # that does not parse, and dropping make.names() is what newly exposes that.
+  tracer_pairs <- paste0("  ", encodeString(conditions, quote = "\""), " = ",
+                         vapply(tracer_vals, format_r_double, character(1)),
+                         collapse = ",\n")
 
   code <- paste0(
-    "\n# Tracer constants entered per condition on the data-processing page\n",
+    "\n", build_tracer_provenance_comment(tracer_constants),
     "tracer_constants = c(\n", tracer_pairs, "\n)\n",
 
     "\n# Calculate turnover (Heavy/Light) ratios. Use protein-level data when any\n",

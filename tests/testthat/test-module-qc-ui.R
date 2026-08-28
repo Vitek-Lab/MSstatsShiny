@@ -21,7 +21,15 @@ test_that("qcUI renders the namespaced processing-option input ids", {
   input_ids <- c("global_norm", "log", "summarization", "null", "maxQC", "norm",
                  "standards", "reference_norm", "remove_norm_channel", "features_used",
                  "censInt", "null1", "maxQC1", "MBi", "remove50",
-                 "typequant", "format", "summ", "fname", "run", "update_results")
+                 "typequant", "format", "summ", "fname", "run", "update_results",
+                 # The tracer-constants panel is statically mounted and
+                 # server-toggled, and every one of these ids is addressed
+                 # server-side through NAMESPACE_QC rather than as a literal
+                 # (shinyjs::toggle/reset/onevent, input[[...]], output[[...]]).
+                 # A renamed or un-namespaced id would leave the panel, the
+                 # Clear button or the status line silently inert with the rest
+                 # of the suite green, so they are pinned here.
+                 "tracer_constants_file", "tracer_constants_clear")
   for (id in input_ids) {
     expect_true(grepl(paste0('id="test-', id, '"'), html, fixed = TRUE),
                 info = paste("Missing input id:", id))
@@ -35,7 +43,9 @@ test_that("qcUI renders every server-toggled visibility container", {
                      "standards_type_section", "reference_norm_panel", "lf_options_panel",
                      "features_topn_panel", "censoring_section", "mbi_panel",
                      "profileplot_options_panel", "qualitymetrics_options_panel",
-                     "nonptm_downloads_panel", "ptm_downloads_panel")
+                     "nonptm_downloads_panel", "ptm_downloads_panel",
+                     "data_upload_mapping_panel", "data_upload_ratios_panel",
+                     "tracer_constants_panel")
   for (id in container_ids) {
     expect_true(grepl(paste0('id="test-', id, '"'), html, fixed = TRUE),
                 info = paste("Missing container id:", id))
@@ -52,5 +62,33 @@ test_that("the collapsed normalization select keeps all label-free choices", {
   for (choice in c("equalizeMedians", "quantile", "globalStandards")) {
     expect_true(grepl(choice, html, fixed = TRUE),
                 info = paste("Missing normalization choice:", choice))
+  }
+})
+
+test_that("qcUI mounts the tracer-constants status output", {
+  html <- render_qc_ui_html("test")
+  # uiOutput, not an input, so it needs its own assertion. Without it the
+  # absent/pending/rejected/valid states have nowhere to render, and a rejected
+  # upload looks identical to a successful one (plan Decision H).
+  expect_true(grepl('id="test-tracer_constants_status"', html, fixed = TRUE))
+})
+
+test_that("the tracer-constants help text quotes CONSTANTS_QC, not a literal", {
+  html <- render_qc_ui_html("test")
+  # Catches the drift plan section 5.B warns about: if the floor is revised in
+  # CONSTANTS_QC and the help text keeps a hardcoded number, the expected
+  # string moves and this fails. It cannot catch a literal that happens to
+  # equal today's value -- both render identically -- which is why the range
+  # check and the rejection message read the same constant.
+  expect_true(grepl(paste0("between ", CONSTANTS_QC$tracer_min, " and ",
+                           CONSTANTS_QC$tracer_max), html, fixed = TRUE))
+
+  # Scoped to the panel's own markup. Page-wide, "GROUP" appears a dozen times
+  # in unrelated uploads and would still match with this panel deleted.
+  panel_start <- regexpr("test-tracer_constants_panel", html, fixed = TRUE)
+  expect_gt(panel_start, 0)
+  panel <- substr(html, panel_start, panel_start + 3000L)
+  for (column in get_qc_required_tracer_columns()) {
+    expect_true(grepl(column, panel, fixed = TRUE), info = column)
   }
 })

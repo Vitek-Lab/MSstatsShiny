@@ -52,6 +52,7 @@ server = function(input, output, session) {
   qc_input = qc_values$input
   preprocess_data = qc_values$preprocessData
   get_turnover_ratios = qc_values$turnoverRatios
+  get_tracer_constants = qc_values$tracerConstants
 
   statmodel_values = statmodelServer(
     id = "statmodel",
@@ -62,7 +63,12 @@ server = function(input, output, session) {
     preprocess_data = preprocess_data,
     app_template = app_template,
     turnover_ratios = get_turnover_ratios,
-    condition_metadata = get_condition_metadata
+    condition_metadata = get_condition_metadata,
+    # Passed BARE, like turnover_ratios above and unlike the reactive()-wrapped
+    # qc_input: this is already a reactive, and reactive(reactive(x)) reaches the
+    # consumer as a closure that is not NULL and cannot be coerced -- so the
+    # NULL default would never catch it (plan Decision E).
+    tracer_constants = get_tracer_constants
   )
   statmodel_input = statmodel_values$input
   data_comparison = statmodel_values$dataComparison

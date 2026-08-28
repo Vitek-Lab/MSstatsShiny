@@ -27,9 +27,17 @@ qcServer(
 \item{loadpage_input}{input object from loadpage UI}
 
 \item{get_data}{stored function that returns the data from loadpage}
+
+\item{app_template}{reactive (or NULL) returning the selected template name (e.g. TEMPLATES$default)}
+
+\item{get_condition_metadata}{reactive (or NULL) returning the condition metadata table}
 }
 \value{
-input object with user selected options
+a list with four elements: \code{input} (the module's input object),
+\code{preprocessData} (reactive returning the preprocessed data),
+\code{turnoverRatios} (reactive returning the turnover ratios, or the uploaded
+ratios when those override them), and \code{tracerConstants} (reactive
+returning the tracer-constant provenance record snapshotted at Run)
 }
 \description{
 This function sets up the QC server to process data based on user

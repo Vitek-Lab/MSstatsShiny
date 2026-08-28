@@ -188,7 +188,41 @@ NAMESPACE_QC = list(
   ptm_downloads_panel = "ptm_downloads_panel",
   # Data Upload tab template-gated upload panels
   data_upload_mapping_panel = "data_upload_mapping_panel",
-  data_upload_ratios_panel = "data_upload_ratios_panel"
+  data_upload_ratios_panel = "data_upload_ratios_panel",
+  # Tracer-constants sidebar (protein turnover): server-toggled container,
+  # its optional CSV upload, the clear affordance the rejected state requires,
+  # and the status line that makes the three states visible.
+  tracer_constants_panel = "tracer_constants_panel",
+  tracer_constants_file = "tracer_constants_file",
+  tracer_constants_clear = "tracer_constants_clear",
+  tracer_constants_status = "tracer_constants_status"
+)
+
+# Tracer constants (protein turnover). The constant is a DIVISOR in
+# MSstatsResponse::calculateTurnoverRatios (H_frac / tracer_factor), so 1 is the
+# neutral default and 0 yields Inf. The floor is not merely "greater than zero":
+# a value like 1e-10 passes a (0, 1] check and silently produces a huge H_frac
+# whose L_frac is then clamped to 0 by pmax(1 - H_frac, 0), i.e. a
+# plausible-looking but wrong result rather than an error. Enrichment is a
+# measured biological fraction, so anything below 0.01 is implausible.
+# The range check, its error message and the UI help text must all quote these,
+# never a repeated literal.
+#
+# The three tracer_source_* values are the provenance states from plan section
+# 0.6. They are named rather than inlined because they cross a file boundary:
+# R/qc-server-turnover.R writes them into the snapshot and
+# R/statmodel-server-download-code.R switches on them to choose the comment it
+# stamps into the downloadable script. A typo in either would silently pick the
+# wrong provenance, which is precisely the class of untraceable-provenance bug
+# this feature exists to remove. "not_run" is genuinely distinct from "none":
+# "none" means the user ran summarization and declined the correction, while
+# "not_run" means the data-processing page never ran, so the app never asked.
+CONSTANTS_QC = list(
+  tracer_min = 0.01,
+  tracer_max = 1,
+  tracer_source_upload = "upload",
+  tracer_source_none = "none",
+  tracer_source_not_run = "not_run"
 )
 
 NAMESPACE_EXPDES = list(
