@@ -12,18 +12,8 @@
 register_qc_turnover <- function(input, output, session, app_template, get_data,
                                  get_condition_metadata, preprocess_data) {
 
-  # ---- Tracer-constants CSV upload (optional; protein turnover only) ----
-  #
-  # Three states: "absent" (no file; every condition gets 1), "rejected"
-  # (an uploaded file the app cannot honour; blocks Run rather than silently
-  # falling back to all-1s), and "pending" (upload in flight; also blocks Run).
   tracer_upload <- reactiveVal(list(state = "absent", values = NULL, file = NULL))
 
-  # The constants that actually produced the displayed ratios, snapshotted at
-  # the moment of Run. NOT a live view of tracer_upload(): that would let the
-  # ratios table and the downloadable script disagree about which constants
-  # were used. NULL means the QC page has not been run in this session, which
-  # is distinct from "run, and no file was supplied" (source = "none").
   tracer_constants_used <- reactiveVal(NULL)
 
   get_template <- function() if (is.null(app_template)) NULL else app_template()
@@ -35,15 +25,10 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
     as.character(meta$Condition)
   }
 
-  # shinyjs::reset() sets the value client-side only and does not dispatch
-  # "change", so clearing the upload cannot re-arm this handler.
   shinyjs::onevent("change", NAMESPACE_QC$tracer_constants_file, {
     tracer_upload(list(state = "pending", values = NULL, file = NULL))
   })
 
-  # input[[tracer_constants_file]] keeps its old name/datapath after a
-  # shinyjs::reset (client-side only), so tracer_upload() is the only
-  # trustworthy source of the resolved values.
   observeEvent(input[[NAMESPACE_QC$tracer_constants_clear]], {
     shinyjs::reset(NAMESPACE_QC$tracer_constants_file)
     tracer_upload(list(state = "absent", values = NULL, file = NULL))
@@ -52,8 +37,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
       type = "message", duration = 6)
   }, ignoreInit = TRUE)
 
-  # A blocking tracer state must not outlive the template it belongs to: the
-  # tracer panel (and its Clear button) is only shown on protein turnover.
   observeEvent(get_template(), {
     if (identical(get_template(), TEMPLATES$protein_turnover)) return()
 
@@ -83,8 +66,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
       return()
     }
 
-    # fread warns (rather than errors) on some malformed rows/files, so
-    # warnings are captured for reporting but are not relied on for detection.
     fread_warnings <- character(0)
     parsed <- withCallingHandlers(
       tryCatch(
@@ -111,8 +92,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
       return()
     }
 
-    # fread keeps duplicate column names and `$` returns the first, so a
-    # duplicated TracerConstant column would silently use the stale one.
     duplicated_columns <- unique(colnames(parsed)[duplicated(colnames(parsed))])
     if (length(duplicated_columns) > 0) {
       reject("The tracer constants file has more than one column named: ",
@@ -131,10 +110,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
       return()
     }
 
-    # A row fread cannot parse is silently dropped rather than erroring. Most
-    # such cases are still caught below by the group-coverage check; comparing
-    # counted source rows against parsed rows catches the rest (e.g. a
-    # duplicate row for a condition another row already covers).
     source_rows <- tryCatch(
       sum(nzchar(trimws(readLines(file$datapath, warn = FALSE)))) - 1L,
       error = function(e) NA_integer_
@@ -198,10 +173,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
                      type = "message", duration = 6)
   })
 
-  # condition_metadata is a shared reactiveVal that ordinary actions (e.g.
-  # re-clicking proceed, uploading a GROUP mapping) can rewrite after a
-  # tracer upload; a valid upload whose conditions no longer match must be
-  # invalidated rather than silently reused or left to error later.
   if (!is.null(get_condition_metadata)) {
     observeEvent(get_condition_metadata(), {
       current <- tracer_upload()
@@ -219,9 +190,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
     }, ignoreInit = TRUE)
   }
 
-  # ---- Tracer panel visibility ----
-  # Shown only on protein turnover, and only once data is loaded (or a tracer
-  # state is already in play, so a bad-upload dead end can still be cleared).
   observe({
     loaded <- tryCatch(get_data(), error = function(e) NULL)
     shinyjs::toggle(
@@ -251,7 +219,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
 
 
   turnover_ratios <- eventReactive(input$run, {
-    # Cleared up front so any early exit below leaves no stale snapshot.
     tracer_constants_used(NULL)
 
     req(!is.null(app_template) && !is.null(app_template()) &&
@@ -261,8 +228,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
     req(!is.null(get_condition_metadata) && !is.null(get_condition_metadata()))
     conditions <- as.character(get_condition_metadata()$Condition)
 
-    # Snapshot the upload as it stands at Run; read from tracer_upload() and
-    # never from input[[tracer_constants_file]] (see the reset note above).
     upload <- tracer_upload()
 
     if (upload$state %in% c("pending", "rejected")) {
@@ -329,8 +294,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
       )
     }
 
-    # Committed only once the fit has returned, so a run that fails leaves no
-    # snapshot behind (matches the clear at the top of this reactive).
     tracer_constants_used(list(
       values = tracer_consts,
       source = if (is.null(uploaded)) CONSTANTS_QC$tracer_source_none
@@ -350,10 +313,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
   turnover_ratios_display <- reactive({
     ratios <- turnover_ratios()
     req(ratios)
-
-    # The snapshot is the authority for "are there ratios on screen"; without
-    # this guard, switching templates away and back could redraw the table
-    # from a cached ratios value after its snapshot had been cleared.
     req(tracer_constants_used())
     if (isTRUE(input[[NAMESPACE_QC$assign_feature_weights]]) && nrow(ratios) > 0) {
       calculatePeptideWeights(ratios)
