@@ -1,13 +1,5 @@
 context("Turnover confidence scoring and classification")
 
-# ============================================================================
-# Fixtures
-#
-# `prepared` mirrors prepare_turnover_for_dose_response() output; `features`
-# mirrors dataProcess()$FeatureLevelData (factor PROTEIN / PEPTIDE, as
-# dataProcess returns them); `fit` mirrors doseResponseFit() output.
-# ============================================================================
-
 make_prepared <- function(with_weight = TRUE) {
   prepared <- data.frame(
     protein      = rep(c("ProtA", "ProtB"), each = 6),
@@ -32,7 +24,6 @@ make_features <- function() {
     LABEL   = c("H", "L"),
     stringsAsFactors = FALSE
   )
-  # ProtC never incorporated label: light channel only.
   features <- features[!(features$PROTEIN == "ProtC" & features$LABEL == "H"), ]
   features$RUN <- paste0("run_", features$GROUP)
   features$INTENSITY <- seq_len(nrow(features)) * 1000
@@ -55,10 +46,6 @@ make_fit <- function() {
     stringsAsFactors = FALSE
   )
 }
-
-# ============================================================================
-# turnover_weights_present / turnover_confidence_applies
-# ============================================================================
 
 test_that("turnover_weights_present detects the weight column", {
   expect_true(MSstatsShiny:::turnover_weights_present(make_prepared()))
@@ -83,10 +70,6 @@ test_that("turnover_confidence_applies requires weights and the synthesis direct
     info = "confidence averages the weight column, so weights are required")
 })
 
-# ============================================================================
-# prepare_turnover_for_classification
-# ============================================================================
-
 test_that("prepare_turnover_for_classification adds the columns MSstatsResponse reads", {
   result <- MSstatsShiny:::prepare_turnover_for_classification(make_prepared())
 
@@ -110,10 +93,6 @@ test_that("prepare_turnover_for_classification coerces a factor protein column",
   expect_equal(unique(result$Protein), c("ProtA", "ProtB"))
 })
 
-# ============================================================================
-# prepare_feature_data_for_qc_score
-# ============================================================================
-
 test_that("prepare_feature_data_for_qc_score makes identifiers character", {
   result <- MSstatsShiny:::prepare_feature_data_for_qc_score(make_features())
 
@@ -131,10 +110,6 @@ test_that("prepare_feature_data_for_qc_score names the missing columns", {
     MSstatsShiny:::prepare_feature_data_for_qc_score(features),
     "LABEL, INTENSITY")
 })
-
-# ============================================================================
-# classify_turnover_fit
-# ============================================================================
 
 test_that("classify_turnover_fit returns a confidence and tier per protein", {
   result <- MSstatsShiny:::classify_turnover_fit(
@@ -186,10 +161,6 @@ test_that("classify_turnover_fit surfaces a missing feature-level column", {
     MSstatsShiny:::classify_turnover_fit(make_prepared(), make_fit(), features),
     "PEPTIDE")
 })
-
-# ============================================================================
-# merge_turnover_confidence
-# ============================================================================
 
 test_that("merge_turnover_confidence appends scores without changing the fit rows", {
   fit <- make_fit()
@@ -248,10 +219,6 @@ test_that("merge_turnover_confidence does not overwrite existing fit columns", {
   expect_equal(result$confidence, c(99, 99))
   expect_equal(result$tier, c("HIGH", "LOW"))
 })
-
-# ============================================================================
-# Downloadable analysis code
-# ============================================================================
 
 test_that("weighted synthesis script emits the confidence and classification chain", {
   code <- MSstatsShiny:::build_turnover_analysis_code(

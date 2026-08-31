@@ -378,8 +378,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               precalculated_ratios = TRUE
             )
 
-            # Per-protein confidence + category/tier, only when the user asked
-            # for per-peptide weights on the data-processing page.
             classification <- NULL
             if (turnover_confidence_applies(dia_prepared, increasing)) {
               show_modal_spinner(text = "Scoring per-protein confidence...")

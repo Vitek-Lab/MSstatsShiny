@@ -216,9 +216,9 @@ format_r_double <- function(value) {
 #' Mirrors the app's turnover flow: calculateTurnoverRatios (with the resolved
 #' tracer constants), an optional calculatePeptideWeights step when
 #' "Assign feature weights" is checked, then a weighted doseResponseFit and
-#' visualizeResponseProtein. When weights were requested and the fit is in the
-#' synthesis direction, the calculateQCScore / calculateConfidence /
-#' classifyTurnoverProteins scoring chain is emitted too. Kept as a plain
+#' visualizeResponseProtein. When weights are requested and the fit is in the
+#' synthesis direction, calculateQCScore / calculateConfidence /
+#' classifyTurnoverProteins is applied. Kept as a plain
 #' string builder so it can be unit-tested without a running session.
 #'
 #' @param qc_input The QC module input list (the assign_feature_weights checkbox
@@ -355,11 +355,7 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing,
   if (weighting && isTRUE(increasing)) {
     code <- paste0(
       code,
-      "\n# Score per-protein confidence and classify turnover behavior. Needs the\n",
-      "# per-peptide weights above, and is defined for the synthesis direction only.\n",
-      "# calculateConfidence() and classifyTurnoverProteins() read 'Protein' and\n",
-      "# 'H_frac'; predictIC50() (called inside the classifier) reads the lower-case\n",
-      "# fit columns, so the same frame carries both namings.\n",
+      "\n",
       "classification_input = prepared_data\n",
       "classification_input$Protein = as.character(classification_input$protein)\n",
       "classification_input$H_frac  = classification_input$response\n",

@@ -37,8 +37,6 @@ create_results_tables <- function(ns) {
     conditionalPanel(
       condition = "input['loadpage-BIO']!=='PTM'",
       uiOutput(ns("table_results")),
-      # Protein-turnover only, and only when per-peptide weights were
-      # calculated; empty otherwise.
       uiOutput(ns("turnover_confidence_results"))
     )
   )
