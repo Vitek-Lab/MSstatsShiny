@@ -70,8 +70,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
     parsed <- withCallingHandlers(
       tryCatch(
         data.table::fread(file$datapath,
-                          # An all-numeric GROUP column is otherwise typed
-                          # integer, so "0010" would read back as "10".
                           colClasses = list(character = "GROUP")),
         error = function(e) {
           reject("Could not read the tracer constants file: ", conditionMessage(e))
