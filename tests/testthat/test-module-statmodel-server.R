@@ -792,10 +792,6 @@ test_that("create_download_plot_handler is invoked with all 6 arguments", {
 # ============================================================================
 
 test_that("statmodelServer forwards the tracer_constants snapshot to generate_analysis_code", {
-  # Asserts the snapshot ARRIVES; test-module-turnover.R covers how the
-  # generator formats it. data_comparison_code is private to the module and only
-  # read by the download handler, so it is captured through
-  # create_download_handlers.
   captured = new.env(parent = emptyenv())
   captured$code_reactive = NULL
   captured$args = NULL
@@ -832,8 +828,6 @@ test_that("statmodelServer forwards the tracer_constants snapshot to generate_an
 
       session$setInputs(!!NAMESPACE_STATMODEL$comparison_mode :=
                           CONSTANTS_STATMODEL$comparison_mode_response_curve)
-      # Set only after the comparison mode, because the observer that builds the
-      # turnover contrast matrix req()s the response-curve mode.
       metadata(data.frame(Condition = c("0h", "6h"), TimeVal = c(0, 6),
                           stringsAsFactors = FALSE))
       session$setInputs(!!NAMESPACE_STATMODEL$modeling_start := 1)
@@ -850,8 +844,6 @@ test_that("statmodelServer forwards the tracer_constants snapshot to generate_an
 })
 
 test_that("statmodelServer defaults the tracer snapshot to NULL when no reactive is supplied", {
-  # Existing callers omit the argument, and the generator must see NULL (the
-  # "QC page never run" state) rather than a reactive it cannot coerce.
   captured = new.env(parent = emptyenv())
   captured$code_reactive = NULL
   captured$args = NULL

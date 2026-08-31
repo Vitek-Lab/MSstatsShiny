@@ -22,8 +22,6 @@ test_that("qcUI renders the namespaced processing-option input ids", {
                  "standards", "reference_norm", "remove_norm_channel", "features_used",
                  "censInt", "null1", "maxQC1", "MBi", "remove50",
                  "typequant", "format", "summ", "fname", "run", "update_results",
-                 # Addressed server-side through NAMESPACE_QC, so a renamed or
-                 # un-namespaced id leaves the panel and Clear button inert.
                  "tracer_constants_file", "tracer_constants_clear")
   for (id in input_ids) {
     expect_true(grepl(paste0('id="test-', id, '"'), html, fixed = TRUE),
@@ -62,20 +60,13 @@ test_that("the collapsed normalization select keeps all label-free choices", {
 
 test_that("qcUI mounts the tracer-constants status output", {
   html <- render_qc_ui_html("test")
-  # uiOutput, not an input: without it the absent/pending/rejected/valid states
-  # have nowhere to render.
   expect_true(grepl('id="test-tracer_constants_status"', html, fixed = TRUE))
 })
 
 test_that("the tracer-constants help text quotes CONSTANTS_QC, not a literal", {
   html <- render_qc_ui_html("test")
-  # Fails if the bounds are revised in CONSTANTS_QC while the help text keeps a
-  # hardcoded number.
   expect_true(grepl(paste0("between ", CONSTANTS_QC$tracer_min, " and ",
                            CONSTANTS_QC$tracer_max), html, fixed = TRUE))
-
-  # Scoped to the panel's own markup: page-wide, "GROUP" appears in unrelated
-  # uploads and would still match with this panel deleted.
   panel_start <- regexpr("test-tracer_constants_panel", html, fixed = TRUE)
   expect_gt(panel_start, 0)
   panel <- substr(html, panel_start, panel_start + 3000L)
