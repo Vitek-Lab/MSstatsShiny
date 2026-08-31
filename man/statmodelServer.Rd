@@ -13,7 +13,8 @@ statmodelServer(
   preprocess_data,
   app_template = reactive(TEMPLATES$default),
   turnover_ratios = reactive(NULL),
-  condition_metadata = reactive(NULL)
+  condition_metadata = reactive(NULL),
+  tracer_constants = reactive(NULL)
 )
 }
 \arguments{
@@ -30,6 +31,14 @@ statmodelServer(
 \item{preprocess_data}{stored function that returns preprocessed data}
 
 \item{app_template}{reactive returning the selected template name (e.g. TEMPLATES$default)}
+
+\item{turnover_ratios}{reactive returning the calculated turnover ratios}
+
+\item{condition_metadata}{reactive returning the condition metadata table}
+
+\item{tracer_constants}{reactive returning the tracer-constant provenance
+record snapshotted by the QC page at Run (values / source / file), or
+NULL when the data-processing page has not been run in this session}
 }
 \value{
 list object with user selected options and matrix build

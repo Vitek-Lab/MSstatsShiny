@@ -21,7 +21,8 @@ test_that("qcUI renders the namespaced processing-option input ids", {
   input_ids <- c("global_norm", "log", "summarization", "null", "maxQC", "norm",
                  "standards", "reference_norm", "remove_norm_channel", "features_used",
                  "censInt", "null1", "maxQC1", "MBi", "remove50",
-                 "typequant", "format", "summ", "fname", "run", "update_results")
+                 "typequant", "format", "summ", "fname", "run", "update_results",
+                 "tracer_constants_file", "tracer_constants_clear")
   for (id in input_ids) {
     expect_true(grepl(paste0('id="test-', id, '"'), html, fixed = TRUE),
                 info = paste("Missing input id:", id))
@@ -35,7 +36,9 @@ test_that("qcUI renders every server-toggled visibility container", {
                      "standards_type_section", "reference_norm_panel", "lf_options_panel",
                      "features_topn_panel", "censoring_section", "mbi_panel",
                      "profileplot_options_panel", "qualitymetrics_options_panel",
-                     "nonptm_downloads_panel", "ptm_downloads_panel")
+                     "nonptm_downloads_panel", "ptm_downloads_panel",
+                     "data_upload_mapping_panel", "data_upload_ratios_panel",
+                     "tracer_constants_panel")
   for (id in container_ids) {
     expect_true(grepl(paste0('id="test-', id, '"'), html, fixed = TRUE),
                 info = paste("Missing container id:", id))

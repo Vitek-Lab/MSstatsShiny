@@ -9,8 +9,14 @@
 #' @param parent_session session of the main calling module
 #' @param loadpage_input input object from loadpage UI
 #' @param get_data stored function that returns the data from loadpage
+#' @param app_template reactive (or NULL) returning the selected template name (e.g. TEMPLATES$default)
+#' @param get_condition_metadata reactive (or NULL) returning the condition metadata table
 #'
-#' @return input object with user selected options
+#' @return a list with four elements: `input` (the module's input object),
+#'   `preprocessData` (reactive returning the preprocessed data),
+#'   `turnoverRatios` (reactive returning the turnover ratios, or the uploaded
+#'   ratios when those override them), and `tracerConstants` (reactive
+#'   returning the tracer-constant provenance record snapshotted at Run)
 #'
 #' @export
 #' @examples
@@ -25,12 +31,13 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     preprocessData(input, loadpage_input(), get_data())
   })
 
-  turnover_ratios <- register_qc_turnover(input, output, session, app_template, get_data,
-                                          get_condition_metadata, preprocess_data)
+  turnover = register_qc_turnover(input, output, session, app_template, get_data,
+                                  get_condition_metadata, preprocess_data)
 
   data_upload = register_qc_data_upload(input, output, session, loadpage_input,
                                         app_template, get_data, preprocess_data,
-                                        get_condition_metadata, turnover_ratios)
+                                        get_condition_metadata, turnover$ratios,
+                                        turnover$tracer_upload)
 
   effective_preprocess_data <- data_upload$effective_preprocess_data
 
@@ -97,7 +104,8 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
     list(
       input = input,
       preprocessData = effective_preprocess_data,
-      turnoverRatios = data_upload$effective_turnover_ratios
+      turnoverRatios = data_upload$effective_turnover_ratios,
+      tracerConstants = turnover$tracer_constants
     )
   )
 }

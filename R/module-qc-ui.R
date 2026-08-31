@@ -186,8 +186,37 @@ qcUI <- function(id) {
 
         )),
 
-        tags$hr(),
-        uiOutput(ns("tracer_constants_sidebar")),
+        # Tracer constants (protein turnover only), toggled server-side by
+        # register_qc_turnover.
+        shinyjs::hidden(div(
+          id = ns(NAMESPACE_QC$tracer_constants_panel),
+          tags$hr(),
+          h4("Tracer constants", class = "icon-wrapper",
+             icon("question-circle", lib = "font-awesome"),
+             div(paste0(
+               "Optional: corrects each condition's heavy fraction for ",
+               "incomplete label enrichment by dividing it by this constant ",
+               "(1 = no correction; leave empty to use 1 everywhere). ",
+               "Upload a CSV with columns ",
+               paste(get_qc_required_tracer_columns(), collapse = ", "),
+               " (case-sensitive), one row per condition -- GROUP must match ",
+               "your experimental condition names exactly, including case. ",
+               "TracerConstant must be between ", CONSTANTS_QC$tracer_min,
+               " and ", CONSTANTS_QC$tracer_max, ". Example: header ",
+               "'GROUP,TracerConstant', then '0h,0.98', '6h,0.95', ",
+               "'24h,0.93'. Condition names must start with a number of ",
+               "hours (d or w for days/weeks); names the app can't parse, ",
+               "or that duplicate a timepoint, are rejected."),
+               class = "icon-tooltip")),
+          fileInput(ns(NAMESPACE_QC$tracer_constants_file),
+                    "Upload tracer constants (CSV)", accept = ".csv"),
+          p(tags$strong("Required columns: "),
+            paste(get_qc_required_tracer_columns(), collapse = ", ")),
+          actionButton(ns(NAMESPACE_QC$tracer_constants_clear), "Clear",
+                       class = "btn-sm"),
+          tags$br(), tags$br(),
+          uiOutput(ns(NAMESPACE_QC$tracer_constants_status))
+        )),
         actionButton(ns("run"), "Run summarization"),
         width = 3
       ),
@@ -230,7 +259,8 @@ qcUI <- function(id) {
                               id = ns(NAMESPACE_QC$data_upload_ratios_panel),
                               tags$hr(),
                               fileInput(ns("upload_turnover_ratios"), "Upload Turnover Ratios (CSV)", accept = ".csv"),
-                              p(tags$strong("Required columns: "), "Protein, TimeVal, H_frac, L_frac")
+                              p(tags$strong("Required columns: "), "Protein, TimeVal, H_frac, L_frac"),
+                              p("Ratios uploaded here are used as given. The tracer-constants upload in the side panel does not apply on this flow: these H_frac and L_frac values are already computed, so any correction for incomplete label enrichment must be applied before upload.")
                             ))
                           )
                  ),

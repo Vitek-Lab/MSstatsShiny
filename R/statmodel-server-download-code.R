@@ -1,4 +1,13 @@
-generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app_template = TEMPLATES$default) {
+#' Build the downloadable reproducible-analysis script.
+#'
+#' @param tracer_constants The tracer-constant provenance record snapshotted by
+#'   the QC page at Run: a list of `values` (named numeric, keyed by raw
+#'   condition string), `source` ("upload" / "none") and `file`. `NULL` means
+#'   the QC page was never run in this session.
+#' @noRd
+generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input,
+                                  app_template = TEMPLATES$default,
+                                  tracer_constants = NULL) {
   codes = preprocessDataCode(qc_input, loadpage_input)
 
   # Check if this is a response curve analysis
@@ -14,7 +23,15 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
     codes = paste(codes, "library(MSstatsResponse)\n", sep = "")
 
     if (isTRUE(app_template == TEMPLATES$protein_turnover)) {
-      codes = paste(codes, build_turnover_analysis_code(qc_input, comp_mat, increasing), sep = "")
+      if (is.null(tracer_constants)) {
+        tracer_constants = list(
+          values = qc_default_tracer_constants(as.character(comp_mat$GROUP)),
+          source = CONSTANTS_QC$tracer_source_not_run,
+          file   = NULL
+        )
+      }
+      codes = paste(codes, build_turnover_analysis_code(qc_input, comp_mat, increasing,
+                                                       tracer_constants), sep = "")
       return(codes)
     }
 
@@ -156,35 +173,115 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input, app
 }
 
 
+#' The provenance comment stamped above the tracer_constants vector. Exactly
+#' one of three mutually-exclusive lines is emitted, matching whether the
+#' constants came from an upload, were explicitly declined, or the
+#' data-processing page was never run.
+#' @noRd
+build_tracer_provenance_comment <- function(tracer_constants) {
+  source <- tracer_constants$source
+  if (is.null(source)) source <- CONSTANTS_QC$tracer_source_not_run
+
+  if (identical(source, CONSTANTS_QC$tracer_source_upload)) {
+    file <- tracer_constants$file
+    label <- if (length(file) != 1L || is.na(file) || !nzchar(file)) "an uploaded file"
+             else encodeString(as.character(file), quote = "\"")
+    return(paste0(
+      "# Tracer constants: uploaded on the data-processing page, from ", label, ".\n"))
+  }
+  if (identical(source, CONSTANTS_QC$tracer_source_none)) {
+    return(paste0(
+      "# Tracer constants: no file was supplied on the data-processing page, so\n",
+      "# every condition uses 1 (no tracer correction).\n"))
+  }
+  paste0(
+    "# Tracer constants: the data-processing page was not run in this session,\n",
+    "# so every condition uses 1 (no tracer correction).\n")
+}
+
+#' Serialize a double as R source that reads back as the identical double,
+#' preferring the shortest round-tripping form so ordinary values stay
+#' readable ("0.9", not "0.90000000000000002").
+#' @noRd
+format_r_double <- function(value) {
+  for (digits in 15:17) {
+    text <- sprintf(paste0("%.", digits, "g"), value)
+    if (identical(suppressWarnings(as.numeric(text)), value)) return(text)
+  }
+  sprintf("%.17g", value)
+}
+
 #' Generate reproducible code for the protein-turnover dose-response pipeline.
 #'
-#' Mirrors the app's turnover flow: calculateTurnoverRatios (with the
-#' user-entered tracer constants), an optional calculatePeptideWeights step when
+#' Mirrors the app's turnover flow: calculateTurnoverRatios (with the resolved
+#' tracer constants), an optional calculatePeptideWeights step when
 #' "Assign feature weights" is checked, then a weighted doseResponseFit and
 #' visualizeResponseProtein. Kept as a plain string builder so it can be
 #' unit-tested without a running session.
 #'
-#' @param qc_input The QC module input list (tracer_* numerics and
-#'   assign_feature_weights checkbox live here).
+#' @param qc_input The QC module input list (the assign_feature_weights checkbox
+#'   lives here).
 #' @param comp_mat The turnover contrast matrix (GROUP + TimeVal columns); its
 #'   GROUP column supplies the condition names the tracer constants are keyed by.
 #' @param increasing Logical passed through to the fit / visualization.
+#' @param tracer_constants Required, not defaulted: a list of `values` (named
+#'   numeric keyed by raw condition string), `source` (one of the
+#'   CONSTANTS_QC$tracer_source_* provenance states) and `file`.
 #' @return A character scalar of R code, appended after `library(MSstatsResponse)`.
 #' @noRd
-build_turnover_analysis_code <- function(qc_input, comp_mat, increasing) {
+build_turnover_analysis_code <- function(qc_input, comp_mat, increasing,
+                                        tracer_constants) {
   conditions <- as.character(comp_mat$GROUP)
   weighting  <- isTRUE(qc_input[[NAMESPACE_QC$assign_feature_weights]])
 
-  # Serialize the tracer constants keyed by original condition name, matching
-  # the app (calculateTurnoverRatios parses these names into timepoints).
-  tracer_vals <- vapply(conditions, function(cond) {
-    val <- qc_input[[paste0("tracer_", make.names(cond))]]
-    if (is.null(val)) 1.0 else as.numeric(val)
-  }, numeric(1))
-  tracer_pairs <- paste0("  \"", conditions, "\" = ", tracer_vals, collapse = ",\n")
+  values <- tracer_constants$values
+  if (is.null(values) || length(values) == 0 || is.null(names(values))) {
+    stop("Cannot generate reproducible code: no tracer constants are recorded ",
+         "for this turnover analysis. Run protein summarization on the ",
+         "data-processing page first.")
+  }
+  if (length(conditions) == 0) {
+    stop("Cannot generate reproducible code: there are no ",
+         "experimental conditions.")
+  }
+  blank_conditions <- is.na(conditions) | !nzchar(trimws(conditions))
+  if (any(blank_conditions)) {
+    stop("Cannot generate reproducible code: ", sum(blank_conditions),
+         " experimental condition(s) have a blank name. Give every condition a ",
+         "name in the annotation file and load the data again.")
+  }
+  upload_keys <- trimws(as.character(names(values)))
+  repeated <- unique(upload_keys[duplicated(upload_keys)])
+  ambiguous <- repeated[vapply(repeated, function(key) {
+    length(unique(values[upload_keys == key])) > 1L
+  }, logical(1))]
+  if (length(ambiguous) > 0) {
+    stop("Cannot generate reproducible code: the recorded tracer constants are ",
+         "ambiguous for condition(s): ", paste(ambiguous, collapse = ", "),
+         ". Re-upload the tracer constants file with one row per condition.")
+  }
+  matched <- match(trimws(conditions), upload_keys)
+  if (anyNA(matched)) {
+    stop("Cannot generate reproducible code: the recorded tracer constants do ",
+         "not cover condition(s): ",
+         paste(conditions[is.na(matched)], collapse = ", "),
+         ". Re-run protein summarization on the data-processing page so the ",
+         "constants match the current conditions.")
+  }
+  tracer_vals <- suppressWarnings(as.numeric(values[matched]))
+  if (!all(is.finite(tracer_vals))) {
+    bad <- !is.finite(tracer_vals)
+    stop("Cannot generate reproducible code: the recorded tracer constant for ",
+         "condition(s) ", paste(conditions[bad], collapse = ", "),
+         " is not a finite number.")
+  }
+
+  tracer_pairs <- paste0("  ", encodeString(conditions, quote = "\""), " = ",
+                         vapply(tracer_vals, format_r_double, character(1)),
+                         collapse = ",\n")
 
   code <- paste0(
-    "\n# Tracer constants entered per condition on the data-processing page\n",
+    "\n", build_tracer_provenance_comment(tracer_constants),
     "tracer_constants = c(\n", tracer_pairs, "\n)\n",
 
     "\n# Calculate turnover (Heavy/Light) ratios. Use protein-level data when any\n",

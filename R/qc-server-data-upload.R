@@ -86,7 +86,7 @@ get_qc_required_ratios_columns <- function() {
 #' character to match the load-page format.
 #' @noRd
 qc_mapping_to_condition_metadata <- function(parsed, template) {
-  df = data.frame(Condition = as.character(parsed$GROUP), stringsAsFactors = FALSE)
+  df = data.frame(Condition = trimws(as.character(parsed$GROUP)), stringsAsFactors = FALSE)
   if (!is.null(template) && template == TEMPLATES$protein_turnover) {
     df$TimeVal = as.character(parsed$TimeVal)
   } else if (!is.null(template) && template == TEMPLATES$chemoproteomics) {
@@ -113,29 +113,33 @@ qc_dose_units_valid <- function(units) {
   all(!is.na(normalized) & normalized %in% c("nm", "um", "mm", "m"))
 }
 
-#' Errors for a GROUP mapping that must have one row per ProteinLevelData GROUP.
+#' Errors for an upload that must have exactly one row per reference GROUP.
 #'
-#' Returns a character vector of messages (empty when valid): unknown mapping
-#' groups, ProteinLevelData groups missing from the mapping, and duplicated
-#' mapping rows. Missing or duplicated groups otherwise corrupt the GROUP join.
+#' Returns a character vector of messages (empty when valid): unknown groups,
+#' reference groups missing from the upload, and duplicated rows. Missing or
+#' duplicated groups otherwise corrupt the GROUP join.
+#'
+#' `subject` and `reference` name the two sides in the message.
 #' @noRd
-qc_mapping_group_errors <- function(mapping_groups, protein_groups) {
-  mapping_groups = as.character(mapping_groups)
-  protein_groups = as.character(protein_groups)
+qc_mapping_group_errors <- function(mapping_groups, protein_groups,
+                                    subject = "GROUP mapping",
+                                    reference = "ProteinLevelData") {
+  mapping_groups = trimws(as.character(mapping_groups))
+  protein_groups = trimws(as.character(protein_groups))
   errors = character(0)
   unknown = setdiff(mapping_groups, protein_groups)
   if (length(unknown) > 0) {
-    errors = c(errors, paste0("GROUP mapping has GROUP value(s) not found in ProteinLevelData: ",
+    errors = c(errors, paste0(subject, " has GROUP value(s) not found in ", reference, ": ",
                               paste(unknown, collapse = ", "), "."))
   }
   missing_groups = setdiff(protein_groups, mapping_groups)
   if (length(missing_groups) > 0) {
-    errors = c(errors, paste0("GROUP mapping is missing row(s) for ProteinLevelData GROUP(s): ",
+    errors = c(errors, paste0(subject, " is missing row(s) for ", reference, " GROUP(s): ",
                               paste(missing_groups, collapse = ", "), "."))
   }
   duplicated_groups = unique(mapping_groups[duplicated(mapping_groups)])
   if (length(duplicated_groups) > 0) {
-    errors = c(errors, paste0("GROUP mapping has duplicate row(s) for GROUP(s): ",
+    errors = c(errors, paste0(subject, " has duplicate row(s) for GROUP(s): ",
                               paste(duplicated_groups, collapse = ", "), "."))
   }
   errors
@@ -163,6 +167,159 @@ qc_values_numeric_finite <- function(df, cols, allow_na = FALSE) {
 }
 
 # ----------------------------------------------------------------------------
+# Tracer-constant upload helpers (protein turnover only).
+# ----------------------------------------------------------------------------
+
+#' Required columns for an uploaded tracer-constants CSV.
+#'
+#' GROUP matches the naming every other QC upload uses; TracerConstant is the
+#' per-condition isotope enrichment fraction handed to
+#' MSstatsResponse::calculateTurnoverRatios.
+#' @noRd
+get_qc_required_tracer_columns <- function() {
+  c("GROUP", "TracerConstant")
+}
+
+#' Whether every tracer constant lies within CONSTANTS_QC$tracer_min/max.
+#'
+#' Returns FALSE for an absent, empty, or out-of-range column.
+#' @noRd
+qc_tracer_values_in_range <- function(df, col = "TracerConstant") {
+  if (is.null(df) || length(col) != 1 || is.na(col)) return(FALSE)
+  if (!(col %in% colnames(df))) return(FALSE)
+  raw = df[[col]]
+  if (length(raw) == 0) return(FALSE)
+  if (is.factor(raw)) raw = as.character(raw)
+  coerced = suppressWarnings(as.numeric(raw))
+  all(is.finite(coerced) &
+        coerced >= CONSTANTS_QC$tracer_min &
+        coerced <= CONSTANTS_QC$tracer_max)
+}
+
+#' The neutral all-ones tracer-constant vector, named by condition.
+#'
+#' Errors when there are no conditions.
+#' @noRd
+#' @importFrom stats setNames
+qc_default_tracer_constants <- function(conditions) {
+  conditions = as.character(conditions)
+  if (length(conditions) == 0) {
+    stop("Cannot build tracer constants: no experimental conditions are available.")
+  }
+  setNames(rep(1, length(conditions)), conditions)
+}
+
+#' Resolve the tracer-constant vector actually passed to the turnover fit.
+#'
+#' The single source of truth for both the analysis and the downloadable
+#' script. `uploaded` is NULL when no file was supplied, in which case every
+#' condition gets 1.
+#' @noRd
+#' @importFrom stats setNames
+qc_resolve_tracer_constants <- function(conditions, uploaded = NULL) {
+  resolved = qc_default_tracer_constants(conditions)
+  if (is.null(uploaded) || length(uploaded) == 0) return(resolved)
+
+  conditions = names(resolved)
+  # Matched on trimmed keys, but the result keeps the raw condition strings as names.
+  keys = trimws(conditions)
+  upload_keys = trimws(as.character(names(uploaded)))
+
+  duplicated_keys = unique(upload_keys[duplicated(upload_keys)])
+  if (length(duplicated_keys) > 0) {
+    stop("Tracer constants list condition(s) more than once: ",
+         paste(duplicated_keys, collapse = ", "), ".")
+  }
+
+  matched = match(keys, upload_keys)
+  if (anyNA(matched)) {
+    stop("Tracer constants are missing for condition(s): ",
+         paste(conditions[is.na(matched)], collapse = ", "), ".")
+  }
+
+  raw = uploaded
+  if (is.factor(raw)) raw = as.character(raw)
+  values = suppressWarnings(as.numeric(raw[matched]))
+  if (anyNA(values)) {
+    stop("Tracer constants could not be read for condition(s): ",
+         paste(conditions[is.na(values)], collapse = ", "), ".")
+  }
+  setNames(values, conditions)
+}
+
+#' Hours a condition name resolves to, mirroring MSstatsResponse's internal
+#' (not exported) parse_timepoint(). The number is anchored at the start of
+#' the string, and the day/week detectors are bare "d"/"w" matched anywhere.
+#' @noRd
+#' @importFrom stringr str_extract str_detect
+qc_tracer_timepoint_hours <- function(conditions) {
+  conditions = as.character(conditions)
+  numeric_part = suppressWarnings(as.numeric(str_extract(conditions, "^[0-9]+")))
+  is_days = str_detect(conditions, "d|day")
+  is_weeks = str_detect(conditions, "w|week")
+  is_days[is.na(is_days)] = FALSE
+  is_weeks[is.na(is_weeks)] = FALSE
+
+  hours = numeric_part
+  hours[is_days] = numeric_part[is_days] * 24
+  hours[is_weeks] = numeric_part[is_weeks] * 24 * 7
+  hours
+}
+
+#' Condition names whose "d"/"w" is read as a unit but is not one (e.g.
+#' "6h_drug" resolves to 144 hours via the "d" in "drug").
+#' @noRd
+#' @importFrom stringr str_detect
+qc_tracer_misleading_units <- function(conditions) {
+  conditions = as.character(conditions)
+  fires = !is.na(conditions) & str_detect(conditions, "d|day|w|week")
+  genuine = !is.na(conditions) &
+    str_detect(conditions, "^[0-9]+[[:space:]]*(d|days?|w|wks?|weeks?)$")
+  fires & !genuine
+}
+
+#' Errors for condition names the turnover fit cannot key tracer constants by:
+#' names that don't parse to a timepoint, names with a misleading "d"/"w", and
+#' names that collide on the same resolved timepoint.
+#' @noRd
+qc_tracer_timepoint_errors <- function(conditions) {
+  conditions = unique(as.character(conditions))
+  errors = character(0)
+  if (length(conditions) == 0) return(errors)
+
+  hours = qc_tracer_timepoint_hours(conditions)
+
+  unparseable = conditions[is.na(hours)]
+  if (length(unparseable) > 0) {
+    errors = c(errors, paste0(
+      "Condition name(s) must start with a number of hours, days or weeks ",
+      "(for example 0h, 6h, 24h). These do not: ",
+      paste(unparseable, collapse = ", "),
+      ". Rename the conditions in the annotation file and reload the data."))
+  }
+
+  misleading = !is.na(hours) & qc_tracer_misleading_units(conditions)
+  if (any(misleading)) {
+    errors = c(errors, paste0(
+      "Condition name(s) ", paste(conditions[misleading], collapse = ", "),
+      " contain a \"d\" or \"w\" that is read as a day or week unit, so they ",
+      "resolve to ", paste(hours[misleading], collapse = ", "),
+      " hours. Rename them in the annotation file and reload the data."))
+  }
+
+  known = hours[!is.na(hours)]
+  named = conditions[!is.na(hours)]
+  for (collision in unique(known[duplicated(known)])) {
+    errors = c(errors, paste0(
+      "Condition name(s) ", paste(named[known == collision], collapse = ", "),
+      " all resolve to the same timepoint (", collision,
+      " hours), so they cannot be given different tracer constants. ",
+      "Rename them in the annotation file and reload the data."))
+  }
+  errors
+}
+
+# ----------------------------------------------------------------------------
 # Server registration.
 # ----------------------------------------------------------------------------
 
@@ -171,7 +328,8 @@ qc_values_numeric_finite <- function(df, cols, allow_na = FALSE) {
 #' @noRd
 register_qc_data_upload <- function(input, output, session, loadpage_input,
                                     app_template, get_data, preprocess_data,
-                                    get_condition_metadata, turnover_ratios) {
+                                    get_condition_metadata, turnover_ratios,
+                                    tracer_upload = NULL) {
 
   uploaded_feature_level = reactiveVal(NULL)
   uploaded_protein_level = reactiveVal(NULL)
@@ -420,8 +578,12 @@ register_qc_data_upload <- function(input, output, session, loadpage_input,
   # ---- Disable the summarization Run button while uploads are in play ----
 
   observe({
+    tracer = if (is.null(tracer_upload)) NULL else tracer_upload()
+    tracer_blocks_run = identical(get_template(), TEMPLATES$protein_turnover) &&
+      !is.null(tracer) && tracer$state %in% c("pending", "rejected")
     shinyjs::toggleState("run", is.null(uploaded_feature_level()) &&
-                                  is.null(uploaded_protein_level()))
+                                  is.null(uploaded_protein_level()) &&
+                                  !tracer_blocks_run)
   })
 
   # ---- Template-gated upload panels: mapping (turnover + chemo), ratios (turnover) ----

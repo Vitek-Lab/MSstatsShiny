@@ -3,3 +3,7 @@
 _\.new\.png$
 ^\.positai$
 ^\.claude$
+^plans$
+MSstats_log_.*\.log$
+^[^/]*\.csv$
+^\.github$

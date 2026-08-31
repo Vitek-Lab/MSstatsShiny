@@ -14,6 +14,11 @@
 #' @param get_data stored function that returns the data from loadpage
 #' @param preprocess_data stored function that returns preprocessed data
 #' @param app_template reactive returning the selected template name (e.g. TEMPLATES$default)
+#' @param turnover_ratios reactive returning the calculated turnover ratios
+#' @param condition_metadata reactive returning the condition metadata table
+#' @param tracer_constants reactive returning the tracer-constant provenance
+#'   record snapshotted by the QC page at Run (values / source / file), or
+#'   NULL when the data-processing page has not been run in this session
 #'
 #' @importFrom MSstatsResponse visualizeResponseProtein
 #'
@@ -27,7 +32,8 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                            get_data, preprocess_data,
                            app_template = reactive(TEMPLATES$default),
                            turnover_ratios = reactive(NULL),
-                           condition_metadata = reactive(NULL)) {
+                           condition_metadata = reactive(NULL),
+                           tracer_constants = reactive(NULL)) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -394,7 +400,9 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       data_comparison_code = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         req(contrast$matrix)
         comp_mat = contrast$matrix
-        generate_analysis_code(qc_input(), loadpage_input(), comp_mat, input, app_template())
+        tracer_used = tryCatch(tracer_constants(), error = function(e) NULL)
+        generate_analysis_code(qc_input(), loadpage_input(), comp_mat, input,
+                               app_template(), tracer_used)
       })
       
       SignificantProteins = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {

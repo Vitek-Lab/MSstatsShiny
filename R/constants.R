@@ -188,7 +188,19 @@ NAMESPACE_QC = list(
   ptm_downloads_panel = "ptm_downloads_panel",
   # Data Upload tab template-gated upload panels
   data_upload_mapping_panel = "data_upload_mapping_panel",
-  data_upload_ratios_panel = "data_upload_ratios_panel"
+  data_upload_ratios_panel = "data_upload_ratios_panel",
+  tracer_constants_panel = "tracer_constants_panel",
+  tracer_constants_file = "tracer_constants_file",
+  tracer_constants_clear = "tracer_constants_clear",
+  tracer_constants_status = "tracer_constants_status"
+)
+
+CONSTANTS_QC = list(
+  tracer_min = 0.01,
+  tracer_max = 1,
+  tracer_source_upload = "upload",
+  tracer_source_none = "none",
+  tracer_source_not_run = "not_run"
 )
 
 NAMESPACE_EXPDES = list(
