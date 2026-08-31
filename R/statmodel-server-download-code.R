@@ -23,8 +23,6 @@ generate_analysis_code = function(qc_input, loadpage_input, comp_mat, input,
     codes = paste(codes, "library(MSstatsResponse)\n", sep = "")
 
     if (isTRUE(app_template == TEMPLATES$protein_turnover)) {
-      # Resolved here, not at the top of the function: on every other
-      # template comp_mat is a bare matrix, and `$GROUP` throws on it.
       if (is.null(tracer_constants)) {
         tracer_constants = list(
           values = qc_default_tracer_constants(as.character(comp_mat$GROUP)),
@@ -236,9 +234,6 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing,
   conditions <- as.character(comp_mat$GROUP)
   weighting  <- isTRUE(qc_input[[NAMESPACE_QC$assign_feature_weights]])
 
-  # tracer_constants is snapshotted at QC Run, so it can drift from comp_mat
-  # (rebuilt afterwards from editable condition metadata); an uncovered
-  # condition must fail loudly rather than emit a silently wrong script.
   values <- tracer_constants$values
   if (is.null(values) || length(values) == 0 || is.null(names(values))) {
     stop("Cannot generate reproducible code: no tracer constants are recorded ",
@@ -249,17 +244,12 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing,
     stop("Cannot generate reproducible code: the contrast matrix lists no ",
          "experimental conditions.")
   }
-  # A blank condition name cannot be written as an R argument name
-  # (`c("" = 1)` is a parse error), so it must be rejected before emitting code.
   blank_conditions <- is.na(conditions) | !nzchar(trimws(conditions))
   if (any(blank_conditions)) {
     stop("Cannot generate reproducible code: ", sum(blank_conditions),
          " experimental condition(s) have a blank name. Give every condition a ",
          "name in the annotation file and load the data again.")
   }
-  # Keys are trimmed on both sides, matching qc_resolve_tracer_constants.
-  # Trimming can collapse two distinct keys onto one, so only flag a repeated
-  # key whose values actually differ as ambiguous.
   upload_keys <- trimws(as.character(names(values)))
   repeated <- unique(upload_keys[duplicated(upload_keys)])
   ambiguous <- repeated[vapply(repeated, function(key) {
@@ -278,7 +268,6 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing,
          ". Re-run protein summarization on the data-processing page so the ",
          "constants match the current conditions.")
   }
-  # is.finite, not anyNA: Inf would pass an NA check and emit a literal `Inf`.
   tracer_vals <- suppressWarnings(as.numeric(values[matched]))
   if (!all(is.finite(tracer_vals))) {
     bad <- !is.finite(tracer_vals)
@@ -287,9 +276,6 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing,
          " is not a finite number.")
   }
 
-  # Keyed by the raw condition name, matching the app (calculateTurnoverRatios
-  # re-keys via parse_timepoint(names(x))). encodeString() rather than
-  # paste0-ing quotes, so a quote or backslash in the name still parses.
   tracer_pairs <- paste0("  ", encodeString(conditions, quote = "\""), " = ",
                          vapply(tracer_vals, format_r_double, character(1)),
                          collapse = ",\n")
