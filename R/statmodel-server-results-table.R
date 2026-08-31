@@ -26,6 +26,58 @@ render_results_table = function(output, session, data_comparison, SignificantPro
   output$number = renderText({ nrow(SignificantProteins()) })
 }
 
+#' Register the turnover confidence / classification results panel.
+#'
+#' The panel only appears for the protein-turnover template when the analysis
+#' produced a classification, i.e. when per-peptide weights were calculated on
+#' the data-processing page. Unlike the main results table this one has a row
+#' per protein in the data, including proteins that produced no fit.
+#' @noRd
+render_turnover_confidence_table = function(output, session, data_comparison,
+                                            app_template = reactive(TEMPLATES$default)) {
+  ns = session$ns
+
+  classification = reactive({
+    if (!isTRUE(app_template() == TEMPLATES$protein_turnover)) {
+      return(NULL)
+    }
+    data_comparison()$TurnoverClassification
+  })
+
+  output$turnover_confidence_results = renderUI({
+    classified = classification()
+    if (is.null(classified) || NROW(classified) == 0) {
+      return(NULL)
+    }
+    tagList(
+      tags$br(),
+      h2("Turnover confidence and classification"),
+      h5("One row per protein. ", tags$code("confidence"), " combines the ",
+         "per-peptide weights, the fit residuals, the light-channel QC score ",
+         "and a shrinkage factor on heavy-peptide count. ",
+         tags$code("category"), " describes turnover behavior (fit, ",
+         "medium_lived, long_lived, fast, no_heavy) and ", tags$code("tier"),
+         " ranks scoring confidence (HIGH / MEDIUM / LOW). Proteins with no ",
+         "fit have NA scores."),
+      tags$br(),
+      dataTableOutput(ns("turnover_confidence_table")),
+      downloadButton(ns("download_turnover_confidence"),
+                     "Download confidence scores")
+    )
+  })
+
+  output$turnover_confidence_table = renderDataTable({
+    req(classification())
+  }, options = list(scrollX = TRUE))
+
+  output$download_turnover_confidence = downloadHandler(
+    filename = function() paste0("Turnover_Confidence-", Sys.Date(), ".csv"),
+    content = function(file) {
+      write.csv(classification(), file, row.names = FALSE)
+    }
+  )
+}
+
 render_ptm_results_tables = function(output, session, data_comparison, SignificantProteins) {
   ns = session$ns
 

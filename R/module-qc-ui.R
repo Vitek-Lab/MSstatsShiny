@@ -125,7 +125,11 @@ qcUI <- function(id) {
                                icon("question-circle", lib = "font-awesome"),
                                div("Compute per-peptide quality weights (coverage, \
                                 intensity, monotonicity, validity) and add them as \
-                                extra columns to the Turnover Ratios table.",
+                                extra columns to the Turnover Ratios table. The \
+                                weights also down-weight low-quality peptides in \
+                                the curve fit and unlock the per-protein \
+                                confidence score and turnover classification on \
+                                the statistical modeling page.",
                                    class = "icon-tooltip")),
               value = FALSE
             )
