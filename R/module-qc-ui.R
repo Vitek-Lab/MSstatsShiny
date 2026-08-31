@@ -187,65 +187,34 @@ qcUI <- function(id) {
         )),
 
         # Tracer constants (protein turnover only), toggled server-side by
-        # register_qc_turnover. Static and shinyjs::hidden(), NOT a renderUI:
-        # re-rendering destroys a mounted fileInput, which pushes NULL to the
-        # server while the parsed constants live on in a reactiveVal -- the UI
-        # would read "no file uploaded" while the fit kept dividing by the old
-        # file's values. R/qc-server-sidebar.R:101-105 documents the same rule
-        # for the same reason. Three of the old renderUI's dependencies are
-        # invalidated by ordinary actions (re-clicking proceed on the load
-        # page, editing a TimeVal cell, uploading a GROUP mapping), so this is
-        # not a theoretical hazard.
-        #
-        # The hr() lives INSIDE the div so the rule appears only with the
-        # section it introduces. (It is NOT true that the old unconditional hr
-        # at this position rendered alone on non-turnover templates -- it
-        # separated the last visible control from the Run button. Moving it
-        # gives up that separator on those templates, which is the accepted
-        # cost of not drawing two rules, or a leading one, on turnover.)
-        #
-        # The schema sits in the tooltip rather than in the panel body because
-        # this sidebar is width = 3 and already runs ~160 lines; every other
-        # fileInput in this app has the width = 8 main panel to spread into.
+        # register_qc_turnover.
         shinyjs::hidden(div(
           id = ns(NAMESPACE_QC$tracer_constants_panel),
           tags$hr(),
           h4("Tracer constants", class = "icon-wrapper",
              icon("question-circle", lib = "font-awesome"),
              div(paste0(
-               "Optional. Corrects each condition's heavy fraction for ",
-               "incomplete label enrichment: the heavy fraction is DIVIDED by ",
-               "the constant, so 1 means no correction. Leave this empty and ",
-               "every condition uses 1. Required columns, case-sensitive: ",
+               "Optional: corrects each condition's heavy fraction for ",
+               "incomplete label enrichment by dividing it by this constant ",
+               "(1 = no correction; leave empty to use 1 everywhere). ",
+               "Upload a CSV with columns ",
                paste(get_qc_required_tracer_columns(), collapse = ", "),
-               ". One row per condition -- the file must cover them all, and ",
-               "GROUP values must match your experimental conditions exactly, ",
-               "including case. TracerConstant must be between ",
-               CONSTANTS_QC$tracer_min, " and ", CONSTANTS_QC$tracer_max,
-               ", inclusive. Example: a header row 'GROUP,TracerConstant' ",
-               "followed by '0h,0.98', '6h,0.95', '24h,0.93'. Condition names ",
-               "must begin with a number of hours, as those do: a d or w ",
-               "anywhere in the name is read as days or weeks, so names the ",
-               "app cannot read, and names that resolve to the same ",
-               "timepoint, are rejected."),
+               " (case-sensitive), one row per condition -- GROUP must match ",
+               "your experimental condition names exactly, including case. ",
+               "TracerConstant must be between ", CONSTANTS_QC$tracer_min,
+               " and ", CONSTANTS_QC$tracer_max, ". Example: header ",
+               "'GROUP,TracerConstant', then '0h,0.98', '6h,0.95', ",
+               "'24h,0.93'. Condition names must start with a number of ",
+               "hours (d or w for days/weeks); names the app can't parse, ",
+               "or that duplicate a timepoint, are rejected."),
                class = "icon-tooltip")),
           fileInput(ns(NAMESPACE_QC$tracer_constants_file),
                     "Upload tracer constants (CSV)", accept = ".csv"),
-          # One visible line, phrased like the sibling uploads at :253-283.
-          # The tooltip holds the detail, but tooltips here are hover-only
-          # (inst/assets/style.css: .icon-wrapper:hover .icon-tooltip), and
-          # this would otherwise be the only upload in the app whose schema
-          # needs a mouse.
           p(tags$strong("Required columns: "),
             paste(get_qc_required_tracer_columns(), collapse = ", ")),
-          # Required, not optional: a rejected upload blocks Run (plan section
-          # 0.1), so without a clear affordance a bad file is a dead end.
           actionButton(ns(NAMESPACE_QC$tracer_constants_clear), "Clear",
                        class = "btn-sm"),
           tags$br(), tags$br(),
-          # Makes the absent / pending / rejected / valid states visible. The
-          # fileInput keeps displaying the filename of a rejected file, so
-          # without this the UI looks like the upload succeeded.
           uiOutput(ns(NAMESPACE_QC$tracer_constants_status))
         )),
         actionButton(ns("run"), "Run summarization"),
@@ -291,10 +260,6 @@ qcUI <- function(id) {
                               tags$hr(),
                               fileInput(ns("upload_turnover_ratios"), "Upload Turnover Ratios (CSV)", accept = ".csv"),
                               p(tags$strong("Required columns: "), "Protein, TimeVal, H_frac, L_frac"),
-                              # plan section 0.5: the tracer-constants panel in the side bar is
-                              # deliberately unavailable on this flow. Said here rather
-                              # than there, because there is exactly where a user on
-                              # this flow cannot see it.
                               p("Ratios uploaded here are used as given. The tracer-constants upload in the side panel does not apply on this flow: these H_frac and L_frac values are already computed, so any correction for incomplete label enrichment must be applied before upload.")
                             ))
                           )

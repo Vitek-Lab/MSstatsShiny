@@ -105,13 +105,6 @@ qcServer <- function(input, output, session, parent_session, loadpage_input, get
       input = input,
       preprocessData = effective_preprocess_data,
       turnoverRatios = data_upload$effective_turnover_ratios,
-      # The tracer constants that actually produced the ratios shown on the QC
-      # page, snapshotted at Run. Exposed alongside the ratios rather than
-      # bundled into them because the Download-code path reads it on ALL FOUR
-      # templates, so it must be a reactive that cannot raise -- see the
-      # tracer_constants_used comment in R/qc-server-turnover.R. NOT routed
-      # through data_upload: the uploaded-ratios override replaces the ratios,
-      # not the constants that were applied when computing them.
       tracerConstants = turnover$tracer_constants
     )
   )

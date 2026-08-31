@@ -26,9 +26,7 @@ export(tmt_summarization_loop)
 export(uiObject)
 export(xy_str)
 import(MSstats)
-import(MSstatsConvert, except = c(MaxQtoMSstatsTMTFormat,
-  OpenMStoMSstatsTMTFormat, PDtoMSstatsTMTFormat, PhilosophertoMSstatsTMTFormat,
-  SpectroMinetoMSstatsTMTFormat))
+import(MSstatsConvert)
 import(MSstatsTMT)
 import(data.table)
 import(ggplot2)

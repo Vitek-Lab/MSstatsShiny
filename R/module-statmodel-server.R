@@ -400,12 +400,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       data_comparison_code = eventReactive(input[[NAMESPACE_STATMODEL$modeling_start]], {
         req(contrast$matrix)
         comp_mat = contrast$matrix
-        # Isolated by eventReactive, so this is a snapshot taken when the model
-        # is run -- and the QC page already snapshotted it at summarization, so
-        # the script can only ever cite constants that produced ratios the user
-        # actually saw (plan Decision I). tryCatch mirrors every other optional
-        # reactive read in this module: a caller that supplies something raising
-        # here must not take the Download-code button out on all four templates.
         tracer_used = tryCatch(tracer_constants(), error = function(e) NULL)
         generate_analysis_code(qc_input(), loadpage_input(), comp_mat, input,
                                app_template(), tracer_used)
