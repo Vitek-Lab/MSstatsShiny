@@ -1,8 +1,4 @@
 # ============================================================================
-# Tests for protein turnover functionality
-# ============================================================================
-
-# ============================================================================
 # Tests for TEMPLATES and TEMPLATE_LABELS constants
 # ============================================================================
 
@@ -410,8 +406,6 @@ test_that("generate_analysis_code produces turnover-specific code for protein_tu
 # ============================================================================
 
 # A tracer_constants snapshot in the shape register_qc_turnover records it.
-# Written as a helper because the argument is now REQUIRED: a default would let
-# a future test silently assert all-1s behaviour, which is the bug under repair.
 tracer_snapshot <- function(values, source = CONSTANTS_QC$tracer_source_upload,
                             file = "tracer.csv") {
   list(values = values, source = source, file = file)
@@ -471,18 +465,13 @@ test_that("build_turnover_analysis_code emits syntactically valid R", {
 })
 
 # ---------------------------------------------------------------------------
-# Risk #1: the emitted vector must round-trip to the vector the app divided by.
-#
-# Deliberately NOT a grepl() for a substring: that is the shape of assertion
-# that masked the original bug, because it passes on a script whose vector is
-# right in the one place it looks and all-1s everywhere else. Evaluating the
-# emitted source and comparing the whole object catches names, values, ORDER and
-# precision at once.
+# The emitted vector must round-trip to the vector the app divided by.
+# Evaluating the emitted source rather than grepl()-ing a substring out of it
+# catches names, values, order and precision at once.
 # ---------------------------------------------------------------------------
 
-# Pulls the `tracer_constants = c(...)` assignment back out of the generated
-# script and evaluates it, so the assertion is against what R would actually
-# bind, not against the text.
+# Pulls the `tracer_constants = c(...)` assignment out of the generated script
+# and evaluates it, so the assertion is against what R would bind.
 eval_emitted_tracer_constants <- function(code) {
   env <- new.env(parent = baseenv())
   found <- FALSE
@@ -502,8 +491,7 @@ eval_emitted_tracer_constants <- function(code) {
 test_that("the emitted tracer_constants vector is identical to the resolved one", {
   conditions <- c("0h", "6h", "24h")
   # 1/3 is the point of the test: paste0() renders it to 15 significant digits,
-  # which parses back to a DIFFERENT double, so a "reproducible" script would
-  # divide by a number the app never used.
+  # which parses back to a DIFFERENT double.
   uploaded <- stats::setNames(c(1/3, 0.9, 1), conditions)
   resolved <- MSstatsShiny:::qc_resolve_tracer_constants(conditions, uploaded)
 
@@ -533,8 +521,8 @@ test_that("the emitted vector follows the contrast matrix order, not the file or
 })
 
 test_that("build_turnover_analysis_code escapes quotes in condition names", {
-  # Latent before this change, because make.names() sanitized the names away;
-  # keying by the raw condition string newly exposes it (plan Decision J).
+  # Keying by the raw condition string exposes this; make.names() previously
+  # sanitized the names away.
   conditions <- c('0h "baseline"', "6h\\late")
   resolved <- stats::setNames(c(1, 0.9), conditions)
   comp_mat <- data.frame(GROUP = conditions, TimeVal = c(0, 6),
@@ -575,7 +563,7 @@ test_that("build_turnover_analysis_code refuses to emit constants it cannot vouc
       tracer_constants = tracer_snapshot(stats::setNames(c(0.5, 0.9), c("0h", "0h ")))),
     "ambiguous for condition")
   # ...but a key repeated with the SAME value cannot mispair, and the all-1s
-  # default legitimately produces one, so it must still build.
+  # default legitimately produces one.
   expect_silent(
     MSstatsShiny:::build_turnover_analysis_code(
       list(assign_feature_weights = FALSE),
@@ -590,11 +578,9 @@ test_that("build_turnover_analysis_code refuses to emit constants it cannot vouc
 })
 
 test_that("build_turnover_analysis_code refuses a blank condition name", {
-  # `c("" = 1)` is a PARSE error in R, not a runtime one, so emitting a blank
-  # condition name produces a downloadable script that will not even load. This
-  # is reachable WITHOUT an upload: a blank Condition cell in the annotation
-  # reaches the all-1s default path, which runs none of the upload observer's
-  # name checks.
+  # `c("" = 1)` is a PARSE error, so a blank condition name produces a script
+  # that will not even load. Reachable without an upload: a blank Condition cell
+  # takes the all-1s default path, which runs none of the upload name checks.
   for (blank in list("", "   ", NA_character_)) {
     comp_mat <- data.frame(GROUP = c(blank, "6h"), TimeVal = c(0, 6),
                            stringsAsFactors = FALSE)
@@ -626,7 +612,7 @@ test_that("a blank condition name cannot reach the script via the all-1s default
 
 test_that("build_turnover_analysis_code matches conditions ignoring surrounding whitespace", {
   # An Excel-sourced "0h " is not editable in the metadata table, so a strict
-  # match would be an unfixable dead end (plan section 0.4).
+  # match would be an unfixable dead end.
   comp_mat <- data.frame(GROUP = c("0h ", "6h"), TimeVal = c(0, 6),
                          stringsAsFactors = FALSE)
   code <- MSstatsShiny:::build_turnover_analysis_code(
@@ -639,9 +625,8 @@ test_that("build_turnover_analysis_code matches conditions ignoring surrounding 
 test_that("exactly one tracer provenance comment is stamped into the script", {
   comp_mat <- data.frame(GROUP = c("0h", "6h"), TimeVal = c(0, 6),
                          stringsAsFactors = FALSE)
-  # Each marker is the phrase that DISTINGUISHES its state. Deliberately shorter
-  # than the full comment: a marker only usable in its entirety would not catch
-  # the overlap this test exists to prevent.
+  # Each marker is the phrase that DISTINGUISHES its state, deliberately shorter
+  # than the full comment so it can catch an overlap between them.
   markers <- c(upload  = "uploaded on the data-processing page",
                none    = "no file was supplied on the data-processing page",
                not_run = "the data-processing page was not run in this session")
@@ -665,12 +650,9 @@ test_that("exactly one tracer provenance comment is stamped into the script", {
                      info = paste("provenance comments must be mutually exclusive:", state))
   }
 
-  # The markers must not be substrings of one another's comments. Before this
-  # was asserted, "uploaded on the data-processing page" matched the NO-upload
-  # comment ("...no tracer constants file was uploaded on the data-processing
-  # page"), so any grep for the upload state also matched the case where nothing
-  # was uploaded -- provenance that cannot be read unambiguously is not
-  # provenance.
+  # The markers must not be substrings of one another's comments: an earlier
+  # wording had "uploaded on the data-processing page" appear inside the
+  # NO-upload comment, so a grep for the upload state matched both.
   comments <- vapply(cases, MSstatsShiny:::build_tracer_provenance_comment,
                      character(1))
   for (owner in names(markers)) {
@@ -709,10 +691,8 @@ test_that("format_r_double emits the shortest form that reads back identically",
 })
 
 # ---------------------------------------------------------------------------
-# Per-hop forwarding. The round-trip test above proves the generator is correct
-# given the right input; these prove the right input actually reaches it. Both
-# halves are needed -- the original bug was a correct generator wired to the
-# wrong source.
+# Per-hop forwarding: the round-trip tests above prove the generator is correct
+# given the right input; these prove the right input reaches it.
 # ---------------------------------------------------------------------------
 
 test_that("generate_analysis_code forwards the tracer snapshot into the turnover script", {
@@ -741,8 +721,7 @@ test_that("generate_analysis_code forwards the tracer snapshot into the turnover
 test_that("generate_analysis_code labels an unrun QC page as such rather than as no upload", {
   # Reachable, not a defect: the Download-code button only requires a contrast
   # matrix, and the upload-summarized-abundances flow never renders the tracer
-  # panel at all (plan section 0.6). The script must not claim the user declined
-  # a correction they were never offered.
+  # panel at all.
   mockery::stub(generate_analysis_code, "preprocessDataCode", "# preprocess\n")
 
   comp_mat <- data.frame(GROUP = c("0h", "6h"), TimeVal = c(0, 6),
@@ -765,10 +744,8 @@ test_that("generate_analysis_code labels an unrun QC page as such rather than as
 test_that("generate_analysis_code resolves the NULL snapshot only inside the turnover branch", {
   # On the group-comparison path comp_mat is a bare MATRIX, where `$GROUP`
   # throws "$ operator is invalid for atomic vectors". Resolving the NULL
-  # snapshot at the top of the function -- rather than inside the turnover
-  # branch -- would therefore take the Download-code button out on every
-  # template. Verified against the existing matrix fixture shape used by
-  # test-utils-statmodel-server.R.
+  # snapshot at the top of the function rather than inside the turnover branch
+  # would therefore take the Download-code button out on every template.
   mockery::stub(generate_analysis_code, "preprocessDataCode", "# preprocess\n")
 
   comp_mat <- matrix(c(1, -1), nrow = 1, dimnames = list("C2-C1", c("C1", "C2")))
@@ -839,6 +816,7 @@ test_that("generate_analysis_code uses placeholder drug_name for non-turnover te
   expect_true(grepl("Enter drug name here", result),
               info = "Non-turnover code should use a placeholder drug name")
 })
+
 # ============================================================================
 # Tests for the Turnover Ratios panel (register_qc_turnover)
 # ============================================================================
@@ -905,7 +883,7 @@ test_that("Download Ratios is enabled once ratios are calculated", {
 # ============================================================================
 
 # The eight conditions of the working turnover dataset. Every fixture in
-# data/tracer/ is keyed to these; see that directory's README.
+# data/tracer/ is keyed to these.
 turnover_conditions <- c("0hr", "1hr", "4hr", "12hrs", "24hrs",
                          "48hrs", "96hrs", "168hrs")
 
@@ -958,7 +936,7 @@ test_that("a well-formed tracer file is accepted with one value per condition", 
 
 test_that("every malformed tracer file is rejected rather than silently defaulted", {
   # Rejected, not absent: absent means "the user declined the correction" and
-  # runs with all 1s, which is the silent failure this feature exists to remove.
+  # runs with all 1s.
   rejected <- c("tracer_missing_col.csv", "tracer_nonnumeric.csv",
                 "tracer_zero.csv", "tracer_tiny.csv", "tracer_over.csv",
                 "tracer_unknown.csv", "tracer_partial.csv", "tracer_dup.csv",
@@ -1072,18 +1050,15 @@ test_that("clearing the upload returns to the neutral all-ones state", {
 })
 
 # ============================================================================
-# Step 4: the constants resolved at Run are the ones the fit actually receives
+# The constants resolved at Run are the ones the fit actually receives
 # ============================================================================
 
-# The upload observer tests above stop at the reactiveVal. These carry the
-# value the rest of the way, because "the state says valid" and "the fit
-# divided by those numbers" are different claims -- the whole bug this feature
-# removes was a UI that asserted the first while the second was false.
-#
-# calculateTurnoverRatios is stubbed so the assertion is on the tracer_constants
-# argument itself rather than on downstream ratios, which would depend on
-# MSstatsResponse's arithmetic and on turnover fixture data this repo does not
-# have (plan section 8).
+# The upload observer tests above stop at the reactiveVal; these carry the value
+# the rest of the way. calculateTurnoverRatios is stubbed so the assertion is on
+# the tracer_constants argument itself rather than on downstream ratios, which
+# would depend on MSstatsResponse's arithmetic and on turnover fixture data this
+# repo does not have.
+
 # Two distinct runs per condition, so use_protein_level is TRUE and the
 # ProteinLevelData branch is taken.
 turnover_pld <- function() {
@@ -1118,9 +1093,8 @@ turnover_fld <- function() {
   fld
 }
 
-# template and preprocess are injectable so the divergence regressions below can
-# switch the app template mid-session and make a second Run bail out early;
-# their defaults keep every other caller on the original single-template setup.
+# template and preprocess are injectable so the regressions below can switch the
+# app template mid-session and make a second Run bail out early.
 tracer_run_server <- function(capture,
                               conditions = reactive(
                                 data.frame(Condition = turnover_conditions,
@@ -1189,12 +1163,12 @@ test_that("a valid upload reaches the fit; no upload sends all 1s", {
     expect_equal(capture$snapshot$values, expected, info = label)
     expect_identical(capture$snapshot$source, case$source, info = label)
     # The ProteinLevelData branch, not the FeatureLevelData one: the harness
-    # supplies two runs per condition. Asserted because the fake fit otherwise
-    # makes the two branches indistinguishable.
+    # supplies two runs per condition, and the fake fit otherwise makes the two
+    # branches indistinguishable.
     expect_identical(capture$fit_calls, 1L, info = label)
     expect_identical(nrow(capture$data_seen), 16L, info = label)
-    # Provenance is three-state (plan section 0.6), so "which file" has to
-    # survive alongside "from a file at all".
+    # Provenance is three-state, so "which file" has to survive alongside "from
+    # a file at all".
     if (is.null(case$fixture)) {
       expect_null(capture$snapshot$file, info = label)
     } else {
@@ -1204,11 +1178,9 @@ test_that("a valid upload reaches the fit; no upload sends all 1s", {
 })
 
 test_that("the FeatureLevelData branch also receives the tracer constants", {
-  # The single-replicate branch (R/qc-server-turnover.R). Every other fit test
-  # supplies two runs per condition and so only ever exercises the
-  # ProteinLevelData branch -- deleting tracer_constants = from this one would
-  # revert single-replicate turnover experiments to no correction with the rest
-  # of the suite still green.
+  # Every other fit test supplies two runs per condition and so only exercises
+  # the ProteinLevelData branch; without this one, dropping tracer_constants =
+  # from the single-replicate branch would leave the suite green.
   ctx <- with_stubbed_fit()
   capture <- ctx$capture
   server <- tracer_run_server(
@@ -1227,9 +1199,8 @@ test_that("the FeatureLevelData branch also receives the tracer constants", {
                               turnover_conditions)
 
   # Which branch ran: the fake fit is shared, so the data's column names are the
-  # only witness. INTENSITY means FeatureLevelData, LogIntensities would mean
-  # the harness silently fell back to the ProteinLevelData branch and this test
-  # would be asserting nothing new.
+  # only witness. INTENSITY means FeatureLevelData; LogIntensities would mean the
+  # harness fell back to the ProteinLevelData branch.
   expect_identical(capture$fit_calls, 1L)
   expect_true("INTENSITY" %in% names(capture$data_seen))
   expect_false("LogIntensities" %in% names(capture$data_seen))
@@ -1238,12 +1209,11 @@ test_that("the FeatureLevelData branch also receives the tracer constants", {
 })
 
 test_that("rejection messages name the tracer file, not the GROUP mapping upload", {
-  # plan section 0.7. qc_mapping_group_errors' defaults name "GROUP mapping" and
+  # qc_mapping_group_errors' defaults name "GROUP mapping" and
   # "ProteinLevelData"; the GROUP mapping is a DIFFERENT upload on this same
   # page, so the default wording sends a user who mis-typed a condition here off
   # to edit an unrelated file. The labels are supplied only at the call site in
-  # R/qc-server-turnover.R, so nothing else pins them -- reverting that call to
-  # the defaults leaves every other test green.
+  # R/qc-server-turnover.R, so nothing else pins them.
   cases <- list(
     list(fixture = "tracer_unknown.csv", reference = TRUE),
     list(fixture = "tracer_partial.csv", reference = TRUE),
@@ -1288,10 +1258,9 @@ test_that("rejection messages name the tracer file, not the GROUP mapping upload
 })
 
 test_that("Run is refused server-side while an upload is pending or rejected", {
-  # plan section 0.1. toggleState disables the button on the CLIENT, and
-  # shinyjs::onevent needs a server round trip to set "pending", so a click in
-  # that window reaches the server with the button still live. Falling back to
-  # all-1s there is the silent failure the feature exists to remove.
+  # toggleState disables the button on the CLIENT, and shinyjs::onevent needs a
+  # server round trip to set "pending", so a click in that window reaches the
+  # server with the button still live.
   for (fixture in c("tracer_partial.csv", "tracer_nonnumeric.csv")) {
     ctx <- with_stubbed_fit()
     capture <- ctx$capture
@@ -1314,10 +1283,8 @@ test_that("Run is refused server-side while an upload is pending or rejected", {
 })
 
 test_that("the snapshot never outlives the ratios it describes", {
-  # Decision I is a two-way guarantee: the snapshot must not drift ahead of the
-  # displayed ratios, and it must not survive them either. A snapshot left
-  # behind by a run that produced nothing would have the generated script cite
-  # tracer constants for an empty table.
+  # A snapshot left behind by a run that produced nothing would have the
+  # generated script cite tracer constants for an empty table.
   ctx <- with_stubbed_fit()
   capture <- ctx$capture
   template <- reactiveVal(TEMPLATES$protein_turnover)
@@ -1357,12 +1324,10 @@ test_that("the snapshot never outlives the ratios it describes", {
 })
 
 test_that("a refused re-Run clears the snapshot left by an earlier good Run", {
-  # The dangerous ordering: a good run banks a snapshot, then the user replaces
-  # the file with a bad one and presses Run again. The re-Run is refused, so
-  # the ratios table still shows the FIRST run's numbers -- but if the snapshot
-  # survived it would too, and the generated script would keep citing a file
-  # the app has since rejected. Clearing is what makes the refusal visible
-  # downstream instead of silently reusing stale provenance.
+  # A good run banks a snapshot, then the user replaces the file with a bad one
+  # and presses Run again. The re-Run is refused, so the ratios table still
+  # shows the FIRST run's numbers; a surviving snapshot would have the generated
+  # script keep citing a file the app has since rejected.
   ctx <- with_stubbed_fit()
   capture <- ctx$capture
   server <- tracer_run_server(capture)
@@ -1388,8 +1353,8 @@ test_that("a refused re-Run clears the snapshot left by an earlier good Run", {
 })
 
 test_that("the snapshot is taken at Run and does not follow a later upload", {
-  # Decision I. A live view of the upload would make the ratios table show one
-  # set of constants while the downloadable script emitted another.
+  # A live view of the upload would make the ratios table show one set of
+  # constants while the downloadable script emitted another.
   ctx <- with_stubbed_fit()
   capture <- ctx$capture
   server <- tracer_run_server(capture)
@@ -1410,9 +1375,8 @@ test_that("the snapshot is taken at Run and does not follow a later upload", {
 })
 
 test_that("the exposed constants reactive is NULL before Run and never errors", {
-  # Plan section 0.6's third provenance state, and Decision E: this value is
-  # read from the Download-code path on all four templates, so reading it
-  # before the QC page has run must not raise shiny.silent.error.
+  # This value is read from the Download-code path on all four templates, so
+  # reading it before the QC page has run must not raise shiny.silent.error.
   capture <- new.env()
   before <- "unset"
   testServer(tracer_upload_server(capture), {
@@ -1426,9 +1390,8 @@ test_that("the exposed constants reactive is NULL before Run and never errors", 
 # ============================================================================
 
 # Wraps the real qcServer so its return value can be inspected. A shape
-# assertion rather than a behavioural one: this hop is pure plumbing, and the
-# way it breaks is a renamed or dropped key, which every downstream test would
-# see only as a mysterious NULL.
+# assertion rather than a behavioural one: this hop is plumbing, and it breaks
+# by a renamed or dropped key.
 qc_server_return_capture <- function(capture, template = TEMPLATES$protein_turnover) {
   function(input, output, session) {
     capture$returned <- qcServer(
@@ -1454,7 +1417,7 @@ test_that("qcServer exposes tracerConstants alongside the ratios", {
     is_reactive <<- is.function(capture$returned$tracerConstants)
     # Must be readable before anything has been run, on any template: server.R
     # hands it to statmodelServer, which reads it from the Download-code path
-    # for all four templates (plan Decision E).
+    # for all four templates.
     value <<- capture$returned$tracerConstants()
   })
 
@@ -1476,18 +1439,16 @@ test_that("qcServer's tracerConstants is readable on a non-turnover template", {
 })
 
 # ============================================================================
-# Decision I regressions: the ratios table and the generated script must never
-# disagree about which constants were used. Both cases below passed the whole
-# suite while diverging, because every existing test reads the two values only
-# at the moment of Run, when they necessarily agree.
+# Divergence regressions: the ratios table and the generated script must never
+# disagree about which constants were used. Both cases below are read after the
+# divergence, not at Run, when the two values necessarily agree.
 # ============================================================================
 
 test_that("a template round-trip clears the ratios table with its snapshot", {
-  # turnover_ratios is an eventReactive, so nothing but a fresh Run invalidates
-  # its cache -- the template observer cannot. It does clear the snapshot, so
+  # turnover_ratios is an eventReactive, so only a fresh Run invalidates its
+  # cache -- the template observer cannot, though it does clear the snapshot. So
   # switching away and back used to redraw a table carrying the uploaded
-  # correction while the script emitted all-1s stamped "not run in this
-  # session". Asserted after the round trip, not at Run, for that reason.
+  # correction while the script emitted all-1s stamped "not run in this session".
   ctx <- with_stubbed_fit()
   capture <- ctx$capture
   template <- reactiveVal(TEMPLATES$protein_turnover)
@@ -1545,14 +1506,11 @@ test_that("the snapshot is committed only after the fit returns", {
   # A reactiveVal write is not rolled back when the eventReactive body aborts,
   # and calculateTurnoverRatios throws on plausible data (ProteinLevelData with
   # no "H" rows raises "Element `H` doesn't exist"). Committing before the fit
-  # therefore left the script citing constants -- and naming the uploaded file
-  # -- for a table that never drew.
+  # therefore left the script citing constants for a table that never drew.
   #
-  # Asserted by reading the snapshot from INSIDE the fit rather than by making
-  # the fit throw: an error there is unhandled in the observer that forces this
-  # eventReactive, which destroys the session and takes every reactive with it,
-  # so nothing would be readable afterwards. The ordering is the real subject
-  # anyway, and it is what distinguishes the two versions.
+  # The snapshot is read from INSIDE the fit rather than by making the fit throw:
+  # an error there is unhandled in the observer forcing this eventReactive, which
+  # destroys the session and leaves nothing readable afterwards.
   ctx <- with_stubbed_fit()
   capture <- ctx$capture
   ordering_fit <- function(data, ...) {

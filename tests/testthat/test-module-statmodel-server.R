@@ -786,19 +786,16 @@ test_that("create_download_plot_handler is invoked with all 6 arguments", {
     }
   )
 })
+
 # ============================================================================
 # Tracer constants: the statmodelServer -> generate_analysis_code hop
 # ============================================================================
 
 test_that("statmodelServer forwards the tracer_constants snapshot to generate_analysis_code", {
-  # The highest-value hop in the threading chain and the one the first draft of
-  # this feature left untested. A correct generator wired to nothing is exactly
-  # the original bug, so this asserts the value ARRIVES, not that the generator
-  # formats it (test-module-turnover.R covers the formatting).
-  #
-  # data_comparison_code is private to the module and only read by the download
-  # handler, so it is captured through create_download_handlers -- the same
-  # stub-the-collaborator pattern as the create_download_plot_handler test.
+  # Asserts the snapshot ARRIVES; test-module-turnover.R covers how the
+  # generator formats it. data_comparison_code is private to the module and only
+  # read by the download handler, so it is captured through
+  # create_download_handlers.
   captured = new.env(parent = emptyenv())
   captured$code_reactive = NULL
   captured$args = NULL
@@ -853,9 +850,8 @@ test_that("statmodelServer forwards the tracer_constants snapshot to generate_an
 })
 
 test_that("statmodelServer defaults the tracer snapshot to NULL when no reactive is supplied", {
-  # Every existing caller and test omits the argument; none of them may start
-  # failing, and the generator must see NULL (the "QC page never run" state)
-  # rather than a reactive it cannot coerce.
+  # Existing callers omit the argument, and the generator must see NULL (the
+  # "QC page never run" state) rather than a reactive it cannot coerce.
   captured = new.env(parent = emptyenv())
   captured$code_reactive = NULL
   captured$args = NULL

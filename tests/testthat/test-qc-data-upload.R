@@ -100,9 +100,8 @@ test_that("qc_mapping_to_condition_metadata renames GROUP to Condition (turnover
 
 test_that("qc_mapping_to_condition_metadata stores the same trimmed Condition that was validated", {
   # qc_mapping_group_errors compares TRIMMED values, so a quoted "DMSO " cell
-  # (fread's strip.white leaves quoted fields alone) passes validation. If the
-  # raw value were stored, it would then miss the ProteinLevelData join and
-  # silently drop that condition's rows.
+  # (fread's strip.white leaves quoted fields alone) passes validation but would
+  # miss the ProteinLevelData join if stored raw.
   parsed = data.frame(GROUP = c("DMSO ", " 6h"), TimeVal = c(0, 6),
                       stringsAsFactors = FALSE)
   protein_groups = c("DMSO", "6h")
@@ -219,23 +218,20 @@ test_that("qc_tracer_values_in_range accepts the inclusive [min, max] band", {
   in_range = function(x) MSstatsShiny:::qc_tracer_values_in_range(
     data.frame(TracerConstant = x, stringsAsFactors = FALSE), "TracerConstant")
 
-  # Both bounds are inclusive, and the band is populated in between.
   expect_true(in_range(tracer_min))
   expect_true(in_range(tracer_max))
   expect_true(in_range(c(tracer_min, 0.5, tracer_max)))
 
   # Just under the floor fails, so the boundary is >= and not >.
   expect_false(in_range(tracer_min - 0.001))
-  # 0 divides to Inf; 1e-10 is worse because it passes a naive (0, 1] check and
-  # yields a huge H_frac whose L_frac is then silently clamped to 0.
+  # 0 divides to Inf; 1e-10 passes a naive (0, 1] check and yields a huge H_frac
+  # whose L_frac is then silently clamped to 0.
   expect_false(in_range(0))
   expect_false(in_range(1e-10))
-  # Above the ceiling, negative, and non-finite.
   expect_false(in_range(tracer_max + 0.5))
   expect_false(in_range(-0.2))
   expect_false(in_range(NA_real_))
   expect_false(in_range(Inf))
-  # One bad value among good ones fails the whole file.
   expect_false(in_range(c(0.5, NA_real_)))
 
   # A character column must be coerced before comparison: uncoerced,
@@ -248,7 +244,6 @@ test_that("qc_tracer_values_in_range accepts the inclusive [min, max] band", {
   expect_false(in_range(character(0)))
   expect_false(in_range(numeric(0)))
   expect_false(MSstatsShiny:::qc_tracer_values_in_range(NULL, "TracerConstant"))
-  # Absent column.
   expect_false(MSstatsShiny:::qc_tracer_values_in_range(
     data.frame(GROUP = "0h", stringsAsFactors = FALSE), "TracerConstant"))
 })
@@ -260,7 +255,7 @@ test_that("qc_default_tracer_constants is all ones, named by condition", {
   expect_identical(defaults, c("0h" = 1, "6h" = 1, "24h" = 1))
 
   # A named numeric(0) is not NULL, so it would pass calculateTurnoverRatios'
-  # own guard and make every H_frac NA. Error instead.
+  # own guard and make every H_frac NA.
   expect_error(MSstatsShiny:::qc_default_tracer_constants(character(0)),
                "no experimental conditions")
 })
@@ -291,7 +286,6 @@ test_that("qc_resolve_tracer_constants errors instead of reindexing to NA", {
     MSstatsShiny:::qc_resolve_tracer_constants(c("0h", "6h"), c("0h" = 0.98)),
     "missing for condition\\(s\\): 6h"
   )
-  # Unreadable value rather than absent key.
   expect_error(
     MSstatsShiny:::qc_resolve_tracer_constants(c("0h"), c("0h" = NA_real_)),
     "could not be read for condition\\(s\\): 0h"
@@ -312,9 +306,9 @@ test_that("qc_tracer_timepoint_hours mirrors the MSstatsResponse parser", {
   expect_equal(MSstatsShiny:::qc_tracer_timepoint_hours("1d"), 24)
   expect_equal(MSstatsShiny:::qc_tracer_timepoint_hours("6h_drug"), 144)
   expect_equal(MSstatsShiny:::qc_tracer_timepoint_hours("2w"), 336)
-  # NA in, NA out. The upstream parser errors here ("NAs are not allowed in
-  # subscripted assignments") once the vector is long enough for the day/week
-  # subscript assignment to fire, so this needs a length > 1 case to bite.
+  # The upstream parser errors on NA ("NAs are not allowed in subscripted
+  # assignments") only once the vector is long enough for the day/week subscript
+  # assignment to fire, so a length > 1 case is needed too.
   expect_true(is.na(MSstatsShiny:::qc_tracer_timepoint_hours(NA_character_)))
   expect_equal(MSstatsShiny:::qc_tracer_timepoint_hours(c("1d", NA, "2w")),
                c(24, NA, 336))
@@ -329,14 +323,13 @@ test_that("qc_tracer_misleading_units flags a stray d or w, not any suffix", {
   expect_true(flags("24h_washout"))
   # A genuine day/week unit is not misleading.
   expect_equal(flags(c("1d", "2w", "3 days", "4 weeks", "5wk")), rep(FALSE, 5))
-  # A suffix carrying no "d" or "w" never fires the multiplier, so leaving it
-  # alone avoids rejecting a run that would have been correct.
+  # A suffix carrying no "d" or "w" never fires the multiplier, so flagging it
+  # would reject a run that would have been correct.
   expect_equal(flags(c("0h", "24h_rep1", "168hrs", "12hrs")), rep(FALSE, 4))
   expect_false(flags(NA_character_))
 })
 
 test_that("qc_tracer_timepoint_errors rejects unparseable and colliding names", {
-  # The working dataset's conditions all parse, and none collide.
   expect_equal(
     MSstatsShiny:::qc_tracer_timepoint_errors(
       c("0hr", "1hr", "4hr", "12hrs", "24hrs", "48hrs", "96hrs", "168hrs")),
@@ -367,7 +360,6 @@ test_that("qc_tracer_timepoint_errors rejects unparseable and colliding names", 
   expect_length(misleading, 1)
   expect_match(misleading, "6h_drug", fixed = TRUE)
   expect_match(misleading, "144 hours", fixed = TRUE)
-  # A suffix with no "d" or "w" is left alone.
   expect_equal(MSstatsShiny:::qc_tracer_timepoint_errors(c("0h", "24h_rep1")),
                character(0))
 
@@ -404,7 +396,7 @@ test_that("qc_resolve_tracer_constants matches on trimmed names", {
   # Matching is trimmed; the returned NAMES stay raw, because
   # calculateTurnoverRatios re-keys them through parse_timepoint.
   expect_equal(resolved, c("0h " = 0.98, "6h" = 0.95))
-  # Case stays strict.
+  # Case is not folded.
   expect_error(
     MSstatsShiny:::qc_resolve_tracer_constants(c("0H"), c("0h" = 0.98)),
     "missing for condition"
@@ -423,19 +415,17 @@ test_that("qc_resolve_tracer_constants rejects a condition listed twice", {
 test_that("qc_mapping_group_errors matches on trimmed names", {
   expect_equal(MSstatsShiny:::qc_mapping_group_errors(c("0h "), c("0h")),
                character(0))
-  # Case is deliberately not folded.
+  # Case is not folded.
   expect_length(MSstatsShiny:::qc_mapping_group_errors(c("0H"), c("0h")), 2)
 })
 
 test_that("qc_mapping_group_errors labels are parameterized, defaults unchanged", {
-  # Defaults still name the GROUP mapping and ProteinLevelData, so the existing
-  # caller's messages are untouched.
   default_msg = MSstatsShiny:::qc_mapping_group_errors(c("A"), c("A", "B"))
   expect_match(default_msg, "GROUP mapping is missing row(s) for ProteinLevelData GROUP(s): B.",
                fixed = TRUE)
 
   # A different upload names itself and its own reference, so the message does
-  # not send the user off to edit an unrelated file.
+  # not send the user to an unrelated file.
   tracer_msg = MSstatsShiny:::qc_mapping_group_errors(
     c("0h", "99h"), c("0h", "6h"),
     subject = "Tracer constants file", reference = "the annotation")
