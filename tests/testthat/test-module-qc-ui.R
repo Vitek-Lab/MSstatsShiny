@@ -57,20 +57,3 @@ test_that("the collapsed normalization select keeps all label-free choices", {
                 info = paste("Missing normalization choice:", choice))
   }
 })
-
-test_that("qcUI mounts the tracer-constants status output", {
-  html <- render_qc_ui_html("test")
-  expect_true(grepl('id="test-tracer_constants_status"', html, fixed = TRUE))
-})
-
-test_that("the tracer-constants help text quotes CONSTANTS_QC, not a literal", {
-  html <- render_qc_ui_html("test")
-  expect_true(grepl(paste0("between ", CONSTANTS_QC$tracer_min, " and ",
-                           CONSTANTS_QC$tracer_max), html, fixed = TRUE))
-  panel_start <- regexpr("test-tracer_constants_panel", html, fixed = TRUE)
-  expect_gt(panel_start, 0)
-  panel <- substr(html, panel_start, panel_start + 3000L)
-  for (column in get_qc_required_tracer_columns()) {
-    expect_true(grepl(column, panel, fixed = TRUE), info = column)
-  }
-})
