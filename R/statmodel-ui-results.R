@@ -36,7 +36,8 @@ create_results_tables <- function(ns) {
     ),
     conditionalPanel(
       condition = "input['loadpage-BIO']!=='PTM'",
-      uiOutput(ns("table_results"))
+      uiOutput(ns("table_results")),
+      uiOutput(ns("turnover_confidence_results"))
     )
   )
 }

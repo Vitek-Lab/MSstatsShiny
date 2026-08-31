@@ -39,6 +39,7 @@
 #' @importFrom MSstatsPTM dataProcessPlotsPTM groupComparisonPlotsPTM MaxQtoMSstatsPTMFormat PDtoMSstatsPTMFormat FragPipetoMSstatsPTMFormat SkylinetoMSstatsPTMFormat MetamorpheusToMSstatsPTMFormat SpectronauttoMSstatsPTMFormat
 #' @importFrom MSstatsBioNet exportNetworkToHTML deleteEdgeFromNetwork
 #' @importFrom MSstatsResponse futureExperimentSimulation run_tpr_simulation plot_tpr_power_curve calculateTurnoverRatios calculatePeptideWeights
+#' @importFrom MSstatsResponse calculateQCScore calculateConfidence classifyTurnoverProteins
 #' @importFrom utils capture.output head packageVersion write.csv
 #' @importFrom stats aggregate
 #' @importFrom methods is

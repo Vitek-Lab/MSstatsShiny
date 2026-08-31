@@ -377,7 +377,32 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
               ratio_response = FALSE,
               precalculated_ratios = TRUE
             )
-            list(ComparisonResult = response_results)
+
+            classification <- NULL
+            if (turnover_confidence_applies(dia_prepared, increasing)) {
+              show_modal_spinner(text = "Scoring per-protein confidence...")
+              classification <- tryCatch(
+                classify_turnover_fit(dia_prepared, response_results,
+                                      preprocess_data()$FeatureLevelData),
+                error = function(e) {
+                  showNotification(
+                    paste0("Turnover curves were fitted, but per-protein ",
+                           "confidence scores were not calculated: ",
+                           conditionMessage(e)),
+                    type = "warning", duration = 10)
+                  NULL
+                },
+                finally = remove_modal_spinner()
+              )
+              response_results <- merge_turnover_confidence(response_results,
+                                                            classification)
+            } else if (turnover_weights_present(dia_prepared)) {
+              showNotification(turnover_confidence_direction_message(),
+                               type = "message", duration = 10)
+            }
+
+            list(ComparisonResult = response_results,
+                 TurnoverClassification = classification)
           } else if (app_template() == TEMPLATES$chemoproteomics) {
             meta <- condition_metadata()
             req(!is.null(meta) && "DoseVal" %in% colnames(meta))
@@ -467,6 +492,7 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
       
       # Results rendering
       render_results_table(output, session, data_comparison, SignificantProteins, app_template = app_template)
+      render_turnover_confidence_table(output, session, data_comparison, app_template = app_template)
       render_ptm_results_tables(output, session, data_comparison, SignificantProteins)
 
       # Download handlers
