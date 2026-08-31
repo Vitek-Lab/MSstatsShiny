@@ -1,12 +1,3 @@
-# Per-protein confidence scoring and turnover classification
-# (MSstatsResponse::calculateQCScore -> calculateConfidence ->
-# classifyTurnoverProteins).
-#
-# This step only runs when the user asked for per-peptide weights on the
-# data-processing page: calculateConfidence averages the `weight` column, so
-# without it there is nothing to score. Kept as plain functions so the whole
-# chain can be unit-tested without a running session.
-
 #' Per-protein score columns lifted from the classification table onto the
 #' turnover fit result, in display order.
 #' @noRd
@@ -14,12 +5,12 @@ TURNOVER_CONFIDENCE_COLUMNS <- c("mean_weight", "n_obs", "qc_score",
                                  "n_heavy_peptides", "confidence",
                                  "max_h_frac", "category", "tier")
 
-#' Feature-level columns calculateQCScore / calculateConfidence read.
+#' Feature-level columns calculateQCScore and calculateConfidence read.
 #' @noRd
 TURNOVER_CONFIDENCE_FEATURE_COLUMNS <- c("PROTEIN", "PEPTIDE", "LABEL",
                                          "INTENSITY", "GROUP")
 
-#' Are per-peptide weights available on a prepared dose-response frame?
+#' Checks if per-peptide weights are available in a data frame
 #'
 #' @param prepared Output of `prepare_turnover_for_dose_response()`.
 #' @return TRUE when the frame has rows and carries a `weight` column.
@@ -29,12 +20,10 @@ turnover_weights_present <- function(prepared) {
     "weight" %in% colnames(prepared)
 }
 
-#' Does the confidence / classification step apply to this fit?
+#' Checks if confidence scoring and classification can be applied
 #'
-#' Two conditions. Weights must be present (they are the input
-#' calculateConfidence averages), and the fit must be in the synthesis
-#' direction: classifyTurnoverProteins scores `H_frac` against increasing
-#' IC50 targets, so a degradation (`L_frac`) fit cannot be classified.
+#' It can be applied if weights are present and the fit is w.r.t. the synthesis
+#' direction.  At the moment, classifyTurnoverProteins only handles `H_frac` 
 #'
 #' @param prepared Output of `prepare_turnover_for_dose_response()`.
 #' @param increasing Logical. The fit's trend direction.
@@ -45,13 +34,6 @@ turnover_confidence_applies <- function(prepared, increasing) {
 }
 
 #' Reshape a prepared dose-response frame into classifyTurnoverProteins input.
-#'
-#' MSstatsResponse wants both naming conventions in one frame: predictIC50()
-#' reads the lower-case fit columns (`protein`, `drug`, `dose`, `response`),
-#' while calculateConfidence() and classifyTurnoverProteins() read `Protein`
-#' and `H_frac`. Deriving the latter from the former (rather than re-deriving
-#' them from the raw ratios) guarantees the scores describe exactly the rows
-#' that were fitted.
 #'
 #' @param prepared Output of `prepare_turnover_for_dose_response()`, which must
 #'   carry a `weight` column.
@@ -64,11 +46,9 @@ prepare_turnover_for_classification <- function(prepared) {
   prepared
 }
 
-#' Normalize feature-level data for the QC-score / heavy-peptide counts.
+#' Prepare feature-level data for the QC-score / heavy-peptide counts.
 #'
-#' dataProcess() returns PROTEIN and PEPTIDE as factors; coercing them keeps
-#' the joined `Protein` column a character vector so the score columns match
-#' the fit result by value rather than by factor level.
+#' Specifically, turn PROTEIN, PEPTIDE, and LABEL columns into character columns
 #'
 #' @param feature_data `preprocess_data()$FeatureLevelData`.
 #' @return A data frame with character protein / peptide identifiers.
@@ -88,15 +68,8 @@ prepare_feature_data_for_qc_score <- function(feature_data) {
   feature_data
 }
 
-#' Score and classify a turnover fit.
-#'
-#' Runs the MSstatsResponse chain: light-channel QC score per protein, then
-#' the combined confidence score (peptide weights x fit residuals x QC score x
-#' heavy-peptide shrinkage), then the biological category / confidence tier.
-#'
-#' The result has one row per protein in the feature-level data, which is a
-#' superset of the fitted proteins: proteins that produced no fit come back
-#' with NA scores and category `no_heavy`.
+#' Score and classify a turnover fit as long-lived vs short-lived and
+#' high-quality or low-quality w.r.t. quality scores.
 #'
 #' @param prepared Output of `prepare_turnover_for_dose_response()` with weights.
 #' @param fit Output of `doseResponseFit()`.
@@ -128,12 +101,8 @@ classify_turnover_fit <- function(prepared, fit, feature_data,
   as.data.frame(classification, stringsAsFactors = FALSE)
 }
 
-#' Attach the per-protein score columns to the turnover fit result.
-#'
-#' Row order and row count of `fit` are preserved, so the significance
-#' filtering and downloads that already read `ComparisonResult` are unaffected;
-#' the classification's extra (unfitted) proteins stay in the classification
-#' table only.
+#' Attach per-protein confidence score columns to the turnover fit statistical 
+#' result.
 #'
 #' @param fit Output of `doseResponseFit()`.
 #' @param classification Output of `classify_turnover_fit()`.
