@@ -241,7 +241,7 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing,
          "data-processing page first.")
   }
   if (length(conditions) == 0) {
-    stop("Cannot generate reproducible code: the contrast matrix lists no ",
+    stop("Cannot generate reproducible code: there are no ",
          "experimental conditions.")
   }
   blank_conditions <- is.na(conditions) | !nzchar(trimws(conditions))
