@@ -1,0 +1,80 @@
+/* Copy-to-clipboard affordance for protein-name dropdowns.
+   Paired with assets/copy-select.js; both are delivered as one
+   htmlDependency by copyable_select() in R/utils-copyable-select.R.
+
+   Deliberately self-contained: it must not lean on assets/style.css, because
+   expdesUI() never loads that file. Hence the tooltip rules below duplicate
+   the .icon-tooltip pattern rather than extending it. */
+
+.copyable-select {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* The wrapped shiny input keeps all the horizontal room it had before. */
+.copyable-select > .form-group,
+.copyable-select > .shiny-input-container {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-bottom: 15px;
+}
+
+/* flex-end aligns margin boxes, so the button carries the same bottom margin
+   as the form-group to sit level with the select rather than 15px below it.
+   Aligning on the bottom edge keeps the button level no matter how tall the
+   label is - call sites use h4(), h5() and bare strings. */
+.copyable-select-btn {
+  position: relative;
+  flex: 0 0 auto;
+  margin-bottom: 15px;
+  height: 34px;
+  width: 34px;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.copyable-select-btn:hover:not(:disabled) {
+  background-color: #e6e6e6;
+}
+
+.copyable-select-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.copyable-select-tip {
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  margin-bottom: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background-color: #333;
+  color: #fff;
+  font-size: 10px;
+  font-weight: normal;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* :focus-visible so keyboard users get the same hint as hover; the flash
+   class covers the post-click result for both. */
+.copyable-select-btn:hover:not(:disabled) .copyable-select-tip,
+.copyable-select-btn:focus-visible .copyable-select-tip,
+.copyable-select-btn.is-flashing .copyable-select-tip {
+  visibility: visible;
+  opacity: 1;
+}

@@ -31,9 +31,11 @@ render_group_comparison_plot_inputs = function(output, session, rownames, get_da
     proteins = tryCatch(unique(as.character(preprocess_data()$ProteinLevelData$Protein)),
                         error = function(e) NULL)
     req(length(proteins) > 0)
-    selectInput(ns(NAMESPACE_STATMODEL$visualization_which_protein),
-                label = h4("which analyte to plot"),
-                proteins)
+    copyable_select(
+      selectInput(ns(NAMESPACE_STATMODEL$visualization_which_protein),
+                  label = h4("which analyte to plot"),
+                  proteins),
+      "Copy analyte name")
   })
   
   output[[NAMESPACE_STATMODEL$visualization_plot_options_conditional_panel]] = renderUI({

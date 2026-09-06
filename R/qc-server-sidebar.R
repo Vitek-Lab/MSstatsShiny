@@ -304,10 +304,14 @@ register_qc_sidebar_options <- function(input, output, session, loadpage_input, 
     }
 
     if (input$standards == "Proteins") {
-      selectizeInput(ns("names"), "choose standard", unique(get_data()$ProteinName), multiple = TRUE)
+      copyable_select(
+        selectizeInput(ns("names"), "choose standard", unique(get_data()$ProteinName), multiple = TRUE),
+        "Copy standard name")
     }
     else if (input$standards == "Peptides") {
-      selectizeInput(ns("names"), "choose standard", unique(get_data()$PeptideSequence), multiple = TRUE)
+      copyable_select(
+        selectizeInput(ns("names"), "choose standard", unique(get_data()$PeptideSequence), multiple = TRUE),
+        "Copy standard name")
     }
 
   })
