@@ -143,8 +143,10 @@ lf_summarization_loop = function(data, qc_input,loadpage_input, busy_indicator =
 #' 
 #' @return list of TMT summarization results
 #' @examples
-#' data(raw.pd, package = "MSstatsTMT")
-#' data(annotation.pd, package = "MSstatsTMT")
+#' raw.pd = data.table::fread(system.file("tinytest/raw_data/PDTMT/pdtmt_input.csv",
+#'                                       package = "MSstatsConvert"))
+#' annotation.pd = data.table::fread(system.file("tinytest/raw_data/PDTMT/pd_annotation.csv",
+#'                                       package = "MSstatsConvert"))
 #' 
 #' testdata <- MSstatsTMT::PDtoMSstatsTMTFormat(raw.pd, 
 #'                                              annotation.pd,
@@ -388,8 +390,10 @@ lf_model = function(data, contrast.matrix, busy_indicator = TRUE){
 #' 
 #' @return list of TMT modeling results
 #' @examples
-#' data(raw.pd, package = "MSstatsTMT")
-#' data(annotation.pd, package = "MSstatsTMT")
+#' raw.pd = data.table::fread(system.file("tinytest/raw_data/PDTMT/pdtmt_input.csv",
+#'                                       package = "MSstatsConvert"))
+#' annotation.pd = data.table::fread(system.file("tinytest/raw_data/PDTMT/pd_annotation.csv",
+#'                                       package = "MSstatsConvert"))
 #' 
 #' testdata <- MSstatsTMT::PDtoMSstatsTMTFormat(raw.pd, 
 #'                                              annotation.pd,
