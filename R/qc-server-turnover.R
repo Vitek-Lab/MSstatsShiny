@@ -276,11 +276,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
     pld <- preprocess_data()$ProteinLevelData
     use_protein_level <- turnover_has_replicates(pld)
 
-    # calculateTurnoverRatios parses its time column into TimeVal and keys the
-    # tracer constants by that parsed time. Passing each condition's index
-    # instead keeps one timepoint (and one tracer constant) per GROUP, whatever
-    # the condition is named. GROUP is restored below, and TimeVal is taken
-    # from the condition metadata in turnover_ratios_display().
     index_tracer_consts <- stats::setNames(
       unname(tracer_consts), match(names(tracer_consts), conditions))
 
@@ -341,8 +336,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
     ratios <- turnover_ratios()
     req(ratios)
     req(tracer_constants_used())
-    # Read here rather than in turnover_ratios() so TimeVal edits on the Data
-    # Uploading page apply without re-running summarization.
     meta <- if (is.null(get_condition_metadata)) NULL else get_condition_metadata()
     ratios <- apply_condition_time_values(ratios, meta)
     if (isTRUE(input[[NAMESPACE_QC$assign_feature_weights]]) && nrow(ratios) > 0) {

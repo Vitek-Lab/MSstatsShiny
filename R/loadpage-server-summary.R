@@ -100,8 +100,6 @@ register_loadpage_summary <- function(input, output, session, parent_session,
         data <- get_data()
         if (!is.null(data) && "Condition" %in% colnames(data)) {
           conditions <- unique(as.character(data$Condition))
-          # Same parser MSstatsResponse uses for timepoints (hours, with d/w
-          # for days/weeks). The user can correct values in the table.
           time_vals <- as.character(qc_tracer_timepoint_hours(conditions))
           time_vals[is.na(time_vals) | time_vals == "NA"] <- "?"
           meta_df <- data.frame(Condition = conditions,

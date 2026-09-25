@@ -1178,10 +1178,6 @@ test_that("a valid upload reaches the fit; no upload sends all 1s", {
                       turnover_conditions)
     }
 
-    # Names AND values AND order: calculateTurnoverRatios re-keys by name, so a
-    # correct-values/wrong-names vector silently mis-assigns every constant.
-    # The fit receives them keyed by condition index (its time column); the
-    # snapshot keeps the condition names for the generated script.
     expect_equal(capture$constants_seen,
                  stats::setNames(unname(expected),
                                  seq_along(turnover_conditions)),
