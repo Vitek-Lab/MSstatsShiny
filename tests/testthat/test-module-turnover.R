@@ -399,6 +399,27 @@ test_that("generate_analysis_code produces turnover-specific code for protein_tu
               info = "Turnover code should call visualizeResponseProtein")
   expect_true(grepl("calculateTurnoverRatios", result, fixed = TRUE),
               info = "Turnover code should recompute turnover ratios")
+  expect_true(grepl('ic50_label = "half-life"', result, fixed = TRUE))
+  expect_true(grepl('x_lab = "Time"', result, fixed = TRUE))
+  expect_true(grepl('y_lab = "Synthesis Ratio"', result, fixed = TRUE))
+  expect_true(grepl(": Turnover Plot", result, fixed = TRUE))
+})
+
+test_that("turnover_plot_y_label reflects the fit direction", {
+  expect_equal(MSstatsShiny:::turnover_plot_y_label(TRUE), "Synthesis Ratio")
+  expect_equal(MSstatsShiny:::turnover_plot_y_label(FALSE), "Degradation Ratio")
+})
+
+test_that("turnover_has_replicates detects conditions with multiple runs", {
+  single <- data.frame(GROUP = c("T0", "T4", "T8"), RUN = c("r1", "r2", "r3"))
+  expect_false(MSstatsShiny:::turnover_has_replicates(single))
+
+  # Repeated rows for the same run (e.g. several proteins) are not replicates
+  single_many_proteins <- rbind(single, single)
+  expect_false(MSstatsShiny:::turnover_has_replicates(single_many_proteins))
+
+  replicated <- data.frame(GROUP = c("T0", "T0", "T4"), RUN = c("r1", "r2", "r3"))
+  expect_true(MSstatsShiny:::turnover_has_replicates(replicated))
 })
 
 # ============================================================================

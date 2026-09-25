@@ -389,7 +389,11 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing,
     "  increasing = ", increasing, ",\n",
     "  precalculated_ratios = TRUE,\n",
     "  color_by = \"BaseSequence\",\n",
-    "  target_response = 0.5\n)\n"
+    "  target_response = 0.5,\n",
+    "  ic50_label = \"half-life\",\n",
+    "  x_lab = \"Time\",\n",
+    "  y_lab = \"", turnover_plot_y_label(increasing), "\",\n",
+    "  title = \"Enter protein name here: Turnover Plot\"\n)\n"
   )
 
   code
