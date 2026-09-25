@@ -700,6 +700,39 @@ test_that("a newline in the uploaded file name cannot break the provenance comme
   expect_silent(parse(text = code))
 })
 
+test_that("build_turnover_analysis_code maps GROUPs to metadata time values", {
+  conditions <- c("Control", "half hour", "2 days")
+  comp_mat <- data.frame(GROUP = conditions, TimeVal = c("0", "0.5", "?"),
+                         stringsAsFactors = FALSE)
+  code <- MSstatsShiny:::build_turnover_analysis_code(
+    list(assign_feature_weights = FALSE), comp_mat, increasing = TRUE,
+    tracer_constants = tracer_snapshot(stats::setNames(c(1, 0.9, 0.8), conditions)))
+
+  expect_true(grepl('time_col = "ConditionIndex"', code, fixed = TRUE))
+  expect_false(grepl('time_col = "GROUP"', code, fixed = TRUE))
+  expect_true(grepl("time_values = c(0, 0.5, NA)", code, fixed = TRUE))
+
+  env <- new.env()
+  env$summarized <- list(
+    ProteinLevelData = data.frame(GROUP = rep(conditions, each = 2),
+                                  RUN = 1:6, stringsAsFactors = FALSE))
+  env$calculateTurnoverRatios <- function(data, tracer_constants, ...) {
+    env$data_seen <- data
+    env$constants_seen <- tracer_constants
+    data.frame(Protein = "P1", TimeVal = c(1, 2, 3), H_frac = 0.5)
+  }
+  exprs <- as.list(parse(text = code))
+  stop_at <- which(vapply(exprs, function(e) {
+    grepl("calculatePeptideWeights|frac_col", paste(deparse(e), collapse = ""))
+  }, logical(1)))[1]
+  for (expr in exprs[seq_len(stop_at - 1)]) eval(expr, env)
+
+  expect_equal(env$data_seen$ConditionIndex, as.character(rep(1:3, each = 2)))
+  expect_equal(env$constants_seen, c("1" = 1, "2" = 0.9, "3" = 0.8))
+  expect_equal(env$turnover_ratios$GROUP, c("Control", "half hour"))
+  expect_equal(env$turnover_ratios$TimeVal, c(0, 0.5))
+})
+
 test_that("format_r_double emits the shortest form that reads back identically", {
   for (value in c(1, 0.9, 0.01, 0.5, 1/3, 2/7, 0.123, 0.4567)) {
     text <- MSstatsShiny:::format_r_double(value)
