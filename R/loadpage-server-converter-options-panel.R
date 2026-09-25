@@ -739,7 +739,7 @@ register_loadpage_converter_ui <- function(input, output, session,
                              app_template() == TEMPLATES$protein_turnover) {
       "FG.MS1Quantity"
     } else {
-      "F.NormalizedPeakArea"
+      "F.PeakArea"
     }
 
     textInput(session$ns("spec_intensity_col"),
