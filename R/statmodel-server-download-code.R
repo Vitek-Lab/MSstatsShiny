@@ -224,7 +224,8 @@ format_r_double <- function(value) {
 #' @param qc_input The QC module input list (the assign_feature_weights checkbox
 #'   lives here).
 #' @param comp_mat The turnover contrast matrix (GROUP + TimeVal columns); its
-#'   GROUP column supplies the condition names the tracer constants are keyed by.
+#'   GROUP column supplies the condition names the tracer constants are keyed by,
+#'   and its TimeVal column the time values the script assigns to each GROUP.
 #' @param increasing Logical passed through to the fit / visualization.
 #' @param tracer_constants Required, not defaulted: a list of `values` (named
 #'   numeric keyed by raw condition string), `source` (one of the
@@ -282,9 +283,33 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing,
                          vapply(tracer_vals, format_r_double, character(1)),
                          collapse = ",\n")
 
+  if (!("TimeVal" %in% colnames(comp_mat))) {
+    stop("Cannot generate reproducible code: the condition metadata has no ",
+         "TimeVal column. Enter time values on the Data Uploading page.")
+  }
+  time_vals <- suppressWarnings(as.numeric(as.character(comp_mat$TimeVal)))
+  time_literals <- ifelse(is.finite(time_vals),
+                          vapply(time_vals, format_r_double, character(1)),
+                          "NA")
+
   code <- paste0(
     "\n", build_tracer_provenance_comment(tracer_constants),
     "tracer_constants = c(\n", tracer_pairs, "\n)\n",
+
+    "\n# Time values (hours) from the condition time points table on the Data\n",
+    "# Uploading page, in the same order as tracer_constants.\n",
+    "time_values = c(", paste(time_literals, collapse = ", "), ")\n",
+
+    "\n# calculateTurnoverRatios parses its time column into TimeVal and matches\n",
+    "# tracer constants by that parsed time. Pass each condition's position\n",
+    "# instead, so every GROUP keeps its own time point and tracer constant.\n",
+    "conditions = names(tracer_constants)\n",
+    "index_tracer_constants = setNames(unname(tracer_constants), seq_along(conditions))\n",
+    "add_condition_index = function(data) {\n",
+    "  data = as.data.frame(data)\n",
+    "  data$ConditionIndex = as.character(match(as.character(data$GROUP), conditions))\n",
+    "  data\n",
+    "}\n",
 
     "\n# Calculate turnover (Heavy/Light) ratios. Use protein-level data when any\n",
     "# condition has replicate runs; otherwise fall back to feature-level data.\n",
@@ -292,19 +317,27 @@ build_turnover_analysis_code <- function(qc_input, comp_mat, increasing,
     "samples_per_condition = tapply(pld$RUN, pld$GROUP, function(x) length(unique(x)))\n",
     "if (any(samples_per_condition > 1, na.rm = TRUE)) {\n",
     "  turnover_ratios = calculateTurnoverRatios(\n",
-    "    summarized$ProteinLevelData,\n",
+    "    add_condition_index(summarized$ProteinLevelData),\n",
     "    channel_col = \"LABEL\", heavy_label = \"H\", light_label = \"L\",\n",
-    "    time_col = \"GROUP\", peptide_col = \"Protein\", protein_col = \"Protein\",\n",
+    "    time_col = \"ConditionIndex\", peptide_col = \"Protein\", protein_col = \"Protein\",\n",
     "    intensity_col = \"LogIntensities\", run_col = \"RUN\",\n",
-    "    agg_function = max, normalize_tracer = TRUE, tracer_constants = tracer_constants)\n",
+    "    agg_function = max, normalize_tracer = TRUE,\n",
+    "    tracer_constants = index_tracer_constants)\n",
     "} else {\n",
     "  turnover_ratios = calculateTurnoverRatios(\n",
-    "    summarized$FeatureLevelData,\n",
+    "    add_condition_index(summarized$FeatureLevelData),\n",
     "    channel_col = \"LABEL\", heavy_label = \"H\", light_label = \"L\",\n",
-    "    time_col = \"GROUP\", peptide_col = \"PEPTIDE\", protein_col = \"PROTEIN\",\n",
+    "    time_col = \"ConditionIndex\", peptide_col = \"PEPTIDE\", protein_col = \"PROTEIN\",\n",
     "    intensity_col = \"INTENSITY\", run_col = \"RUN\",\n",
-    "    agg_function = max, normalize_tracer = TRUE, tracer_constants = tracer_constants)\n",
-    "}\n"
+    "    agg_function = max, normalize_tracer = TRUE,\n",
+    "    tracer_constants = index_tracer_constants)\n",
+    "}\n",
+
+    "\n# Restore GROUP and replace the condition index with the real time values.\n",
+    "# Conditions without a time value are dropped.\n",
+    "turnover_ratios$GROUP = conditions[match(turnover_ratios$TimeVal, seq_along(conditions))]\n",
+    "turnover_ratios$TimeVal = time_values[match(turnover_ratios$GROUP, conditions)]\n",
+    "turnover_ratios = turnover_ratios[!is.na(turnover_ratios$TimeVal), ]\n"
   )
 
   if (weighting) {
