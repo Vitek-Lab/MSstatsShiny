@@ -415,7 +415,29 @@ prepare_turnover_for_dose_response <- function(ratios, add_zero_timepoint = FALS
   result
 }
 
+#' Check whether any condition has more than one sample (run)
+#'
+#' Designs where every condition has a single run are treated as
+#' single-replicate: turnover ratios fall back to feature-level data and the
+#' turnover fit results table is hidden.
+#'
+#' @param protein_level_data `preprocess_data()$ProteinLevelData`.
+#' @return TRUE when at least one GROUP has more than one unique RUN.
+#' @noRd
+turnover_has_replicates <- function(protein_level_data) {
+  samples_per_condition <- tapply(protein_level_data$RUN, protein_level_data$GROUP,
+                                  function(x) length(unique(x)))
+  any(samples_per_condition > 1)
+}
 
+#' Y-axis label for the turnover curve plot
+#'
+#' @param increasing Logical. TRUE for synthesis, FALSE for degradation.
+#' @return A character scalar.
+#' @noRd
+turnover_plot_y_label <- function(increasing) {
+  if (isTRUE(increasing)) "Synthesis Ratio" else "Degradation Ratio"
+}
 
 
 #' Prepare data for dose-response fitting

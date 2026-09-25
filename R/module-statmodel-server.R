@@ -401,8 +401,12 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                                type = "message", duration = 10)
             }
 
+            response_results$drug <- NULL
+
             list(ComparisonResult = response_results,
-                 TurnoverClassification = classification)
+                 TurnoverClassification = classification,
+                 HideFitResults = !turnover_has_replicates(
+                   preprocess_data()$ProteinLevelData))
           } else if (app_template() == TEMPLATES$chemoproteomics) {
             meta <- condition_metadata()
             req(!is.null(meta) && "DoseVal" %in% colnames(meta))
@@ -544,8 +548,11 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                 precalculated_ratios = TRUE,
                 color_by = "BaseSequence",
                 target_response = 0.5,
-                y_lab = "Turnover Ratio",
-                x_lab = "time (hrs)"
+                ic50_label = "half-life",
+                x_lab = "Time",
+                y_lab = turnover_plot_y_label(increasing),
+                title = paste0(input[[NAMESPACE_STATMODEL$visualization_which_protein]],
+                               ": Turnover Plot")
               )
             } else {
               visualizeResponseProtein(

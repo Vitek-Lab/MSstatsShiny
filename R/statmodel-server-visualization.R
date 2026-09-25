@@ -275,8 +275,11 @@ create_download_plot_handler <- function(output, input, contrast, preprocess_dat
                 precalculated_ratios = TRUE,
                 color_by = "BaseSequence",
                 target_response = 0.5,
-                y_lab = "Turnover Ratio",
-                x_lab = "time (hrs)"
+                ic50_label = "half-life",
+                x_lab = "Time",
+                y_lab = turnover_plot_y_label(increasing),
+                title = paste0(input[[NAMESPACE_STATMODEL$visualization_which_protein]],
+                               ": Turnover Plot")
               )
             } else {
               response_plot <- visualizeResponseProtein(

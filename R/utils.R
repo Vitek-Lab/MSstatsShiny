@@ -284,7 +284,7 @@ getFileExtension <- function(filename) {
 #' OR-test here keeps those gates in sync as new inputs are added.
 #'
 #' @param loadpage_input the resolved loadpage input list (NOT the
-#'   reactive — call it before passing in).
+#'   reactive - call it before passing in).
 #' @return logical(1)
 #' @keywords internal
 #' @noRd
@@ -357,10 +357,17 @@ getData <- function(input) {
                                              package = "MSstatsShiny"))
     }
     else if(input$BIO != "PTM" && input$DDA_DIA == "TMT"){
-      mydata = PDtoMSstatsTMTFormat(input = MSstatsTMT::raw.pd,
-                                    annotation = MSstatsTMT::annotation.pd,
-                                    which.proteinid = input$which.proteinid,
-                                    use_log_file = FALSE
+      mydata = PDtoMSstatsTMTFormat(
+        input = data.table::fread(
+          system.file("tinytest/raw_data/PDTMT/pdtmt_input.csv",
+                      package = "MSstatsConvert")
+          ),
+        annotation = data.table::fread(
+          system.file("tinytest/raw_data/PDTMT/pd_annotation.csv",
+                      package = "MSstatsConvert")
+        ),
+        which.proteinid = input$which.proteinid,
+        use_log_file = FALSE
       )
     }
     else if (input$BIO == "PTM"){ 
@@ -1004,7 +1011,7 @@ getData <- function(input) {
 
         if (isTRUE(input$diann_calculate_anomaly_scores) &&
             !is.null(input$diann_run_order_file)) {
-          # DIANN reports don't ship DeltaRT — engineer it from RT and
+          # DIANN reports don't ship DeltaRT - engineer it from RT and
           # Predicted.RT (raw DIANN column names, with dot) before the
           # converter standardizes column names. DIANNtoMSstatsFormat
           # then carries Ms1.Profile.Corr / Evidence / DeltaRT through
@@ -1464,7 +1471,7 @@ library(MSstatsPTM)\n", sep = "")
 
         if (isTRUE(input$diann_calculate_anomaly_scores)) {
           codes = paste(codes,
-                        "# DIANN does not ship a DeltaRT column — engineer\n",
+                        "# DIANN does not ship a DeltaRT column - engineer\n",
                         "# it from RT and Predicted.RT before the converter\n",
                         "# runs, so it can be carried through cleaning into\n",
                         "# MSstatsConvert::MSstatsAnomalyScores.\n",

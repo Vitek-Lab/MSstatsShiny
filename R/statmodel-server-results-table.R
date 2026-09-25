@@ -9,6 +9,9 @@ render_results_table = function(output, session, data_comparison, SignificantPro
   output$table_results = renderUI({
     req(data_comparison())
     req(SignificantProteins())
+    if (isTRUE(data_comparison()$HideFitResults)) {
+      return(NULL)
+    }
     tagList(
       tags$br(),
       h2("Results"),
@@ -55,10 +58,19 @@ render_turnover_confidence_table = function(output, session, data_comparison,
       h5("One row per protein. ", tags$code("confidence"), " combines the ",
          "per-peptide weights, the fit residuals, the light-channel QC score ",
          "and a shrinkage factor on heavy-peptide count. ",
-         tags$code("category"), " describes turnover behavior (fit, ",
-         "medium_lived, long_lived, fast, no_heavy) and ", tags$code("tier"),
-         " ranks scoring confidence (HIGH / MEDIUM / LOW). Proteins with no ",
-         "fit have NA scores."),
+         tags$code("tier"), " ranks scoring confidence (HIGH / MEDIUM / LOW).", 
+         "Proteins with no fit have NA scores."),
+      h5("Turnover speed is defined by the maximum heavy-isotope ",
+         "incorporation (", tags$code("max_observed_heavy_ratio"), ") ",
+         "observed for a protein:"),
+      tags$ul(
+        tags$li(tags$b("Slow"), " (", tags$code("long_lived"),
+                "): maximum incorporation below 30%"),
+        tags$li(tags$b("Medium"), " (", tags$code("medium_lived"),
+                "): maximum incorporation between 30% and 90%"),
+        tags$li(tags$b("Fast"), " (", tags$code("fast"),
+                "): maximum incorporation of 90% or more")
+      ),
       tags$br(),
       dataTableOutput(ns("turnover_confidence_table")),
       downloadButton(ns("download_turnover_confidence"),

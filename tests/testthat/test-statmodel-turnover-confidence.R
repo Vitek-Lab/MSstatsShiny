@@ -1,5 +1,3 @@
-context("Turnover confidence scoring and classification")
-
 make_prepared <- function(with_weight = TRUE) {
   prepared <- data.frame(
     protein      = rep(c("ProtA", "ProtB"), each = 6),
@@ -42,6 +40,7 @@ make_fit <- function() {
     F_statistic = c(20, 8),
     P_value     = c(0.001, 0.02),
     log2FC      = c(1.5, 0.8),
+    max_fitted_ratio = c(1.5,0.8),
     adj.pvalue  = c(0.002, 0.02),
     stringsAsFactors = FALSE
   )
@@ -115,8 +114,8 @@ test_that("classify_turnover_fit returns a confidence and tier per protein", {
   result <- MSstatsShiny:::classify_turnover_fit(
     make_prepared(), make_fit(), make_features())
 
-  expect_true(all(c("Protein", "qc_score", "mean_weight", "n_heavy_peptides",
-                    "confidence", "max_h_frac", "category", "tier") %in%
+  expect_true(all(c("Protein", "qc_score", "mean_peptide_weight", "n_heavy_peptides",
+                    "confidence", "max_observed_heavy_ratio", "category", "tier") %in%
                     colnames(result)))
   expect_setequal(result$Protein, c("ProtA", "ProtB", "ProtC"))
   expect_true(all(result$confidence >= 0 & result$confidence <= 1,
