@@ -252,8 +252,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
     )
     req(tracer_consts)
 
-    # Use ProteinLevelData when any condition has more than one sample (run);
-    # fall back to FeatureLevelData for purely single-replicate designs.
     pld <- preprocess_data()$ProteinLevelData
     use_protein_level <- turnover_has_replicates(pld)
 

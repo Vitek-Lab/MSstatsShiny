@@ -401,8 +401,6 @@ statmodelServer = function(id, parent_session, loadpage_input, qc_input,
                                type = "message", duration = 10)
             }
 
-            # The fit is still needed above for classification, but the
-            # "drug" column is always "time" for turnover and is not shown.
             response_results$drug <- NULL
 
             list(ComparisonResult = response_results,

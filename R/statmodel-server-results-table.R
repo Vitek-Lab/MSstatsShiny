@@ -9,7 +9,6 @@ render_results_table = function(output, session, data_comparison, SignificantPro
   output$table_results = renderUI({
     req(data_comparison())
     req(SignificantProteins())
-    # Turnover fits on single-replicate designs are not reported.
     if (isTRUE(data_comparison()$HideFitResults)) {
       return(NULL)
     }
