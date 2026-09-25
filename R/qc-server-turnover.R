@@ -2,6 +2,33 @@
 # tracer-constants CSV upload, the ratio calculation, the results table, and
 # the ratio CSV download.
 
+#' Add a ConditionIndex column: each GROUP's position in `conditions`, as a
+#' string calculateTurnoverRatios can parse as a timepoint.
+#' @noRd
+add_condition_index <- function(data, conditions) {
+  data <- as.data.frame(data, stringsAsFactors = FALSE)
+  data$ConditionIndex <- as.character(match(as.character(data$GROUP), conditions))
+  data
+}
+
+#' Replace TimeVal on turnover ratios with the condition metadata's TimeVal.
+#'
+#' Rows whose condition has no numeric time value (e.g. "?") are dropped.
+#'
+#' @param ratios Turnover ratios carrying a GROUP column.
+#' @param meta Condition metadata with Condition and TimeVal columns.
+#' @return `ratios` with TimeVal taken from `meta`.
+#' @noRd
+apply_condition_time_values <- function(ratios, meta) {
+  if (NROW(ratios) == 0 || is.null(meta) || !("TimeVal" %in% colnames(meta))) {
+    return(ratios)
+  }
+  time_vals <- suppressWarnings(as.numeric(meta$TimeVal))
+  ratios$TimeVal <- time_vals[match(as.character(ratios$GROUP),
+                                    as.character(meta$Condition))]
+  ratios[!is.na(ratios$TimeVal), ]
+}
+
 #' Register the QC Turnover Ratios tab outputs.
 #'
 #' @return a list with three elements: `ratios` (the display reactive, which
@@ -149,12 +176,6 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
       return()
     }
 
-    timepoint_errors <- qc_tracer_timepoint_errors(conditions)
-    if (length(timepoint_errors) > 0) {
-      reject(paste(timepoint_errors, collapse = " "))
-      return()
-    }
-
     uploaded <- stats::setNames(parsed$TracerConstant, as.character(parsed$GROUP))
     resolved <- tryCatch(
       qc_resolve_tracer_constants(conditions, uploaded),
@@ -255,13 +276,21 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
     pld <- preprocess_data()$ProteinLevelData
     use_protein_level <- turnover_has_replicates(pld)
 
+    # calculateTurnoverRatios parses its time column into TimeVal and keys the
+    # tracer constants by that parsed time. Passing each condition's index
+    # instead keeps one timepoint (and one tracer constant) per GROUP, whatever
+    # the condition is named. GROUP is restored below, and TimeVal is taken
+    # from the condition metadata in turnover_ratios_display().
+    index_tracer_consts <- stats::setNames(
+      unname(tracer_consts), match(names(tracer_consts), conditions))
+
     ratios <- if (use_protein_level) {
       calculateTurnoverRatios(
-        pld,
+        add_condition_index(pld, conditions),
         channel_col      = "LABEL",
         heavy_label      = "H",
         light_label      = "L",
-        time_col         = "GROUP",
+        time_col         = "ConditionIndex",
         peptide_col      = "Protein",
         protein_col      = "Protein",
         intensity_col    = "LogIntensities",
@@ -269,15 +298,15 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
         peptide_selector = NULL,
         agg_function     = max,
         normalize_tracer = TRUE,
-        tracer_constants = tracer_consts
+        tracer_constants = index_tracer_consts
       )
     } else {
       calculateTurnoverRatios(
-        preprocess_data()$FeatureLevelData,
+        add_condition_index(preprocess_data()$FeatureLevelData, conditions),
         channel_col      = "LABEL",
         heavy_label      = "H",
         light_label      = "L",
-        time_col         = "GROUP",
+        time_col         = "ConditionIndex",
         peptide_col      = "PEPTIDE",
         protein_col      = "PROTEIN",
         intensity_col    = "INTENSITY",
@@ -285,8 +314,11 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
         peptide_selector = NULL,
         agg_function     = max,
         normalize_tracer = TRUE,
-        tracer_constants = tracer_consts
+        tracer_constants = index_tracer_consts
       )
+    }
+    if (NROW(ratios) > 0) {
+      ratios$GROUP <- conditions[match(ratios$TimeVal, seq_along(conditions))]
     }
 
     tracer_constants_used(list(
@@ -309,6 +341,10 @@ register_qc_turnover <- function(input, output, session, app_template, get_data,
     ratios <- turnover_ratios()
     req(ratios)
     req(tracer_constants_used())
+    # Read here rather than in turnover_ratios() so TimeVal edits on the Data
+    # Uploading page apply without re-running summarization.
+    meta <- if (is.null(get_condition_metadata)) NULL else get_condition_metadata()
+    ratios <- apply_condition_time_values(ratios, meta)
     if (isTRUE(input[[NAMESPACE_QC$assign_feature_weights]]) && nrow(ratios) > 0) {
       calculatePeptideWeights(ratios)
     } else {

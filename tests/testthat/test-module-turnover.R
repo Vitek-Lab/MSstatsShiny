@@ -1180,7 +1180,12 @@ test_that("a valid upload reaches the fit; no upload sends all 1s", {
 
     # Names AND values AND order: calculateTurnoverRatios re-keys by name, so a
     # correct-values/wrong-names vector silently mis-assigns every constant.
-    expect_equal(capture$constants_seen, expected, info = label)
+    # The fit receives them keyed by condition index (its time column); the
+    # snapshot keeps the condition names for the generated script.
+    expect_equal(capture$constants_seen,
+                 stats::setNames(unname(expected),
+                                 seq_along(turnover_conditions)),
+                 info = label)
     expect_equal(capture$snapshot$values, expected, info = label)
     expect_identical(capture$snapshot$source, case$source, info = label)
     # The ProteinLevelData branch, not the FeatureLevelData one: the harness
@@ -1226,7 +1231,49 @@ test_that("the FeatureLevelData branch also receives the tracer constants", {
   expect_true("INTENSITY" %in% names(capture$data_seen))
   expect_false("LogIntensities" %in% names(capture$data_seen))
 
-  expect_equal(capture$constants_seen, expected)
+  expect_equal(capture$constants_seen,
+               stats::setNames(unname(expected), seq_along(turnover_conditions)))
+})
+
+test_that("each GROUP gets its own index as the fit's time column", {
+  ctx <- with_stubbed_fit()
+  capture <- ctx$capture
+  server <- tracer_run_server(capture)
+  mockery::stub(server, "calculateTurnoverRatios", ctx$fit, depth = 2)
+
+  testServer(server, {
+    session$setInputs(run = 1)
+  })
+
+  seen <- capture$data_seen
+  expect_equal(seen$ConditionIndex,
+               as.character(match(seen$GROUP, turnover_conditions)))
+})
+
+test_that("apply_condition_time_values uses the metadata TimeVal per GROUP", {
+  ratios <- data.frame(Protein = "P1", GROUP = c("A", "B", "C"),
+                       TimeVal = c(1, 2, 3), H_frac = 0.5,
+                       stringsAsFactors = FALSE)
+  meta <- data.frame(Condition = c("A", "B", "C"),
+                     TimeVal = c("0", "0.5", "?"),
+                     stringsAsFactors = FALSE)
+
+  result <- MSstatsShiny:::apply_condition_time_values(ratios, meta)
+
+  # Decimals survive, and a condition without a numeric time value is dropped.
+  expect_equal(result$GROUP, c("A", "B"))
+  expect_equal(result$TimeVal, c(0, 0.5))
+
+  # Metadata without a TimeVal column leaves the ratios untouched.
+  expect_identical(
+    MSstatsShiny:::apply_condition_time_values(ratios, meta["Condition"]),
+    ratios)
+})
+
+test_that("add_condition_index numbers GROUPs by metadata order", {
+  data <- data.frame(GROUP = c("24h", "0h", "24h"), stringsAsFactors = FALSE)
+  result <- MSstatsShiny:::add_condition_index(data, c("0h", "24h"))
+  expect_equal(result$ConditionIndex, c("2", "1", "2"))
 })
 
 test_that("rejection messages name the tracer file, not the GROUP mapping upload", {
