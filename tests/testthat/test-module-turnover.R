@@ -1266,6 +1266,16 @@ test_that("apply_condition_time_values uses the metadata TimeVal per GROUP", {
     ratios)
 })
 
+test_that("autofill_turnover_time_hours only reads a unit right after the number", {
+  hours <- function(x) MSstatsShiny:::autofill_turnover_time_hours(x)
+  expect_equal(hours(c("0hr", "1hr", "12hrs", "168hrs")), c(0, 1, 12, 168))
+  expect_equal(hours(c("1d", "2 days", "2w", "3weeks", "1wk")),
+               c(24, 48, 336, 504, 168))
+  expect_equal(hours(c("6h_treated", "24h_washout", "6h_drug")), c(6, 24, 6))
+  expect_equal(hours(c("1dose", "2wt")), c(1, 2))
+  expect_true(all(is.na(hours(c("Time_0h", NA_character_)))))
+})
+
 test_that("add_condition_index numbers GROUPs by metadata order", {
   data <- data.frame(GROUP = c("24h", "0h", "24h"), stringsAsFactors = FALSE)
   result <- MSstatsShiny:::add_condition_index(data, c("0h", "24h"))

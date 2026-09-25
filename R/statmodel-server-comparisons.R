@@ -60,6 +60,30 @@ autofill_condition_value <- function(conditions) {
   value
 }
 
+#' Auto-fill turnover time values (hours) from condition names
+#'
+#' Like MSstatsResponse's parse_timepoint(), the number must lead the name and
+#' "d"/"w" units scale it to days/weeks. Unlike parse_timepoint(), a unit only
+#' counts when it immediately follows the number and is not followed by more
+#' letters, so a "d" or "w" later in the name ("6h_treated", "1dose") does not
+#' change the time.
+#'
+#' @param conditions Character vector of condition names.
+#' @return Numeric vector of hours; NA where no leading number is found.
+#' @noRd
+#' @importFrom stringr str_extract str_detect
+autofill_turnover_time_hours <- function(conditions) {
+  conditions <- as.character(conditions)
+  hours <- suppressWarnings(as.numeric(str_extract(conditions, "^[0-9]+")))
+  is_days <- str_detect(conditions, "^[0-9]+\\s*(d|days?)(?![a-zA-Z])")
+  is_weeks <- str_detect(conditions, "^[0-9]+\\s*(w|wks?|weeks?)(?![a-zA-Z])")
+  is_days[is.na(is_days)] <- FALSE
+  is_weeks[is.na(is_weeks)] <- FALSE
+  hours[is_days] <- hours[is_days] * 24
+  hours[is_weeks] <- hours[is_weeks] * 24 * 7
+  hours
+}
+
 #' Get experimental conditions from preprocessed data
 #'
 #' @param loadpage_input List containing BIO, DDA_DIA, and filetype parameters
