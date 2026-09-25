@@ -52,9 +52,11 @@ register_qc_plots <- function(input, output, session, loadpage_input, get_data,
                   label    = h5("Quality metric"),
                   choices  = metric_cols,
                   selected = metric_cols[1]),
-      selectizeInput(ns("qm_protein"),
-                     label   = h5("Show plot for"),
-                     choices = c("", protein_choices))
+      copyable_select(
+        selectizeInput(ns("qm_protein"),
+                       label   = h5("Show plot for"),
+                       choices = c("", protein_choices)),
+        "Copy analyte name")
     )
   })
 
@@ -70,21 +72,29 @@ register_qc_plots <- function(input, output, session, loadpage_input, get_data,
       error = function(e) NULL)
     if ((loadpage_input()$BIO!="PTM" && input$qc_page_plot_type == "QCPlot")) {
       req(length(protein_choices) > 0)
-      selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
-                     choices = c("", "ALL ANALYTES" = "allonly", protein_choices))
+      copyable_select(
+        selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
+                       choices = c("", "ALL ANALYTES" = "allonly", protein_choices)),
+        "Copy analyte name")
     } else if (loadpage_input()$BIO == "PTM"){
       if (input$qc_page_plot_type == "QCPlot"){
-        selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
-                       choices = c("", "ALL ANALYTES" = "allonly",
-                                   unique(get_data()$PTM$ProteinName)))
+        copyable_select(
+          selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
+                         choices = c("", "ALL ANALYTES" = "allonly",
+                                     unique(get_data()$PTM$ProteinName))),
+          "Copy analyte name")
       } else {
-        selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
-                       choices = c("", unique(get_data()$PTM$ProteinName)))
+        copyable_select(
+          selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
+                         choices = c("", unique(get_data()$PTM$ProteinName))),
+          "Copy analyte name")
       }
     } else {
       req(length(protein_choices) > 0)
-      selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
-                     choices = c("", protein_choices))
+      copyable_select(
+        selectizeInput(ns("which_protein_for_data_process_plots"), "Show plot for",
+                       choices = c("", protein_choices)),
+        "Copy analyte name")
     }
   })
 
