@@ -34,17 +34,27 @@ test_that("copyable_select carries the JS/CSS dependency", {
   dep <- deps[[which(names == "msstatsshiny-copyable-select")]]
   expect_equal(dep$script, "copy-select.js")
   expect_equal(dep$stylesheet, "copy-select.css")
+  # the files the dependency points at must actually ship with the package
+  expect_true(file.exists(file.path(dep$src$file, dep$script)))
+  expect_true(file.exists(file.path(dep$src$file, dep$stylesheet)))
 })
 
 test_that("the tooltip is used as both the accessible name and the live region", {
   wrapped <- MSstatsShiny:::copyable_select(
     shiny::selectInput("p", "l", c("A", "B")), "Copy analyte name")
-  html <- html_of(wrapped)
+  btn <- htmltools::tagQuery(wrapped)$find(".copyable-select-btn")
+  tip <- htmltools::tagQuery(wrapped)$find(".copyable-select-btn > .copyable-select-tip")
 
-  expect_true(grepl('aria-label="Copy analyte name"', html, fixed = TRUE))
-  # role/aria-live are what let the flashed "Copied" reach a screen reader
-  expect_true(grepl('role="status"', html, fixed = TRUE))
-  expect_true(grepl('aria-live="polite"', html, fixed = TRUE))
+  expect_equal(btn$length(), 1L)
+  expect_equal(btn$selectedTags()[[1]]$attribs$`aria-label`, "Copy analyte name")
+  # role/aria-live are what let the flashed "Copied" reach a screen reader;
+  # "Copied" itself is written by copy-select.js, so only the initial text
+  # is checkable here
+  expect_equal(tip$length(), 1L)
+  tip_tag <- tip$selectedTags()[[1]]
+  expect_equal(tip_tag$attribs$role, "status")
+  expect_equal(tip_tag$attribs$`aria-live`, "polite")
+  expect_equal(unlist(tip_tag$children), "Copy analyte name")
 })
 
 test_that("copyable_select rejects anything but exactly one select", {
