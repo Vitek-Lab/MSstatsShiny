@@ -1,6 +1,10 @@
 # QC Summarization Plots tab: plot-type and protein selectors, the
 # profile/QC/quality-metric plot builders, and the plot output.
 
+# Width in pixels of the Plotly canvas for the MSstats profile and QC plots,
+# matching the minimum width of the container they are rendered into.
+QC_PLOT_WIDTH = 1600
+
 #' Register the QC Summarization Plots tab outputs.
 #' @noRd
 register_qc_plots <- function(input, output, session, loadpage_input, get_data,
@@ -122,6 +126,7 @@ register_qc_plots <- function(input, output, session, loadpage_input, get_data,
                          originalPlot = original,
                          summaryPlot = input$summ,
                          save_condition_plot_result = FALSE,
+                         width = QC_PLOT_WIDTH,
                          address = FALSE,
                          isPlotly = TRUE
 
@@ -162,7 +167,7 @@ register_qc_plots <- function(input, output, session, loadpage_input, get_data,
     op <- div(
       style = "overflow-x: auto; width: 100%;",
       div(
-        style = "min-width: 1400px;",
+        style = paste0("min-width: ", QC_PLOT_WIDTH, "px;"),
         plotlyOutput(ns("theplot"), width = "100%")
       )
     )
