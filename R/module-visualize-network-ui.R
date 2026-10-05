@@ -70,7 +70,7 @@ createDisplayLabelRadioButtons <- function(ns) {
     radioButtons(ns("displayLabelType"),
                  label = NULL,  # Remove since we're handling it above
                  choices = list("Protein Name" = "id",
-                                "Gene Name" = "entityName"),
+                                "Gene Name" = "entity_name"),
                  selected = "id")
   )
 }

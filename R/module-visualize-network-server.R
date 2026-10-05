@@ -346,7 +346,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison,
                          selected = "Metabolite")
       updateRadioButtons(session, "displayLabelType",
                          choices = list("Metabolite Name" = "id",
-                                        "Standardized Name" = "entityName"),
+                                        "Standardized Name" = "entity_name"),
                          selected = "id")
       shinyjs::hide("filter_by_ptm_site")
     } else {
@@ -356,7 +356,7 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison,
                          selected = "Uniprot")
       updateRadioButtons(session, "displayLabelType",
                          choices = list("Protein Name" = "id",
-                                        "Gene Name" = "entityName"),
+                                        "Gene Name" = "entity_name"),
                          selected = "id")
       shinyjs::show("filter_by_ptm_site")
     }
