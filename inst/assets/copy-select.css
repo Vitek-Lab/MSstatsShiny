@@ -1,0 +1,68 @@
+/* Styles for the copy buttons. Self-contained because expdesUI() does not
+   load assets/style.css. */
+
+.copyable-select {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.copyable-select > .form-group,
+.copyable-select > .shiny-input-container {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-bottom: 15px;
+}
+
+.copyable-select-btn {
+  position: relative;
+  flex: 0 0 auto;
+  margin-bottom: 15px;
+  height: 34px;
+  width: 34px;
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.copyable-select-btn:hover:not(:disabled) {
+  background-color: #e6e6e6;
+}
+
+.copyable-select-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.copyable-select-tip {
+  display: block;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  margin-bottom: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background-color: #333;
+  color: #fff;
+  font-size: 10px;
+  font-weight: normal;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.copyable-select-btn:hover:not(:disabled) .copyable-select-tip,
+.copyable-select-btn:focus-visible .copyable-select-tip,
+.copyable-select-btn.is-showing-message .copyable-select-tip {
+  visibility: visible;
+  opacity: 1;
+}

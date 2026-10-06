@@ -90,11 +90,13 @@ expdesServer <- function(input, output, session, parent_session, loadpage_input,
 
       tagList(
         h4("Dose response power analysis"),
-        selectizeInput(ns(NAMESPACE_EXPDES$protein_select),
-                       label = h5("Select protein template"),
-                       choices = protein_choices,
-                       options = list(placeholder = "Search protein..."),
-                       multiple = FALSE),
+        copyable_select(
+          selectizeInput(ns(NAMESPACE_EXPDES$protein_select),
+                         label = h5("Select protein template"),
+                         choices = protein_choices,
+                         options = list(placeholder = "Search protein..."),
+                         multiple = FALSE),
+          "Copy protein name"),
         sliderInput(ns(NAMESPACE_EXPDES$rep_range),
                     "Replicates per dose",
                     min = 1, max = 10, value = c(1, 5), step = 1),
