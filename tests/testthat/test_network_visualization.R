@@ -265,6 +265,14 @@ test_that("UI component functions create proper HTML structure", {
   }
 })
 
+test_that("display label radio buttons offer the MSstatsBioNet column names", {
+  # MSstatsBioNet deprecated displayLabelType = "entityName" for "entity_name"
+  html <- as.character(createDisplayLabelRadioButtons(NS("test")))
+  expect_match(html, 'value="id"', fixed = TRUE)
+  expect_match(html, 'value="entity_name"', fixed = TRUE)
+  expect_false(grepl('value="entityName"', html, fixed = TRUE))
+})
+
 # =============================================================================
 # MOCK SESSION TESTS
 # =============================================================================
