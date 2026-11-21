@@ -129,7 +129,7 @@ createFilterDropdowns <- function(ns) {
       selectInput(ns("statementTypes"),
                   label = NULL,  # Remove since we're handling it above
                   choices = list("All Types" = "all",
-                                 "Complex" = "Complex",
+                                 "Binding" = "Binding",
                                  "Inhibition" = "Inhibition", 
                                  "Activation" = "Activation",
                                  "Increase Amount" = "IncreaseAmount",
