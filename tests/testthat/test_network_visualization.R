@@ -39,7 +39,7 @@ create_mock_subnetwork_edges <- function() {
   data.frame(
     source = c("TP53", "MDM2", "ATM", "TP53"),
     target = c("MDM2", "TP53", "TP53", "BRCA1"),
-    interaction = c("Inhibition", "Activation", "Phosphorylation", "Complex"),
+    interaction = c("Inhibition", "Activation", "Phosphorylation", "Binding"),
     evidenceCount = c(15, 8, 12, 5),
     evidenceLink = c("link1", "link2", "link3", "link4"),
     source_counts = c("{reach:10, signor:5}", "{reach:5,biopax:3}", "{reach:8,phosphoelm:4}", "{biopax:5}"),

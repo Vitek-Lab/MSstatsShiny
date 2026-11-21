@@ -790,8 +790,8 @@ visualizeNetworkServer <- function(id, parent_session, dataComparison,
       edge_data$interaction
     )
 
-    # Complex edges are stored bidirectionally, so also remove the reverse direction
-    if (identical(edge_data$interaction, "Complex")) {
+    # Binding edges are stored bidirectionally, so also remove the reverse direction
+    if (identical(edge_data$interaction, "Binding")) {
       reverse_edge_data <- list(
         source = edge_data$target,
         target = edge_data$source,
